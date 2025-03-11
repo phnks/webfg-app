@@ -1,0 +1,33 @@
+type Attributes {
+  strength: AttributeValue!
+  agility: AttributeValue!
+  dexterity: AttributeValue!
+  endurance: AttributeValue!
+  intelligence: AttributeValue!
+  charisma: AttributeValue!
+  perception: AttributeValue!
+  resolve: AttributeValue!
+}
+
+type AttributeValue {
+  base: Int!
+  current: Int!
+  max: Int!
+}
+
+input AttributesInput {
+  strength: AttributeValueInput!
+  agility: AttributeValueInput!
+  dexterity: AttributeValueInput!
+  endurance: AttributeValueInput!
+  intelligence: AttributeValueInput!
+  charisma: AttributeValueInput!
+  perception: AttributeValueInput!
+  resolve: AttributeValueInput!
+}
+
+input AttributeValueInput {
+  base: Int!
+  current: Int!
+  max: Int!
+} 

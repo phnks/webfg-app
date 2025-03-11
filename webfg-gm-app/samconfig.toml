@@ -1,0 +1,9 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "webfg-gm-app"
+resolve_s3 = true
+s3_prefix = "webfg-gm-app"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "DomainName=\"\" Environment=\"prod\""
+image_repositories = []

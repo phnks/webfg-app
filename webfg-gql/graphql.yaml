@@ -1,0 +1,865 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Nested template for databases'
+
+Parameters:
+  ServiceName:
+    Type: String
+    Description: 'Name of the service'
+  AppSyncApiName:
+    Type: String
+    Description: 'Name for the AppSync API'
+  CharactersDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+  ObjectsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+  ActionsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+  CharactersTableName:
+    Type: String
+    Description: 'Name of table'
+  ObjectsTableName:
+    Type: String
+    Description: 'Name of table'
+  ActionsTableName:
+    Type: String
+    Description: 'Name of table'
+  PhnksCertArn:
+    Type: String
+    Description: 'ARN of the certificate for the custom domain'
+  PhnksHostedZoneId:
+    Type: String
+    Description: 'Hosted Zone ID for the custom domain'
+  DomainName:
+    Type: String
+    Description: 'Domain name of the service'
+  SchemaS3Key:
+    Type: String
+    Description: S3 key for the GraphQL schema file
+  SchemaS3BucketName:
+    Type: String
+    Description: "Name of the S3 bucket containing the GraphQL schema"
+
+Resources:
+  GraphQLApi:
+    Type: AWS::AppSync::GraphQLApi
+    Properties:
+      Name: !Ref AppSyncApiName
+      AuthenticationType: API_KEY
+      AdditionalAuthenticationProviders: []
+      XrayEnabled: true
+
+  GraphQLApiKey:
+    Type: AWS::AppSync::ApiKey
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Expires: 1771131600
+
+  GraphQLSchema:
+    Type: AWS::AppSync::GraphQLSchema
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      DefinitionS3Location: !Sub "s3://${SchemaS3BucketName}/${SchemaS3Key}"
+
+  CharactersDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: !Ref CharactersDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref CharactersTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  ObjectsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: !Ref ObjectsDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref ObjectsTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  ActionsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: !Ref ActionsDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref ActionsTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  AppSyncDynamoDBRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: appsync.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AppSyncDynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:BatchGetItem
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CharactersTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ObjectsTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ActionsTableName}
+
+  GetCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'getCharacter'
+      DataSourceName: !Ref CharactersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "characterId": $util.dynamodb.toDynamoDBJson($ctx.args.characterId)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+    DependsOn: CharactersDataSource
+
+  ListCharactersResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'listCharacters'
+      DataSourceName: !Ref CharactersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          #if($ctx.args.filter)
+            "filter": #set($filters = {})
+              #if($ctx.args.filter.name)
+                #if($ctx.args.filter.name.eq)
+                  #set($filters.name = {"eq": $ctx.args.filter.name.eq})
+                #end
+                #if($ctx.args.filter.name.contains)
+                  #set($filters.name = {"contains": $ctx.args.filter.name.contains})
+                #end
+                #if($ctx.args.filter.name.beginsWith)
+                  #set($filters.name = {"beginsWith": $ctx.args.filter.name.beginsWith})
+                #end
+              #end
+              #if($ctx.args.filter.race)
+                #set($filters.race = {"eq": $ctx.args.filter.race})
+              #end
+              $util.toJson($filters)
+          #end
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result.items)'
+    DependsOn: CharactersDataSource
+
+  ListCharactersByRaceResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'listCharactersByRace'
+      DataSourceName: !Ref CharactersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          "filter": {
+            "expression": "#race = :race",
+            "expressionNames": {
+              "#race": "race"
+            },
+            "expressionValues": {
+              ":race": $util.dynamodb.toDynamoDBJson($ctx.args.race)
+            }
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result.items)'
+    DependsOn: CharactersDataSource
+
+  CreateCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Mutation'
+      FieldName: 'createCharacter'
+      DataSourceName: !Ref CharactersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "key": {
+            "characterId": $util.dynamodb.toDynamoDBJson($util.autoId())
+          },
+          "attributeValues": {
+            "characterId": $util.dynamodb.toDynamoDBJson($util.autoId()),
+            "name": $util.dynamodb.toDynamoDBJson($ctx.args.name),
+            "race": $util.dynamodb.toDynamoDBJson($ctx.args.race),
+            "attributes": $util.dynamodb.toDynamoDBJson($ctx.args.attributes),
+            "skills": $util.dynamodb.toDynamoDBJson($ctx.args.skills),
+            "stats": $util.dynamodb.toDynamoDBJson($ctx.args.stats),
+            "physical": $util.dynamodb.toDynamoDBJson($ctx.args.physical),
+            "conditions": $util.dynamodb.toDynamoDBJson([]),
+            "inventory": $util.dynamodb.toDynamoDBJson([]),
+            "equipped": $util.dynamodb.toDynamoDBJson(null),
+            "calculated": $util.dynamodb.toDynamoDBJson(null)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+    DependsOn: CharactersDataSource
+
+  UpdateCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Mutation'
+      FieldName: 'updateCharacter'
+      DataSourceName: !Ref CharactersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "characterId": $util.dynamodb.toDynamoDBJson($ctx.args.characterId)
+          },
+          "update": {
+            "expression": "SET #name = :name, #attributes = :attributes, #skills = :skills, #stats = :stats, #physical = :physical, #conditions = :conditions, #inventory = :inventory, #equipped = :equipped",
+            "expressionNames": {
+              "#name": "name",
+              "#attributes": "attributes",
+              "#skills": "skills",
+              "#stats": "stats",
+              "#physical": "physical",
+              "#conditions": "conditions",
+              "#inventory": "inventory",
+              "#equipped": "equipped"
+            },
+            "expressionValues": {
+              ":name": $util.dynamodb.toDynamoDBJson($ctx.args.name),
+              ":attributes": $util.dynamodb.toDynamoDBJson($ctx.args.attributes),
+              ":skills": $util.dynamodb.toDynamoDBJson($ctx.args.skills),
+              ":stats": $util.dynamodb.toDynamoDBJson($ctx.args.stats),
+              ":physical": $util.dynamodb.toDynamoDBJson($ctx.args.physical),
+              ":conditions": $util.dynamodb.toDynamoDBJson($ctx.args.conditions),
+              ":inventory": $util.dynamodb.toDynamoDBJson($ctx.args.inventory),
+              ":equipped": $util.dynamodb.toDynamoDBJson($ctx.args.equipped)
+            }
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+    DependsOn: CharactersDataSource
+
+  DeleteCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Mutation'
+      FieldName: 'deleteCharacter'
+      DataSourceName: !Ref CharactersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "DeleteItem",
+          "key": {
+            "characterId": $util.dynamodb.toDynamoDBJson($ctx.args.characterId)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+    DependsOn: CharactersDataSource
+
+  AppSyncDomainName:
+    Type: AWS::AppSync::DomainName
+    Properties:
+      DomainName: !Sub '${ServiceName}.${DomainName}'
+      CertificateArn: !Ref PhnksCertArn
+
+  AppSyncDomainNameApiAssociation:
+    Type: AWS::AppSync::DomainNameApiAssociation
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      DomainName: !Sub '${ServiceName}.${DomainName}'
+
+  AppSyncDomainRecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref PhnksHostedZoneId
+      Name: !Sub '${ServiceName}.${DomainName}.'
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt AppSyncDomainName.AppSyncDomainName
+        HostedZoneId: !GetAtt AppSyncDomainName.HostedZoneId
+
+  GetCharacterActionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: ./functions/getCharacterActions.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          ACTIONS_TABLE: !Ref ActionsTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ActionsTableName
+
+  AppSyncLambdaServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: appsync.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs
+      Policies:
+        - PolicyName: InvokeLambdaFunction
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: 
+                  - !GetAtt GetCharacterActionsFunction.Arn
+                  - !GetAtt GetCharacterInventoryFunction.Arn
+                  - !GetAtt GetCharacterEquipmentFunction.Arn
+                  - !GetAtt AddObjectToInventoryFunction.Arn
+                  - !GetAtt AddActionToCharacterFunction.Arn
+                  
+  CharacterActionsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: CharacterActionsLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt GetCharacterActionsFunction.Arn
+
+  CharacterActionsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Character'
+      FieldName: 'actions'
+      DataSourceName: !GetAtt CharacterActionsDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson({
+            "source": $context.source
+          })
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($context.result)
+    DependsOn: 
+      - CharacterActionsDataSource
+      - GraphQLSchema
+
+  GetCharacterInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: ./functions/getCharacterInventory.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          OBJECTS_TABLE: !Ref ObjectsTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ObjectsTableName
+
+  CharacterInventoryDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: CharacterInventoryLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt GetCharacterInventoryFunction.Arn
+
+  CharacterInventoryResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Character'
+      FieldName: 'inventory'
+      DataSourceName: !GetAtt CharacterInventoryDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "source": $util.toJson($context.source)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($context.result)
+    DependsOn: 
+      - CharacterInventoryDataSource
+      - GraphQLSchema
+
+  GetCharacterEquipmentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: ./functions/getCharacterEquipment.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          OBJECTS_TABLE: !Ref ObjectsTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ObjectsTableName
+
+  CharacterEquipmentDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: CharacterEquipmentLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt GetCharacterEquipmentFunction.Arn
+
+  CharacterEquipmentResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Character'
+      FieldName: 'equipment'
+      DataSourceName: !GetAtt CharacterEquipmentDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "source": $util.toJson($context.source)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($context.result)
+    DependsOn: 
+      - CharacterEquipmentDataSource
+      - GraphQLSchema
+
+  GetObjectResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'getObject'
+      DataSourceName: !Ref ObjectsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+    DependsOn: 
+      - ObjectsDataSource
+      - GraphQLSchema
+
+  ListObjectsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'listObjects'
+      DataSourceName: !Ref ObjectsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          #if($ctx.args.filter)
+            "filter": #set($filters = {})
+              #if($ctx.args.filter.name)
+                #if($ctx.args.filter.name.eq)
+                  #set($filters.name = {"eq": $ctx.args.filter.name.eq})
+                #end
+                #if($ctx.args.filter.name.contains)
+                  #set($filters.name = {"contains": $ctx.args.filter.name.contains})
+                #end
+                #if($ctx.args.filter.name.beginsWith)
+                  #set($filters.name = {"beginsWith": $ctx.args.filter.name.beginsWith})
+                #end
+              #end
+              #if($ctx.args.filter.type)
+                #set($filters.type = {"eq": $ctx.args.filter.type})
+              #end
+              #if($ctx.args.filter.fit)
+                #set($filters.fit = {"eq": $ctx.args.filter.fit})
+              #end
+              #if($ctx.args.filter.maxWeight)
+                #set($filters.weight = {"lte": $ctx.args.filter.maxWeight})
+              #end
+              $util.toJson($filters)
+          #end
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result.items)'
+    DependsOn: 
+      - ObjectsDataSource
+      - GraphQLSchema
+
+  GetActionResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'getAction'
+      DataSourceName: !Ref ActionsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "actionId": $util.dynamodb.toDynamoDBJson($ctx.args.actionId)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+    DependsOn: 
+      - ActionsDataSource
+      - GraphQLSchema
+    
+  ListActionsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'listActions'
+      DataSourceName: !Ref ActionsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          #if($ctx.args.filter)
+            "filter": #set($filters = {})
+              #if($ctx.args.filter.name)
+                #if($ctx.args.filter.name.eq)
+                  #set($filters.name = {"eq": $ctx.args.filter.name.eq})
+                #end
+                #if($ctx.args.filter.name.contains)
+                  #set($filters.name = {"contains": $ctx.args.filter.name.contains})
+                #end
+                #if($ctx.args.filter.name.beginsWith)
+                  #set($filters.name = {"beginsWith": $ctx.args.filter.name.beginsWith})
+                #end
+              #end
+              #if($ctx.args.filter.type)
+                #set($filters.type = {"eq": $ctx.args.filter.type})
+              #end
+              $util.toJson($filters)
+          #end
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result.items)'
+    DependsOn: 
+      - ActionsDataSource
+      - GraphQLSchema
+
+  # Object Mutation Resolvers
+  CreateObjectResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Mutation
+      FieldName: createObject
+      DataSourceName: !Ref ObjectsDataSourceName
+      RequestMappingTemplate: |
+        ## Automatically generate an ID if one is not provided
+        #set($objectId = $util.autoId())
+        
+        ## Set up the DynamoDB operation
+        {
+          "version": "2018-05-29",
+          "operation": "PutItem",
+          "key": {
+            "objectId": $util.dynamodb.toDynamoDBJson($objectId)
+          },
+          "attributeValues": {
+            "name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
+            "type": $util.dynamodb.toDynamoDBJson($ctx.args.input.type),
+            "fit": $util.dynamodb.toDynamoDBJson($ctx.args.input.fit),
+            "weight": $util.dynamodb.toDynamoDBJson($ctx.args.input.weight),
+            "noise": $util.dynamodb.toDynamoDBJson($ctx.args.input.noise),
+            "hitPoints": $util.dynamodb.toDynamoDBJson($ctx.args.input.hitPoints),
+            "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  UpdateObjectResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Mutation
+      FieldName: updateObject
+      DataSourceName: !Ref ObjectsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "UpdateItem",
+          "key": {
+            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
+          },
+          "update": {
+            "expression": "SET #name = :name, #type = :type, #fit = :fit, #weight = :weight, #noise = :noise, #hitPoints = :hitPoints",
+            "expressionNames": {
+              "#name": "name",
+              "#type": "type",
+              "#fit": "fit",
+              "#weight": "weight",
+              "#noise": "noise",
+              "#hitPoints": "hitPoints"
+            },
+            "expressionValues": {
+              ":name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
+              ":type": $util.dynamodb.toDynamoDBJson($ctx.args.input.type),
+              ":fit": $util.dynamodb.toDynamoDBJson($ctx.args.input.fit),
+              ":weight": $util.dynamodb.toDynamoDBJson($ctx.args.input.weight),
+              ":noise": $util.dynamodb.toDynamoDBJson($ctx.args.input.noise),
+              ":hitPoints": $util.dynamodb.toDynamoDBJson($ctx.args.input.hitPoints)
+            }
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  DeleteObjectResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteObject
+      DataSourceName: !Ref ObjectsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "DeleteItem",
+          "key": {
+            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  # Action Mutation Resolvers
+  CreateActionResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Mutation
+      FieldName: createAction
+      DataSourceName: !Ref ActionsDataSourceName
+      RequestMappingTemplate: |
+        ## Automatically generate an ID if one is not provided
+        #set($actionId = $util.autoId())
+        
+        ## Set up the DynamoDB operation
+        {
+          "version": "2018-05-29",
+          "operation": "PutItem",
+          "key": {
+            "actionId": $util.dynamodb.toDynamoDBJson($actionId)
+          },
+          "attributeValues": {
+            "name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
+            "description": $util.dynamodb.toDynamoDBJson($ctx.args.input.description),
+            "requiredStats": $util.dynamodb.toDynamoDBJson($ctx.args.input.requiredStats),
+            "effects": $util.dynamodb.toDynamoDBJson($ctx.args.input.effects),
+            "type": $util.dynamodb.toDynamoDBJson($ctx.args.input.type),
+            "timing": $util.dynamodb.toDynamoDBJson($ctx.args.input.timing),
+            "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  UpdateActionResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAction
+      DataSourceName: !Ref ActionsDataSourceName 
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "UpdateItem",
+          "key": {
+            "actionId": $util.dynamodb.toDynamoDBJson($ctx.args.actionId)
+          },
+          "update": {
+            "expression": "SET #name = :name, #description = :description, #requiredStats = :requiredStats, #effects = :effects",
+            "expressionNames": {
+              "#name": "name",
+              "#description": "description",
+              "#requiredStats": "requiredStats",
+              "#effects": "effects"
+            },
+            "expressionValues": {
+              ":name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
+              ":description": $util.dynamodb.toDynamoDBJson($ctx.args.input.description),
+              ":requiredStats": $util.dynamodb.toDynamoDBJson($ctx.args.input.requiredStats),
+              ":effects": $util.dynamodb.toDynamoDBJson($ctx.args.input.effects)
+            }
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  DeleteActionResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAction
+      DataSourceName: !Ref ActionsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "DeleteItem",
+          "key": {
+            "actionId": $util.dynamodb.toDynamoDBJson($ctx.args.actionId)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  # ---- Add Action to Character Lambda Function and Resolver ----
+  AddActionToCharacterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: ./functions/addActionToCharacter.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
+
+  AddActionToCharacterDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: AddActionToCharacterFunction
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt AddActionToCharacterFunction.Arn
+
+  AddActionToCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Mutation
+      FieldName: addActionToCharacter
+      DataSourceName: !GetAtt AddActionToCharacterDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  # ---- Add Object to Inventory Lambda Function and Resolver ----
+  AddObjectToInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: ./functions/addObjectToInventory.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
+
+  AddObjectToInventoryDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: AddObjectToInventoryFunction
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt AddObjectToInventoryFunction.Arn
+
+  AddObjectToInventoryResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Mutation
+      FieldName: addObjectToInventory
+      DataSourceName: !GetAtt AddObjectToInventoryDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+Outputs:
+  AppSyncAPIEndpoint:
+    Description: 'GraphQL API Custom Domain'
+    Value: !Sub 'https://${ServiceName}.${DomainName}'
+  AppSyncAPIKey:
+    Description: 'GraphQL API Key'
+    Value: !Ref GraphQLApiKey

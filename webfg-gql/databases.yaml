@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Nested template for databases'
+
+Parameters:
+  ServiceName:
+    Type: String
+    Description: 'Name of the service'
+
+Resources:
+  CharactersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ServiceName}-Characters"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: characterId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: characterId
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+  ObjectsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ServiceName}-Objects"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: objectId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: objectId
+          KeyType: HASH
+
+  ActionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ServiceName}-Actions"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: actionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: actionId
+          KeyType: HASH
+
+Outputs:
+  CharactersTableName:
+    Description: 'Name of the Characters table'
+    Value: !Ref CharactersTable
+  ObjectsTableName:
+    Description: 'Name of the Objects table'
+    Value: !Ref ObjectsTable
+  ActionsTableName:
+    Description: 'Name of the Actions table'
+    Value: !Ref ActionsTable

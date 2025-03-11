@@ -1,0 +1,123 @@
+type Query {
+  # Character queries
+  getCharacter(characterId: ID!): Character
+  listCharacters(filter: CharacterFilterInput): [Character]
+  
+  # Object queries
+  getObject(objectId: ID!): Object
+  listObjects(filter: ObjectFilterInput): [Object]
+  
+  # Action queries
+  getAction(actionId: ID!): Action
+  listActions(filter: ActionFilterInput): [Action]
+}
+
+type Mutation {
+  # Character mutations
+  createCharacter(
+    name: String!
+    race: Race!
+    attributes: AttributesInput
+    skills: SkillsInput
+    stats: StatsInput
+    physical: PhysicalInput
+    conditions: [String]
+    inventoryIds: [ID]
+    equipmentIds: [ID]
+    actionIds: [ID]
+  ): Character
+  
+  updateCharacter(
+    characterId: ID!
+    name: String
+    race: Race
+    attributes: AttributesInput
+    skills: SkillsInput
+    stats: StatsInput
+    physical: PhysicalInput
+    conditions: [String]
+    inventoryIds: [ID]
+    equipmentIds: [ID]
+    actionIds: [ID]
+  ): Character
+  
+  deleteCharacter(characterId: ID!): Character
+  
+  # Object mutations
+  createObject(input: ObjectInput!): Object
+  updateObject(objectId: ID!, input: ObjectInput!): Object
+  deleteObject(objectId: ID!): Object
+  
+  # Action mutations
+  createAction(input: ActionInput!): Action
+  updateAction(actionId: ID!, input: ActionInput!): Action
+  deleteAction(actionId: ID!): Action
+  
+  # Character-Object relationship mutations
+  addObjectToInventory(characterId: ID!, objectId: ID!): Character
+  removeObjectFromInventory(characterId: ID!, objectId: ID!): Character
+  addObjectToEquipment(characterId: ID!, objectId: ID!): Character
+  removeObjectFromEquipment(characterId: ID!, objectId: ID!): Character
+  
+  # Character-Action relationship mutations
+  addActionToCharacter(characterId: ID!, actionId: ID!): Character
+  removeActionFromCharacter(characterId: ID!, actionId: ID!): Character
+}
+
+type Subscription {
+  # Character subscriptions
+  onCreateCharacter: Character
+      @aws_subscribe(mutations: ["createCharacter"])
+  onUpdateCharacter: Character
+      @aws_subscribe(mutations: ["updateCharacter"])
+  onDeleteCharacter: Character
+      @aws_subscribe(mutations: ["deleteCharacter"])
+  
+  # Object subscriptions
+  onCreateObject: Object
+      @aws_subscribe(mutations: ["createObject"])
+  onUpdateObject: Object
+      @aws_subscribe(mutations: ["updateObject"])
+  onDeleteObject: Object
+      @aws_subscribe(mutations: ["deleteObject"])
+  
+  # Action subscriptions
+  onCreateAction: Action
+      @aws_subscribe(mutations: ["createAction"])
+  onUpdateAction: Action
+      @aws_subscribe(mutations: ["updateAction"])
+  onDeleteAction: Action
+      @aws_subscribe(mutations: ["deleteAction"])
+}
+
+# Filter inputs for queries
+input CharacterFilterInput {
+  name: StringFilterInput
+  race: Race
+  hasObjectWithName: StringFilterInput
+  hasActionWithName: StringFilterInput
+}
+
+input ObjectFilterInput {
+  name: StringFilterInput
+  type: ObjectType
+  fit: FitType
+  maxWeight: Float
+}
+
+input ActionFilterInput {
+  name: StringFilterInput
+  type: ActionType
+}
+
+input StringFilterInput {
+  eq: String
+  contains: String
+  beginsWith: String
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}

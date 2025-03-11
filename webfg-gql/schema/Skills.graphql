@@ -1,0 +1,80 @@
+type Skills {
+    combat: CombatSkills!
+    weapons: WeaponSkills!
+    physical: PhysicalSkills!
+    technical: TechnicalSkills!
+    intrapersonal: IntrapersonalSkills!
+}
+
+input SkillsInput {
+    combat: CombatSkillsInput!
+    weapons: WeaponSkillsInput!
+    physical: PhysicalSkillsInput!
+    technical: TechnicalSkillsInput!
+    intrapersonal: IntrapersonalSkillsInput!
+}
+
+type CombatSkills {
+    striking: Int!
+    grappling: Int!
+    dodging: Int!
+    parrying: Int!
+    blocking: Int!
+    feinting: Int!
+    disarming: Int!
+    countering: Int!
+}
+
+input CombatSkillsInput {
+    striking: Int!
+    grappling: Int!
+    dodging: Int!
+    parrying: Int!
+    blocking: Int!
+    feinting: Int!
+    disarming: Int!
+    countering: Int!
+}
+
+type WeaponSkills {
+    swords: Int!
+    daggers: Int!
+}
+
+
+input WeaponSkillsInput {
+    swords: Int!
+    daggers: Int!
+}
+
+type PhysicalSkills {
+    weightlifting: Int!
+    sprinting: Int!
+    throwing: Int!
+}
+
+input PhysicalSkillsInput {
+    weightlifting: Int!
+    sprinting: Int!
+    throwing: Int!
+}
+
+type TechnicalSkills {
+    ambits: Int!
+    spindling: Int!
+    spindleHandling: Int!
+}
+
+input TechnicalSkillsInput {
+    ambits: Int!
+    spindling: Int!
+    spindleHandling: Int!
+}
+
+type IntrapersonalSkills {
+    emotionRegulation: Int!
+}
+
+input IntrapersonalSkillsInput {
+    emotionRegulation: Int!
+}

@@ -1,0 +1,126 @@
+.form-container {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: 0 auto;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.form-container h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.form-container h3 {
+  margin-top: 25px;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #34495e;
+}
+
+.form-container h4 {
+  margin-top: 15px;
+  margin-bottom: 10px;
+  color: #526980;
+  font-size: 16px;
+}
+
+.form-container h5 {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  color: #546E7A;
+  font-size: 14px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #455a64;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.form-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.form-actions button[type="button"] {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.form-actions button[type="submit"] {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.form-actions button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.nested-object {
+  border-radius: 6px;
+  padding: 0 10px;
+  margin-bottom: 10px;
+}
+
+.attribute-group, .size-group {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+.attribute-fields, .size-fields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+/* When in smaller screens */
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .attribute-fields, .size-fields {
+    grid-template-columns: 1fr;
+  }
+} 

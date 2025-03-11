@@ -1,0 +1,60 @@
+.selected-character-banner {
+  background-color: #3a506b;
+  color: white;
+  padding: 8px 16px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 99;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Desktop layout */
+@media (min-width: 1024px) {
+  .selected-character-banner {
+    left: 250px; /* Match the navbar width */
+  }
+}
+
+/* Mobile layout */
+@media (max-width: 1023px) {
+  .selected-character-banner {
+    left: 0;
+  }
+}
+
+.banner-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.banner-text {
+  font-weight: 500;
+}
+
+.banner-text a {
+  color: #61dafb;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.banner-text a:hover {
+  text-decoration: underline;
+}
+
+.clear-selection-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 8px;
+  line-height: 1;
+}
+
+.clear-selection-btn:hover {
+  color: #ff6b6b;
+} 

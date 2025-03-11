@@ -1,0 +1,34 @@
+.attributes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.attribute-item {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 15px;
+  background-color: #f9f9f9;
+}
+
+.attribute-name {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.attribute-values {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.attribute-value {
+  display: flex;
+  justify-content: space-between;
+}
+
+.attribute-value span {
+  color: #666;
+} 

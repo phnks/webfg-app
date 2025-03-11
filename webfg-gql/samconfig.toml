@@ -1,0 +1,10 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "webfg-gql"
+resolve_s3 = true
+s3_prefix = "webfg-gql"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
+parameter_overrides = "SchemaS3Key=\"schemas/schema_v4.graphql\""
+image_repositories = []
+confirm_changeset = false

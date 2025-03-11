@@ -1,0 +1,23 @@
+type Stats {
+    hitPoints: StatValue!
+    fatigue: StatValue!
+    exhaustion: StatValue!
+    surges: StatValue!
+}
+
+input StatsInput {
+    hitPoints: StatValueInput!
+    fatigue: StatValueInput!
+    exhaustion: StatValueInput!
+    surges: StatValueInput!
+}
+
+type StatValue {
+    current: Int!
+    max: Int
+}
+
+input StatValueInput {
+    current: Int!
+    max: Int
+}

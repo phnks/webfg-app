@@ -1,0 +1,104 @@
+# template.yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS AppSync GraphQL API
+
+Parameters:
+  ServiceName:
+    Type: String
+    Description: 'Name of the service'
+    Default: 'webfg-gql'
+  DomainName:
+    Type: String
+    Description: 'Domain name of the service'
+    Default: 'phnks.com'
+  PhnksCertArn:
+    Type: String
+    Description: 'ACM Certificate ARN for phnks.com'
+    Default: 'arn:aws:acm:us-east-1:519721258290:certificate/a9b31c8c-0d9a-465d-b677-8fe6a5cceb96'
+  PhnksHostedZoneId:
+    Type: String
+    Description: 'Route53 hosted zone ID for phnks.com'
+    Default: 'Z0011216DMAXI27AITHT'
+  AppSyncApiName:
+    Type: String
+    Description: 'Name for the AppSync API'
+    Default: 'WEBFG-GQL'
+  CharactersDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+    Default: 'CharactersDataSource'
+  ObjectsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+    Default: 'ObjectsDataSource'
+  ActionsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+    Default: 'ActionsDataSource'
+  CharactersTableName:
+    Type: String
+    Description: 'Name of table'
+    Default: ''
+  ObjectsTableName:
+    Type: String
+    Description: 'Name of table'
+    Default: ''
+  ActionsTableName:
+    Type: String
+    Description: 'Name of table'
+    Default: ''
+  SchemaS3Key:
+    Type: String
+    Description: S3 key for the GraphQL schema file
+
+Resources:
+  DatabasesNestedStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./databases.yaml
+      Parameters:
+        ServiceName: !Ref ServiceName
+
+  GraphQLNestedStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./graphql.yaml
+      Parameters:
+        AppSyncApiName: !Ref AppSyncApiName
+        ServiceName: !Ref ServiceName
+        CharactersTableName: !GetAtt DatabasesNestedStack.Outputs.CharactersTableName
+        ObjectsTableName: !GetAtt DatabasesNestedStack.Outputs.ObjectsTableName
+        ActionsTableName: !GetAtt DatabasesNestedStack.Outputs.ActionsTableName
+        CharactersDataSourceName: !Ref CharactersDataSourceName
+        ObjectsDataSourceName: !Ref ObjectsDataSourceName
+        ActionsDataSourceName: !Ref ActionsDataSourceName
+        PhnksCertArn: !Ref PhnksCertArn
+        PhnksHostedZoneId: !Ref PhnksHostedZoneId
+        DomainName: !Ref DomainName
+        SchemaS3Key: !Ref SchemaS3Key
+        SchemaS3BucketName: !Ref GraphQLSchemaStorageBucket
+
+  GraphQLSchemaStorageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-schema-${AWS::AccountId}-${AWS::Region}"
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldVersions
+            Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 30
+
+Outputs:
+  GraphQLApiEndpoint:
+    Description: 'GraphQL API Endpoint'
+    Value: !GetAtt GraphQLNestedStack.Outputs.AppSyncAPIEndpoint
+  GraphQLApiKey:
+    Description: 'GraphQL API Key'
+    Value: !GetAtt GraphQLNestedStack.Outputs.AppSyncAPIKey
+  SchemaS3BucketName:
+    Description: "S3 Bucket for storing GraphQL schemas"
+    Value: !Ref GraphQLSchemaStorageBucket

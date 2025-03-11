@@ -1,0 +1,171 @@
+type Action {
+  actionId: ID!
+  name: String!
+  type: ActionType!
+  timing: Timing!
+  cost: Cost
+  dc: DC
+  guaranteed: Formula
+  units: Units
+  effects: Effects
+  description: String
+  requiredStats: String
+  createdAt: String
+}
+
+enum ActionType {
+  GENERAL
+  STRENGTH
+  AGILITY
+  DEXTERITY
+  ENDURANCE
+  INTELLIGENCE
+  CHARISMA
+  PERCEPTION
+  RESOLVE
+  COMBAT
+  MAGIC
+}
+
+type Timing {
+  initiative: Initiative
+  duration: Float
+  timeUnit: TimeUnit
+}
+
+type Initiative {
+  type: String
+  duration: Float
+  timeUnit: TimeUnit
+}
+
+enum TimeUnit {
+  SECONDS
+  MINUTES
+  HOURS
+  DAYS
+  VARIES
+}
+
+type Cost {
+  fatigue: Int
+  exhaustion: Int
+  hitPoints: Int
+  surges: Int
+}
+
+type DC {
+  type: String!
+  formula: String
+}
+
+type Formula {
+  type: String!
+  formula: String
+}
+
+enum Units {
+  POUNDS
+  FEET
+  METERS
+  SECONDS
+}
+
+type Effects {
+  start: [Effect]
+  during: [Effect]
+  end: [Effect]
+}
+
+type Effect {
+  type: EffectType!
+  resource: Resource
+  amount: Int
+  range: Range
+  targetType: [TargetType]
+  speed: String
+  cancelable: Boolean
+}
+
+enum EffectType {
+  MODIFY_RESOURCE
+  TARGET_SELECTION
+  LIFT_OBJECT
+  MOVEMENT
+}
+
+enum Resource {
+  FATIGUE
+  EXHAUSTION
+  HIT_POINTS
+  SURGES
+}
+
+enum Range {
+  SELF
+  ADJACENT
+  MELEE
+  RANGED
+}
+
+enum TargetType {
+  CHARACTER
+  OBJECT
+  LOCATION
+}
+
+input ActionInput {
+  name: String!
+  type: ActionType!
+  timing: TimingInput!
+  cost: CostInput
+  dc: DCInput
+  guaranteed: FormulaInput
+  units: Units
+  effects: EffectsInput
+}
+
+input TimingInput {
+  initiative: InitiativeInput
+  duration: Float
+  timeUnit: TimeUnit
+}
+
+input InitiativeInput {
+  type: String
+  duration: Float
+  timeUnit: TimeUnit
+}
+
+input CostInput {
+  fatigue: Int
+  exhaustion: Int
+  hitPoints: Int
+  surges: Int
+}
+
+input DCInput {
+  type: String!
+  formula: String
+}
+
+input FormulaInput {
+  type: String!
+  formula: String
+}
+
+input EffectsInput {
+  start: [EffectInput]
+  during: [EffectInput]
+  end: [EffectInput]
+}
+
+input EffectInput {
+  type: EffectType!
+  resource: Resource
+  amount: Int
+  range: Range
+  targetType: [TargetType]
+  speed: String
+  cancelable: Boolean
+}

@@ -1,0 +1,23 @@
+type Character {
+  characterId: ID!
+  name: String!
+  race: Race!
+  attributes: Attributes!
+  skills: Skills!
+  stats: Stats!
+  physical: Physical!
+  conditions: [String]
+  inventoryIds: [ID]  # References to Objects
+  equipmentIds: [ID]  # References to Objects
+  actionIds: [ID]     # References to Actions
+  
+  # Resolved fields (not stored in DynamoDB)
+  inventory: [Object]
+  equipment: [Object]
+  actions: [Action]
+}
+
+enum Race {
+  HUMAN
+  TREPIDITE
+} 

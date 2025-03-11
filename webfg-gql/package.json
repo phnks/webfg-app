@@ -1,0 +1,24 @@
+{
+  "name": "webfg-gql",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:schema": "node schema/buildSchema.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phnks/webfg-gql.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/phnks/webfg-gql/issues"
+  },
+  "homepage": "https://github.com/phnks/webfg-gql#readme",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.758.0",
+    "@aws-sdk/lib-dynamodb": "^3.758.0"
+  }
+}

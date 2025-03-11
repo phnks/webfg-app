@@ -1,0 +1,179 @@
+type Object {
+  objectId: ID!
+  name: String!
+  type: ObjectType!
+  fit: FitType!
+  weight: Float!
+  noise: Float
+  hitPoints: HitPoints
+  usage: Usage
+  baseStats: BaseStats
+  capacity: Capacity
+  createdAt: String
+}
+
+enum ObjectType {
+  WEAPON
+  RANGED_WEAPON
+  ARMOR
+  CONTAINER
+  CONSUMABLE
+  TOOL
+  MISCELLANEOUS
+}
+
+enum FitType {
+  ONE_HAND
+  TWO_HANDS
+  HEAD
+  TORSO
+  ARMS
+  LEGS
+  FEET
+  BACK
+  WAIST
+}
+
+type HitPoints {
+  max: Int!
+  current: Int!
+}
+
+type Usage {
+  hit: HitAction
+  shoot: ShootAction
+}
+
+type HitAction {
+  type: String!
+  dc: Int!
+  attribute: String!
+  skill: String!
+  damage: Damage
+  armourPiercing: String
+  duration: Float
+}
+
+type ShootAction {
+  type: String!
+  dc: Int!
+  attribute: String!
+  skill: String!
+  noise: Float
+  armourPiercing: Int
+  strength: Int
+  damage: Damage
+  capacity: AmmoCapacity
+  handling: Float
+  range: Int
+  duration: Float
+}
+
+type Damage {
+  dice: Dice
+  modifier: String
+}
+
+type Dice {
+  count: Int!
+  type: Int!
+}
+
+type AmmoCapacity {
+  shotsPerAttack: Int!
+  totalAmmo: Int!
+}
+
+type BaseStats {
+  armourPiercing: Int
+  strength: String
+  damage: Int
+  deflection: Int
+  absorption: Int
+  duration: Float
+  fatigue: Int
+  handling: Float
+}
+
+type Capacity {
+  volume: Float
+  maxWeight: Float
+}
+
+input ObjectInput {
+  name: String!
+  type: ObjectType!
+  fit: FitType!
+  weight: Float!
+  noise: Float
+  hitPoints: HitPointsInput
+  usage: UsageInput
+  baseStats: BaseStatsInput
+  capacity: CapacityInput
+}
+
+input HitPointsInput {
+  max: Int!
+  current: Int!
+}
+
+input UsageInput {
+  hit: HitActionInput
+  shoot: ShootActionInput
+}
+
+input HitActionInput {
+  type: String!
+  dc: Int!
+  attribute: String!
+  skill: String!
+  damage: DamageInput
+  armourPiercing: String
+  duration: Float
+}
+
+input ShootActionInput {
+  type: String!
+  dc: Int!
+  attribute: String!
+  skill: String!
+  noise: Float
+  armourPiercing: Int
+  strength: Int
+  damage: DamageInput
+  capacity: AmmoCapacityInput
+  handling: Float
+  range: Int
+  duration: Float
+}
+
+input DamageInput {
+  dice: DiceInput
+  modifier: String
+}
+
+input DiceInput {
+  count: Int!
+  type: Int!
+}
+
+input AmmoCapacityInput {
+  shotsPerAttack: Int!
+  totalAmmo: Int!
+}
+
+input BaseStatsInput {
+  armourPiercing: Int
+  strength: String
+  damage: Int
+  deflection: Int
+  absorption: Int
+  duration: Float
+  fatigue: Int
+  handling: Float
+}
+
+input CapacityInput {
+  volume: Float
+  maxWeight: Float
+} 
