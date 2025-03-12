@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AppSync Data Sources configuration'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  CharactersDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+  ObjectsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+  ActionsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+  CharactersTableName:
+    Type: String
+    Description: 'Name of table'
+  ObjectsTableName:
+    Type: String
+    Description: 'Name of table'
+  ActionsTableName:
+    Type: String
+    Description: 'Name of table'
+
+Resources:
+  AppSyncDynamoDBRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: appsync.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AppSyncDynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:BatchGetItem
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CharactersTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ObjectsTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ActionsTableName}
+
+  AppSyncLambdaServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: appsync.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs
+      Policies:
+        - PolicyName: InvokeLambdaFunction
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: "*"
+
+  CharactersDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref CharactersDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref CharactersTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  ObjectsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref ObjectsDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref ObjectsTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  ActionsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref ActionsDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref ActionsTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+Outputs:
+  AppSyncDynamoDBRoleArn:
+    Description: 'ARN of the IAM role for AppSync to access DynamoDB'
+    Value: !GetAtt AppSyncDynamoDBRole.Arn
+  AppSyncLambdaServiceRoleArn:
+    Description: 'ARN of the IAM role for AppSync to invoke Lambda functions'
+    Value: !GetAtt AppSyncLambdaServiceRole.Arn 

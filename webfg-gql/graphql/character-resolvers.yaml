@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AppSync Character Resolvers'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  CharactersDataSourceName:
+    Type: String
+    Description: 'Name of characters data source'
+
+Resources:
+  GetCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'getCharacter'
+      DataSourceName: !Ref CharactersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "characterId": $util.dynamodb.toDynamoDBJson($ctx.args.characterId)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  ListCharactersResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'listCharacters'
+      DataSourceName: !Ref CharactersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          #if($ctx.args.filter)
+            "filter": #set($filters = {})
+              #if($ctx.args.filter.name)
+                #if($ctx.args.filter.name.eq)
+                  #set($filters.name = {"eq": $ctx.args.filter.name.eq})
+                #end
+                #if($ctx.args.filter.name.contains)
+                  #set($filters.name = {"contains": $ctx.args.filter.name.contains})
+                #end
+                #if($ctx.args.filter.name.beginsWith)
+                  #set($filters.name = {"beginsWith": $ctx.args.filter.name.beginsWith})
+                #end
+              #end
+              #if($ctx.args.filter.race)
+                #set($filters.race = {"eq": $ctx.args.filter.race})
+              #end
+              $util.toJson($filters)
+          #end
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result.items)'
+
+  CreateCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Mutation'
+      FieldName: 'createCharacter'
+      DataSourceName: !Ref CharactersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "key": {
+            "characterId": $util.dynamodb.toDynamoDBJson($util.autoId())
+          },
+          "attributeValues": {
+            "characterId": $util.dynamodb.toDynamoDBJson($util.autoId()),
+            "name": $util.dynamodb.toDynamoDBJson($ctx.args.name),
+            "race": $util.dynamodb.toDynamoDBJson($ctx.args.race),
+            "attributes": $util.dynamodb.toDynamoDBJson($ctx.args.attributes),
+            "skills": $util.dynamodb.toDynamoDBJson($ctx.args.skills),
+            "stats": $util.dynamodb.toDynamoDBJson($ctx.args.stats),
+            "physical": $util.dynamodb.toDynamoDBJson($ctx.args.physical),
+            "conditions": $util.dynamodb.toDynamoDBJson([]),
+            "inventory": $util.dynamodb.toDynamoDBJson([]),
+            "equipped": $util.dynamodb.toDynamoDBJson(null),
+            "calculated": $util.dynamodb.toDynamoDBJson(null)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  UpdateCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Mutation'
+      FieldName: 'updateCharacter'
+      DataSourceName: !Ref CharactersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "characterId": $util.dynamodb.toDynamoDBJson($ctx.args.characterId)
+          },
+          "update": {
+            "expression": "SET #name = :name, #attributes = :attributes, #skills = :skills, #stats = :stats, #physical = :physical, #conditions = :conditions, #inventory = :inventory, #equipped = :equipped",
+            "expressionNames": {
+              "#name": "name",
+              "#attributes": "attributes",
+              "#skills": "skills",
+              "#stats": "stats",
+              "#physical": "physical",
+              "#conditions": "conditions",
+              "#inventory": "inventory",
+              "#equipped": "equipped"
+            },
+            "expressionValues": {
+              ":name": $util.dynamodb.toDynamoDBJson($ctx.args.name),
+              ":attributes": $util.dynamodb.toDynamoDBJson($ctx.args.attributes),
+              ":skills": $util.dynamodb.toDynamoDBJson($ctx.args.skills),
+              ":stats": $util.dynamodb.toDynamoDBJson($ctx.args.stats),
+              ":physical": $util.dynamodb.toDynamoDBJson($ctx.args.physical),
+              ":conditions": $util.dynamodb.toDynamoDBJson($ctx.args.conditions),
+              ":inventory": $util.dynamodb.toDynamoDBJson($ctx.args.inventory),
+              ":equipped": $util.dynamodb.toDynamoDBJson($ctx.args.equipped)
+            }
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  DeleteCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Mutation'
+      FieldName: 'deleteCharacter'
+      DataSourceName: !Ref CharactersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "DeleteItem",
+          "key": {
+            "characterId": $util.dynamodb.toDynamoDBJson($ctx.args.characterId)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)' 

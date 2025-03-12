@@ -4,7 +4,7 @@
 
 ### Prerequisites
 
-- Node.js (v14 or later)
+- Node.js (v22)
 - npm or yarn
 
 ### Environment Setup

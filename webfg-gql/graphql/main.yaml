@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Main GraphQL API template'
+
+Parameters:
+  ServiceName:
+    Type: String
+    Description: 'Name of the service'
+  AppSyncApiName:
+    Type: String
+    Description: 'Name for the AppSync API'
+  CharactersDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+  ObjectsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+  ActionsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+  CharactersTableName:
+    Type: String
+    Description: 'Name of table'
+  ObjectsTableName:
+    Type: String
+    Description: 'Name of table'
+  ActionsTableName:
+    Type: String
+    Description: 'Name of table'
+  PhnksCertArn:
+    Type: String
+    Description: 'ARN of the certificate for the custom domain'
+  PhnksHostedZoneId:
+    Type: String
+    Description: 'Hosted Zone ID for the custom domain'
+  DomainName:
+    Type: String
+    Description: 'Domain name of the service'
+  SchemaS3Key:
+    Type: String
+    Description: S3 key for the GraphQL schema file
+  SchemaS3BucketName:
+    Type: String
+    Description: "Name of the S3 bucket containing the GraphQL schema"
+
+Resources:
+  ApiStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./api.yaml 
+      Parameters:
+        ServiceName: !Ref ServiceName
+        AppSyncApiName: !Ref AppSyncApiName
+        PhnksCertArn: !Ref PhnksCertArn
+        PhnksHostedZoneId: !Ref PhnksHostedZoneId
+        DomainName: !Ref DomainName
+        SchemaS3Key: !Ref SchemaS3Key
+        SchemaS3BucketName: !Ref SchemaS3BucketName
+
+  DataSourcesStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./data-sources.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        CharactersDataSourceName: !Ref CharactersDataSourceName
+        ObjectsDataSourceName: !Ref ObjectsDataSourceName
+        ActionsDataSourceName: !Ref ActionsDataSourceName
+        CharactersTableName: !Ref CharactersTableName
+        ObjectsTableName: !Ref ObjectsTableName
+        ActionsTableName: !Ref ActionsTableName
+
+  CharacterResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DataSourcesStack
+    Properties:
+      TemplateURL: ./character-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        CharactersDataSourceName: !Ref CharactersDataSourceName
+
+  ObjectResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DataSourcesStack
+    Properties:
+      TemplateURL: ./object-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        ObjectsDataSourceName: !Ref ObjectsDataSourceName
+
+  ActionResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DataSourcesStack
+    Properties:
+      TemplateURL: ./action-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        ActionsDataSourceName: !Ref ActionsDataSourceName
+
+  LambdaFunctionsStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: [DataSourcesStack, ApiStack]
+    Properties:
+      TemplateURL: ./lambda-functions.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        CharactersTableName: !Ref CharactersTableName
+        ObjectsTableName: !Ref ObjectsTableName
+        ActionsTableName: !Ref ActionsTableName
+        ServiceName: !Ref ServiceName
+
+Outputs:
+  AppSyncAPIEndpoint:
+    Description: 'GraphQL API Custom Domain'
+    Value: !GetAtt ApiStack.Outputs.AppSyncEndpoint
+  AppSyncAPIKey:
+    Description: 'GraphQL API Key'
+    Value: !GetAtt ApiStack.Outputs.AppSyncApiKey

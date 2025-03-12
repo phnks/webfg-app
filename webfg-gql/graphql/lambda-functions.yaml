@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'AppSync Lambda Functions'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  CharactersTableName:
+    Type: String
+    Description: 'Name of characters table'
+  ObjectsTableName:
+    Type: String
+    Description: 'Name of objects table'
+  ActionsTableName:
+    Type: String
+    Description: 'Name of actions table'
+  ServiceName:
+    Type: String
+    Description: 'Name of the service'
+
+Resources:
+  AppSyncLambdaServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: appsync.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs
+      Policies:
+        - PolicyName: InvokeLambdaFunction
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: '*'
+
+  # ---- Add Action to Character Lambda Function and Resolver ----
+  AddActionToCharacterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: functions/addActionToCharacter.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
+
+  AddActionToCharacterDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: AddActionToCharacterFunction
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt AddActionToCharacterFunction.Arn
+
+  AddActionToCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: addActionToCharacter
+      DataSourceName: !GetAtt AddActionToCharacterDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  # ---- Add Object to Inventory Lambda Function and Resolver ----
+  AddObjectToInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: functions/addObjectToInventory.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
+
+  AddObjectToInventoryDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: AddObjectToInventoryFunction
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt AddObjectToInventoryFunction.Arn
+
+  AddObjectToInventoryResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: addObjectToInventory
+      DataSourceName: !GetAtt AddObjectToInventoryDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+Outputs:
+  AddActionToCharacterFunctionArn:
+    Description: 'ARN of the AddActionToCharacter Lambda function'
+    Value: !GetAtt AddActionToCharacterFunction.Arn
+  AddObjectToInventoryFunctionArn:
+    Description: 'ARN of the AddObjectToInventory Lambda function'
+    Value: !GetAtt AddObjectToInventoryFunction.Arn 

@@ -1,0 +1,152 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AppSync Object Resolvers'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  ObjectsDataSourceName:
+    Type: String
+    Description: 'Name of objects data source'
+
+Resources:
+  GetObjectResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'getObject'
+      DataSourceName: !Ref ObjectsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  ListObjectsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'listObjects'
+      DataSourceName: !Ref ObjectsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          #if($ctx.args.filter)
+            "filter": #set($filters = {})
+              #if($ctx.args.filter.name)
+                #if($ctx.args.filter.name.eq)
+                  #set($filters.name = {"eq": $ctx.args.filter.name.eq})
+                #end
+                #if($ctx.args.filter.name.contains)
+                  #set($filters.name = {"contains": $ctx.args.filter.name.contains})
+                #end
+                #if($ctx.args.filter.name.beginsWith)
+                  #set($filters.name = {"beginsWith": $ctx.args.filter.name.beginsWith})
+                #end
+              #end
+              #if($ctx.args.filter.type)
+                #set($filters.type = {"eq": $ctx.args.filter.type})
+              #end
+              #if($ctx.args.filter.fit)
+                #set($filters.fit = {"eq": $ctx.args.filter.fit})
+              #end
+              #if($ctx.args.filter.maxWeight)
+                #set($filters.weight = {"lte": $ctx.args.filter.maxWeight})
+              #end
+              $util.toJson($filters)
+          #end
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result.items)'
+
+  CreateObjectResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: createObject
+      DataSourceName: !Ref ObjectsDataSourceName
+      RequestMappingTemplate: |
+        ## Automatically generate an ID if one is not provided
+        #set($objectId = $util.autoId())
+        
+        ## Set up the DynamoDB operation
+        {
+          "version": "2018-05-29",
+          "operation": "PutItem",
+          "key": {
+            "objectId": $util.dynamodb.toDynamoDBJson($objectId)
+          },
+          "attributeValues": {
+            "name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
+            "type": $util.dynamodb.toDynamoDBJson($ctx.args.input.type),
+            "fit": $util.dynamodb.toDynamoDBJson($ctx.args.input.fit),
+            "weight": $util.dynamodb.toDynamoDBJson($ctx.args.input.weight),
+            "noise": $util.dynamodb.toDynamoDBJson($ctx.args.input.noise),
+            "hitPoints": $util.dynamodb.toDynamoDBJson($ctx.args.input.hitPoints),
+            "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  UpdateObjectResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: updateObject
+      DataSourceName: !Ref ObjectsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "UpdateItem",
+          "key": {
+            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
+          },
+          "update": {
+            "expression": "SET #name = :name, #type = :type, #fit = :fit, #weight = :weight, #noise = :noise, #hitPoints = :hitPoints",
+            "expressionNames": {
+              "#name": "name",
+              "#type": "type",
+              "#fit": "fit",
+              "#weight": "weight",
+              "#noise": "noise",
+              "#hitPoints": "hitPoints"
+            },
+            "expressionValues": {
+              ":name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
+              ":type": $util.dynamodb.toDynamoDBJson($ctx.args.input.type),
+              ":fit": $util.dynamodb.toDynamoDBJson($ctx.args.input.fit),
+              ":weight": $util.dynamodb.toDynamoDBJson($ctx.args.input.weight),
+              ":noise": $util.dynamodb.toDynamoDBJson($ctx.args.input.noise),
+              ":hitPoints": $util.dynamodb.toDynamoDBJson($ctx.args.input.hitPoints)
+            }
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  DeleteObjectResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: deleteObject
+      DataSourceName: !Ref ObjectsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "DeleteItem",
+          "key": {
+            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result) 

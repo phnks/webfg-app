@@ -63,7 +63,7 @@ Resources:
   GraphQLNestedStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: ./graphql.yaml
+      TemplateURL: ./graphql/main.yaml
       Parameters:
         AppSyncApiName: !Ref AppSyncApiName
         ServiceName: !Ref ServiceName
@@ -82,7 +82,6 @@ Resources:
   GraphQLSchemaStorageBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${AWS::StackName}-schema-${AWS::AccountId}-${AWS::Region}"
       VersioningConfiguration:
         Status: Enabled
       LifecycleConfiguration:
@@ -91,6 +90,8 @@ Resources:
             Status: Enabled
             NoncurrentVersionExpiration:
               NoncurrentDays: 30
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
 
 Outputs:
   GraphQLApiEndpoint:
