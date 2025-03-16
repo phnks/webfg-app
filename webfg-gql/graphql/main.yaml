@@ -96,18 +96,55 @@ Resources:
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         ActionsDataSourceName: !Ref ActionsDataSourceName
-
-  LambdaFunctionsStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn: [DataSourcesStack, ApiStack]
+  
+  AppSyncLambdaServiceRole:
+    Type: AWS::IAM::Role
     Properties:
-      TemplateURL: ./lambda-functions.yaml
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: appsync.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs
+      Policies:
+        - PolicyName: InvokeLambdaFunction
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: '*'  
+
+  ActionCharacterResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: 
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./action-character-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        CharactersTableName: !Ref CharactersTableName
+        ActionsTableName: !Ref ActionsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  ObjectCharacterResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./object-character-resolvers.yaml
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         CharactersTableName: !Ref CharactersTableName
         ObjectsTableName: !Ref ObjectsTableName
-        ActionsTableName: !Ref ActionsTableName
-        ServiceName: !Ref ServiceName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
 Outputs:
   AppSyncAPIEndpoint:
