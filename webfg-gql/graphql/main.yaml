@@ -18,6 +18,9 @@ Parameters:
   ActionsDataSourceName:
     Type: String
     Description: 'Name of db data source'
+  EncountersDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
   CharactersTableName:
     Type: String
     Description: 'Name of table'
@@ -42,6 +45,9 @@ Parameters:
   SchemaS3BucketName:
     Type: String
     Description: "Name of the S3 bucket containing the GraphQL schema"
+  EncountersTableName:
+    Type: String
+    Description: 'Name of encounters table'
 
 Resources:
   ApiStack:
@@ -66,9 +72,11 @@ Resources:
         CharactersDataSourceName: !Ref CharactersDataSourceName
         ObjectsDataSourceName: !Ref ObjectsDataSourceName
         ActionsDataSourceName: !Ref ActionsDataSourceName
+        EncountersDataSourceName: !Ref EncountersDataSourceName
         CharactersTableName: !Ref CharactersTableName
         ObjectsTableName: !Ref ObjectsTableName
         ActionsTableName: !Ref ActionsTableName
+        EncountersTableName: !Ref EncountersTableName
 
   CharacterResolversStack:
     Type: AWS::CloudFormation::Stack
@@ -144,6 +152,30 @@ Resources:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         CharactersTableName: !Ref CharactersTableName
         ObjectsTableName: !Ref ObjectsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  EncounterResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DataSourcesStack
+    Properties:
+      TemplateURL: ./encounter-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        EncountersDataSourceName: !Ref EncountersDataSourceName
+
+  EncounterCharacterResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./encounter-character-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        EncountersTableName: !Ref EncountersTableName
+        CharactersTableName: !Ref CharactersTableName
+        ActionsTableName: !Ref ActionsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
 Outputs:

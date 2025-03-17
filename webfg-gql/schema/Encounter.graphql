@@ -1,0 +1,99 @@
+type Encounter {
+  encounterId: ID!
+  name: String!
+  description: String
+  currentTime: Float!
+  characterPositions: [CharacterPosition]
+  characterTimelines: [CharacterTimeline]
+  gridElements: [GridElement]
+  history: [TimelineEvent]
+  createdAt: String
+}
+
+type CharacterPosition {
+  characterId: ID!
+  x: Int!
+  y: Int!
+}
+
+type CharacterTimeline {
+  characterId: ID!
+  startTime: Float!
+  actions: [ScheduledAction]
+}
+
+type ScheduledAction {
+  actionId: ID!
+  startTime: Float!
+  endTime: Float!
+}
+
+type TimelineEvent {
+  time: Float!
+  type: TimelineEventType!
+  characterId: ID
+  actionId: ID
+  description: String
+  x: Int
+  y: Int
+}
+
+enum TimelineEventType {
+  CHARACTER_JOINED
+  ACTION_STARTED
+  ACTION_COMPLETED
+  CHARACTER_MOVED
+  GM_NOTE
+}
+
+type GridElement {
+  id: ID!
+  type: GridElementType!
+  coordinates: [Coordinate]
+  color: String
+}
+
+type Coordinate {
+  x: Int!
+  y: Int!
+}
+
+enum GridElementType {
+  LINE
+  SQUARE
+  CIRCLE
+  X_MARK
+  V_MARK
+}
+
+input EncounterInput {
+  name: String!
+  description: String
+}
+
+input CharacterPositionInput {
+  characterId: ID!
+  x: Int!
+  y: Int!
+}
+
+input GridElementInput {
+  type: GridElementType!
+  coordinates: [CoordinateInput]!
+  color: String
+}
+
+input CoordinateInput {
+  x: Int!
+  y: Int!
+}
+
+input TimelineEventInput {
+  time: Float!
+  type: TimelineEventType!
+  characterId: ID
+  actionId: ID
+  description: String
+  x: Int
+  y: Int
+} 

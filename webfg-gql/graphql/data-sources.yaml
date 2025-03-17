@@ -14,6 +14,9 @@ Parameters:
   ActionsDataSourceName:
     Type: String
     Description: 'Name of db data source'
+  EncountersDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
   CharactersTableName:
     Type: String
     Description: 'Name of table'
@@ -21,6 +24,9 @@ Parameters:
     Type: String
     Description: 'Name of table'
   ActionsTableName:
+    Type: String
+    Description: 'Name of table'
+  EncountersTableName:
     Type: String
     Description: 'Name of table'
 
@@ -53,6 +59,7 @@ Resources:
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CharactersTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ObjectsTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ActionsTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EncountersTableName}
 
   AppSyncLambdaServiceRole:
     Type: AWS::IAM::Role
@@ -107,6 +114,17 @@ Resources:
       ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
       DynamoDBConfig:
         TableName: !Ref ActionsTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  EncountersDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref EncountersDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref EncountersTableName
         AwsRegion: !Sub ${AWS::Region}
 
 Outputs:

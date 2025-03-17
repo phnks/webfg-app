@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AppSync Encounter Resolvers'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  EncountersDataSourceName:
+    Type: String
+    Description: 'Name of encounters data source'
+
+Resources:
+  GetEncounterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'getEncounter'
+      DataSourceName: !Ref EncountersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "encounterId": $util.dynamodb.toDynamoDBJson($ctx.args.encounterId)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  ListEncountersResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'listEncounters'
+      DataSourceName: !Ref EncountersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          #if($ctx.args.filter)
+            "filter": #set($filters = {})
+              #if($ctx.args.filter.name)
+                #if($ctx.args.filter.name.eq)
+                  #set($filters.name = {"eq": $ctx.args.filter.name.eq})
+                #end
+                #if($ctx.args.filter.name.contains)
+                  #set($filters.name = {"contains": $ctx.args.filter.name.contains})
+                #end
+                #if($ctx.args.filter.name.beginsWith)
+                  #set($filters.name = {"beginsWith": $ctx.args.filter.name.beginsWith})
+                #end
+              #end
+              $util.toJson($filters)
+          #end
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result.items)'
+
+  CreateEncounterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Mutation'
+      FieldName: 'createEncounter'
+      DataSourceName: !Ref EncountersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "key": {
+            "encounterId": $util.dynamodb.toDynamoDBJson($util.autoId())
+          },
+          "attributeValues": {
+            "name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
+            "description": $util.dynamodb.toDynamoDBJson($ctx.args.input.description),
+            "currentTime": $util.dynamodb.toDynamoDBJson(0),
+            "characterPositions": $util.dynamodb.toDynamoDBJson([]),
+            "characterTimelines": $util.dynamodb.toDynamoDBJson([]),
+            "gridElements": $util.dynamodb.toDynamoDBJson([]),
+            "history": $util.dynamodb.toDynamoDBJson([]),
+            "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  UpdateEncounterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Mutation'
+      FieldName: 'updateEncounter'
+      DataSourceName: !Ref EncountersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "encounterId": $util.dynamodb.toDynamoDBJson($ctx.args.encounterId)
+          },
+          "update": {
+            "expression": "SET #name = :name, #description = :description",
+            "expressionNames": {
+              "#name": "name",
+              "#description": "description"
+            },
+            "expressionValues": {
+              ":name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
+              ":description": $util.dynamodb.toDynamoDBJson($ctx.args.input.description)
+            }
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  DeleteEncounterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Mutation'
+      FieldName: 'deleteEncounter'
+      DataSourceName: !Ref EncountersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "DeleteItem",
+          "key": {
+            "encounterId": $util.dynamodb.toDynamoDBJson($ctx.args.encounterId)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)' 

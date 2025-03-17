@@ -45,6 +45,20 @@ Resources:
         - AttributeName: actionId
           KeyType: HASH
 
+  EncountersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ServiceName}-Encounters"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: encounterId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: encounterId
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
 Outputs:
   CharactersTableName:
     Description: 'Name of the Characters table'
@@ -55,3 +69,6 @@ Outputs:
   ActionsTableName:
     Description: 'Name of the Actions table'
     Value: !Ref ActionsTable
+  EncountersTableName:
+    Description: 'Name of the Encounters table'
+    Value: !Ref EncountersTable

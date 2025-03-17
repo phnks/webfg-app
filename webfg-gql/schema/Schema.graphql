@@ -10,6 +10,10 @@ type Query {
   # Action queries
   getAction(actionId: ID!): Action
   listActions(filter: ActionFilterInput): [Action]
+  
+  # Encounter queries
+  getEncounter(encounterId: ID!): Encounter
+  listEncounters(filter: EncounterFilterInput): [Encounter]
 }
 
 type Mutation {
@@ -62,6 +66,22 @@ type Mutation {
   # Character-Action relationship mutations
   addActionToCharacter(characterId: ID!, actionId: ID!): Character
   removeActionFromCharacter(characterId: ID!, actionId: ID!): Character
+  
+  # Encounter mutations
+  createEncounter(input: EncounterInput!): Encounter
+  updateEncounter(encounterId: ID!, input: EncounterInput!): Encounter
+  deleteEncounter(encounterId: ID!): Encounter
+  
+  # Character-Encounter relationship mutations
+  addCharacterToEncounter(encounterId: ID!, characterId: ID!, startTime: Float, x: Int, y: Int): Encounter
+  removeCharacterFromEncounter(encounterId: ID!, characterId: ID!): Encounter
+  
+  # Timeline and VTT mutations
+  addActionToTimeline(encounterId: ID!, characterId: ID!, actionId: ID!, startTime: Float!): Encounter
+  advanceEncounterTime(encounterId: ID!, newTime: Float!): Encounter
+  updateCharacterPosition(encounterId: ID!, characterId: ID!, x: Int!, y: Int!): Encounter
+  addGridElement(encounterId: ID!, element: GridElementInput!): Encounter
+  removeGridElement(encounterId: ID!, elementId: ID!): Encounter
 }
 
 type Subscription {
@@ -88,6 +108,18 @@ type Subscription {
       @aws_subscribe(mutations: ["updateAction"])
   onDeleteAction: Action
       @aws_subscribe(mutations: ["deleteAction"])
+  
+  # Encounter subscriptions
+  onCreateEncounter: Encounter
+      @aws_subscribe(mutations: ["createEncounter"])
+  onUpdateEncounter: Encounter
+      @aws_subscribe(mutations: ["updateEncounter"])
+  onDeleteEncounter: Encounter
+      @aws_subscribe(mutations: ["deleteEncounter"])
+  onEncounterTimelineChanged: Encounter
+      @aws_subscribe(mutations: ["addActionToTimeline", "advanceEncounterTime"])
+  onEncounterVttChanged: Encounter
+      @aws_subscribe(mutations: ["updateCharacterPosition", "addGridElement", "removeGridElement"])
 }
 
 # Filter inputs for queries
@@ -114,6 +146,10 @@ input StringFilterInput {
   eq: String
   contains: String
   beginsWith: String
+}
+
+input EncounterFilterInput {
+  name: StringFilterInput
 }
 
 schema {
