@@ -15,6 +15,8 @@ import ActionForm from './components/forms/ActionForm';
 import Home from './components/Home';
 import { SelectedCharacterProvider, useSelectedCharacter } from './context/SelectedCharacterContext';
 import SelectedCharacterBanner from './components/common/SelectedCharacterBanner';
+import EncountersList from './components/encounters/EncountersList';
+import EncounterDetail from './components/encounters/EncounterDetail';
 import './App.css';
 
 function AppContent() {
@@ -41,16 +43,23 @@ function AppContent() {
             <Route path="/characters" element={<CharacterList />} />
             <Route path="/characters/new" element={<CharacterForm onSuccess={(id) => window.location.href = `/characters/${id}`} />} />
             <Route path="/characters/:characterId" element={<CharacterView />} />
+            <Route path="/characters/:characterId/edit" element={<CharacterForm />} />
             
             {/* Object routes */}
             <Route path="/objects" element={<ObjectList />} />
             <Route path="/objects/new" element={<ObjectForm onSuccess={(id) => window.location.href = `/objects/${id}`} />} />
             <Route path="/objects/:objectId" element={<ObjectView />} />
+            <Route path="/objects/:objectId/edit" element={<ObjectForm />} />
             
             {/* Action routes */}
             <Route path="/actions" element={<ActionList />} />
             <Route path="/actions/new" element={<ActionForm onSuccess={(id) => window.location.href = `/actions/${id}`} />} />
             <Route path="/actions/:actionId" element={<ActionView />} />
+            <Route path="/actions/:actionId/edit" element={<ActionForm />} />
+            
+            {/* Encounter routes */}
+            <Route path="/encounters" element={<EncountersList />} />
+            <Route path="/encounters/:encounterId" element={<EncounterDetail />} />
           </Routes>
         </div>
       </div>

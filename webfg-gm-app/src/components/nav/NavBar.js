@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useSubscription } from '@apollo/client';
-import { FaBars, FaTimes, FaUser, FaCube, FaBolt, FaHome } from 'react-icons/fa';
+import { FaBars, FaTimes, FaUser, FaCube, FaBolt, FaHome, FaChessBoard } from 'react-icons/fa';
 import { 
   ON_CREATE_CHARACTER, ON_UPDATE_CHARACTER, ON_DELETE_CHARACTER,
   ON_CREATE_OBJECT, ON_UPDATE_OBJECT, ON_DELETE_OBJECT,
-  ON_CREATE_ACTION, ON_UPDATE_ACTION, ON_DELETE_ACTION
+  ON_CREATE_ACTION, ON_UPDATE_ACTION, ON_DELETE_ACTION,
+  ON_CREATE_ENCOUNTER, ON_UPDATE_ENCOUNTER, ON_DELETE_ENCOUNTER,
+  LIST_ENCOUNTERS
 } from '../../graphql/operations';
 import './NavBar.css';
 
@@ -19,12 +21,26 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
   const [characters, setCharacters] = useState(characterList);
   const [objects, setObjects] = useState(objectList);
   const [actions, setActions] = useState(actionList);
+  const [encounters, setEncounters] = useState([]);
   
   // Track deleted items to prevent them showing up
   const deletedItemIds = useRef({
     characters: new Set(),
     objects: new Set(),
-    actions: new Set()
+    actions: new Set(),
+    encounters: new Set()
+  });
+
+  // Fetch encounters
+  const { data: encounterData } = useQuery(LIST_ENCOUNTERS, {
+    fetchPolicy: 'network-only',
+    onCompleted: (data) => {
+      if (data && data.listEncounters) {
+        setEncounters(data.listEncounters.filter(
+          encounter => !deletedItemIds.current.encounters.has(encounter.encounterId)
+        ));
+      }
+    }
   });
 
   // Update local state when props change
@@ -72,6 +88,8 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
       setActiveSection('objects');
     } else if (location.pathname.includes('/actions')) {
       setActiveSection('actions');
+    } else if (location.pathname.includes('/encounters')) {
+      setActiveSection('encounters');
     } else {
       setActiveSection('');
     }
@@ -232,6 +250,52 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
     }
   });
 
+  // Add subscriptions for encounters
+  useSubscription(ON_CREATE_ENCOUNTER, {
+    onData: ({ data }) => {
+      const newEncounter = data.data.onCreateEncounter;
+      setEncounters(prev => {
+        // Prevent adding encounters that were marked as deleted
+        if (deletedItemIds.current.encounters.has(newEncounter.encounterId)) {
+          return prev;
+        }
+        
+        // Check if encounter already exists to avoid duplicates
+        if (!prev.some(enc => enc.encounterId === newEncounter.encounterId)) {
+          return [...prev, newEncounter];
+        }
+        return prev;
+      });
+    }
+  });
+  
+  useSubscription(ON_UPDATE_ENCOUNTER, {
+    onData: ({ data }) => {
+      const updatedEncounter = data.data.onUpdateEncounter;
+      
+      // Don't update if encounter was deleted
+      if (deletedItemIds.current.encounters.has(updatedEncounter.encounterId)) {
+        return;
+      }
+      
+      setEncounters(prev => 
+        prev.map(enc => 
+          enc.encounterId === updatedEncounter.encounterId 
+            ? updatedEncounter 
+            : enc
+        )
+      );
+    }
+  });
+  
+  useSubscription(ON_DELETE_ENCOUNTER, {
+    onData: ({ data }) => {
+      const deletedId = data.data.onDeleteEncounter.encounterId;
+      deletedItemIds.current.encounters.add(deletedId);
+      setEncounters(prev => prev.filter(enc => enc.encounterId !== deletedId));
+    }
+  });
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -241,45 +305,58 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
   };
   
   const handleNewItem = () => {
-    if (activeSection) {
-      navigate(`/${activeSection}/new`);
-      closeMenu();
+    closeMenu();
+    switch(activeSection) {
+      case 'characters':
+        navigate('/characters/new');
+        break;
+      case 'objects':
+        navigate('/objects/new');
+        break;
+      case 'actions':
+        navigate('/actions/new');
+        break;
+      case 'encounters':
+        navigate('/encounters'); // Redirects to encounters list with create form
+        break;
+      default:
+        break;
     }
   };
 
   return (
     <>
-      <button className="navbar-toggle" onClick={toggleMenu}>
-        {isOpen ? <FaTimes /> : <FaBars />}
-      </button>
-
-      <div className={`navbar ${isOpen ? 'open' : ''}`}>
-        <button className="close-menu" onClick={closeMenu}>
-          <FaTimes />
-        </button>
-        <div className="navbar-header">
-          <h2>WEBFG GM App</h2>
+      <nav className="navbar">
+        <div className="menu-toggle" onClick={toggleMenu}>
+          {isOpen ? <FaTimes /> : <FaBars />}
         </div>
-        
-        <ul className="nav-links">
-          <li>
-            <NavLink to="/" onClick={closeMenu}>
-              <FaHome /> Home
+        <NavLink to="/" className="logo" onClick={closeMenu}>WEBFG GM</NavLink>
+      </nav>
+      
+      <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+        <ul className="section-tabs">
+          <li className={activeSection === 'characters' ? 'active' : ''}>
+            <NavLink to="/characters" onClick={() => setActiveSection('characters')}>
+              <FaUser />
+              <span>Characters</span>
             </NavLink>
           </li>
-          <li>
-            <NavLink to="/characters" onClick={closeMenu}>
-              <FaUser /> Characters
+          <li className={activeSection === 'objects' ? 'active' : ''}>
+            <NavLink to="/objects" onClick={() => setActiveSection('objects')}>
+              <FaCube />
+              <span>Objects</span>
             </NavLink>
           </li>
-          <li>
-            <NavLink to="/objects" onClick={closeMenu}>
-              <FaCube /> Objects
+          <li className={activeSection === 'actions' ? 'active' : ''}>
+            <NavLink to="/actions" onClick={() => setActiveSection('actions')}>
+              <FaBolt />
+              <span>Actions</span>
             </NavLink>
           </li>
-          <li>
-            <NavLink to="/actions" onClick={closeMenu}>
-              <FaBolt /> Actions
+          <li className={activeSection === 'encounters' ? 'active' : ''}>
+            <NavLink to="/encounters" onClick={() => setActiveSection('encounters')}>
+              <FaChessBoard />
+              <span>Encounters</span>
             </NavLink>
           </li>
         </ul>
@@ -344,6 +421,25 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
                   </li>
                 )) : (
                   <li className="empty-message">No actions available</li>
+                )}
+              </ul>
+            )}
+            
+            {activeSection === 'encounters' && (
+              <ul className="item-list">
+                {encounters.length > 0 ? encounters.map(encounter => (
+                  <li key={encounter.encounterId}>
+                    <NavLink 
+                      to={`/encounters/${encounter.encounterId}`} 
+                      onClick={closeMenu}
+                      className={({ isActive }) => isActive ? 'active' : ''}
+                    >
+                      <div className="item-name">{encounter.name}</div>
+                      <div className="item-meta">Time: {encounter.currentTime}s</div>
+                    </NavLink>
+                  </li>
+                )) : (
+                  <li className="empty-message">No encounters available</li>
                 )}
               </ul>
             )}

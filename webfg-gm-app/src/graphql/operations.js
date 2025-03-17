@@ -623,3 +623,258 @@ export const ADD_OBJECT_TO_INVENTORY = gql`
     }
   }
 `;
+
+// ENCOUNTER QUERIES
+export const GET_ENCOUNTER = gql`
+  query GetEncounter($encounterId: ID!) {
+    getEncounter(encounterId: $encounterId) {
+      encounterId
+      name
+      description
+      currentTime
+      characterPositions {
+        characterId
+        x
+        y
+      }
+      characterTimelines {
+        characterId
+        startTime
+        actions {
+          actionId
+          startTime
+          endTime
+        }
+      }
+      gridElements {
+        id
+        type
+        coordinates {
+          x
+          y
+        }
+        color
+      }
+      history {
+        time
+        type
+        characterId
+        actionId
+        description
+        x
+        y
+      }
+      createdAt
+    }
+  }
+`;
+
+export const LIST_ENCOUNTERS = gql`
+  query ListEncounters($filter: EncounterFilterInput) {
+    listEncounters(filter: $filter) {
+      encounterId
+      name
+      description
+      currentTime
+      createdAt
+    }
+  }
+`;
+
+// ENCOUNTER MUTATIONS
+export const CREATE_ENCOUNTER = gql`
+  mutation CreateEncounter($input: EncounterInput!) {
+    createEncounter(input: $input) {
+      encounterId
+      name
+      description
+      currentTime
+      createdAt
+    }
+  }
+`;
+
+export const UPDATE_ENCOUNTER = gql`
+  mutation UpdateEncounter($encounterId: ID!, $input: EncounterInput!) {
+    updateEncounter(encounterId: $encounterId, input: $input) {
+      encounterId
+      name
+      description
+    }
+  }
+`;
+
+export const DELETE_ENCOUNTER = gql`
+  mutation DeleteEncounter($encounterId: ID!) {
+    deleteEncounter(encounterId: $encounterId) {
+      encounterId
+    }
+  }
+`;
+
+export const ADD_CHARACTER_TO_ENCOUNTER = gql`
+  mutation AddCharacterToEncounter(
+    $encounterId: ID!, 
+    $characterId: ID!, 
+    $startTime: Float, 
+    $x: Int, 
+    $y: Int
+  ) {
+    addCharacterToEncounter(
+      encounterId: $encounterId, 
+      characterId: $characterId, 
+      startTime: $startTime, 
+      x: $x, 
+      y: $y
+    ) {
+      encounterId
+      characterPositions {
+        characterId
+        x
+        y
+      }
+      characterTimelines {
+        characterId
+        startTime
+      }
+    }
+  }
+`;
+
+export const ADD_ACTION_TO_TIMELINE = gql`
+  mutation AddActionToTimeline(
+    $encounterId: ID!, 
+    $characterId: ID!, 
+    $actionId: ID!, 
+    $startTime: Float!
+  ) {
+    addActionToTimeline(
+      encounterId: $encounterId, 
+      characterId: $characterId, 
+      actionId: $actionId, 
+      startTime: $startTime
+    ) {
+      encounterId
+      characterTimelines {
+        characterId
+        startTime
+        actions {
+          actionId
+          startTime
+          endTime
+        }
+      }
+    }
+  }
+`;
+
+export const ADVANCE_ENCOUNTER_TIME = gql`
+  mutation AdvanceEncounterTime($encounterId: ID!, $newTime: Float!) {
+    advanceEncounterTime(encounterId: $encounterId, newTime: $newTime) {
+      encounterId
+      currentTime
+    }
+  }
+`;
+
+export const UPDATE_CHARACTER_POSITION = gql`
+  mutation UpdateCharacterPosition(
+    $encounterId: ID!, 
+    $characterId: ID!, 
+    $x: Int!, 
+    $y: Int!
+  ) {
+    updateCharacterPosition(
+      encounterId: $encounterId, 
+      characterId: $characterId, 
+      x: $x, 
+      y: $y
+    ) {
+      encounterId
+      characterPositions {
+        characterId
+        x
+        y
+      }
+    }
+  }
+`;
+
+// ENCOUNTER SUBSCRIPTIONS
+export const ON_CREATE_ENCOUNTER = gql`
+  subscription OnCreateEncounter {
+    onCreateEncounter {
+      encounterId
+      name
+      description
+      currentTime
+      createdAt
+    }
+  }
+`;
+
+export const ON_UPDATE_ENCOUNTER = gql`
+  subscription OnUpdateEncounter {
+    onUpdateEncounter {
+      encounterId
+      name
+      description
+      currentTime
+    }
+  }
+`;
+
+export const ON_DELETE_ENCOUNTER = gql`
+  subscription OnDeleteEncounter {
+    onDeleteEncounter {
+      encounterId
+    }
+  }
+`;
+
+export const ON_ENCOUNTER_TIMELINE_CHANGED = gql`
+  subscription OnEncounterTimelineChanged {
+    onEncounterTimelineChanged {
+      encounterId
+      currentTime
+      characterTimelines {
+        characterId
+        startTime
+        actions {
+          actionId
+          startTime
+          endTime
+        }
+      }
+      history {
+        time
+        type
+        characterId
+        actionId
+        description
+      }
+    }
+  }
+`;
+
+export const ON_ENCOUNTER_VTT_CHANGED = gql`
+  subscription OnEncounterVttChanged {
+    onEncounterVttChanged {
+      encounterId
+      characterPositions {
+        characterId
+        x
+        y
+      }
+      gridElements {
+        id
+        type
+        coordinates {
+          x
+          y
+        }
+        color
+      }
+    }
+  }
+`;

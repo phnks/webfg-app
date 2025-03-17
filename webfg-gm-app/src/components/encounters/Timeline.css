@@ -1,0 +1,145 @@
+.timeline-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-x: auto;
+  padding-bottom: 20px;
+}
+
+.timeline-ruler {
+  position: relative;
+  height: 30px;
+  border-bottom: 2px solid #333;
+  min-width: 1200px;
+}
+
+.timeline-marker {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 10px;
+  background-color: #333;
+}
+
+.time-label {
+  position: absolute;
+  top: 12px;
+  transform: translateX(-50%);
+  font-size: 12px;
+}
+
+.timeline-current-time {
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 30px;
+  background-color: #F44336;
+}
+
+.timeline-characters {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 1200px;
+}
+
+.character-timeline {
+  display: flex;
+  height: 40px;
+  position: relative;
+}
+
+.character-label {
+  width: 150px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  background-color: #f0f0f0;
+  border-radius: 4px 0 0 4px;
+  cursor: pointer;
+}
+
+.character-label:hover {
+  background-color: #e0e0e0;
+}
+
+.character-actions {
+  flex: 1;
+  position: relative;
+  border-left: 1px solid #ddd;
+}
+
+.character-start-indicator {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background-color: #4CAF50;
+}
+
+.action-bar {
+  position: absolute;
+  height: 20px;
+  top: 10px;
+  background-color: #2196F3;
+  border-radius: 3px;
+  color: white;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.timeline-history {
+  margin-top: 30px;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.event-item {
+  padding: 8px 15px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+}
+
+.event-time {
+  min-width: 60px;
+  font-weight: bold;
+}
+
+.event-description {
+  flex: 1;
+}
+
+.event-character_joined {
+  background-color: #E8F5E9;
+}
+
+.event-action_started {
+  background-color: #E3F2FD;
+}
+
+.event-action_completed {
+  background-color: #F3E5F5;
+}
+
+.event-character_moved {
+  background-color: #FFF3E0;
+}
+
+.event-gm_note {
+  background-color: #FFFDE7;
+} 
