@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_CHARACTER } from '../../graphql/operations';
+import { FaSearch } from 'react-icons/fa';
 import './CharacterActionSelector.css';
 
 const CharacterActionSelector = ({ characterId, onSelectAction, onClose }) => {
@@ -17,38 +18,39 @@ const CharacterActionSelector = ({ characterId, onSelectAction, onClose }) => {
   const character = data?.getCharacter;
   if (!character) return <p>Character not found</p>;
   
-  const filteredActions = character.actions.filter(action => 
-    action.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredActions = character.actions?.filter(action => 
+    action?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
   
   return (
     <div className="character-action-selector">
       <div className="action-selector-header">
-        <h3>Choose an action for {character.name}</h3>
-        <button className="close-btn" onClick={onClose}>×</button>
+        <h3>Select Action for {character.name}</h3>
+        <button className="close-btn" onClick={onClose}>&times;</button>
       </div>
       
-      <input
-        type="text"
-        placeholder="Search actions..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="action-search"
-      />
+      <div className="search-container">
+        <FaSearch className="search-icon" />
+        <input
+          type="text"
+          className="action-search"
+          placeholder="Search actions..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
       
       <div className="actions-list">
-        {filteredActions.length === 0 ? (
-          <p className="no-actions">No actions found</p>
-        ) : (
+        {filteredActions.length > 0 ? (
           filteredActions.map(action => (
-            <div 
-              key={action.actionId} 
+            <div
+              key={action.actionId}
               className="action-item"
-              onClick={() => onSelectAction(action.actionId)}
+              onClick={() => onSelectAction(action)}
             >
               <div className="action-item-header">
                 <h4>{action.name}</h4>
-                <span className={`action-type ${action.type.toLowerCase()}`}>
+                <span className={`action-type ${action.type?.toLowerCase()}`}>
                   {action.type}
                 </span>
               </div>
@@ -59,6 +61,8 @@ const CharacterActionSelector = ({ characterId, onSelectAction, onClose }) => {
               </div>
             </div>
           ))
+        ) : (
+          <p className="no-actions">No actions found</p>
         )}
       </div>
     </div>

@@ -235,7 +235,7 @@ const EncounterDetail = () => {
           <h3>Select an action for {getCharacterById(selectedCharacter)?.name || selectedCharacter}</h3>
           <CharacterActionSelector 
             characterId={selectedCharacter}
-            onSelectAction={(actionId) => handleSelectAction(selectedCharacter, actionId)}
+            onSelectAction={(action) => handleSelectAction(selectedCharacter, action.actionId)}
             onClose={() => setSelectedCharacter(null)}
           />
         </div>

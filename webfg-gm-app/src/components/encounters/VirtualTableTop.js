@@ -9,21 +9,47 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
   const [draggingCharacter, setDraggingCharacter] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
   
+  const GRID_COLOR = '#ddd';
+  const HIGHLIGHT_COLOR = 'rgba(76, 175, 80, 0.3)';
+  
+  const getGridCoordinates = (event) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    
+    // Calculate the scale factor between canvas logical size and displayed size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    // Get mouse position in canvas space
+    const canvasX = (event.clientX - rect.left) * scaleX;
+    const canvasY = (event.clientY - rect.top) * scaleY;
+    
+    // Convert to grid coordinates
+    return {
+      x: Math.floor(canvasX / CELL_SIZE),
+      y: Math.floor(canvasY / CELL_SIZE)
+    };
+  };
+
   useEffect(() => {
     if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     
-    // Set canvas dimensions
+    // Set canvas size to match grid dimensions
     canvas.width = GRID_SIZE * CELL_SIZE;
     canvas.height = GRID_SIZE * CELL_SIZE;
+    
+    // Set CSS size if needed
+    canvas.style.width = `${GRID_SIZE * CELL_SIZE}px`;
+    canvas.style.height = `${GRID_SIZE * CELL_SIZE}px`;
     
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // Draw grid
-    ctx.strokeStyle = '#ddd';
+    ctx.strokeStyle = GRID_COLOR;
     ctx.lineWidth = 1;
     
     for (let i = 0; i <= GRID_SIZE; i++) {
@@ -159,24 +185,18 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
     // Highlight hovered cell
     if (hoveredCell) {
       const { x, y } = hoveredCell;
-      ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
+      ctx.fillStyle = HIGHLIGHT_COLOR;
       ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     }
     
   }, [characters, gridElements, hoveredCell]);
   
   const handleCanvasMouseDown = (e) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    
-    const cellX = Math.floor(mouseX / CELL_SIZE);
-    const cellY = Math.floor(mouseY / CELL_SIZE);
+    const { x, y } = getGridCoordinates(e);
     
     // Check if there's a character at this position
     const characterAtPosition = characters.find(
-      char => char.x === cellX && char.y === cellY
+      char => char.x === x && char.y === y
     );
     
     if (characterAtPosition) {
@@ -185,17 +205,11 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
   };
   
   const handleCanvasMouseMove = (e) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    
-    const cellX = Math.floor(mouseX / CELL_SIZE);
-    const cellY = Math.floor(mouseY / CELL_SIZE);
+    const { x, y } = getGridCoordinates(e);
     
     // Update hovered cell
-    if (cellX >= 0 && cellX < GRID_SIZE && cellY >= 0 && cellY < GRID_SIZE) {
-      setHoveredCell({ x: cellX, y: cellY });
+    if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
+      setHoveredCell({ x, y });
     } else {
       setHoveredCell(null);
     }
