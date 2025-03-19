@@ -773,6 +773,13 @@ export const ADD_ACTION_TO_TIMELINE = gql`
           endTime
         }
       }
+      history {
+        time
+        type
+        characterId
+        actionId
+        description
+      }
     }
   }
 `;
@@ -845,7 +852,6 @@ export const ON_ENCOUNTER_TIMELINE_CHANGED = gql`
   subscription OnEncounterTimelineChanged {
     onEncounterTimelineChanged {
       encounterId
-      currentTime
       characterTimelines {
         characterId
         startTime

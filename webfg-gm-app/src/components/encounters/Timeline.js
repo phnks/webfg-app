@@ -41,7 +41,6 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
       data.getActions.forEach(action => {
         names[action.actionId] = action.name;
       });
-      console.log('actionNames', names);
       setActionNames(names);
     }
   }, [data]);
@@ -50,7 +49,6 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
   const getFormattedDescription = (event) => {
     const characterName = characterNameMap.get(event.characterId) || 'Unknown Character';
     const actionName = actionNames[event.actionId] || 'Unknown Action';
-    console.log('actionName', actionName);
 
     switch (event.type) {
       case 'CHARACTER_JOINED':
@@ -68,7 +66,6 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
 
   // Sort events by time
   const timelineEvents = [...history].sort((a, b) => a.time - b.time);
-  console.log('timelineEvents', timelineEvents);
 
   // Only measure heights when events change
   React.useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useSubscription } from '@apollo/client';
+import { useQuery, useMutation, useSubscription, useApolloClient } from '@apollo/client';
 import { 
   GET_ENCOUNTER,
   LIST_CHARACTERS,
@@ -24,6 +24,7 @@ const EncounterDetail = () => {
   const [timeInput, setTimeInput] = useState('');
   const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState(null);
+  const client = useApolloClient();
   
   // Queries
   const { loading, error, data, refetch } = useQuery(GET_ENCOUNTER, {
@@ -42,7 +43,21 @@ const EncounterDetail = () => {
   // Subscriptions
   useSubscription(ON_ENCOUNTER_TIMELINE_CHANGED, {
     variables: { encounterId },
-    onData: () => refetch()
+    onData: ({ data }) => {
+      if (data?.data?.onEncounterTimelineChanged) {
+        const updatedEncounter = data.data.onEncounterTimelineChanged;
+        console.log('updatedEncounter', updatedEncounter);
+        client.cache.updateQuery(
+          {
+            query: GET_ENCOUNTER,
+            variables: { encounterId }
+          },
+          () => ({
+            getEncounter: updatedEncounter
+          })
+        );
+      }
+    }
   });
   
   useSubscription(ON_ENCOUNTER_VTT_CHANGED, {
