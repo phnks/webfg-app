@@ -209,4 +209,41 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+/* Add media query for mobile devices */
+@media (max-width: 768px) {
+  .encounter-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .encounter-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .time-controls {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .time-input-group {
+    width: 100%;
+  }
+
+  .time-input-group input {
+    width: 100%;
+  }
+
+  .vtt-container {
+    height: auto;
+    min-height: 400px;
+  }
+
+  .timeline-container {
+    height: 400px;
+  }
 } 

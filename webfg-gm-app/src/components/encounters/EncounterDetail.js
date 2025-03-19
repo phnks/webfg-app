@@ -46,7 +46,6 @@ const EncounterDetail = () => {
     onData: ({ data }) => {
       if (data?.data?.onEncounterTimelineChanged) {
         const updatedEncounter = data.data.onEncounterTimelineChanged;
-        console.log('updatedEncounter', updatedEncounter);
         client.cache.updateQuery(
           {
             query: GET_ENCOUNTER,

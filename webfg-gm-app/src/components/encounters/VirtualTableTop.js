@@ -41,9 +41,9 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
     canvas.width = GRID_SIZE * CELL_SIZE;
     canvas.height = GRID_SIZE * CELL_SIZE;
     
-    // Set CSS size if needed
-    canvas.style.width = `${GRID_SIZE * CELL_SIZE}px`;
-    canvas.style.height = `${GRID_SIZE * CELL_SIZE}px`;
+    // Let CSS handle the display size
+    canvas.style.width = '100%';
+    canvas.style.height = 'auto';
     
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
