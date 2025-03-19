@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
 Description: 'AppSync Action Resolvers'
 
 Parameters:
@@ -8,6 +9,12 @@ Parameters:
   ActionsDataSourceName:
     Type: String
     Description: 'Name of actions data source'
+  ActionsTableName:
+    Type: String
+    Description: 'Name of actions table'
+  AppSyncLambdaServiceRoleArn:
+    Type: String
+    Description: 'ARN of the AppSync Lambda service role'
 
 Resources:
   GetActionResolver:
@@ -139,4 +146,47 @@ Resources:
           }
         }
       ResponseMappingTemplate: |
-        $util.toJson($ctx.result) 
+        $util.toJson($ctx.result)
+
+  GetActionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/getActions.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          ACTIONS_TABLE: !Ref ActionsTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ActionsTableName
+
+  GetActionsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: GetActions
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt GetActionsFunction.Arn
+
+  GetActionsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'getActions'
+      DataSourceName: !GetAtt GetActionsDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)

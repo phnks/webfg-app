@@ -185,6 +185,15 @@ export const LIST_ACTIONS = gql`
   }
 `;
 
+export const GET_ACTIONS = gql`
+  query GetActions($actionIds: [ID!]!) {
+    getActions(actionIds: $actionIds) {
+      actionId
+      name
+    }
+  }
+`;
+
 export const GET_ACTION = gql`
   query GetAction($actionId: ID!) {
     getAction(actionId: $actionId) {

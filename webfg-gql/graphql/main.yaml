@@ -98,12 +98,16 @@ Resources:
 
   ActionResolversStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: DataSourcesStack
+    DependsOn: 
+      - DataSourcesStack
+      - AppSyncLambdaServiceRole
     Properties:
       TemplateURL: ./action-resolvers.yaml
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         ActionsDataSourceName: !Ref ActionsDataSourceName
+        ActionsTableName: !Ref ActionsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
   
   AppSyncLambdaServiceRole:
     Type: AWS::IAM::Role

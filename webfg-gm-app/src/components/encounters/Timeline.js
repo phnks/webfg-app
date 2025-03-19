@@ -1,10 +1,68 @@
 import React from 'react';
+import { useQuery } from '@apollo/client';
+import { GET_ACTIONS } from '../../graphql/operations';
 import './Timeline.css';
 
 const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter }) => {
   const [eventHeights, setEventHeights] = React.useState({});
   const eventRefs = React.useRef({});
   const prevEventsRef = React.useRef(null);
+  const [actionNames, setActionNames] = React.useState({});
+
+  // Create maps for character names and actions
+  const characterNameMap = React.useMemo(() => {
+    const map = new Map();
+    characterTimelines.forEach(timeline => {
+      map.set(timeline.characterId, timeline.name);
+    });
+    return map;
+  }, [characterTimelines]);
+
+  // Collect all unique action IDs
+  const actionIds = React.useMemo(() => {
+    const ids = new Set();
+    history.forEach(event => {
+      if (event.actionId) {
+        ids.add(event.actionId);
+      }
+    });
+    return Array.from(ids);
+  }, [history]);
+
+  // Fetch action names
+  const { loading, error, data } = useQuery(GET_ACTIONS, {
+    variables: { actionIds },
+    skip: actionIds.length === 0
+  });
+
+  React.useEffect(() => {
+    if (data?.getActions) {
+      const names = {};
+      data.getActions.forEach(action => {
+        names[action.actionId] = action.name;
+      });
+      setActionNames(names);
+    }
+  }, [data]);
+
+  // Format event description
+  const getFormattedDescription = (event) => {
+    const characterName = characterNameMap.get(event.characterId) || 'Unknown Character';
+    const actionName = actionNames[event.actionId] || 'Unknown Action';
+
+    switch (event.type) {
+      case 'CHARACTER_JOINED':
+        return `${characterName} joined the encounter`;
+      case 'CHARACTER_MOVED':
+        return `${characterName} moved to position (${event.x}, ${event.y})`;
+      case 'ACTION_STARTED':
+        return `${characterName} started ${actionName}`;
+      case 'ACTION_COMPLETED':
+        return `${characterName} completed ${actionName}`;
+      default:
+        return event.description;
+    }
+  };
 
   // Sort events by time
   const timelineEvents = [
@@ -74,7 +132,7 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
                 className="event-content"
                 onClick={() => event.characterId && onSelectCharacter(event.characterId)}
               >
-                <div className="event-description">{event.description}</div>
+                <div className="event-description">{getFormattedDescription(event)}</div>
                 {event.action && (
                   <div className="event-action-duration">
                     Duration: {(event.action.endTime - event.action.startTime).toFixed(1)}s

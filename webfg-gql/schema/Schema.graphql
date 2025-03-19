@@ -9,6 +9,7 @@ type Query {
   
   # Action queries
   getAction(actionId: ID!): Action
+  getActions(actionIds: [ID!]!): [Action]
   listActions(filter: ActionFilterInput): [Action]
   
   # Encounter queries
