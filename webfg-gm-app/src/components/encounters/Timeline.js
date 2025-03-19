@@ -36,7 +36,7 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
 
   // Calculate position based on events
   const getTimePosition = (time) => {
-    const EVENT_HEIGHT = 100; // Increased to account for content + margins
+    const EVENT_HEIGHT = 100; // Needs to be made dynamic based on the height of the event content
     
     // Find all events at or before the current time
     const eventsBeforeTime = timelineEvents.filter(event => event.time <= time);
