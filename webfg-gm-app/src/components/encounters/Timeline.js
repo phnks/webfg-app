@@ -2,14 +2,6 @@ import React from 'react';
 import './Timeline.css';
 
 const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter }) => {
-  const timelineScale = 100; // pixels per second
-  const maxTime = Math.max(
-    currentTime + 5, // Always show at least 5 seconds ahead
-    ...characterTimelines.flatMap(timeline => 
-      timeline.actions.map(action => action.endTime)
-    ).filter(Boolean)
-  );
-  
   // Sort events by time
   const sortedHistory = [...history].sort((a, b) => a.time - b.time);
   
@@ -17,67 +9,65 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
     return time.toFixed(1) + 's';
   };
   
+  // Combine character actions with history events
+  const timelineEvents = [
+    // Add character start events
+    ...characterTimelines.map(timeline => ({
+      time: timeline.startTime,
+      type: 'character_joined',
+      description: `${timeline.name} joined the encounter`,
+      characterId: timeline.characterId
+    })),
+    
+    // Add character actions
+    ...characterTimelines.flatMap(timeline =>
+      timeline.actions.map(action => ({
+        time: action.startTime,
+        type: 'action_started',
+        description: `${timeline.name} started ${action.name || 'action'}`,
+        characterId: timeline.characterId,
+        action
+      }))
+    ),
+    
+    // Add existing history events
+    ...history
+  ].sort((a, b) => a.time - b.time);
+
   return (
     <div className="timeline-wrapper">
-      <div className="timeline-ruler">
-        {Array.from({ length: Math.ceil(maxTime) + 1 }).map((_, i) => (
+      <div className="timeline-events">
+        {timelineEvents.map((event, index) => (
           <div 
-            key={i} 
-            className="timeline-marker"
-            style={{ left: `${i * timelineScale}px` }}
+            key={index} 
+            className={`timeline-event event-${event.type.toLowerCase()}`}
+            style={{
+              borderLeft: event.time <= currentTime ? '3px solid #F44336' : '3px solid #ddd'
+            }}
           >
-            <span className="time-label">{i}s</span>
-          </div>
-        ))}
-        <div 
-          className="timeline-current-time"
-          style={{ left: `${currentTime * timelineScale}px` }}
-        />
-      </div>
-      
-      <div className="timeline-characters">
-        {characterTimelines.map(timeline => (
-          <div key={timeline.characterId} className="character-timeline">
+            <div className="event-time">{formatTime(event.time)}</div>
             <div 
-              className="character-label"
-              onClick={() => onSelectCharacter(timeline.characterId)}
+              className="event-content"
+              onClick={() => event.characterId && onSelectCharacter(event.characterId)}
             >
-              {timeline.name}
-            </div>
-            <div className="character-actions">
-              <div 
-                className="character-start-indicator"
-                style={{ left: `${timeline.startTime * timelineScale}px` }}
-                title={`${timeline.name} starts at ${formatTime(timeline.startTime)}`}
-              />
-              {timeline.actions.map((action, index) => (
-                <div 
-                  key={index}
-                  className="action-bar"
-                  style={{
-                    left: `${action.startTime * timelineScale}px`,
-                    width: `${(action.endTime - action.startTime) * timelineScale}px`
-                  }}
-                  title={`${action.name || 'Action'}: ${formatTime(action.startTime)} - ${formatTime(action.endTime)}`}
-                >
-                  <span className="action-name">{action.name || 'Action'}</span>
+              <div className="event-description">{event.description}</div>
+              {event.action && (
+                <div className="event-action-duration">
+                  Duration: {formatTime(event.action.endTime - event.action.startTime)}
                 </div>
-              ))}
+              )}
             </div>
           </div>
         ))}
-      </div>
-      
-      <div className="timeline-history">
-        <h3>Event History</h3>
-        <ul className="history-list">
-          {sortedHistory.map((event, index) => (
-            <li key={index} className={`event-item event-${event.type.toLowerCase()}`}>
-              <span className="event-time">{formatTime(event.time)}</span>
-              <span className="event-description">{event.description}</span>
-            </li>
-          ))}
-        </ul>
+        
+        {/* Current time indicator */}
+        <div 
+          className="current-time-indicator"
+          style={{ top: `${currentTime * 40}px` }}
+        >
+          <div className="time-marker"></div>
+          <div className="current-time">{formatTime(currentTime)}</div>
+        </div>
       </div>
     </div>
   );

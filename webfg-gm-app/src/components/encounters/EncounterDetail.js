@@ -206,7 +206,6 @@ const EncounterDetail = () => {
         </div>
         
         <div className="timeline-container">
-          <h2>Timeline</h2>
           <Timeline 
             currentTime={encounter.currentTime}
             characterTimelines={encounter.characterTimelines.map(timeline => {
@@ -214,14 +213,10 @@ const EncounterDetail = () => {
               return {
                 ...timeline,
                 name: character?.name || 'Unknown',
-                actions: timeline.actions.map(action => {
-                  // Load action details
-                  // For simplicity, we're not fetching action details here
-                  return {
-                    ...action,
-                    name: `Action ${action.actionId}`
-                  };
-                })
+                actions: timeline.actions.map(action => ({
+                  ...action,
+                  name: `Action ${action.actionId}`
+                }))
               };
             })}
             history={encounter.history || []}

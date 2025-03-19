@@ -171,4 +171,42 @@
 .close-modal-btn {
   margin-top: 20px;
   width: 100%;
+}
+
+.encounter-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  margin-top: 20px;
+  height: calc(100vh - 180px);
+}
+
+.vtt-container {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vtt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vtt-header h2 {
+  margin: 0;
+}
+
+.timeline-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 } 
