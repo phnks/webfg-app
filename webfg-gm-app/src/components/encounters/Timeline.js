@@ -34,6 +34,24 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
     ...history
   ].sort((a, b) => a.time - b.time);
 
+  // Calculate position based on events
+  const getTimePosition = (time) => {
+    const EVENT_HEIGHT = 100; // Increased to account for content + margins
+    
+    // Find all events at or before the current time
+    const eventsBeforeTime = timelineEvents.filter(event => event.time <= time);
+    
+    if (eventsBeforeTime.length === 0) {
+      return 0;
+    }
+    
+    // Get the last event at or before the current time
+    const lastEvent = eventsBeforeTime[eventsBeforeTime.length - 1];
+    const lastEventIndex = timelineEvents.indexOf(lastEvent);
+    
+    return (lastEventIndex + 1) * EVENT_HEIGHT;
+  };
+
   return (
     <div className="timeline-wrapper">
       <div className="timeline-events">
@@ -60,10 +78,13 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
           </div>
         ))}
         
-        {/* Current time indicator */}
         <div 
           className="current-time-indicator"
-          style={{ top: `${currentTime * 40}px` }}
+          style={{ 
+            top: `${getTimePosition(currentTime)}px`,
+            position: 'absolute',
+            left: '-10px'
+          }}
         >
           <div className="time-marker"></div>
           <div className="current-time">{formatTime(currentTime)}</div>
