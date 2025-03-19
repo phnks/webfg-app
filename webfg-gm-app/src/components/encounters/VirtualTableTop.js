@@ -20,9 +20,12 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     
-    // Get mouse position in canvas space
-    const canvasX = (event.clientX - rect.left) * scaleX;
-    const canvasY = (event.clientY - rect.top) * scaleY;
+    // Get position in canvas space (handle both mouse and touch events)
+    const clientX = event.clientX || event.pageX;
+    const clientY = event.clientY || event.pageY;
+    
+    const canvasX = (clientX - rect.left) * scaleX;
+    const canvasY = (clientY - rect.top) * scaleY;
     
     // Convert to grid coordinates
     return {
@@ -228,7 +231,66 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
     
     setDraggingCharacter(null);
   };
-  
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Add non-passive touch event listeners
+    const touchStart = (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const { x, y } = getGridCoordinates(touch);
+      
+      const characterAtPosition = characters.find(
+        char => char.x === x && char.y === y
+      );
+      
+      if (characterAtPosition) {
+        setDraggingCharacter(characterAtPosition);
+      }
+    };
+
+    const touchMove = (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const { x, y } = getGridCoordinates(touch);
+      
+      if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
+        setHoveredCell({ x, y });
+      } else {
+        setHoveredCell(null);
+      }
+    };
+
+    const touchEnd = (e) => {
+      e.preventDefault();
+      if (draggingCharacter && hoveredCell) {
+        const { characterId } = draggingCharacter;
+        const { x, y } = hoveredCell;
+        
+        if (draggingCharacter.x !== x || draggingCharacter.y !== y) {
+          onMoveCharacter(characterId, x, y);
+        }
+      }
+      
+      setDraggingCharacter(null);
+      setHoveredCell(null);
+    };
+
+    // Add event listeners with {passive: false}
+    canvas.addEventListener('touchstart', touchStart, { passive: false });
+    canvas.addEventListener('touchmove', touchMove, { passive: false });
+    canvas.addEventListener('touchend', touchEnd, { passive: false });
+
+    // Cleanup
+    return () => {
+      canvas.removeEventListener('touchstart', touchStart);
+      canvas.removeEventListener('touchmove', touchMove);
+      canvas.removeEventListener('touchend', touchEnd);
+    };
+  }, [characters, draggingCharacter, hoveredCell, onMoveCharacter]);
+
   return (
     <div className="virtual-tabletop">
       <canvas
