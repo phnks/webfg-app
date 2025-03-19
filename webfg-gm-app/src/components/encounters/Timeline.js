@@ -2,24 +2,18 @@ import React from 'react';
 import './Timeline.css';
 
 const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter }) => {
+  const [eventHeights, setEventHeights] = React.useState({});
+  const eventRefs = React.useRef({});
+  const prevEventsRef = React.useRef(null);
+
   // Sort events by time
-  const sortedHistory = [...history].sort((a, b) => a.time - b.time);
-  
-  const formatTime = (time) => {
-    return time.toFixed(1) + 's';
-  };
-  
-  // Combine character actions with history events
   const timelineEvents = [
-    // Add character start events
     ...characterTimelines.map(timeline => ({
       time: timeline.startTime,
       type: 'character_joined',
       description: `${timeline.name} joined the encounter`,
       characterId: timeline.characterId
     })),
-    
-    // Add character actions
     ...characterTimelines.flatMap(timeline =>
       timeline.actions.map(action => ({
         time: action.startTime,
@@ -29,54 +23,67 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
         action
       }))
     ),
-    
-    // Add existing history events
     ...history
   ].sort((a, b) => a.time - b.time);
 
-  // Calculate position based on events
-  const getTimePosition = (time) => {
-    const EVENT_HEIGHT = 100; // Needs to be made dynamic based on the height of the event content
-    
-    // Find all events at or before the current time
-    const eventsBeforeTime = timelineEvents.filter(event => event.time <= time);
-    
-    if (eventsBeforeTime.length === 0) {
-      return 0;
+  // Only measure heights when events change
+  React.useEffect(() => {
+    const currentEvents = JSON.stringify(timelineEvents);
+    if (currentEvents !== prevEventsRef.current) {
+      const heights = {};
+      Object.entries(eventRefs.current).forEach(([eventId, ref]) => {
+        if (ref) {
+          const height = ref.getBoundingClientRect().height;
+          heights[eventId] = height + 10; // Add margin
+        }
+      });
+      setEventHeights(heights);
+      prevEventsRef.current = currentEvents;
     }
+  }, [timelineEvents]);
+
+  const getTimePosition = (time) => {
+    const eventsBeforeTime = timelineEvents.filter(event => event.time <= time);
+    if (eventsBeforeTime.length === 0) return 0;
     
-    // Get the last event at or before the current time
-    const lastEvent = eventsBeforeTime[eventsBeforeTime.length - 1];
-    const lastEventIndex = timelineEvents.indexOf(lastEvent);
-    
-    return (lastEventIndex + 1) * EVENT_HEIGHT;
+    let totalHeight = 0;
+    for (let i = 0; i < eventsBeforeTime.length; i++) {
+      const event = eventsBeforeTime[i];
+      const eventId = `${event.time}-${event.type}-${event.characterId || 'system'}-${i}`;
+      totalHeight += eventHeights[eventId] || 0;
+    }
+    return totalHeight;
   };
 
   return (
     <div className="timeline-wrapper">
       <div className="timeline-events">
-        {timelineEvents.map((event, index) => (
-          <div 
-            key={index} 
-            className={`timeline-event event-${event.type.toLowerCase()}`}
-            style={{
-              borderLeft: event.time <= currentTime ? '3px solid #F44336' : '3px solid #ddd'
-            }}
-          >
-            <div className="event-time">{formatTime(event.time)}</div>
+        {timelineEvents.map((event, index) => {
+          const eventId = `${event.time}-${event.type}-${event.characterId || 'system'}-${index}`;
+          return (
             <div 
-              className="event-content"
-              onClick={() => event.characterId && onSelectCharacter(event.characterId)}
+              key={eventId}
+              ref={el => eventRefs.current[eventId] = el}
+              className={`timeline-event event-${event.type.toLowerCase()}`}
+              style={{
+                borderLeft: event.time <= currentTime ? '3px solid #F44336' : '3px solid #ddd'
+              }}
             >
-              <div className="event-description">{event.description}</div>
-              {event.action && (
-                <div className="event-action-duration">
-                  Duration: {formatTime(event.action.endTime - event.action.startTime)}
-                </div>
-              )}
+              <div className="event-time">{event.time.toFixed(1)}s</div>
+              <div 
+                className="event-content"
+                onClick={() => event.characterId && onSelectCharacter(event.characterId)}
+              >
+                <div className="event-description">{event.description}</div>
+                {event.action && (
+                  <div className="event-action-duration">
+                    Duration: {(event.action.endTime - event.action.startTime).toFixed(1)}s
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         
         <div 
           className="current-time-indicator"
@@ -87,7 +94,7 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
           }}
         >
           <div className="time-marker"></div>
-          <div className="current-time">{formatTime(currentTime)}</div>
+          <div className="current-time">{currentTime.toFixed(1)}s</div>
         </div>
       </div>
     </div>
