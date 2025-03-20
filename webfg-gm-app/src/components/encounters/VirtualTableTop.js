@@ -21,6 +21,7 @@ const VirtualTableTop = ({
   const getGridCoordinates = (event) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
+    const LABEL_SPACE = 20;
     
     // Calculate the scale factor between canvas logical size and displayed size
     const scaleX = canvas.width / rect.width;
@@ -30,8 +31,8 @@ const VirtualTableTop = ({
     const clientX = event.clientX || event.pageX;
     const clientY = event.clientY || event.pageY;
     
-    const canvasX = (clientX - rect.left) * scaleX;
-    const canvasY = (clientY - rect.top) * scaleY;
+    const canvasX = (clientX - rect.left) * scaleX - LABEL_SPACE;
+    const canvasY = (clientY - rect.top) * scaleY - LABEL_SPACE;
     
     // Convert to grid coordinates
     return {
@@ -44,17 +45,37 @@ const VirtualTableTop = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    // Set canvas size based on grid dimensions
-    canvas.width = gridColumns * CELL_SIZE;
-    canvas.height = gridRows * CELL_SIZE;
+    // Set canvas size based on grid dimensions plus space for labels
+    const LABEL_SPACE = 20; // Space for coordinate labels
+    canvas.width = (gridColumns * CELL_SIZE) + LABEL_SPACE;
+    canvas.height = (gridRows * CELL_SIZE) + LABEL_SPACE;
     
     // Calculate and set aspect ratio dynamically
-    canvas.style.aspectRatio = `${gridColumns / gridRows}`;
+    canvas.style.aspectRatio = `${(gridColumns * CELL_SIZE + LABEL_SPACE) / (gridRows * CELL_SIZE + LABEL_SPACE)}`;
     
     const ctx = canvas.getContext('2d');
     
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw coordinate labels
+    ctx.fillStyle = '#666';
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'center';
+    
+    // Draw X coordinates
+    for (let i = 0; i < gridColumns; i++) {
+      ctx.fillText(`${i * 5}'`, (i * CELL_SIZE) + LABEL_SPACE + CELL_SIZE/2, LABEL_SPACE/2);
+    }
+    
+    // Draw Y coordinates
+    ctx.textAlign = 'right';
+    for (let i = 0; i < gridRows; i++) {
+      ctx.fillText(`${i * 5}'`, LABEL_SPACE - 2, (i * CELL_SIZE) + LABEL_SPACE + CELL_SIZE/2);
+    }
+    
+    // Translate context to account for label space
+    ctx.translate(LABEL_SPACE, LABEL_SPACE);
     
     // Draw grid
     ctx.strokeStyle = GRID_COLOR;
@@ -199,6 +220,8 @@ const VirtualTableTop = ({
       ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     }
     
+    // Reset transform before finishing
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   }, [gridRows, gridColumns, characters, gridElements, hoveredCell]);
   
   const handleCanvasMouseDown = (e) => {
@@ -307,15 +330,15 @@ const VirtualTableTop = ({
     <div className="virtual-tabletop">
       <div className="grid-controls">
         <div className="grid-size-control">
-          <label>Rows:</label>
+          <label>Height:</label>
           <button onClick={() => onUpdateGridSize(gridRows - 1, gridColumns)} disabled={gridRows <= 10}>-</button>
-          <span>{gridRows}</span>
+          <span>{gridRows * 5}'</span>
           <button onClick={() => onUpdateGridSize(gridRows + 1, gridColumns)}>+</button>
         </div>
         <div className="grid-size-control">
-          <label>Columns:</label>
+          <label>Width:</label>
           <button onClick={() => onUpdateGridSize(gridRows, gridColumns - 1)} disabled={gridColumns <= 10}>-</button>
-          <span>{gridColumns}</span>
+          <span>{gridColumns * 5}'</span>
           <button onClick={() => onUpdateGridSize(gridRows, gridColumns + 1)}>+</button>
         </div>
       </div>
