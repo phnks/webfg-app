@@ -54,7 +54,7 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
       case 'CHARACTER_JOINED':
         return `${characterName} joined the encounter`;
       case 'CHARACTER_MOVED':
-        return `${characterName} moved to position (${event.x}, ${event.y})`;
+        return `${characterName} moved to position (${event.x * 5}ft, ${event.y * 5}ft)`;
       case 'ACTION_STARTED':
         return `${characterName} started ${actionName}`;
       case 'ACTION_COMPLETED':
