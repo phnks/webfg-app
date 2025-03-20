@@ -41,18 +41,17 @@ const VirtualTableTop = ({
   };
 
   useEffect(() => {
-    if (!canvasRef.current) return;
-    
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    if (!canvas) return;
     
-    // Set canvas size to match grid dimensions
+    // Set canvas size based on grid dimensions
     canvas.width = gridColumns * CELL_SIZE;
     canvas.height = gridRows * CELL_SIZE;
     
-    // Let CSS handle the display size
-    canvas.style.width = '100%';
-    canvas.style.height = 'auto';
+    // Calculate and set aspect ratio dynamically
+    canvas.style.aspectRatio = `${gridColumns / gridRows}`;
+    
+    const ctx = canvas.getContext('2d');
     
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -200,7 +199,7 @@ const VirtualTableTop = ({
       ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     }
     
-  }, [characters, gridElements, hoveredCell, gridRows, gridColumns]);
+  }, [gridRows, gridColumns, characters, gridElements, hoveredCell]);
   
   const handleCanvasMouseDown = (e) => {
     const { x, y } = getGridCoordinates(e);
