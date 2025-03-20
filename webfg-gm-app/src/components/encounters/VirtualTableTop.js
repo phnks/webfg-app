@@ -238,50 +238,57 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
 
     // Add non-passive touch event listeners
     const touchStart = (e) => {
-      e.preventDefault();
       const touch = e.touches[0];
       const { x, y } = getGridCoordinates(touch);
       
+      // Check if we're touching a character
       const characterAtPosition = characters.find(
         char => char.x === x && char.y === y
       );
       
-      if (characterAtPosition) {
+      if (characterAtPosition && e.touches.length === 1) {
+        // Only prevent default if we're touching a character with one finger
+        e.preventDefault();
         setDraggingCharacter(characterAtPosition);
       }
     };
 
     const touchMove = (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const { x, y } = getGridCoordinates(touch);
-      
-      if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
-        setHoveredCell({ x, y });
-      } else {
-        setHoveredCell(null);
+      if (draggingCharacter && e.touches.length === 1) {
+        // Only prevent default if we're dragging a character
+        e.preventDefault();
+        const touch = e.touches[0];
+        const { x, y } = getGridCoordinates(touch);
+        
+        if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
+          setHoveredCell({ x, y });
+        } else {
+          setHoveredCell(null);
+        }
       }
     };
 
     const touchEnd = (e) => {
-      e.preventDefault();
-      if (draggingCharacter && hoveredCell) {
-        const { characterId } = draggingCharacter;
-        const { x, y } = hoveredCell;
-        
-        if (draggingCharacter.x !== x || draggingCharacter.y !== y) {
-          onMoveCharacter(characterId, x, y);
+      if (draggingCharacter) {
+        e.preventDefault();
+        if (hoveredCell) {
+          const { characterId } = draggingCharacter;
+          const { x, y } = hoveredCell;
+          
+          if (draggingCharacter.x !== x || draggingCharacter.y !== y) {
+            onMoveCharacter(characterId, x, y);
+          }
         }
+        
+        setDraggingCharacter(null);
+        setHoveredCell(null);
       }
-      
-      setDraggingCharacter(null);
-      setHoveredCell(null);
     };
 
-    // Add event listeners with {passive: false}
-    canvas.addEventListener('touchstart', touchStart, { passive: false });
-    canvas.addEventListener('touchmove', touchMove, { passive: false });
-    canvas.addEventListener('touchend', touchEnd, { passive: false });
+    // Add event listeners with {passive: true} by default
+    canvas.addEventListener('touchstart', touchStart);
+    canvas.addEventListener('touchmove', touchMove);
+    canvas.addEventListener('touchend', touchEnd);
 
     // Cleanup
     return () => {
