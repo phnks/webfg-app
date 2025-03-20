@@ -10,7 +10,9 @@ import {
   ADVANCE_ENCOUNTER_TIME,
   UPDATE_CHARACTER_POSITION,
   ON_ENCOUNTER_TIMELINE_CHANGED,
-  ON_ENCOUNTER_VTT_CHANGED
+  ON_ENCOUNTER_VTT_CHANGED,
+  UPDATE_GRID_SIZE,
+  ON_GRID_SIZE_CHANGED
 } from '../../graphql/operations';
 import VirtualTableTop from './VirtualTableTop';
 import Timeline from './Timeline';
@@ -39,6 +41,7 @@ const EncounterDetail = () => {
   const [addCharacterToEncounter] = useMutation(ADD_CHARACTER_TO_ENCOUNTER);
   const [addActionToTimeline] = useMutation(ADD_ACTION_TO_TIMELINE);
   const [updateCharacterPosition] = useMutation(UPDATE_CHARACTER_POSITION);
+  const [updateGridSize] = useMutation(UPDATE_GRID_SIZE);
   
   // Subscriptions
   useSubscription(ON_ENCOUNTER_TIMELINE_CHANGED, {
@@ -62,6 +65,27 @@ const EncounterDetail = () => {
   useSubscription(ON_ENCOUNTER_VTT_CHANGED, {
     variables: { encounterId },
     onData: () => refetch()
+  });
+  
+  useSubscription(ON_GRID_SIZE_CHANGED, {
+    onData: ({ data }) => {
+      if (data?.data?.onGridSizeChanged) {
+        const updatedEncounter = data.data.onGridSizeChanged;
+        client.cache.updateQuery(
+          {
+            query: GET_ENCOUNTER,
+            variables: { encounterId }
+          },
+          (existing) => ({
+            getEncounter: {
+              ...existing?.getEncounter,
+              gridRows: updatedEncounter.gridRows,
+              gridColumns: updatedEncounter.gridColumns
+            }
+          })
+        );
+      }
+    }
   });
   
   // Get character by ID helper
@@ -158,6 +182,22 @@ const EncounterDetail = () => {
     }
   };
   
+  const handleGridSizeUpdate = async (rows, columns) => {
+    try {
+      await updateGridSize({
+        variables: {
+          input: {
+            encounterId,
+            rows,
+            columns
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Failed to update grid size:', error);
+    }
+  };
+  
   if (loading) return <p>Loading encounter...</p>;
   if (error) return <p>Error loading encounter: {error.message}</p>;
   
@@ -206,16 +246,16 @@ const EncounterDetail = () => {
             </button>
           </div>
           <VirtualTableTop 
-            characters={encounter.characterPositions.map(pos => {
-              const character = getCharacterById(pos.characterId);
-              return {
-                ...pos,
-                name: character?.name || 'Unknown',
-                race: character?.race || 'HUMAN'
-              };
-            })}
+            characters={encounter.characterPositions.map(pos => ({
+              ...pos,
+              name: getCharacterById(pos.characterId)?.name || 'Unknown',
+              race: getCharacterById(pos.characterId)?.race || 'HUMAN'
+            }))}
             gridElements={encounter.gridElements || []}
             onMoveCharacter={handleMoveCharacter}
+            gridRows={encounter.gridRows || 20}
+            gridColumns={encounter.gridColumns || 20}
+            onUpdateGridSize={handleGridSizeUpdate}
           />
         </div>
         

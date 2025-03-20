@@ -79,6 +79,8 @@ Resources:
             "characterTimelines": $util.dynamodb.toDynamoDBJson([]),
             "gridElements": $util.dynamodb.toDynamoDBJson([]),
             "history": $util.dynamodb.toDynamoDBJson([]),
+            "gridRows": $util.dynamodb.toDynamoDBJson(20),
+            "gridColumns": $util.dynamodb.toDynamoDBJson(20),
             "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
           }
         }
@@ -127,4 +129,36 @@ Resources:
             "encounterId": $util.dynamodb.toDynamoDBJson($ctx.args.encounterId)
           }
         }
-      ResponseMappingTemplate: '$util.toJson($context.result)' 
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  UpdateGridSizeResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Mutation'
+      FieldName: 'updateGridSize'
+      DataSourceName: !Ref EncountersDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "encounterId": $util.dynamodb.toDynamoDBJson($ctx.args.input.encounterId)
+          },
+          "update": {
+            "expression": "SET gridRows = :rows, gridColumns = :columns",
+            "expressionValues": {
+              ":rows": $util.dynamodb.toDynamoDBJson($ctx.args.input.rows),
+              ":columns": $util.dynamodb.toDynamoDBJson($ctx.args.input.columns)
+            }
+          },
+          "condition": {
+            "expression": "attribute_exists(encounterId)"
+          }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #else
+          $util.toJson($ctx.result)
+        #end

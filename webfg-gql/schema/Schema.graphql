@@ -72,6 +72,7 @@ type Mutation {
   createEncounter(input: EncounterInput!): Encounter
   updateEncounter(encounterId: ID!, input: EncounterInput!): Encounter
   deleteEncounter(encounterId: ID!): Encounter
+  updateGridSize(input: UpdateGridSizeInput!): Encounter!
   
   # Character-Encounter relationship mutations
   addCharacterToEncounter(encounterId: ID!, characterId: ID!, startTime: Float, x: Int, y: Int): Encounter
@@ -121,6 +122,8 @@ type Subscription {
       @aws_subscribe(mutations: ["addActionToTimeline", "advanceEncounterTime"])
   onEncounterVttChanged: Encounter
       @aws_subscribe(mutations: ["updateCharacterPosition", "addGridElement", "removeGridElement"])
+  onGridSizeChanged: Encounter
+      @aws_subscribe(mutations: ["updateGridSize"])
 }
 
 # Filter inputs for queries

@@ -641,6 +641,8 @@ export const GET_ENCOUNTER = gql`
       name
       description
       currentTime
+      gridRows
+      gridColumns
       characterPositions {
         characterId
         x
@@ -890,6 +892,26 @@ export const ON_ENCOUNTER_VTT_CHANGED = gql`
         }
         color
       }
+    }
+  }
+`;
+
+export const UPDATE_GRID_SIZE = gql`
+  mutation UpdateGridSize($input: UpdateGridSizeInput!) {
+    updateGridSize(input: $input) {
+      encounterId
+      gridRows
+      gridColumns
+    }
+  }
+`;
+
+export const ON_GRID_SIZE_CHANGED = gql`
+  subscription OnGridSizeChanged {
+    onGridSizeChanged {
+      encounterId
+      gridRows
+      gridColumns
     }
   }
 `;

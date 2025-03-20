@@ -8,6 +8,8 @@ type Encounter {
   gridElements: [GridElement]
   history: [TimelineEvent]
   createdAt: String
+  gridRows: Int!
+  gridColumns: Int!
 }
 
 type CharacterPosition {
@@ -96,4 +98,10 @@ input TimelineEventInput {
   description: String
   x: Int
   y: Int
-} 
+}
+
+input UpdateGridSizeInput {
+  encounterId: ID!
+  rows: Int!
+  columns: Int!
+}

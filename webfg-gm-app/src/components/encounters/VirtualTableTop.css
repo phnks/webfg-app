@@ -85,4 +85,37 @@ canvas {
 
 .character-token.trepidite {
   background-color: #2196F3;
+}
+
+.grid-controls {
+  display: flex;
+  gap: 16px;
+  padding: 10px;
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.grid-size-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grid-size-control button {
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+}
+
+.grid-size-control button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.grid-size-control span {
+  min-width: 30px;
+  text-align: center;
 } 

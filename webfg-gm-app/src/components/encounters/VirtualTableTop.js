@@ -1,10 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './VirtualTableTop.css';
 
-const GRID_SIZE = 20; // 20x20 grid
 const CELL_SIZE = 30; // 30px per cell
 
-const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }) => {
+const VirtualTableTop = ({ 
+  characters = [], 
+  gridElements = [], 
+  onMoveCharacter,
+  gridRows = 20,
+  gridColumns = 20,
+  onUpdateGridSize
+}) => {
   const canvasRef = useRef(null);
   const [draggingCharacter, setDraggingCharacter] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
@@ -41,8 +47,8 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
     const ctx = canvas.getContext('2d');
     
     // Set canvas size to match grid dimensions
-    canvas.width = GRID_SIZE * CELL_SIZE;
-    canvas.height = GRID_SIZE * CELL_SIZE;
+    canvas.width = gridColumns * CELL_SIZE;
+    canvas.height = gridRows * CELL_SIZE;
     
     // Let CSS handle the display size
     canvas.style.width = '100%';
@@ -55,13 +61,15 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
     ctx.strokeStyle = GRID_COLOR;
     ctx.lineWidth = 1;
     
-    for (let i = 0; i <= GRID_SIZE; i++) {
+    for (let i = 0; i <= gridColumns; i++) {
       // Vertical lines
       ctx.beginPath();
       ctx.moveTo(i * CELL_SIZE, 0);
       ctx.lineTo(i * CELL_SIZE, canvas.height);
       ctx.stroke();
-      
+    }
+    
+    for (let i = 0; i <= gridRows; i++) {
       // Horizontal lines
       ctx.beginPath();
       ctx.moveTo(0, i * CELL_SIZE);
@@ -159,7 +167,7 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
       const { x, y, characterId, name, race } = character;
       
       // Skip invalid positions
-      if (x < 0 || y < 0 || x >= GRID_SIZE || y >= GRID_SIZE) return;
+      if (x < 0 || y < 0 || x >= gridColumns || y >= gridRows) return;
       
       // Draw character token
       ctx.fillStyle = race === 'HUMAN' ? '#2196F3' : '#FF9800';
@@ -192,7 +200,7 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
       ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     }
     
-  }, [characters, gridElements, hoveredCell]);
+  }, [characters, gridElements, hoveredCell, gridRows, gridColumns]);
   
   const handleCanvasMouseDown = (e) => {
     const { x, y } = getGridCoordinates(e);
@@ -210,8 +218,7 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
   const handleCanvasMouseMove = (e) => {
     const { x, y } = getGridCoordinates(e);
     
-    // Update hovered cell
-    if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
+    if (x >= 0 && x < gridColumns && y >= 0 && y < gridRows) {
       setHoveredCell({ x, y });
     } else {
       setHoveredCell(null);
@@ -255,12 +262,11 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
 
     const touchMove = (e) => {
       if (draggingCharacter && e.touches.length === 1) {
-        // Only prevent default if we're dragging a character
         e.preventDefault();
         const touch = e.touches[0];
         const { x, y } = getGridCoordinates(touch);
         
-        if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
+        if (x >= 0 && x < gridColumns && y >= 0 && y < gridRows) {
           setHoveredCell({ x, y });
         } else {
           setHoveredCell(null);
@@ -300,6 +306,20 @@ const VirtualTableTop = ({ characters = [], gridElements = [], onMoveCharacter }
 
   return (
     <div className="virtual-tabletop">
+      <div className="grid-controls">
+        <div className="grid-size-control">
+          <label>Rows:</label>
+          <button onClick={() => onUpdateGridSize(gridRows - 1, gridColumns)} disabled={gridRows <= 10}>-</button>
+          <span>{gridRows}</span>
+          <button onClick={() => onUpdateGridSize(gridRows + 1, gridColumns)}>+</button>
+        </div>
+        <div className="grid-size-control">
+          <label>Columns:</label>
+          <button onClick={() => onUpdateGridSize(gridRows, gridColumns - 1)} disabled={gridColumns <= 10}>-</button>
+          <span>{gridColumns}</span>
+          <button onClick={() => onUpdateGridSize(gridRows, gridColumns + 1)}>+</button>
+        </div>
+      </div>
       <canvas
         ref={canvasRef}
         onMouseDown={handleCanvasMouseDown}
