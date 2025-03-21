@@ -31,11 +31,14 @@ Resources:
       Environment:
         Variables:
           ENCOUNTERS_TABLE: !Ref EncountersTableName
+          CHARACTERS_TABLE: !Ref CharactersTableName
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref EncountersTableName
         - DynamoDBWritePolicy:
             TableName: !Ref EncountersTableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
 
   AddActionToTimelineFunction:
     Type: AWS::Serverless::Function
@@ -48,6 +51,7 @@ Resources:
       Environment:
         Variables:
           ENCOUNTERS_TABLE: !Ref EncountersTableName
+          CHARACTERS_TABLE: !Ref CharactersTableName
           ACTIONS_TABLE: !Ref ActionsTableName
       Policies:
         - DynamoDBReadPolicy:
@@ -56,6 +60,8 @@ Resources:
             TableName: !Ref EncountersTableName
         - DynamoDBReadPolicy:
             TableName: !Ref ActionsTableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
 
   AdvanceEncounterTimeFunction:
     Type: AWS::Serverless::Function
@@ -85,11 +91,14 @@ Resources:
       Environment:
         Variables:
           ENCOUNTERS_TABLE: !Ref EncountersTableName
+          CHARACTERS_TABLE: !Ref CharactersTableName
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref EncountersTableName
         - DynamoDBWritePolicy:
             TableName: !Ref EncountersTableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
 
   # Data sources for Lambda functions
   AddCharacterToEncounterDataSource:

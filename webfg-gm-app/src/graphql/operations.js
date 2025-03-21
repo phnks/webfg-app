@@ -768,9 +768,9 @@ export const ADD_ACTION_TO_TIMELINE = gql`
     $startTime: Float!
   ) {
     addActionToTimeline(
-      encounterId: $encounterId, 
-      characterId: $characterId, 
-      actionId: $actionId, 
+      encounterId: $encounterId,
+      characterId: $characterId,
+      actionId: $actionId,
       startTime: $startTime
     ) {
       encounterId
@@ -788,7 +788,17 @@ export const ADD_ACTION_TO_TIMELINE = gql`
         type
         characterId
         actionId
+        actionName
         description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
       }
     }
   }

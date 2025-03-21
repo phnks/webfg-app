@@ -7,6 +7,7 @@ const docClient = DynamoDBDocumentClient.from(client);
 exports.handler = async (event) => {
   const { encounterId, characterId, startTime, x, y } = event.arguments;
   const encountersTable = process.env.ENCOUNTERS_TABLE;
+  const charactersTable = process.env.CHARACTERS_TABLE;
   
   try {
     // First, get the encounter to check if character already exists

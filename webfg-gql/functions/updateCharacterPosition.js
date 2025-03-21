@@ -7,6 +7,7 @@ const docClient = DynamoDBDocumentClient.from(client);
 exports.handler = async (event) => {
   const { encounterId, characterId, x, y } = event.arguments;
   const encountersTable = process.env.ENCOUNTERS_TABLE;
+  const charactersTable = process.env.CHARACTERS_TABLE;
   
   try {
     // Get the encounter
@@ -38,7 +39,21 @@ exports.handler = async (event) => {
       y
     };
     
-    // Add to history
+    // Get character data to include stats
+    const characterResult = await docClient.send(
+      new GetCommand({
+        TableName: charactersTable,
+        Key: { characterId }
+      })
+    );
+    
+    if (!characterResult.Item) {
+      throw new Error(`Character with ID ${characterId} not found`);
+    }
+    
+    const character = characterResult.Item;
+    
+    // Add to history with stats
     const history = encounter.history || [];
     history.push({
       time: encounter.currentTime || 0,
@@ -46,7 +61,14 @@ exports.handler = async (event) => {
       characterId,
       description: `Character moved to position (${x}, ${y})`,
       x,
-      y
+      y,
+      stats: {
+        hitPoints: character.stats?.hitPoints?.current || 0,
+        fatigue: character.stats?.fatigue?.current || 0,
+        surges: character.stats?.surges?.current || 0,
+        exhaustion: character.stats?.exhaustion?.current || 0
+      },
+      conditions: character.conditions || []
     });
     
     // Update the encounter
