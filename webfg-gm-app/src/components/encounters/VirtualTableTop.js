@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
+import CharacterSummary from './CharacterSummary';
 import './VirtualTableTop.css';
 
 const CELL_SIZE = 30; // 30px per cell
 
 const VirtualTableTop = ({ 
   characters = [], 
-  gridElements = [], 
+  gridElements = [],
+  history = [],
+  currentTime = 0, 
   onMoveCharacter,
   gridRows = 20,
   gridColumns = 20,
@@ -351,20 +354,11 @@ const VirtualTableTop = ({
           onMouseLeave={() => setHoveredCell(null)}
         />
       </div>
-      <div className="vtt-legend">
-        <div className="legend-item">
-          <div className="legend-color human"></div>
-          <span>Human</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color trepidite"></div>
-          <span>Trepidite</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-grid-cell"></div>
-          <span>5x5 ft</span>
-        </div>
-      </div>
+      <CharacterSummary 
+        characters={characters} 
+        history={history}
+        currentTime={currentTime}
+      />
     </div>
   );
 };

@@ -252,6 +252,8 @@ const EncounterDetail = () => {
               race: getCharacterById(pos.characterId)?.race || 'HUMAN'
             }))}
             gridElements={encounter.gridElements || []}
+            history={encounter.history || []}
+            currentTime={encounter.currentTime}
             onMoveCharacter={handleMoveCharacter}
             gridRows={encounter.gridRows || 20}
             gridColumns={encounter.gridColumns || 20}
