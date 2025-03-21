@@ -342,13 +342,15 @@ const VirtualTableTop = ({
           <button onClick={() => onUpdateGridSize(gridRows, gridColumns + 1)}>+</button>
         </div>
       </div>
-      <canvas
-        ref={canvasRef}
-        onMouseDown={handleCanvasMouseDown}
-        onMouseMove={handleCanvasMouseMove}
-        onMouseUp={handleCanvasMouseUp}
-        onMouseLeave={() => setHoveredCell(null)}
-      />
+      <div className="canvas-container">
+        <canvas
+          ref={canvasRef}
+          onMouseDown={handleCanvasMouseDown}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
+          onMouseLeave={() => setHoveredCell(null)}
+        />
+      </div>
       <div className="vtt-legend">
         <div className="legend-item">
           <div className="legend-color human"></div>
