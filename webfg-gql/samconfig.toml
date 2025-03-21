@@ -5,6 +5,6 @@ resolve_s3 = true
 s3_prefix = "webfg-gql"
 region = "us-east-1"
 capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
-parameter_overrides = "SchemaS3Key=\"schemas/schema_v7.graphql\""
+parameter_overrides = "SchemaS3Key=\"schemas/schema_v9.graphql\""
 image_repositories = []
 confirm_changeset = false

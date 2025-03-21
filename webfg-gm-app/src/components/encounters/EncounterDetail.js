@@ -148,22 +148,38 @@ const EncounterDetail = () => {
     }
   };
   
-  const handleSelectAction = async (characterId, actionId) => {
-    if (!data?.getEncounter) return;
-    
-    const currentTime = data.getEncounter.currentTime;
-    
+  const handleAddAction = async (characterId, actionId, actionName) => {
     try {
+      const character = getCharacterById(characterId);
+      const startTime = data.getEncounter.currentTime;
+      
+      // Add to history with full snapshot
+      const historyEvent = {
+        time: startTime,
+        type: 'ACTION_STARTED',
+        characterId,
+        actionId,
+        actionName,
+        stats: {
+          hitPoints: character.hitPoints,
+          fatigue: character.fatigue,
+          surges: character.surges,
+          exhaustion: character.exhaustion
+        },
+        conditions: character.conditions || []
+      };
+
       await addActionToTimeline({
         variables: {
           encounterId,
           characterId,
           actionId,
-          startTime: currentTime
+          startTime,
+          historyEvent
         }
       });
-    } catch (err) {
-      console.error('Error adding action to timeline:', err);
+    } catch (error) {
+      console.error('Error adding action:', error);
     }
   };
   
@@ -255,6 +271,7 @@ const EncounterDetail = () => {
             history={encounter.history || []}
             currentTime={encounter.currentTime}
             onMoveCharacter={handleMoveCharacter}
+            onSelectCharacter={setSelectedCharacter}
             gridRows={encounter.gridRows || 20}
             gridColumns={encounter.gridColumns || 20}
             onUpdateGridSize={handleGridSizeUpdate}
@@ -286,7 +303,7 @@ const EncounterDetail = () => {
           <h3>Select an action for {getCharacterById(selectedCharacter)?.name || selectedCharacter}</h3>
           <CharacterActionSelector 
             characterId={selectedCharacter}
-            onSelectAction={(action) => handleSelectAction(selectedCharacter, action.actionId)}
+            onSelectAction={(action) => handleAddAction(selectedCharacter, action.actionId, action.name)}
             onClose={() => setSelectedCharacter(null)}
           />
         </div>

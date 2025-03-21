@@ -1,7 +1,7 @@
 import React from 'react';
 import './CharacterSummary.css';
 
-const CharacterSummary = ({ characters, history, currentTime }) => {
+const CharacterSummary = ({ characters, history, currentTime, onSelectCharacter }) => {
   // Build character state at current time by applying events
   const getCharacterStateAtTime = (characterId) => {
     // Get all events for this character up to current time
@@ -69,7 +69,12 @@ const CharacterSummary = ({ characters, history, currentTime }) => {
       <h3>Character Summary</h3>
       <div className="character-summary-list">
         {characterStates.map(char => (
-          <div key={char.characterId} className="character-summary-card">
+          <div 
+            key={char.characterId} 
+            className="character-summary-card"
+            onClick={() => onSelectCharacter(char.characterId)}
+            style={{ cursor: 'pointer' }}
+          >
             <div className="character-header">
               <h4>{char.name}</h4>
               <div className={`character-token-indicator ${char.race?.toLowerCase()}`}></div>

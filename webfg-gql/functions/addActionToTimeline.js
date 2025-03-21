@@ -8,6 +8,7 @@ exports.handler = async (event) => {
   const { encounterId, characterId, actionId, startTime } = event.arguments;
   const encountersTable = process.env.ENCOUNTERS_TABLE;
   const actionsTable = process.env.ACTIONS_TABLE;
+  const charactersTable = process.env.CHARACTERS_TABLE;
   
   try {
     // Get the encounter
@@ -34,8 +35,21 @@ exports.handler = async (event) => {
       throw new Error(`Action with ID ${actionId} not found`);
     }
     
+    // Get character data to include stats
+    const characterResult = await docClient.send(
+      new GetCommand({
+        TableName: charactersTable,
+        Key: { characterId }
+      })
+    );
+    
+    if (!characterResult.Item) {
+      throw new Error(`Character with ID ${characterId} not found`);
+    }
+    
     const encounter = encounterResult.Item;
     const action = actionResult.Item;
+    const character = characterResult.Item;
     
     // Extract action duration (default to 1 second if not specified)
     const actionDuration = action.timing?.duration || 1;
@@ -70,7 +84,15 @@ exports.handler = async (event) => {
       type: 'ACTION_STARTED',
       characterId,
       actionId,
-      description: `Character started action "${action.name}"`
+      actionName: action.name,
+      description: `Character started action "${action.name}"`,
+      stats: {
+        hitPoints: character.stats?.hitPoints?.current || 0,
+        fatigue: character.stats?.fatigue?.current || 0,
+        surges: character.stats?.surges?.current || 0,
+        exhaustion: character.stats?.exhaustion?.current || 0
+      },
+      conditions: character.conditions || []
     });
     
     // Also add the completion event

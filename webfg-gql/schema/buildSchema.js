@@ -6,7 +6,7 @@ const { exec, execSync } = require('child_process');
 const STACK_NAME = process.env.STACK_NAME || 'webfg-gql';
 // Allow direct specification of bucket name to bypass CloudFormation lookups
 const MANUAL_BUCKET_NAME = process.env.SCHEMA_S3_BUCKET || '';
-const s3Key = process.env.SCHEMA_S3_KEY || 'schemas/schema_v7.graphql';
+const s3Key = process.env.SCHEMA_S3_KEY || 'schemas/schema_v9.graphql';
 const outputFile = path.join(__dirname, '../schema.graphql');
 
 // Function to get the S3 bucket name using multiple strategies

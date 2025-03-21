@@ -60,6 +60,14 @@ exports.handler = async (event) => {
       });
     }
     
+    // Get character data to include stats
+    const character = await docClient.send(
+      new GetCommand({
+        TableName: charactersTable,
+        Key: { characterId }
+      })
+    );
+    
     // Add a history event
     const history = encounter.history || [];
     history.push({
@@ -68,7 +76,14 @@ exports.handler = async (event) => {
       characterId,
       description: `Character joined the encounter`,
       x: x || 0,
-      y: y || 0
+      y: y || 0,
+      stats: {
+        hitPoints: character.Item.stats?.hitPoints?.current || 0,
+        fatigue: character.Item.stats?.fatigue?.current || 0,
+        surges: character.Item.stats?.surges?.current || 0,
+        exhaustion: character.Item.stats?.exhaustion?.current || 0
+      },
+      conditions: character.Item.conditions || []
     });
     
     // Update encounter with the new character

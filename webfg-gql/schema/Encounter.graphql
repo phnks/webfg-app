@@ -38,6 +38,16 @@ type TimelineEvent {
   description: String
   x: Int
   y: Int
+  actionName: String
+  stats: TimelineStats
+  conditions: [String]
+}
+
+type TimelineStats {
+  hitPoints: Int
+  fatigue: Int
+  exhaustion: Int
+  surges: Int
 }
 
 enum TimelineEventType {

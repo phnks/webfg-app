@@ -671,9 +671,17 @@ export const GET_ENCOUNTER = gql`
         type
         characterId
         actionId
+        actionName
         description
         x
         y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
       }
       createdAt
     }
@@ -915,3 +923,4 @@ export const ON_GRID_SIZE_CHANGED = gql`
     }
   }
 `;
+

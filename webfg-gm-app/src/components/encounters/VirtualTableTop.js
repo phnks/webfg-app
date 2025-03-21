@@ -10,6 +10,7 @@ const VirtualTableTop = ({
   history = [],
   currentTime = 0, 
   onMoveCharacter,
+  onSelectCharacter,
   gridRows = 20,
   gridColumns = 20,
   onUpdateGridSize
@@ -355,9 +356,10 @@ const VirtualTableTop = ({
         />
       </div>
       <CharacterSummary 
-        characters={characters} 
+        characters={characters}
         history={history}
         currentTime={currentTime}
+        onSelectCharacter={onSelectCharacter}
       />
     </div>
   );
