@@ -747,6 +747,11 @@ export const ADD_CHARACTER_TO_ENCOUNTER = gql`
       y: $y
     ) {
       encounterId
+      name
+      description
+      currentTime
+      gridRows
+      gridColumns
       characterPositions {
         characterId
         x
@@ -755,6 +760,28 @@ export const ADD_CHARACTER_TO_ENCOUNTER = gql`
       characterTimelines {
         characterId
         startTime
+        actions {
+          actionId
+          startTime
+          endTime
+        }
+      }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
       }
     }
   }
@@ -774,6 +801,16 @@ export const ADD_ACTION_TO_TIMELINE = gql`
       startTime: $startTime
     ) {
       encounterId
+      name
+      description
+      currentTime
+      gridRows
+      gridColumns
+      characterPositions {
+        characterId
+        x
+        y
+      }
       characterTimelines {
         characterId
         startTime
@@ -808,7 +845,42 @@ export const ADVANCE_ENCOUNTER_TIME = gql`
   mutation AdvanceEncounterTime($encounterId: ID!, $newTime: Float!) {
     advanceEncounterTime(encounterId: $encounterId, newTime: $newTime) {
       encounterId
+      name
+      description
       currentTime
+      gridRows
+      gridColumns
+      characterPositions {
+        characterId
+        x
+        y
+      }
+      characterTimelines {
+        characterId
+        startTime
+        actions {
+          actionId
+          startTime
+          endTime
+        }
+      }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
+      }
     }
   }
 `;
@@ -856,6 +928,39 @@ export const ON_UPDATE_ENCOUNTER = gql`
       name
       description
       currentTime
+      gridRows
+      gridColumns
+      characterPositions {
+        characterId
+        x
+        y
+      }
+      characterTimelines {
+        characterId
+        startTime
+        actions {
+          actionId
+          startTime
+          endTime
+        }
+      }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
+      }
     }
   }
 `;
@@ -872,6 +977,16 @@ export const ON_ENCOUNTER_TIMELINE_CHANGED = gql`
   subscription OnEncounterTimelineChanged {
     onEncounterTimelineChanged {
       encounterId
+      name
+      description
+      currentTime
+      gridRows
+      gridColumns
+      characterPositions {
+        characterId
+        x
+        y
+      }
       characterTimelines {
         characterId
         startTime
@@ -886,7 +1001,17 @@ export const ON_ENCOUNTER_TIMELINE_CHANGED = gql`
         type
         characterId
         actionId
+        actionName
         description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
       }
     }
   }
@@ -918,8 +1043,42 @@ export const UPDATE_GRID_SIZE = gql`
   mutation UpdateGridSize($input: UpdateGridSizeInput!) {
     updateGridSize(input: $input) {
       encounterId
+      name
+      description
+      currentTime
       gridRows
       gridColumns
+      characterPositions {
+        characterId
+        x
+        y
+      }
+      characterTimelines {
+        characterId
+        startTime
+        actions {
+          actionId
+          startTime
+          endTime
+        }
+      }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
+      }
     }
   }
 `;
@@ -930,6 +1089,50 @@ export const ON_GRID_SIZE_CHANGED = gql`
       encounterId
       gridRows
       gridColumns
+    }
+  }
+`;
+
+export const ON_ENCOUNTER_CHARACTER_CHANGED = gql`
+  subscription OnEncounterCharacterChanged {
+    onEncounterCharacterChanged {
+      encounterId
+      name
+      description
+      currentTime
+      gridRows
+      gridColumns
+      characterPositions {
+        characterId
+        x
+        y
+      }
+      characterTimelines {
+        characterId
+        startTime
+        actions {
+          actionId
+          startTime
+          endTime
+        }
+      }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
+      }
     }
   }
 `;

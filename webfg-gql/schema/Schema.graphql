@@ -124,6 +124,8 @@ type Subscription {
       @aws_subscribe(mutations: ["updateCharacterPosition", "addGridElement", "removeGridElement"])
   onGridSizeChanged: Encounter
       @aws_subscribe(mutations: ["updateGridSize"])
+  onEncounterCharacterChanged: Encounter
+      @aws_subscribe(mutations: ["addCharacterToEncounter"])
 }
 
 # Filter inputs for queries

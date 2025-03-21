@@ -12,7 +12,9 @@ import {
   ON_ENCOUNTER_TIMELINE_CHANGED,
   ON_ENCOUNTER_VTT_CHANGED,
   UPDATE_GRID_SIZE,
-  ON_GRID_SIZE_CHANGED
+  ON_GRID_SIZE_CHANGED,
+  ON_UPDATE_ENCOUNTER,
+  ON_ENCOUNTER_CHARACTER_CHANGED
 } from '../../graphql/operations';
 import VirtualTableTop from './VirtualTableTop';
 import Timeline from './Timeline';
@@ -68,20 +70,22 @@ const EncounterDetail = () => {
   });
   
   useSubscription(ON_GRID_SIZE_CHANGED, {
+    variables: { encounterId },
+    onData: () => refetch()
+  });
+  
+  useSubscription(ON_ENCOUNTER_CHARACTER_CHANGED, {
+    variables: { encounterId },
     onData: ({ data }) => {
-      if (data?.data?.onGridSizeChanged) {
-        const updatedEncounter = data.data.onGridSizeChanged;
+      if (data?.data?.onEncounterCharacterChanged) {
+        const updatedEncounter = data.data.onEncounterCharacterChanged;
         client.cache.updateQuery(
           {
             query: GET_ENCOUNTER,
             variables: { encounterId }
           },
-          (existing) => ({
-            getEncounter: {
-              ...existing?.getEncounter,
-              gridRows: updatedEncounter.gridRows,
-              gridColumns: updatedEncounter.gridColumns
-            }
+          () => ({
+            getEncounter: updatedEncounter
           })
         );
       }
