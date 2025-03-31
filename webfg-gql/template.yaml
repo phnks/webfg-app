@@ -4,6 +4,13 @@ Transform: AWS::Serverless-2016-10-31
 Description: AWS AppSync GraphQL API
 
 Parameters:
+  Environment:
+    Type: String
+    Description: 'Deployment environment (prod/qa)'
+    Default: 'prod'
+    AllowedValues:
+      - 'prod'
+      - 'qa'
   ServiceName:
     Type: String
     Description: 'Name of the service'
@@ -60,21 +67,34 @@ Parameters:
     Type: String
     Description: S3 key for the GraphQL schema file
 
+Conditions:
+  IsQA: !Equals [!Ref Environment, 'qa']
+
 Resources:
   DatabasesNestedStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./databases.yaml
       Parameters:
-        ServiceName: !Ref ServiceName
+        ServiceName: !If 
+          - IsQA
+          - !Sub ${ServiceName}-qa
+          - !Ref ServiceName
 
   GraphQLNestedStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./graphql/main.yaml
       Parameters:
-        AppSyncApiName: !Ref AppSyncApiName
-        ServiceName: !Ref ServiceName
+        Environment: !Ref Environment
+        AppSyncApiName: !If 
+          - IsQA
+          - !Sub ${AppSyncApiName}-qa
+          - !Ref AppSyncApiName
+        ServiceName: !If 
+          - IsQA
+          - !Sub ${ServiceName}-qa
+          - !Ref ServiceName
         CharactersTableName: !GetAtt DatabasesNestedStack.Outputs.CharactersTableName
         ObjectsTableName: !GetAtt DatabasesNestedStack.Outputs.ObjectsTableName
         ActionsTableName: !GetAtt DatabasesNestedStack.Outputs.ActionsTableName
@@ -92,17 +112,11 @@ Resources:
   GraphQLSchemaStorageBucket:
     Type: AWS::S3::Bucket
     Properties:
-      VersioningConfiguration:
-        Status: Enabled
-      LifecycleConfiguration:
-        Rules:
-          - Id: DeleteOldVersions
-            Status: Enabled
-            NoncurrentVersionExpiration:
-              NoncurrentDays: 30
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-
+      BucketName: !If 
+        - IsQA
+        - !Sub ${ServiceName}-schema-qa
+        - !Sub ${ServiceName}-schema
+        
 Outputs:
   GraphQLApiEndpoint:
     Description: 'GraphQL API Endpoint'

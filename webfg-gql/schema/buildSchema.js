@@ -1,12 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 const { exec, execSync } = require('child_process');
+const packageJson = require('../package.json');
 
 // Stack name is used to get the exported bucket name
 const STACK_NAME = process.env.STACK_NAME || 'webfg-gql';
 // Allow direct specification of bucket name to bypass CloudFormation lookups
 const MANUAL_BUCKET_NAME = process.env.SCHEMA_S3_BUCKET || '';
-const s3Key = process.env.SCHEMA_S3_KEY || 'schemas/schema_v10.graphql';
+const environment = process.env.ENVIRONMENT || 'prod';
+const schemaVersion = packageJson.config[`${environment}_schema`];
+const s3Key = process.env.SCHEMA_S3_KEY || `schemas/schema_${schemaVersion}.graphql`;
 const outputFile = path.join(__dirname, '../schema.graphql');
 
 // Function to get the S3 bucket name using multiple strategies

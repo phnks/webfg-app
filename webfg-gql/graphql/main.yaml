@@ -3,6 +3,12 @@ Transform: AWS::Serverless-2016-10-31
 Description: 'Main GraphQL API template'
 
 Parameters:
+  Environment:
+    Type: String
+    Description: 'Deployment environment (prod/qa)'
+    AllowedValues:
+      - 'prod'
+      - 'qa'
   ServiceName:
     Type: String
     Description: 'Name of the service'
@@ -55,6 +61,7 @@ Resources:
     Properties:
       TemplateURL: ./api.yaml 
       Parameters:
+        Environment: !Ref Environment
         ServiceName: !Ref ServiceName
         AppSyncApiName: !Ref AppSyncApiName
         PhnksCertArn: !Ref PhnksCertArn

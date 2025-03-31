@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:schema": "node schema/buildSchema.js"
+    "build:schema:qa": "ENVIRONMENT=qa STACK_NAME=${npm_package_config_stack_name}-qa node schema/buildSchema.js",
+    "build:schema:prod": "ENVIRONMENT=prod STACK_NAME=${npm_package_config_stack_name} node schema/buildSchema.js",
+    "deploy:qa": "npm run build:schema:qa || true && sam build && sam deploy --template-file template.yaml --stack-name ${npm_package_config_stack_name}-qa --parameter-overrides Environment=qa SchemaS3Key=\"schemas/schema_${npm_package_config_qa_schema}.graphql\"",
+    "deploy:prod": "npm run build:schema:prod || true && sam build && sam deploy --template-file template.yaml --stack-name ${npm_package_config_stack_name} --parameter-overrides Environment=prod SchemaS3Key=\"schemas/schema_${npm_package_config_prod_schema}.graphql\""
   },
   "repository": {
     "type": "git",
@@ -20,5 +23,10 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.758.0",
     "@aws-sdk/lib-dynamodb": "^3.758.0"
+  },
+  "config": {
+    "qa_schema": "v10",
+    "prod_schema": "v10",
+    "stack_name": "webfg-gql"
   }
 }

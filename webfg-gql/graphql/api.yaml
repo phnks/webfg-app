@@ -23,6 +23,15 @@ Parameters:
   SchemaS3BucketName:
     Type: String
     Description: "Name of the S3 bucket containing the GraphQL schema"
+  Environment:
+    Type: String
+    Description: 'Deployment environment (prod/qa)'
+    AllowedValues:
+      - 'prod'
+      - 'qa'
+
+Conditions:
+  IsQA: !Equals [!Ref Environment, 'qa']
 
 Resources:
   GraphQLApi:
