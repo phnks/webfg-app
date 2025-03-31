@@ -4,8 +4,10 @@ type Encounter {
   description: String
   currentTime: Float!
   characterPositions: [CharacterPosition]
+  objectPositions: [ObjectPosition]
   characterTimelines: [CharacterTimeline]
   gridElements: [GridElement]
+  terrainElements: [TerrainElement]
   history: [TimelineEvent]
   createdAt: String
   gridRows: Int!
@@ -78,6 +80,27 @@ enum GridElementType {
   V_MARK
 }
 
+type ObjectPosition {
+  objectId: ID!
+  x: Int!
+  y: Int!
+}
+
+enum TerrainType {
+  VERTICAL_LINE
+  HORIZONTAL_LINE
+  DIAGONAL_LINE
+}
+
+type TerrainElement {
+  terrainId: ID!
+  type: TerrainType!
+  startX: Int!
+  startY: Int!
+  length: Int!
+  color: String
+}
+
 input EncounterInput {
   name: String!
   description: String
@@ -114,4 +137,18 @@ input UpdateGridSizeInput {
   encounterId: ID!
   rows: Int!
   columns: Int!
+}
+
+input TerrainElementInput {
+  type: TerrainType!
+  startX: Int!
+  startY: Int!
+  length: Int!
+  color: String
+}
+
+input UpdateTerrainPositionInput {
+  terrainId: ID!
+  startX: Int!
+  startY: Int!
 }

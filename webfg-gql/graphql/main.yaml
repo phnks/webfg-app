@@ -55,6 +55,12 @@ Parameters:
     Type: String
     Description: 'Name of encounters table'
 
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 1024
+    Runtime: nodejs20.x # Or your preferred runtime
+
 Resources:
   ApiStack:
     Type: AWS::CloudFormation::Stack
@@ -187,6 +193,32 @@ Resources:
         EncountersTableName: !Ref EncountersTableName
         CharactersTableName: !Ref CharactersTableName
         ActionsTableName: !Ref ActionsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  EncounterObjectResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./encounter-object-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        EncountersTableName: !Ref EncountersTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  EncounterTerrainResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./encounter-terrain-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        EncountersTableName: !Ref EncountersTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
 Outputs:

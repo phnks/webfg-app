@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import CharacterSummary from './CharacterSummary';
 import './VirtualTableTop.css';
+import { FaTrash } from 'react-icons/fa';
 
-const CELL_SIZE = 30; // 30px per cell
+const CELL_SIZE = 40; // 40px per cell
 
 const VirtualTableTop = ({ 
   characters = [], 
+  objects = [],
+  terrain = [],
   gridElements = [],
   history = [],
   currentTime = 0, 
@@ -13,16 +16,24 @@ const VirtualTableTop = ({
   onSelectCharacter,
   gridRows = 20,
   gridColumns = 20,
+  onMoveObject,
+  onDeleteObject,
+  onMoveTerrain,
+  onDeleteTerrain,
   onUpdateGridSize
 }) => {
   const canvasRef = useRef(null);
-  const [draggingCharacter, setDraggingCharacter] = useState(null);
+  const [draggingItem, setDraggingItem] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
   
-  const GRID_COLOR = '#ddd';
-  const HIGHLIGHT_COLOR = 'rgba(76, 175, 80, 0.3)';
+  const GRID_COLOR = '#ccc';
+  const HIGHLIGHT_COLOR = 'rgba(100, 100, 255, 0.3)';
+  const OBJECT_COLOR = '#9C27B0'; // Purple for objects
+  const TERRAIN_COLOR = '#8B4513'; // Brown for terrain
+  const TERRAIN_LINE_WIDTH = 3;
   
-  const getGridCoordinates = (event) => {
+  const getGridCoordinates = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const LABEL_SPACE = 20;
@@ -32,19 +43,29 @@ const VirtualTableTop = ({
     const scaleY = canvas.height / rect.height;
     
     // Get position in canvas space (handle both mouse and touch events)
-    const clientX = event.clientX || event.pageX;
-    const clientY = event.clientY || event.pageY;
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      // Use the first touch point for touch events
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      // Use standard clientX/Y for mouse events
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
     
     const canvasX = (clientX - rect.left) * scaleX - LABEL_SPACE;
     const canvasY = (clientY - rect.top) * scaleY - LABEL_SPACE;
     
     // Convert to grid coordinates
-    return {
-      x: Math.floor(canvasX / CELL_SIZE),
-      y: Math.floor(canvasY / CELL_SIZE)
-    };
+    const gridX = Math.floor(canvasX / CELL_SIZE);
+    const gridY = Math.floor(canvasY / CELL_SIZE);
+    
+    // Return raw canvas coordinates as well for precise item checking
+    return { x: gridX, y: gridY, canvasX, canvasY };
   };
 
+  // Effect for drawing the canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -217,6 +238,57 @@ const VirtualTableTop = ({
       );
     });
     
+    // Draw objects
+    objects.forEach(obj => {
+      const { x, y, name } = obj;
+      if (x < 0 || y < 0 || x >= gridColumns || y >= gridRows) return;
+
+      // Draw object token (e.g., a square)
+      ctx.fillStyle = OBJECT_COLOR;
+      const objSize = CELL_SIZE - 8; // Smaller than cell
+      const objX = x * CELL_SIZE + 4;
+      const objY = y * CELL_SIZE + 4;
+      ctx.fillRect(objX, objY, objSize, objSize);
+
+      // Draw object initial
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(
+        name.charAt(0).toUpperCase(),
+        x * CELL_SIZE + CELL_SIZE / 2,
+        y * CELL_SIZE + CELL_SIZE / 2
+      );
+    });
+    
+    // Draw terrain
+    terrain.forEach(terr => {
+      const startX = terr.startX * CELL_SIZE;
+      const startY = terr.startY * CELL_SIZE;
+      let endX, endY;
+
+      switch (terr.type) {
+        case 'VERTICAL_LINE':
+          endX = startX;
+          endY = (terr.startY + terr.length) * CELL_SIZE;
+          break;
+        case 'HORIZONTAL_LINE':
+          endX = (terr.startX + terr.length) * CELL_SIZE;
+          endY = startY;
+          break;
+        case 'DIAGONAL_LINE':
+          endX = (terr.startX + terr.length) * CELL_SIZE;
+          endY = (terr.startY + terr.length) * CELL_SIZE;
+          break;
+        default: return; // Unknown type
+      }
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+    });
+    
     // Highlight hovered cell
     if (hoveredCell) {
       const { x, y } = hoveredCell;
@@ -226,109 +298,267 @@ const VirtualTableTop = ({
     
     // Reset transform before finishing
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-  }, [gridRows, gridColumns, characters, gridElements, hoveredCell]);
-  
+    // Ensure draggingItem state changes also trigger redraw if needed for visual feedback
+  }, [gridRows, gridColumns, characters, objects, terrain, gridElements, hoveredCell, draggingItem]); // Added draggingItem
+
+  // Effect to handle passive touchmove listener
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // The actual handler function remains the same
+    const touchMoveHandler = (e) => {
+      if (draggingItem) {
+        // *** PREVENT SCROLLING DURING DRAG ***
+        e.preventDefault();
+        const { x, y } = getGridCoordinates(e); // Use updated function
+        setHoveredCell({ x, y });
+        // Optional: Visual feedback during drag
+        // drawCanvas(); // drawCanvas is not defined, drawing happens in the main useEffect
+      }
+    };
+
+    // Add listener with passive: false
+    canvas.addEventListener('touchmove', touchMoveHandler, { passive: false });
+
+    // Cleanup function to remove listener
+    return () => {
+      canvas.removeEventListener('touchmove', touchMoveHandler);
+    };
+  }, [draggingItem, getGridCoordinates]); // Add dependencies
+
   const handleCanvasMouseDown = (e) => {
-    const { x, y } = getGridCoordinates(e);
-    
-    // Check if there's a character at this position
-    const characterAtPosition = characters.find(
-      char => char.x === x && char.y === y
-    );
-    
-    if (characterAtPosition) {
-      setDraggingCharacter(characterAtPosition);
+    if (e.button !== 0) return; // Only left click for dragging
+    setContextMenu(null); // Close context menu on new click
+    // Use findItemAt with canvas coordinates AND get grid coords
+    const { x: gridX, y: gridY, canvasX, canvasY } = getGridCoordinates(e);
+    const item = findItemAt(canvasX, canvasY);
+
+    if (item) {
+      // Store the grid coordinates where the drag started
+      setDraggingItem({ ...item, startGridX: gridX, startGridY: gridY });
+      // DO NOT select character here
+      // Prevent text selection during drag
+      e.preventDefault();
+    } else {
+      setDraggingItem(null);
     }
   };
   
   const handleCanvasMouseMove = (e) => {
     const { x, y } = getGridCoordinates(e);
-    
-    if (x >= 0 && x < gridColumns && y >= 0 && y < gridRows) {
-      setHoveredCell({ x, y });
-    } else {
-      setHoveredCell(null);
+    setHoveredCell({ x, y });
+
+    if (draggingItem) {
+      // Optional: Add visual feedback during drag if needed
+      // This redraws on every move, might be intensive.
+      // Consider drawing a ghost item instead of full redraw.
+      // drawCanvas(); // Re-draw to show item moving (if desired)
     }
   };
   
   const handleCanvasMouseUp = (e) => {
-    if (draggingCharacter && hoveredCell) {
-      const { characterId } = draggingCharacter;
-      const { x, y } = hoveredCell;
-      
-      // Only move if destination is different from current position
-      if (draggingCharacter.x !== x || draggingCharacter.y !== y) {
-        onMoveCharacter(characterId, x, y);
-      }
+    if (e.button !== 0 || !draggingItem) {
+      // If it wasn't a left click or nothing was being dragged, clear state
+      if (draggingItem) setDraggingItem(null);
+      return;
     }
-    
-    setDraggingCharacter(null);
+
+    const { x: endGridX, y: endGridY } = getGridCoordinates(e);
+
+    // Check if the drop position is different from the start grid position
+    if (endGridX !== draggingItem.startGridX || endGridY !== draggingItem.startGridY) {
+      // It was a drag - Call the appropriate move handler
+      if (draggingItem.type === 'character' && onMoveCharacter) {
+        onMoveCharacter(draggingItem.id, endGridX, endGridY);
+      } else if (draggingItem.type === 'object' && onMoveObject) {
+        onMoveObject(draggingItem.id, endGridX, endGridY);
+      } else if (draggingItem.type === 'terrain' && onMoveTerrain) {
+        // Pass the new start coordinates for terrain
+        onMoveTerrain(draggingItem.id, endGridX, endGridY);
+      }
+    } else {
+      // It was a click/tap (no movement) - Select character if applicable
+      if (draggingItem.type === 'character' && onSelectCharacter) {
+        onSelectCharacter(draggingItem.id);
+      }
+      // Potentially handle clicks on objects/terrain here if needed later
+    }
+
+    setDraggingItem(null);
+    setHoveredCell(null);
   };
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const handleCanvasMouseLeave = () => {
+    if (draggingItem) {
+      // Optional: Cancel drag if mouse leaves canvas
+      // setDraggingItem(null);
+    }
+    setHoveredCell(null);
+  };
 
-    // Add non-passive touch event listeners
-    const touchStart = (e) => {
-      const touch = e.touches[0];
-      const { x, y } = getGridCoordinates(touch);
-      
-      // Check if we're touching a character
-      const characterAtPosition = characters.find(
-        char => char.x === x && char.y === y
-      );
-      
-      if (characterAtPosition && e.touches.length === 1) {
-        // Only prevent default if we're touching a character with one finger
-        e.preventDefault();
-        setDraggingCharacter(characterAtPosition);
+  const handleContextMenu = (e) => {
+    e.preventDefault(); // Prevent browser default context menu
+    const { canvasX, canvasY } = getGridCoordinates(e);
+    const clickedItem = findItemAt(canvasX, canvasY);
+
+    if (clickedItem && (clickedItem.type === 'object' || clickedItem.type === 'terrain')) {
+      setContextMenu({
+        x: e.clientX, // Position menu based on screen coords
+        y: e.clientY,
+        itemType: clickedItem.type,
+        itemId: clickedItem.id
+      });
+    } else {
+      setContextMenu(null); // Close if clicking empty space or character
+    }
+  };
+
+  const handleDeleteContextItem = () => {
+    if (!contextMenu) return;
+    const { itemType, itemId } = contextMenu;
+    if (itemType === 'object') {
+      onDeleteObject(itemId);
+    } else if (itemType === 'terrain') {
+      onDeleteTerrain(itemId);
+    }
+    setContextMenu(null); // Close menu after action
+  };
+
+  // Function to find item at canvas coordinates
+  const findItemAt = (canvasX, canvasY) => {
+    const gridX = Math.floor(canvasX / CELL_SIZE);
+    const gridY = Math.floor(canvasY / CELL_SIZE);
+
+    // Check characters (center check)
+    for (const char of characters) {
+      const charCenterX = char.x * CELL_SIZE + CELL_SIZE / 2;
+      const charCenterY = char.y * CELL_SIZE + CELL_SIZE / 2;
+      const radius = CELL_SIZE / 2 - 4;
+      if (Math.sqrt((canvasX - charCenterX)**2 + (canvasY - charCenterY)**2) <= radius) {
+        return { type: 'character', id: char.characterId, item: char };
       }
-    };
+    }
 
-    const touchMove = (e) => {
-      if (draggingCharacter && e.touches.length === 1) {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const { x, y } = getGridCoordinates(touch);
-        
-        if (x >= 0 && x < gridColumns && y >= 0 && y < gridRows) {
-          setHoveredCell({ x, y });
-        } else {
-          setHoveredCell(null);
+    // Check objects (simple square check)
+    for (const obj of objects) {
+      if (gridX === obj.x && gridY === obj.y) {
+        // More precise check if needed (e.g., within a smaller square)
+        const objLeft = obj.x * CELL_SIZE + 4;
+        const objTop = obj.y * CELL_SIZE + 4;
+        const objSize = CELL_SIZE - 8;
+        if (canvasX >= objLeft && canvasX <= objLeft + objSize && canvasY >= objTop && canvasY <= objTop + objSize) {
+          return { type: 'object', id: obj.objectId, item: obj };
         }
       }
-    };
+    }
 
-    const touchEnd = (e) => {
-      if (draggingCharacter) {
-        e.preventDefault();
-        if (hoveredCell) {
-          const { characterId } = draggingCharacter;
-          const { x, y } = hoveredCell;
-          
-          if (draggingCharacter.x !== x || draggingCharacter.y !== y) {
-            onMoveCharacter(characterId, x, y);
+    // Check terrain (check proximity to line segments)
+    const tolerance = 5; // pixels tolerance for clicking lines
+    for (const terr of terrain) {
+      const startXpx = terr.startX * CELL_SIZE;
+      const startYpx = terr.startY * CELL_SIZE;
+      let endXpx, endYpx;
+
+      switch (terr.type) {
+        case 'VERTICAL_LINE':
+          endXpx = startXpx;
+          endYpx = (terr.startY + terr.length) * CELL_SIZE;
+          break;
+        case 'HORIZONTAL_LINE':
+          endXpx = (terr.startX + terr.length) * CELL_SIZE;
+          endYpx = startYpx;
+          break;
+        case 'DIAGONAL_LINE':
+          endXpx = (terr.startX + terr.length) * CELL_SIZE;
+          endYpx = (terr.startY + terr.length) * CELL_SIZE;
+          break;
+        default: continue;
+      }
+
+      // Basic bounding box check first
+      const minX = Math.min(startXpx, endXpx) - tolerance;
+      const maxX = Math.max(startXpx, endXpx) + tolerance;
+      const minY = Math.min(startYpx, endYpx) - tolerance;
+      const maxY = Math.max(startYpx, endYpx) + tolerance;
+
+      if (canvasX >= minX && canvasX <= maxX && canvasY >= minY && canvasY <= maxY) {
+        // More precise point-to-line distance check (simplified here)
+        // For vertical/horizontal, check if coordinate is within tolerance
+        if (terr.type === 'VERTICAL_LINE' && Math.abs(canvasX - startXpx) <= tolerance && canvasY >= startYpx && canvasY <= endYpx) {
+          return { type: 'terrain', id: terr.terrainId, item: terr };
+        }
+        if (terr.type === 'HORIZONTAL_LINE' && Math.abs(canvasY - startYpx) <= tolerance && canvasX >= startXpx && canvasX <= endXpx) {
+          return { type: 'terrain', id: terr.terrainId, item: terr };
+        }
+        // Diagonal check is more complex (point-to-line distance formula) - skipping detailed math for brevity
+        if (terr.type === 'DIAGONAL_LINE') {
+          // Simple check: if close enough to start or end point
+          if (Math.sqrt((canvasX - startXpx)**2 + (canvasY - startYpx)**2) < tolerance * 2 ||
+            Math.sqrt((canvasX - endXpx)**2 + (canvasY - endYpx)**2) < tolerance * 2) {
+            return { type: 'terrain', id: terr.terrainId, item: terr };
           }
         }
-        
-        setDraggingCharacter(null);
-        setHoveredCell(null);
       }
-    };
+    }
 
-    // Add event listeners with {passive: true} by default
-    canvas.addEventListener('touchstart', touchStart);
-    canvas.addEventListener('touchmove', touchMove);
-    canvas.addEventListener('touchend', touchEnd);
+    return null; // Nothing found
+  };
 
-    // Cleanup
-    return () => {
-      canvas.removeEventListener('touchstart', touchStart);
-      canvas.removeEventListener('touchmove', touchMove);
-      canvas.removeEventListener('touchend', touchEnd);
-    };
-  }, [characters, draggingCharacter, hoveredCell, onMoveCharacter]);
+  // --- ADD TOUCH HANDLERS ---
+  const handleCanvasTouchStart = (e) => {
+    // Use findItemAt with canvas coordinates AND get grid coords
+    const { x: gridX, y: gridY, canvasX, canvasY } = getGridCoordinates(e);
+    const item = findItemAt(canvasX, canvasY);
+
+    if (item) {
+      // Store the grid coordinates where the drag started
+      setDraggingItem({ ...item, startGridX: gridX, startGridY: gridY });
+      // DO NOT select character here
+      // Prevent default only if an item is being dragged to allow scrolling otherwise
+      // e.preventDefault(); // Maybe remove this? Test touch scrolling on empty areas.
+    } else {
+      setDraggingItem(null);
+    }
+    setContextMenu(null);
+  };
+
+  const handleCanvasTouchEnd = (e) => {
+    if (draggingItem) {
+      // For touchend, coordinates are on e.changedTouches
+      const touch = e.changedTouches[0];
+      // Ensure touch exists before proceeding (it might not on cancel)
+      if (!touch) {
+         setDraggingItem(null);
+         setHoveredCell(null);
+         return;
+      }
+      const endCoords = getGridCoordinates(touch); // Pass the touch object
+      const { x: endGridX, y: endGridY } = endCoords;
+
+      // Check if the drop position is different from the start grid position
+      if (endGridX !== draggingItem.startGridX || endGridY !== draggingItem.startGridY) {
+         // It was a drag - Call the appropriate move handler
+        if (draggingItem.type === 'character' && onMoveCharacter) {
+          onMoveCharacter(draggingItem.id, endGridX, endGridY);
+        } else if (draggingItem.type === 'object' && onMoveObject) {
+          onMoveObject(draggingItem.id, endGridX, endGridY);
+        } else if (draggingItem.type === 'terrain' && onMoveTerrain) {
+          onMoveTerrain(draggingItem.id, endGridX, endGridY);
+        }
+      } else {
+        // It was a click/tap (no movement) - Select character if applicable
+        if (draggingItem.type === 'character' && onSelectCharacter) {
+          onSelectCharacter(draggingItem.id);
+        }
+        // Potentially handle taps on objects/terrain here if needed later
+      }
+    }
+    // Always clear dragging state on touch end/cancel
+    setDraggingItem(null);
+    setHoveredCell(null);
+  };
+  // --- END OF TOUCH HANDLERS ---
 
   return (
     <div className="virtual-tabletop">
@@ -352,7 +582,11 @@ const VirtualTableTop = ({
           onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleCanvasMouseUp}
-          onMouseLeave={() => setHoveredCell(null)}
+          onMouseLeave={handleCanvasMouseLeave}
+          onContextMenu={handleContextMenu}
+          onTouchStart={handleCanvasTouchStart}
+          onTouchEnd={handleCanvasTouchEnd}
+          onTouchCancel={handleCanvasTouchEnd}
         />
       </div>
       <CharacterSummary 
@@ -361,6 +595,17 @@ const VirtualTableTop = ({
         currentTime={currentTime}
         onSelectCharacter={onSelectCharacter}
       />
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="vtt-context-menu"
+          style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }}
+        >
+          <button onClick={handleDeleteContextItem}>
+            <FaTrash /> Delete {contextMenu.itemType}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

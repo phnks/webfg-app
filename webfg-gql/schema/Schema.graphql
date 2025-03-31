@@ -84,6 +84,16 @@ type Mutation {
   updateCharacterPosition(encounterId: ID!, characterId: ID!, x: Int!, y: Int!): Encounter
   addGridElement(encounterId: ID!, element: GridElementInput!): Encounter
   removeGridElement(encounterId: ID!, elementId: ID!): Encounter
+
+  # Object VTT Mutations
+  addObjectToEncounterVTT(encounterId: ID!, objectId: ID!, x: Int!, y: Int!): Encounter
+  updateObjectPosition(encounterId: ID!, objectId: ID!, x: Int!, y: Int!): Encounter
+  removeObjectFromEncounterVTT(encounterId: ID!, objectId: ID!): Encounter
+
+  # Terrain VTT Mutations
+  addTerrainToEncounter(encounterId: ID!, input: TerrainElementInput!): Encounter
+  updateTerrainPosition(encounterId: ID!, input: UpdateTerrainPositionInput!): Encounter
+  removeTerrainFromEncounter(encounterId: ID!, terrainId: ID!): Encounter
 }
 
 type Subscription {
@@ -118,14 +128,24 @@ type Subscription {
       @aws_subscribe(mutations: ["updateEncounter"])
   onDeleteEncounter: Encounter
       @aws_subscribe(mutations: ["deleteEncounter"])
-  onEncounterTimelineChanged: Encounter
+  onEncounterTimelineChanged(encounterId: ID!): Encounter
       @aws_subscribe(mutations: ["addActionToTimeline", "advanceEncounterTime"])
-  onEncounterVttChanged: Encounter
-      @aws_subscribe(mutations: ["updateCharacterPosition", "addGridElement", "removeGridElement"])
-  onGridSizeChanged: Encounter
+  onEncounterVttChanged(encounterId: ID!): Encounter
+      @aws_subscribe(mutations: [
+        "updateCharacterPosition",
+        "addGridElement",
+        "removeGridElement",
+        "addObjectToEncounterVTT",
+        "updateObjectPosition",
+        "removeObjectFromEncounterVTT",
+        "addTerrainToEncounter",
+        "updateTerrainPosition",
+        "removeTerrainFromEncounter"
+      ])
+  onGridSizeChanged(encounterId: ID!): Encounter
       @aws_subscribe(mutations: ["updateGridSize"])
-  onEncounterCharacterChanged: Encounter
-      @aws_subscribe(mutations: ["addCharacterToEncounter"])
+  onEncounterCharacterChanged(encounterId: ID!): Encounter
+      @aws_subscribe(mutations: ["addCharacterToEncounter", "removeCharacterFromEncounter"])
 }
 
 # Filter inputs for queries

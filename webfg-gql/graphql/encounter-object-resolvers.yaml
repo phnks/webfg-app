@@ -1,0 +1,156 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'AppSync Encounter Object VTT Resolvers'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  EncountersTableName:
+    Type: String
+    Description: 'Name of encounters table'
+  # ObjectsTableName: # Add if object details are needed from an Objects table
+  #   Type: String
+  #   Description: 'Name of objects table'
+  AppSyncLambdaServiceRoleArn:
+    Type: String
+    Description: 'Shared lambda service role'
+
+Resources:
+  # --- Functions ---
+  AddObjectToEncounterVTTFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/addObjectToEncounterVTT.handler
+      Runtime: nodejs20.x # Or your preferred runtime
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          ENCOUNTERS_TABLE: !Ref EncountersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EncountersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref EncountersTableName
+
+  UpdateObjectPositionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/updateObjectPosition.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          ENCOUNTERS_TABLE: !Ref EncountersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EncountersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref EncountersTableName
+
+  RemoveObjectFromEncounterVTTFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/removeObjectFromEncounterVTT.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          ENCOUNTERS_TABLE: !Ref EncountersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EncountersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref EncountersTableName
+
+  # --- Data Sources ---
+  AddObjectToEncounterVTTDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: AddObjectToEncounterVTTLambdaSource
+      Type: AWS_LAMBDA
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt AddObjectToEncounterVTTFunction.Arn
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn # Role AppSync assumes to invoke Lambda
+
+  UpdateObjectPositionDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: UpdateObjectPositionLambdaSource
+      Type: AWS_LAMBDA
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt UpdateObjectPositionFunction.Arn
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  RemoveObjectFromEncounterVTTDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: RemoveObjectFromEncounterVTTLambdaSource
+      Type: AWS_LAMBDA
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt RemoveObjectFromEncounterVTTFunction.Arn
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  # --- Resolvers ---
+  AddObjectToEncounterVTTResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: addObjectToEncounterVTT # Matches schema
+      DataSourceName: !GetAtt AddObjectToEncounterVTTDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  UpdateObjectPositionResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: updateObjectPosition # Matches schema
+      DataSourceName: !GetAtt UpdateObjectPositionDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  RemoveObjectFromEncounterVTTResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: removeObjectFromEncounterVTT # Matches schema
+      DataSourceName: !GetAtt RemoveObjectFromEncounterVTTDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result) 

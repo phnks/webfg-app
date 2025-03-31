@@ -123,4 +123,48 @@ canvas {
 .grid-size-control span {
   min-width: 30px;
   text-align: center;
+}
+
+.vtt-wrapper {
+  position: relative; /* Needed for absolute positioning of context menu */
+  /* Add other wrapper styles if needed, like border */
+   border: 1px solid #eee;
+   overflow: auto; /* Add scrollbars if grid is larger than container */
+   flex-grow: 1; /* Allow VTT to fill space in flex container */
+}
+
+canvas {
+  display: block; /* Remove extra space below canvas */
+  cursor: grab; /* Indicate draggable */
+}
+canvas:active {
+   cursor: grabbing;
+}
+
+
+.vtt-context-menu {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 5px;
+  z-index: 10; /* Ensure it's above the canvas */
+  min-width: 150px;
+}
+
+.vtt-context-menu button {
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vtt-context-menu button:hover {
+  background-color: #f0f0f0;
 } 

@@ -974,8 +974,8 @@ export const ON_DELETE_ENCOUNTER = gql`
 `;
 
 export const ON_ENCOUNTER_TIMELINE_CHANGED = gql`
-  subscription OnEncounterTimelineChanged {
-    onEncounterTimelineChanged {
+  subscription OnEncounterTimelineChanged($encounterId: ID!) {
+    onEncounterTimelineChanged(encounterId: $encounterId) {
       encounterId
       name
       description
@@ -1018,8 +1018,8 @@ export const ON_ENCOUNTER_TIMELINE_CHANGED = gql`
 `;
 
 export const ON_ENCOUNTER_VTT_CHANGED = gql`
-  subscription OnEncounterVttChanged {
-    onEncounterVttChanged {
+  subscription OnEncounterVttChanged($encounterId: ID!) {
+    onEncounterVttChanged(encounterId: $encounterId) {
       encounterId
       characterPositions {
         characterId
@@ -1029,10 +1029,20 @@ export const ON_ENCOUNTER_VTT_CHANGED = gql`
       gridElements {
         id
         type
-        coordinates {
-          x
-          y
-        }
+        coordinates { x y }
+        color
+      }
+      objectPositions {
+        objectId
+        x
+        y
+      }
+      terrainElements {
+        terrainId
+        type
+        startX
+        startY
+        length
         color
       }
     }
@@ -1084,8 +1094,8 @@ export const UPDATE_GRID_SIZE = gql`
 `;
 
 export const ON_GRID_SIZE_CHANGED = gql`
-  subscription OnGridSizeChanged {
-    onGridSizeChanged {
+  subscription OnGridSizeChanged($encounterId: ID!) {
+    onGridSizeChanged(encounterId: $encounterId) {
       encounterId
       gridRows
       gridColumns
@@ -1094,8 +1104,8 @@ export const ON_GRID_SIZE_CHANGED = gql`
 `;
 
 export const ON_ENCOUNTER_CHARACTER_CHANGED = gql`
-  subscription OnEncounterCharacterChanged {
-    onEncounterCharacterChanged {
+  subscription OnEncounterCharacterChanged($encounterId: ID!) {
+    onEncounterCharacterChanged(encounterId: $encounterId) {
       encounterId
       name
       description
@@ -1116,6 +1126,162 @@ export const ON_ENCOUNTER_CHARACTER_CHANGED = gql`
           endTime
         }
       }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
+      }
+    }
+  }
+`;
+
+export const ADD_OBJECT_TO_ENCOUNTER_VTT = gql`
+  mutation AddObjectToEncounterVTT($encounterId: ID!, $objectId: ID!, $x: Int!, $y: Int!) {
+    addObjectToEncounterVTT(encounterId: $encounterId, objectId: $objectId, x: $x, y: $y) {
+      encounterId
+      objectPositions { objectId x y }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
+      }
+    }
+  }
+`;
+
+export const UPDATE_OBJECT_POSITION = gql`
+  mutation UpdateObjectPosition($encounterId: ID!, $objectId: ID!, $x: Int!, $y: Int!) {
+    updateObjectPosition(encounterId: $encounterId, objectId: $objectId, x: $x, y: $y) {
+      encounterId
+      objectPositions { objectId x y }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
+      }
+    }
+  }
+`;
+
+export const REMOVE_OBJECT_FROM_ENCOUNTER_VTT = gql`
+  mutation RemoveObjectFromEncounterVTT($encounterId: ID!, $objectId: ID!) {
+    removeObjectFromEncounterVTT(encounterId: $encounterId, objectId: $objectId) {
+      encounterId
+      objectPositions { objectId x y }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
+      }
+    }
+  }
+`;
+
+export const ADD_TERRAIN_TO_ENCOUNTER = gql`
+  mutation AddTerrainToEncounter($encounterId: ID!, $input: TerrainElementInput!) {
+    addTerrainToEncounter(encounterId: $encounterId, input: $input) {
+      encounterId
+      terrainElements { terrainId type startX startY length color }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
+      }
+    }
+  }
+`;
+
+export const UPDATE_TERRAIN_POSITION = gql`
+  mutation UpdateTerrainPosition($encounterId: ID!, $input: UpdateTerrainPositionInput!) {
+    updateTerrainPosition(encounterId: $encounterId, input: $input) {
+      encounterId
+      terrainElements { terrainId type startX startY length color }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
+      }
+    }
+  }
+`;
+
+export const REMOVE_TERRAIN_FROM_ENCOUNTER = gql`
+  mutation RemoveTerrainFromEncounter($encounterId: ID!, $terrainId: ID!) {
+    removeTerrainFromEncounter(encounterId: $encounterId, terrainId: $terrainId) {
+      encounterId
+      terrainElements { terrainId type startX startY length color }
       history {
         time
         type

@@ -1,0 +1,153 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'AppSync Encounter Terrain VTT Resolvers'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  EncountersTableName:
+    Type: String
+    Description: 'Name of encounters table'
+  AppSyncLambdaServiceRoleArn:
+    Type: String
+    Description: 'Shared lambda service role'
+
+Resources:
+  # --- Functions ---
+  AddTerrainToEncounterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/addTerrainToEncounter.handler
+      Runtime: nodejs20.x # Or your preferred runtime
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          ENCOUNTERS_TABLE: !Ref EncountersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EncountersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref EncountersTableName
+
+  UpdateTerrainPositionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/updateTerrainPosition.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          ENCOUNTERS_TABLE: !Ref EncountersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EncountersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref EncountersTableName
+
+  RemoveTerrainFromEncounterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/removeTerrainFromEncounter.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          ENCOUNTERS_TABLE: !Ref EncountersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EncountersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref EncountersTableName
+
+  # --- Data Sources ---
+  AddTerrainToEncounterDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: AddTerrainToEncounterLambdaSource
+      Type: AWS_LAMBDA
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt AddTerrainToEncounterFunction.Arn
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn # Role AppSync assumes to invoke Lambda
+
+  UpdateTerrainPositionDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: UpdateTerrainPositionLambdaSource
+      Type: AWS_LAMBDA
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt UpdateTerrainPositionFunction.Arn
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  RemoveTerrainFromEncounterDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: RemoveTerrainFromEncounterLambdaSource
+      Type: AWS_LAMBDA
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt RemoveTerrainFromEncounterFunction.Arn
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  # --- Resolvers ---
+  AddTerrainToEncounterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: addTerrainToEncounter # Matches schema
+      DataSourceName: !GetAtt AddTerrainToEncounterDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  UpdateTerrainPositionResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: updateTerrainPosition # Matches schema
+      DataSourceName: !GetAtt UpdateTerrainPositionDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  RemoveTerrainFromEncounterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: removeTerrainFromEncounter # Matches schema
+      DataSourceName: !GetAtt RemoveTerrainFromEncounterDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result) 

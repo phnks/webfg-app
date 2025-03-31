@@ -196,14 +196,35 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .vtt-header h2 {
   margin: 0;
 }
 
+.vtt-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.add-object-btn,
+.add-terrain-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #9C27B0;
+  color: white;
+}
+
+.add-terrain-btn {
+  background-color: #8B4513;
+}
+
 .timeline-container {
-  background: white;
+  background-color: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -254,4 +275,96 @@
   .time-input-group {
     width: 100%;
   }
+}
+
+/* Styles for Add Object Modal */
+.add-object-modal {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 450px;
+  max-width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.add-object-modal h2 {
+  margin-top: 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.available-objects-list {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  flex-grow: 1;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.object-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.object-item:last-child {
+  border-bottom: none;
+}
+
+.object-item button {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+/* Styles for Add Terrain Panel */
+.add-terrain-panel {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 350px;
+  max-width: 90%;
+}
+
+.add-terrain-panel h2 {
+  margin-top: 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.terrain-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.terrain-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-weight: bold;
+}
+
+.terrain-form select,
+.terrain-form input[type="number"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.terrain-form span {
+  font-weight: normal;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.terrain-form button {
+  align-self: flex-start;
 } 
