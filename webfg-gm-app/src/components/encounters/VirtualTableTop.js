@@ -289,17 +289,83 @@ const VirtualTableTop = ({
       ctx.stroke();
     });
     
-    // Highlight hovered cell
-    if (hoveredCell) {
+    // --- NEW: Draw Ghost Item ---
+    if (draggingItem && hoveredCell) {
       const { x, y } = hoveredCell;
-      ctx.fillStyle = HIGHLIGHT_COLOR;
-      ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      // Check if hover position is valid grid cell
+      if (x >= 0 && y >= 0 && x < gridColumns && y < gridRows) {
+        ctx.globalAlpha = 0.5; // Set transparency for ghost
+
+        if (draggingItem.type === 'character') {
+          // Use data from draggingItem.item
+          const char = draggingItem.item;
+          const centerX = x * CELL_SIZE + CELL_SIZE / 2;
+          const centerY = y * CELL_SIZE + CELL_SIZE / 2;
+          const radius = CELL_SIZE / 2 - 4;
+
+          // Draw ghost character circle
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+          // Use a distinct color or the character's color if available
+          ctx.fillStyle = char.race === 'HUMAN' ? '#2196F3' : '#FF9800'; // Example colors
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#000';
+          ctx.stroke();
+
+          // Draw ghost character initial
+          ctx.fillStyle = 'white';
+          ctx.font = 'bold 14px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(
+            char.name.charAt(0).toUpperCase(),
+            centerX,
+            centerY
+          );
+
+        } else if (draggingItem.type === 'object') {
+           // Use data from draggingItem.item
+          const obj = draggingItem.item;
+          const objSize = CELL_SIZE - 8;
+          const objX = x * CELL_SIZE + 4;
+          const objY = y * CELL_SIZE + 4;
+
+          // Draw ghost object square
+          ctx.fillStyle = OBJECT_COLOR; // Use defined object color
+          ctx.fillRect(objX, objY, objSize, objSize);
+
+          // Draw ghost object initial
+          ctx.fillStyle = 'white';
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(
+            obj.name.charAt(0).toUpperCase(),
+            x * CELL_SIZE + CELL_SIZE / 2,
+            y * CELL_SIZE + CELL_SIZE / 2
+          );
+        }
+        // Note: Terrain ghost drawing is omitted for simplicity
+
+        ctx.globalAlpha = 1.0; // Reset transparency
+      }
+    }
+
+    // Highlight hovered cell ONLY if NOT dragging an item
+    if (hoveredCell && !draggingItem) {
+      const { x, y } = hoveredCell;
+       // Check if hover position is valid grid cell
+      if (x >= 0 && y >= 0 && x < gridColumns && y < gridRows) {
+        ctx.fillStyle = HIGHLIGHT_COLOR;
+        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      }
     }
     
     // Reset transform before finishing
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     // Ensure draggingItem state changes also trigger redraw if needed for visual feedback
-  }, [gridRows, gridColumns, characters, objects, terrain, gridElements, hoveredCell, draggingItem]); // Added draggingItem
+  }, [gridRows, gridColumns, characters, objects, terrain, gridElements, hoveredCell, draggingItem]); // Add hoveredCell and draggingItem
 
   // Effect to handle passive touchmove listener
   useEffect(() => {
