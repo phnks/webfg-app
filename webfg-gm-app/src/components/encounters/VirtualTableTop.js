@@ -401,6 +401,36 @@ const VirtualTableTop = ({
     const gridX = Math.floor(canvasX / CELL_SIZE);
     const gridY = Math.floor(canvasY / CELL_SIZE);
 
+    // Check terrain elements first (they should be under other elements)
+    for (const terr of terrain) {
+      switch (terr.type) {
+        case 'VERTICAL_LINE':
+          if (gridX === terr.startX && 
+              gridY >= terr.startY && 
+              gridY <= terr.startY + terr.length) {
+            return { type: 'terrain', id: terr.terrainId, item: terr };
+          }
+          break;
+        case 'HORIZONTAL_LINE':
+          if (gridY === terr.startY && 
+              gridX >= terr.startX && 
+              gridX <= terr.startX + terr.length) {
+            return { type: 'terrain', id: terr.terrainId, item: terr };
+          }
+          break;
+        case 'DIAGONAL_LINE':
+          // For diagonal lines, check if the click is near the line
+          const dx = gridX - terr.startX;
+          const dy = gridY - terr.startY;
+          if (dx >= 0 && dx <= terr.length && 
+              dy >= 0 && dy <= terr.length && 
+              Math.abs(dx - dy) <= 1) {
+            return { type: 'terrain', id: terr.terrainId, item: terr };
+          }
+          break;
+      }
+    }
+
     // Check characters (center check)
     for (const char of characters) {
       const charCenterX = char.x * CELL_SIZE + CELL_SIZE / 2;
@@ -420,55 +450,6 @@ const VirtualTableTop = ({
         const objSize = CELL_SIZE - 8;
         if (canvasX >= objLeft && canvasX <= objLeft + objSize && canvasY >= objTop && canvasY <= objTop + objSize) {
           return { type: 'object', id: obj.objectId, item: obj };
-        }
-      }
-    }
-
-    // Check terrain (check proximity to line segments)
-    const tolerance = 5; // pixels tolerance for clicking lines
-    for (const terr of terrain) {
-      const startXpx = terr.startX * CELL_SIZE;
-      const startYpx = terr.startY * CELL_SIZE;
-      let endXpx, endYpx;
-
-      switch (terr.type) {
-        case 'VERTICAL_LINE':
-          endXpx = startXpx;
-          endYpx = (terr.startY + terr.length) * CELL_SIZE;
-          break;
-        case 'HORIZONTAL_LINE':
-          endXpx = (terr.startX + terr.length) * CELL_SIZE;
-          endYpx = startYpx;
-          break;
-        case 'DIAGONAL_LINE':
-          endXpx = (terr.startX + terr.length) * CELL_SIZE;
-          endYpx = (terr.startY + terr.length) * CELL_SIZE;
-          break;
-        default: continue;
-      }
-
-      // Basic bounding box check first
-      const minX = Math.min(startXpx, endXpx) - tolerance;
-      const maxX = Math.max(startXpx, endXpx) + tolerance;
-      const minY = Math.min(startYpx, endYpx) - tolerance;
-      const maxY = Math.max(startYpx, endYpx) + tolerance;
-
-      if (canvasX >= minX && canvasX <= maxX && canvasY >= minY && canvasY <= maxY) {
-        // More precise point-to-line distance check (simplified here)
-        // For vertical/horizontal, check if coordinate is within tolerance
-        if (terr.type === 'VERTICAL_LINE' && Math.abs(canvasX - startXpx) <= tolerance && canvasY >= startYpx && canvasY <= endYpx) {
-          return { type: 'terrain', id: terr.terrainId, item: terr };
-        }
-        if (terr.type === 'HORIZONTAL_LINE' && Math.abs(canvasY - startYpx) <= tolerance && canvasX >= startXpx && canvasX <= endXpx) {
-          return { type: 'terrain', id: terr.terrainId, item: terr };
-        }
-        // Diagonal check is more complex (point-to-line distance formula) - skipping detailed math for brevity
-        if (terr.type === 'DIAGONAL_LINE') {
-          // Simple check: if close enough to start or end point
-          if (Math.sqrt((canvasX - startXpx)**2 + (canvasY - startYpx)**2) < tolerance * 2 ||
-            Math.sqrt((canvasX - endXpx)**2 + (canvasY - endYpx)**2) < tolerance * 2) {
-            return { type: 'terrain', id: terr.terrainId, item: terr };
-          }
         }
       }
     }
@@ -557,6 +538,16 @@ const VirtualTableTop = ({
         ctx.lineTo(
           (startX + length) * CELL_SIZE,
           startY * CELL_SIZE
+        );
+        break;
+      case 'DIAGONAL_LINE':
+        ctx.moveTo(
+          startX * CELL_SIZE,
+          startY * CELL_SIZE
+        );
+        ctx.lineTo(
+          (startX + length) * CELL_SIZE,
+          (startY + length) * CELL_SIZE
         );
         break;
     }
