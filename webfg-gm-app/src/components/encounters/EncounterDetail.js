@@ -99,13 +99,26 @@ const EncounterDetail = () => {
           },
           (existingData) => {
             if (!existingData?.getEncounter) return existingData;
+            
+            // Only update fields that are present in the response
+            const updates = {};
+            if (updatedEncounter.characterPositions !== null) {
+              updates.characterPositions = updatedEncounter.characterPositions;
+            }
+            if (updatedEncounter.gridElements !== null) {
+              updates.gridElements = updatedEncounter.gridElements;
+            }
+            if (updatedEncounter.objectPositions !== null) {
+              updates.objectPositions = updatedEncounter.objectPositions;
+            }
+            if (updatedEncounter.terrainElements !== null) {
+              updates.terrainElements = updatedEncounter.terrainElements;
+            }
+            
             return {
               getEncounter: {
                 ...existingData.getEncounter,
-                characterPositions: updatedEncounter.characterPositions,
-                gridElements: updatedEncounter.gridElements,
-                objectPositions: updatedEncounter.objectPositions,
-                terrainElements: updatedEncounter.terrainElements,
+                ...updates
               }
             };
           }
