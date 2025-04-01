@@ -209,156 +209,52 @@ const VirtualTableTop = ({
       }
     });
     
-    // Draw characters
+    // Draw regular characters
     characters.forEach(character => {
-      const { x, y, characterId, name, race } = character;
-      
-      // Skip invalid positions
-      if (x < 0 || y < 0 || x >= gridColumns || y >= gridRows) return;
-      
-      // Draw character token
-      ctx.fillStyle = race === 'HUMAN' ? '#2196F3' : '#FF9800';
-      ctx.beginPath();
-      ctx.arc(
-        x * CELL_SIZE + CELL_SIZE / 2,
-        y * CELL_SIZE + CELL_SIZE / 2,
-        CELL_SIZE / 2 - 4,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
-      
-      // Draw character initial
-      ctx.fillStyle = 'white';
-      ctx.font = '14px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(
-        name.charAt(0),
-        x * CELL_SIZE + CELL_SIZE / 2,
-        y * CELL_SIZE + CELL_SIZE / 2
-      );
+      drawCharacter(ctx, character);
     });
-    
-    // Draw objects
+
+    // Draw regular objects
     objects.forEach(obj => {
-      const { x, y, name } = obj;
-      if (x < 0 || y < 0 || x >= gridColumns || y >= gridRows) return;
-
-      // Draw object token (e.g., a square)
-      ctx.fillStyle = OBJECT_COLOR;
-      const objSize = CELL_SIZE - 8; // Smaller than cell
-      const objX = x * CELL_SIZE + 4;
-      const objY = y * CELL_SIZE + 4;
-      ctx.fillRect(objX, objY, objSize, objSize);
-
-      // Draw object initial
-      ctx.fillStyle = 'white';
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(
-        name.charAt(0).toUpperCase(),
-        x * CELL_SIZE + CELL_SIZE / 2,
-        y * CELL_SIZE + CELL_SIZE / 2
-      );
+      drawObject(ctx, obj);
     });
-    
-    // Draw terrain elements
-    console.log('Drawing terrain elements:', terrain);
+
+    // Draw ghost character if dragging
+    if (draggingItem?.type === 'character' && hoveredCell) {
+      ctx.globalAlpha = 0.5;
+      drawCharacter(ctx, {
+        ...draggingItem.item,
+        x: hoveredCell.x,
+        y: hoveredCell.y
+      });
+      ctx.globalAlpha = 1.0;
+    }
+
+    // Draw ghost object if dragging
+    if (draggingItem?.type === 'object' && hoveredCell) {
+      ctx.globalAlpha = 0.5;
+      drawObject(ctx, {
+        ...draggingItem.item,
+        x: hoveredCell.x,
+        y: hoveredCell.y
+      });
+      ctx.globalAlpha = 1.0;
+    }
+
+    // Draw regular terrain elements
     terrain.forEach(terrainElement => {
-      const { type, startX, startY, length, color } = terrainElement;
-      ctx.strokeStyle = color || TERRAIN_COLOR;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-
-      switch (type) {
-        case 'VERTICAL_LINE':
-          ctx.moveTo(
-            startX * CELL_SIZE,
-            startY * CELL_SIZE
-          );
-          ctx.lineTo(
-            startX * CELL_SIZE,
-            (startY + length) * CELL_SIZE
-          );
-          break;
-        case 'HORIZONTAL_LINE':
-          ctx.moveTo(
-            startX * CELL_SIZE,
-            startY * CELL_SIZE
-          );
-          ctx.lineTo(
-            (startX + length) * CELL_SIZE,
-            startY * CELL_SIZE
-          );
-          break;
-      }
-      
-      ctx.stroke();
+      drawTerrainElement(ctx, terrainElement);
     });
-    
-    // --- NEW: Draw Ghost Item ---
-    if (draggingItem && hoveredCell) {
-      const { x, y } = hoveredCell;
-      // Check if hover position is valid grid cell
-      if (x >= 0 && y >= 0 && x < gridColumns && y < gridRows) {
-        ctx.globalAlpha = 0.5; // Set transparency for ghost
 
-        if (draggingItem.type === 'character') {
-          // Use data from draggingItem.item
-          const char = draggingItem.item;
-          const centerX = x * CELL_SIZE + CELL_SIZE / 2;
-          const centerY = y * CELL_SIZE + CELL_SIZE / 2;
-          const radius = CELL_SIZE / 2 - 4;
-
-          // Draw ghost character circle
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-          // Use a distinct color or the character's color if available
-          ctx.fillStyle = char.race === 'HUMAN' ? '#2196F3' : '#FF9800'; // Example colors
-          ctx.fill();
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = '#000';
-          ctx.stroke();
-
-          // Draw ghost character initial
-          ctx.fillStyle = 'white';
-          ctx.font = 'bold 14px Arial';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(
-            char.name.charAt(0).toUpperCase(),
-            centerX,
-            centerY
-          );
-
-        } else if (draggingItem.type === 'object') {
-           // Use data from draggingItem.item
-          const obj = draggingItem.item;
-          const objSize = CELL_SIZE - 8;
-          const objX = x * CELL_SIZE + 4;
-          const objY = y * CELL_SIZE + 4;
-
-          // Draw ghost object square
-          ctx.fillStyle = OBJECT_COLOR; // Use defined object color
-          ctx.fillRect(objX, objY, objSize, objSize);
-
-          // Draw ghost object initial
-          ctx.fillStyle = 'white';
-          ctx.font = 'bold 12px Arial';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(
-            obj.name.charAt(0).toUpperCase(),
-            x * CELL_SIZE + CELL_SIZE / 2,
-            y * CELL_SIZE + CELL_SIZE / 2
-          );
-        }
-        // Note: Terrain ghost drawing is omitted for simplicity
-
-        ctx.globalAlpha = 1.0; // Reset transparency
-      }
+    // Draw ghost terrain if dragging
+    if (draggingItem?.type === 'terrain' && hoveredCell) {
+      ctx.globalAlpha = 0.5;
+      drawTerrainElement(ctx, {
+        ...draggingItem.item,
+        startX: hoveredCell.x,
+        startY: hoveredCell.y
+      });
+      ctx.globalAlpha = 1.0;
     }
 
     // Highlight hovered cell ONLY if NOT dragging an item
@@ -634,6 +530,86 @@ const VirtualTableTop = ({
     setHoveredCell(null);
   };
   // --- END OF TOUCH HANDLERS ---
+
+  // Helper function to draw a terrain element
+  function drawTerrainElement(ctx, terrainElement) {
+    const { type, startX, startY, length, color } = terrainElement;
+    ctx.strokeStyle = color || TERRAIN_COLOR;
+    ctx.lineWidth = TERRAIN_LINE_WIDTH;
+    ctx.beginPath();
+
+    switch (type) {
+      case 'VERTICAL_LINE':
+        ctx.moveTo(
+          startX * CELL_SIZE,
+          startY * CELL_SIZE
+        );
+        ctx.lineTo(
+          startX * CELL_SIZE,
+          (startY + length) * CELL_SIZE
+        );
+        break;
+      case 'HORIZONTAL_LINE':
+        ctx.moveTo(
+          startX * CELL_SIZE,
+          startY * CELL_SIZE
+        );
+        ctx.lineTo(
+          (startX + length) * CELL_SIZE,
+          startY * CELL_SIZE
+        );
+        break;
+    }
+    
+    ctx.stroke();
+  }
+
+  function drawCharacter(ctx, character) {
+    const { x, y, name, race } = character;
+    if (x < 0 || y < 0 || x >= gridColumns || y >= gridRows) return;
+    
+    ctx.fillStyle = race === 'HUMAN' ? '#2196F3' : '#FF9800';
+    ctx.beginPath();
+    ctx.arc(
+      x * CELL_SIZE + CELL_SIZE / 2,
+      y * CELL_SIZE + CELL_SIZE / 2,
+      CELL_SIZE / 2 - 4,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+    
+    ctx.fillStyle = 'white';
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(
+      name.charAt(0),
+      x * CELL_SIZE + CELL_SIZE / 2,
+      y * CELL_SIZE + CELL_SIZE / 2
+    );
+  }
+
+  function drawObject(ctx, obj) {
+    const { x, y, name } = obj;
+    if (x < 0 || y < 0 || x >= gridColumns || y >= gridRows) return;
+
+    ctx.fillStyle = OBJECT_COLOR;
+    const objSize = CELL_SIZE - 8;
+    const objX = x * CELL_SIZE + 4;
+    const objY = y * CELL_SIZE + 4;
+    ctx.fillRect(objX, objY, objSize, objSize);
+
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(
+      name.charAt(0).toUpperCase(),
+      x * CELL_SIZE + CELL_SIZE / 2,
+      y * CELL_SIZE + CELL_SIZE / 2
+    );
+  }
 
   return (
     <div className="virtual-tabletop">
