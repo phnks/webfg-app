@@ -648,6 +648,11 @@ export const GET_ENCOUNTER = gql`
         x
         y
       }
+      objectPositions {
+        objectId
+        x
+        y
+      }
       characterTimelines {
         characterId
         startTime
@@ -660,10 +665,7 @@ export const GET_ENCOUNTER = gql`
       gridElements {
         id
         type
-        coordinates {
-          x
-          y
-        }
+        coordinates { x y }
         color
       }
       history {

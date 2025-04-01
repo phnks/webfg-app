@@ -90,8 +90,10 @@ const EncounterDetail = () => {
   useSubscription(ON_ENCOUNTER_VTT_CHANGED, {
     variables: { encounterId },
     onData: ({ data }) => {
+      console.log('VTT subscription data:', data?.data?.onEncounterVttChanged);
       if (data?.data?.onEncounterVttChanged) {
         const updatedEncounter = data.data.onEncounterVttChanged;
+        console.log('Updating cache with:', updatedEncounter);
         client.cache.updateQuery(
           {
             query: GET_ENCOUNTER,
@@ -183,8 +185,9 @@ const EncounterDetail = () => {
   };
   
   const getObjectById = (objectId) => {
-    if (!objectsData || !objectsData.listObjects) return null;
-    return objectsData.listObjects.find(o => o.objectId === objectId);
+    const object = objectsData?.listObjects?.find(obj => obj.objectId === objectId);
+    console.log('Getting object by id:', objectId, 'Found:', object);
+    return object;
   };
   
   const handleAdvanceTime = async () => {
@@ -418,6 +421,13 @@ const EncounterDetail = () => {
   
   const terrain = encounter.terrainElements || [];
   
+  console.log('Encounter data:', encounter);
+  console.log('Object positions:', encounter.objectPositions);
+  console.log('Mapped objects:', encounter.objectPositions?.map(pos => ({
+    ...pos,
+    name: getObjectById(pos.objectId)?.name || 'Unknown Object'
+  })) || []);
+  
   return (
     <div className="encounter-detail-container">
       <div className="encounter-header">
@@ -473,7 +483,10 @@ const EncounterDetail = () => {
               name: getCharacterById(pos.characterId)?.name || 'Unknown',
               race: getCharacterById(pos.characterId)?.race || 'HUMAN'
             }))}
-            objects={objects}
+            objects={encounter.objectPositions?.map(pos => ({
+              ...pos,
+              name: getObjectById(pos.objectId)?.name || 'Unknown Object'
+            })) || []}
             terrain={terrain}
             gridElements={encounter.gridElements || []}
             history={encounter.history || []}
