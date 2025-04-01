@@ -11,11 +11,6 @@ const TimelineEventType = {
   OBJECT_MOVED: 'OBJECT_MOVED',
   OBJECT_REMOVED: 'OBJECT_REMOVED',
 
-  // Terrain Events
-  TERRAIN_ADDED: 'TERRAIN_ADDED',
-  TERRAIN_MOVED: 'TERRAIN_MOVED',     // Note: Moving terrain might be complex depending on type
-  TERRAIN_REMOVED: 'TERRAIN_REMOVED',
-
   // Grid Events
   GRID_RESIZED: 'GRID_RESIZED',       // Added for completeness
 

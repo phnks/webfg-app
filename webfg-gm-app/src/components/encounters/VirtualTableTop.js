@@ -22,7 +22,6 @@ const VirtualTableTop = ({
   onDeleteTerrain,
   onUpdateGridSize
 }) => {
-  console.log('VTT received terrain:', terrain);
   const canvasRef = useRef(null);
   const [draggingItem, setDraggingItem] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
@@ -68,7 +67,6 @@ const VirtualTableTop = ({
 
   // Effect for drawing the canvas
   useEffect(() => {
-    console.log('Drawing terrain elements:', terrain);
     const canvas = canvasRef.current;
     if (!canvas) return;
     

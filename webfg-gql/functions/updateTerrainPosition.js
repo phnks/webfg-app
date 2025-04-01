@@ -36,30 +36,19 @@ exports.handler = async (event) => {
       throw new Error(`Terrain element ${terrainId} not found in encounter ${encounterId}`);
     }
 
-    // 2. Prepare the history event
-    const historyEvent = {
-      time: currentTime,
-      type: TimelineEventType.TERRAIN_MOVED,
-      description: `Terrain ${terrainId} moved to start at (${startX}, ${startY})`,
-      // Store terrain details in history? Optional.
-    };
-
-    // 3. Update the specific terrain's position and add history
+    // 2. Update the specific terrain's position
     const updateCommand = new UpdateCommand({
       TableName: tableName,
       Key: { encounterId },
-      UpdateExpression: `SET #te[${terrainIndex}].startX = :sx, #te[${terrainIndex}].startY = :sy, #hist = list_append(if_not_exists(#hist, :empty_list), :new_hist)`,
+      UpdateExpression: `SET #te[${terrainIndex}].startX = :sx, #te[${terrainIndex}].startY = :sy`,
       ExpressionAttributeNames: {
-        "#te": "terrainElements",
-        "#hist": "history",
+        "#te": "terrainElements"
       },
       ExpressionAttributeValues: {
         ":sx": startX,
-        ":sy": startY,
-        ":new_hist": [historyEvent],
-        ":empty_list": [],
+        ":sy": startY
       },
-      ReturnValues: "ALL_NEW",
+      ReturnValues: "ALL_NEW"
     });
 
     const { Attributes: updatedEncounter } = await docClient.send(updateCommand);

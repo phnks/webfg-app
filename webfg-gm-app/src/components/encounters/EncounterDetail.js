@@ -106,6 +106,10 @@ const EncounterDetail = () => {
             const updates = {};
             if (updatedEncounter.characterPositions !== null) {
               updates.characterPositions = updatedEncounter.characterPositions;
+              // If character positions were updated, also merge the history
+              if (existingData.getEncounter.history && updatedEncounter.history) {
+                updates.history = [...existingData.getEncounter.history, ...updatedEncounter.history];
+              }
             }
             if (updatedEncounter.gridElements !== null) {
               updates.gridElements = updatedEncounter.gridElements;
@@ -422,22 +426,6 @@ const EncounterDetail = () => {
     const characterPositions = encounter.characterPositions || [];
     return !characterPositions.some(pos => pos.characterId === character.characterId);
   });
-  
-  const objects = encounter.objectPositions?.map(pos => ({
-    ...pos,
-    name: getObjectById(pos.objectId)?.name || 'Unknown Object'
-  })) || [];
-  
-  const terrain = encounter.terrainElements || [];
-  
-  console.log('Encounter data:', encounter);
-  console.log('Object positions:', encounter.objectPositions);
-  console.log('Mapped objects:', encounter.objectPositions?.map(pos => ({
-    ...pos,
-    name: getObjectById(pos.objectId)?.name || 'Unknown Object'
-  })) || []);
-  console.log('Terrain elements before VTT:', encounter.terrainElements);
-  console.log('Full terrain prop being passed:', terrain);
   
   return (
     <div className="encounter-detail-container">

@@ -32,7 +32,7 @@ exports.handler = async (event) => {
     // 1. Generate a unique ID for the terrain element
     const terrainId = uuidv4();
 
-    // 2. Prepare the new terrain element and history event
+    // 2. Prepare the new terrain element
     const newTerrainElement = {
       terrainId,
       type,
@@ -42,28 +42,19 @@ exports.handler = async (event) => {
       color: color || '#8B4513', // Default color if not provided
     };
 
-    const historyEvent = {
-      time: currentTime,
-      type: TimelineEventType.TERRAIN_ADDED,
-      description: `Terrain (${type}, length ${length*5}ft) added at (${startX}, ${startY})`, // Add more detail?
-      // Store terrain details in history? Optional.
-    };
-
     // 3. Update the encounter item
     const updateCommand = new UpdateCommand({
       TableName: tableName,
       Key: { encounterId },
-      UpdateExpression: "SET #te = list_append(if_not_exists(#te, :empty_list), :new_terrain), #hist = list_append(if_not_exists(#hist, :empty_list), :new_hist)",
+      UpdateExpression: "SET #te = list_append(if_not_exists(#te, :empty_list), :new_terrain)",
       ExpressionAttributeNames: {
-        "#te": "terrainElements",
-        "#hist": "history",
+        "#te": "terrainElements"
       },
       ExpressionAttributeValues: {
         ":new_terrain": [newTerrainElement],
-        ":new_hist": [historyEvent],
-        ":empty_list": [],
+        ":empty_list": []
       },
-      ReturnValues: "ALL_NEW",
+      ReturnValues: "ALL_NEW"
     });
 
     const { Attributes: updatedEncounter } = await docClient.send(updateCommand);

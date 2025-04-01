@@ -39,25 +39,13 @@ exports.handler = async (event) => {
       return fullEncounter.Item;
     }
 
-    // 2. Prepare the history event
-    const historyEvent = {
-      time: currentTime,
-      type: TimelineEventType.TERRAIN_REMOVED,
-      description: `Terrain ${terrainId} removed from VTT`,
-    };
-
-    // 3. Remove the terrain element from the list and add history
+    // 2. Remove the terrain element from the list
     const updateCommand = new UpdateCommand({
       TableName: tableName,
       Key: { encounterId },
-      UpdateExpression: `REMOVE #te[${terrainIndex}] SET #hist = list_append(if_not_exists(#hist, :empty_list), :new_hist)`,
+      UpdateExpression: `REMOVE #te[${terrainIndex}]`,
       ExpressionAttributeNames: {
         "#te": "terrainElements",
-        "#hist": "history",
-      },
-      ExpressionAttributeValues: {
-        ":new_hist": [historyEvent],
-        ":empty_list": [],
       },
       ReturnValues: "ALL_NEW",
     });

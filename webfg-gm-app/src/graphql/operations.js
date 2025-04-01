@@ -1048,6 +1048,23 @@ export const ON_ENCOUNTER_VTT_CHANGED = gql`
         length
         color
       }
+      history {
+        time
+        type
+        characterId
+        actionId
+        actionName
+        description
+        x
+        y
+        stats {
+          hitPoints
+          fatigue
+          surges
+          exhaustion
+        }
+        conditions
+      }
     }
   }
 `;
