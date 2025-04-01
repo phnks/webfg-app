@@ -315,21 +315,30 @@ const EncounterDetail = () => {
       console.error("Missing encounterId or objectId for adding object.");
       return;
     }
+
+    // Check if object already exists in the encounter
+    const objectExists = data?.getEncounter?.objectPositions?.some(
+      pos => pos.objectId === objectId
+    );
+
+    if (objectExists) {
+      alert("This object is already in the encounter!");
+      return;
+    }
+
     try {
-      // Add the object at a default position (e.g., 0, 0)
       await addObjectToVTT({
         variables: {
           encounterId,
           objectId,
-          x: 0, // Default X coordinate
-          y: 0  // Default Y coordinate
+          x: 0,
+          y: 0
         }
       });
-      console.log(`Attempted to add object ${objectId} to encounter ${encounterId}`);
-      setShowAddObjectModal(false); // Close modal on success
+      console.log(`Added object ${objectId} to encounter ${encounterId}`);
+      setShowAddObjectModal(false);
     } catch (err) {
       console.error('Error adding object to VTT:', err);
-      // Optionally, keep the modal open and show an error message
     }
   };
   
@@ -578,20 +587,17 @@ const EncounterDetail = () => {
               <p>No available objects defined globally.</p>
             ) : (
               <ul>
-                {objectsData.listObjects.map((obj) => (
-                  <li key={obj.objectId}>
-                    {obj.name}
-                    <button onClick={() => handleAddObject(obj.objectId)}>Add</button>
-                  </li>
-                ))}
+                {objectsData.listObjects
+                  .filter(obj => !data?.getEncounter?.objectPositions?.some(pos => pos.objectId === obj.objectId))
+                  .map((obj) => (
+                    <li key={obj.objectId}>
+                      {obj.name}
+                      <button onClick={() => handleAddObject(obj.objectId)}>Add</button>
+                    </li>
+                  ))}
               </ul>
             )}
-            <button 
-              className="close-modal-btn"
-              onClick={() => setShowAddObjectModal(false)}
-            >
-              Close
-            </button>
+            <button onClick={() => setShowAddObjectModal(false)}>Close</button>
           </div>
         </div>
       )}
