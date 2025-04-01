@@ -436,6 +436,8 @@ const EncounterDetail = () => {
     ...pos,
     name: getObjectById(pos.objectId)?.name || 'Unknown Object'
   })) || []);
+  console.log('Terrain elements before VTT:', encounter.terrainElements);
+  console.log('Full terrain prop being passed:', terrain);
   
   return (
     <div className="encounter-detail-container">
@@ -496,7 +498,7 @@ const EncounterDetail = () => {
               ...pos,
               name: getObjectById(pos.objectId)?.name || 'Unknown Object'
             })) || []}
-            terrain={terrain}
+            terrain={encounter.terrainElements || []}
             gridElements={encounter.gridElements || []}
             history={encounter.history || []}
             currentTime={encounter.currentTime}

@@ -22,6 +22,7 @@ const VirtualTableTop = ({
   onDeleteTerrain,
   onUpdateGridSize
 }) => {
+  console.log('VTT received terrain:', terrain);
   const canvasRef = useRef(null);
   const [draggingItem, setDraggingItem] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
@@ -67,6 +68,7 @@ const VirtualTableTop = ({
 
   // Effect for drawing the canvas
   useEffect(() => {
+    console.log('Drawing terrain elements:', terrain);
     const canvas = canvasRef.current;
     if (!canvas) return;
     
@@ -262,30 +264,37 @@ const VirtualTableTop = ({
       );
     });
     
-    // Draw terrain
-    terrain.forEach(terr => {
-      const startX = terr.startX * CELL_SIZE;
-      const startY = terr.startY * CELL_SIZE;
-      let endX, endY;
+    // Draw terrain elements
+    console.log('Drawing terrain elements:', terrain);
+    terrain.forEach(terrainElement => {
+      const { type, startX, startY, length, color } = terrainElement;
+      ctx.strokeStyle = color || TERRAIN_COLOR;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
 
-      switch (terr.type) {
+      switch (type) {
         case 'VERTICAL_LINE':
-          endX = startX;
-          endY = (terr.startY + terr.length) * CELL_SIZE;
+          ctx.moveTo(
+            startX * CELL_SIZE,
+            startY * CELL_SIZE
+          );
+          ctx.lineTo(
+            startX * CELL_SIZE,
+            (startY + length) * CELL_SIZE
+          );
           break;
         case 'HORIZONTAL_LINE':
-          endX = (terr.startX + terr.length) * CELL_SIZE;
-          endY = startY;
+          ctx.moveTo(
+            startX * CELL_SIZE,
+            startY * CELL_SIZE
+          );
+          ctx.lineTo(
+            (startX + length) * CELL_SIZE,
+            startY * CELL_SIZE
+          );
           break;
-        case 'DIAGONAL_LINE':
-          endX = (terr.startX + terr.length) * CELL_SIZE;
-          endY = (terr.startY + terr.length) * CELL_SIZE;
-          break;
-        default: return; // Unknown type
       }
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
+      
       ctx.stroke();
     });
     

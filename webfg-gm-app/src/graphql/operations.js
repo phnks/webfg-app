@@ -653,6 +653,7 @@ export const GET_ENCOUNTER = gql`
         x
         y
       }
+      terrainElements { terrainId type startX startY length color }
       characterTimelines {
         characterId
         startTime
