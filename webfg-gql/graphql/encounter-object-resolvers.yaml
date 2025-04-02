@@ -9,9 +9,9 @@ Parameters:
   EncountersTableName:
     Type: String
     Description: 'Name of encounters table'
-  # ObjectsTableName: # Add if object details are needed from an Objects table
-  #   Type: String
-  #   Description: 'Name of objects table'
+  ObjectsTableName: # Define the parameter
+    Type: String
+    Description: 'Name of objects table'
   AppSyncLambdaServiceRoleArn:
     Type: String
     Description: 'Shared lambda service role'
@@ -29,11 +29,14 @@ Resources:
       Environment:
         Variables:
           ENCOUNTERS_TABLE: !Ref EncountersTableName
+          OBJECTS_TABLE: !Ref ObjectsTableName # Pass ObjectsTableName to env
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref EncountersTableName
         - DynamoDBWritePolicy:
             TableName: !Ref EncountersTableName
+        - DynamoDBReadPolicy: # Add read policy for Objects table
+            TableName: !Ref ObjectsTableName
 
   UpdateObjectPositionFunction:
     Type: AWS::Serverless::Function
@@ -46,11 +49,14 @@ Resources:
       Environment:
         Variables:
           ENCOUNTERS_TABLE: !Ref EncountersTableName
+          OBJECTS_TABLE: !Ref ObjectsTableName # Pass ObjectsTableName to env
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref EncountersTableName
         - DynamoDBWritePolicy:
             TableName: !Ref EncountersTableName
+        - DynamoDBReadPolicy: # Add read policy for Objects table
+            TableName: !Ref ObjectsTableName
 
   RemoveObjectFromEncounterVTTFunction:
     Type: AWS::Serverless::Function
@@ -153,4 +159,4 @@ Resources:
           }
         }
       ResponseMappingTemplate: |
-        $util.toJson($ctx.result) 
+        $util.toJson($ctx.result)

@@ -3,7 +3,12 @@ const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require('@aws-sdk/
 const { TimelineEventType } = require('./constants');
 
 const client = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(client);
+// Configure DocumentClient to remove undefined values
+const marshallOptions = {
+  removeUndefinedValues: true,
+};
+const translateConfig = { marshallOptions };
+const docClient = DynamoDBDocumentClient.from(client, translateConfig);
 
 exports.handler = async (event) => {
   const { encounterId, characterId, x, y } = event.arguments;
@@ -44,13 +49,14 @@ exports.handler = async (event) => {
     }
     
     const character = characterResult.Item;
+    const characterName = character.name || 'Unknown Character'; // Get character name
     
     // Prepare history event
     const historyEvent = {
       time: encounter.currentTime || currentTime,
       type: TimelineEventType.CHARACTER_MOVED,
       characterId,
-      description: `Character moved to position (${x}, ${y})`,
+      description: `${characterName} moved to position (${x}, ${y})`, // Use name in description
       x,
       y,
       stats: {
@@ -79,13 +85,43 @@ exports.handler = async (event) => {
         ":new_hist": [historyEvent],
         ":empty_list": []
       },
-      ReturnValues: "ALL_NEW"
+      ReturnValues: "UPDATED_NEW" // Can change this as we fetch separately now
     });
 
-    const { Attributes: updatedEncounter } = await docClient.send(updateCommand);
-    return updatedEncounter;
+    await docClient.send(updateCommand); // Perform the update
+
+    // Explicitly re-fetch the entire encounter after the update
+    const getAfterUpdateCommand = new GetCommand({
+      TableName: encountersTable,
+      Key: { encounterId }
+    });
+    const { Item: finalEncounterState } = await docClient.send(getAfterUpdateCommand);
+
+    if (!finalEncounterState) {
+      // This shouldn't happen if the update succeeded, but handle defensively
+      throw new Error(`Failed to re-fetch encounter ${encounterId} after update.`);
+    }
+
+    // Construct the specific payload needed for the mutation response / subscription
+    const returnPayload = {
+      encounterId: finalEncounterState.encounterId, // Essential ID
+      characterPositions: finalEncounterState.characterPositions,
+      objectPositions: finalEncounterState.objectPositions, // Include even if null from fetch
+      terrainElements: finalEncounterState.terrainElements, // Include even if null from fetch
+      gridElements: finalEncounterState.gridElements,       // Include even if null from fetch
+      history: finalEncounterState.history,                 // The crucial field
+      // Include other top-level Encounter fields if needed by the mutation response directly
+      // currentTime: finalEncounterState.currentTime,
+      // name: finalEncounterState.name,
+      // etc.
+      // __typename: "Encounter" // Let's try omitting this from the explicit shape
+    };
+
+    console.log("Returning explicitly shaped payload (no __typename):", JSON.stringify(returnPayload));
+    return returnPayload; // Return the shaped data
+
   } catch (error) {
-    console.error('Error updating character position:', error);
+    console.error('Error updating character position:', error.message, error.stack);
     throw error;
   }
-}; 
+};

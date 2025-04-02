@@ -3,22 +3,17 @@ import { useQuery } from '@apollo/client';
 import { GET_ACTIONS } from '../../graphql/operations';
 import './Timeline.css';
 
-const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter }) => {
+// Remove characterTimelines prop
+const Timeline = ({ currentTime, history, onSelectCharacter }) => {
   const [eventHeights, setEventHeights] = React.useState({});
   const eventRefs = React.useRef({});
   const prevEventsRef = React.useRef(null);
   const [actionNames, setActionNames] = React.useState({});
 
-  // Create maps for character names and actions
-  const characterNameMap = React.useMemo(() => {
-    const map = new Map();
-    characterTimelines.forEach(timeline => {
-      map.set(timeline.characterId, timeline.name);
-    });
-    return map;
-  }, [characterTimelines]);
+  // Remove characterNameMap logic
+  // const characterNameMap = React.useMemo(() => { ... });
 
-  // Collect all unique action IDs
+  // Collect all unique action IDs (Keep this for fetching action names)
   const actionIds = React.useMemo(() => {
     const ids = new Set();
     history.forEach(event => {
@@ -45,22 +40,24 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
     }
   }, [data]);
 
-  // Format event description
+  // Format event description - Now relies on backend-provided description
   const getFormattedDescription = (event) => {
-    const characterName = characterNameMap.get(event.characterId) || 'Unknown Character';
+    // Fetch action name if needed for specific types
     const actionName = actionNames[event.actionId] || 'Unknown Action';
 
+    // Use the description from the event directly for most types
+    // Potentially enhance specific types like ACTION_STARTED/COMPLETED if needed
     switch (event.type) {
-      case 'CHARACTER_JOINED':
-        return `${characterName} joined the encounter`;
-      case 'CHARACTER_MOVED':
-        return `${characterName} moved to position (${event.x * 5}ft, ${event.y * 5}ft)`;
       case 'ACTION_STARTED':
-        return `${characterName} started ${actionName}`;
+        // Example: Could potentially combine backend description with fetched action name
+        // return event.description.replace('started action', `started ${actionName}`);
+        // For now, let's assume the backend description is sufficient or adjust later
+        return event.description; // Assuming backend provides full description like "Character started ActionName"
       case 'ACTION_COMPLETED':
-        return `${characterName} completed ${actionName}`;
+        return event.description; // Assuming backend provides full description
+      // CHARACTER_JOINED, CHARACTER_MOVED, OBJECT_ADDED, OBJECT_MOVED should already have names/scaled coords
       default:
-        return event.description;
+        return event.description; // Use the enriched description from the history event
     }
   };
 
@@ -142,4 +139,4 @@ const Timeline = ({ currentTime, characterTimelines, history, onSelectCharacter 
   );
 };
 
-export default Timeline; 
+export default Timeline;

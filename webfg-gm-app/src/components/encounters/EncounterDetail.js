@@ -503,19 +503,9 @@ const EncounterDetail = () => {
         </div>
         
         <div className="timeline-container">
-          <Timeline 
+          <Timeline
             currentTime={encounter.currentTime}
-            characterTimelines={encounter.characterTimelines.map(timeline => {
-              const character = getCharacterById(timeline.characterId);
-              return {
-                ...timeline,
-                name: character?.name || 'Unknown',
-                actions: timeline.actions.map(action => ({
-                  ...action,
-                  name: `Action ${action.actionId}`
-                }))
-              };
-            })}
+            // characterTimelines prop removed - relying solely on history
             history={encounter.history || []}
             onSelectCharacter={setSelectedCharacter}
           />

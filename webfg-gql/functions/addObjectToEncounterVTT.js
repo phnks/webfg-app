@@ -4,13 +4,19 @@ const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/
 const { TimelineEventType } = require('./constants');
 
 const client = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(client);
-const tableName = process.env.ENCOUNTERS_TABLE;
+// Configure DocumentClient to remove undefined values
+const marshallOptions = {
+  removeUndefinedValues: true,
+};
+const translateConfig = { marshallOptions };
+const docClient = DynamoDBDocumentClient.from(client, translateConfig);
+const encountersTable = process.env.ENCOUNTERS_TABLE;
+const objectsTable = process.env.OBJECTS_TABLE; // Assuming OBJECTS_TABLE env var is set
 
 // Change export syntax
 exports.handler = async (event) => {
   const { encounterId, objectId, x, y } = event.arguments;
-  const currentTime = Date.now() / 1000; // Or use encounter's currentTime if needed
+  const currentTime = Date.now() / 1000;
 
   console.log(`Attempting to add object ${objectId} to encounter ${encounterId} at (${x}, ${y})`);
 
@@ -19,40 +25,51 @@ exports.handler = async (event) => {
   }
 
   try {
-    // 1. Get the current encounter to check if object already exists (optional, Update can handle)
-    const getCommand = new GetCommand({
-      TableName: tableName,
+    // 1. Get the current encounter
+    const getEncounterCommand = new GetCommand({
+      TableName: encountersTable,
       Key: { encounterId },
     });
-    const { Item: encounter } = await docClient.send(getCommand);
+    const { Item: encounter } = await docClient.send(getEncounterCommand);
 
     if (!encounter) {
       throw new Error(`Encounter not found: ${encounterId}`);
     }
 
+    // 2. Get Object details for name
+    const getObjectCommand = new GetCommand({
+      TableName: objectsTable,
+      Key: { objectId },
+      ProjectionExpression: "#nm", // Only fetch the name attribute
+      ExpressionAttributeNames: { "#nm": "name" }
+    });
+    const { Item: objectDetails } = await docClient.send(getObjectCommand);
+    const objectName = objectDetails?.name || objectId; // Use ID as fallback
+
     // Optional: Check if object already exists in objectPositions
     const objectExists = encounter.objectPositions?.some(pos => pos.objectId === objectId);
     if (objectExists) {
-      console.warn(`Object ${objectId} already exists in encounter ${encounterId}. Updating position instead.`);
-      // If it exists, you might want to call the update resolver logic instead
-      // or just update its position here. For simplicity, we'll proceed with update.
-      // Fall through to UpdateCommand which will overwrite or add.
+      console.warn(`Object ${objectId} already exists in encounter ${encounterId}. No action taken.`);
+      // Return current state or throw error if adding duplicates is not allowed
+      return encounter; // Or throw new Error(`Object ${objectId} already exists.`);
     }
 
-    // 2. Prepare the new object position and history event
+    // 3. Prepare the new object position and history event
     const newObjectPosition = { objectId, x, y };
+    const scaledX = x * 5; // Scale coordinates for description
+    const scaledY = y * 5;
     const historyEvent = {
-      time: currentTime, // Use a consistent time source
-      type: TimelineEventType.OBJECT_ADDED, // Define this constant
+      time: encounter.currentTime || currentTime, // Use encounter time if available
+      type: TimelineEventType.OBJECT_ADDED,
       objectId: objectId,
-      description: `Object ${objectId} added to VTT at (${x}, ${y})`, // Fetch object name if desired
-      x: x,
+      description: `${objectName} added to VTT at (${scaledX}ft, ${scaledY}ft)`, // Enriched description with scaled coords
+      x: x, // Store raw grid coordinates
       y: y,
     };
 
-    // 3. Update the encounter item
+    // 4. Update the encounter item
     const updateCommand = new UpdateCommand({
-      TableName: tableName,
+      TableName: encountersTable,
       Key: { encounterId },
       UpdateExpression: "SET #op = list_append(if_not_exists(#op, :empty_list), :new_pos), #hist = list_append(if_not_exists(#hist, :empty_list), :new_hist)",
       // Use ConditionExpression if you strictly want to prevent adding duplicates
@@ -96,4 +113,4 @@ export const TimelineEventType = {
   TERRAIN_REMOVED: "TERRAIN_REMOVED", // New
   GM_NOTE: "GM_NOTE",
 };
-*/ 
+*/

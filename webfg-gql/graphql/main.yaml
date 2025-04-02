@@ -206,6 +206,7 @@ Resources:
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         EncountersTableName: !Ref EncountersTableName
+        ObjectsTableName: !Ref ObjectsTableName # Pass ObjectsTableName down
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
   EncounterTerrainResolversStack:
