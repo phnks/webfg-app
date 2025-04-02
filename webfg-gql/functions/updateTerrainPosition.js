@@ -9,7 +9,6 @@ const tableName = process.env.ENCOUNTERS_TABLE;
 exports.handler = async (event) => {
   const { encounterId, input } = event.arguments;
   const { terrainId, startX, startY } = input;
-  const currentTime = Date.now() / 1000;
 
   console.log(`Attempting to update terrain ${terrainId} in encounter ${encounterId} to start at (${startX}, ${startY})`);
 

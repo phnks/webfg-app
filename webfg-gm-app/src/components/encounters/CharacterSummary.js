@@ -6,10 +6,11 @@ const CharacterSummary = ({ characters, history, currentTime, onSelectCharacter 
   const getCharacterStateAtTime = (characterId) => {
     // Get all events for this character up to current time
     const relevantEvents = history
-      .filter(event => event.characterId === characterId && event.time <= currentTime)
+      // Add a check to ensure event exists before accessing properties
+      .filter(event => event && event.characterId === characterId && event.time <= currentTime)
       .sort((a, b) => a.time - b.time);
-    
-    if (relevantEvents.length === 0) return null;
+
+    if (relevantEvents.length === 0) return null; // No relevant events found for this character
     
     // Build character state
     const state = {
@@ -144,4 +145,4 @@ const CharacterSummary = ({ characters, history, currentTime, onSelectCharacter 
   );
 };
 
-export default CharacterSummary; 
+export default CharacterSummary;

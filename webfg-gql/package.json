@@ -25,7 +25,7 @@
     "@aws-sdk/lib-dynamodb": "^3.758.0"
   },
   "config": {
-    "qa_schema": "v13",
+    "qa_schema": "v14",
     "prod_schema": "v10",
     "stack_name": "webfg-gql"
   }

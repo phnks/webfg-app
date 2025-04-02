@@ -69,11 +69,14 @@ Resources:
       Environment:
         Variables:
           ENCOUNTERS_TABLE: !Ref EncountersTableName
+          OBJECTS_TABLE: !Ref ObjectsTableName # Pass ObjectsTableName to env
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref EncountersTableName
         - DynamoDBWritePolicy:
             TableName: !Ref EncountersTableName
+        - DynamoDBReadPolicy: # Add read policy for Objects table
+            TableName: !Ref ObjectsTableName
 
   # --- Data Sources ---
   AddObjectToEncounterVTTDataSource:

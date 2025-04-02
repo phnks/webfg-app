@@ -14,7 +14,6 @@ exports.handler = async (event) => {
   const { encounterId, characterId, x, y } = event.arguments;
   const encountersTable = process.env.ENCOUNTERS_TABLE;
   const charactersTable = process.env.CHARACTERS_TABLE;
-  const currentTime = Date.now() / 1000;
   
   try {
     // Get the encounter
@@ -50,13 +49,16 @@ exports.handler = async (event) => {
     
     const character = characterResult.Item;
     const characterName = character.name || 'Unknown Character'; // Get character name
-    
+    const currentX = x || 0;
+    const currentY = y || 0;
+    const scaledX = currentX * 5; // Scale coordinates for description
+    const scaledY = currentY * 5;
     // Prepare history event
     const historyEvent = {
-      time: encounter.currentTime || currentTime,
+      time: encounter.currentTime, // Always use encounter's current time
       type: TimelineEventType.CHARACTER_MOVED,
       characterId,
-      description: `${characterName} moved to position (${x}, ${y})`, // Use name in description
+      description: `${characterName} moved to position (${scaledX}ft, ${scaledY}ft)`, // Use name in description
       x,
       y,
       stats: {

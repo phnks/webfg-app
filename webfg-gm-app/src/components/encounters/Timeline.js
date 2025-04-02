@@ -17,7 +17,8 @@ const Timeline = ({ currentTime, history, onSelectCharacter }) => {
   const actionIds = React.useMemo(() => {
     const ids = new Set();
     history.forEach(event => {
-      if (event.actionId) {
+      // Add check for event existence before accessing actionId
+      if (event && event.actionId) {
         ids.add(event.actionId);
       }
     });
@@ -61,8 +62,10 @@ const Timeline = ({ currentTime, history, onSelectCharacter }) => {
     }
   };
 
-  // Sort events by time
-  const timelineEvents = [...history].sort((a, b) => a.time - b.time);
+  // Sort events by time, filtering out any null/undefined entries first
+  const timelineEvents = [...history]
+    .filter(event => event != null) // Add filter for null/undefined
+    .sort((a, b) => a.time - b.time);
 
   // Only measure heights when events change
   React.useEffect(() => {

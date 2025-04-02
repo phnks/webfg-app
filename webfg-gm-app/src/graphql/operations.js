@@ -654,15 +654,6 @@ export const GET_ENCOUNTER = gql`
         y
       }
       terrainElements { terrainId type startX startY length color }
-      characterTimelines {
-        characterId
-        startTime
-        actions {
-          actionId
-          startTime
-          endTime
-        }
-      }
       gridElements {
         id
         type
@@ -760,15 +751,6 @@ export const ADD_CHARACTER_TO_ENCOUNTER = gql`
         x
         y
       }
-      characterTimelines {
-        characterId
-        startTime
-        actions {
-          actionId
-          startTime
-          endTime
-        }
-      }
       history {
         time
         type
@@ -814,15 +796,6 @@ export const ADD_ACTION_TO_TIMELINE = gql`
         x
         y
       }
-      characterTimelines {
-        characterId
-        startTime
-        actions {
-          actionId
-          startTime
-          endTime
-        }
-      }
       history {
         time
         type
@@ -857,15 +830,6 @@ export const ADVANCE_ENCOUNTER_TIME = gql`
         characterId
         x
         y
-      }
-      characterTimelines {
-        characterId
-        startTime
-        actions {
-          actionId
-          startTime
-          endTime
-        }
       }
       history {
         time
@@ -938,15 +902,6 @@ export const ON_UPDATE_ENCOUNTER = gql`
         x
         y
       }
-      characterTimelines {
-        characterId
-        startTime
-        actions {
-          actionId
-          startTime
-          endTime
-        }
-      }
       history {
         time
         type
@@ -989,15 +944,6 @@ export const ON_ENCOUNTER_TIMELINE_CHANGED = gql`
         characterId
         x
         y
-      }
-      characterTimelines {
-        characterId
-        startTime
-        actions {
-          actionId
-          startTime
-          endTime
-        }
       }
       history {
         time
@@ -1083,15 +1029,6 @@ export const UPDATE_GRID_SIZE = gql`
         x
         y
       }
-      characterTimelines {
-        characterId
-        startTime
-        actions {
-          actionId
-          startTime
-          endTime
-        }
-      }
       history {
         time
         type
@@ -1136,15 +1073,6 @@ export const ON_ENCOUNTER_CHARACTER_CHANGED = gql`
         characterId
         x
         y
-      }
-      characterTimelines {
-        characterId
-        startTime
-        actions {
-          actionId
-          startTime
-          endTime
-        }
       }
       history {
         time

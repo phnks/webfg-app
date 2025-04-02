@@ -8,7 +8,6 @@ const tableName = process.env.ENCOUNTERS_TABLE;
 
 exports.handler = async (event) => {
   const { encounterId, terrainId } = event.arguments;
-  const currentTime = Date.now() / 1000;
 
   console.log(`Attempting to remove terrain ${terrainId} from encounter ${encounterId}`);
 

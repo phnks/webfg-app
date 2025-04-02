@@ -69,13 +69,19 @@ exports.handler = async (event) => {
     
     // Add a history event
     const history = encounter.history || [];
+    const currentX = x || 0;
+    const currentY = y || 0;
+    const scaledX = currentX * 5; // Scale coordinates for description
+    const scaledY = currentY * 5;
+    // Use startTime from args if provided, otherwise fallback to encounter.currentTime
+    const eventTime = startTime ?? encounter.currentTime;
     history.push({
-      time: encounter.currentTime || 0,
-      type: TimelineEventType.CHARACTER_JOINED, // Use constant
+      time: eventTime,
+      type: TimelineEventType.CHARACTER_ADDED, // Use correct constant
       characterId,
-      description: `${characterName} joined the encounter at (${x || 0}, ${y || 0})`, // Enriched description
-      x: x || 0,
-      y: y || 0,
+      description: `${characterName} added to encounter at (${scaledX}ft, ${scaledY}ft)`, // Adjusted description text
+      x: currentX, // Store raw grid coordinates
+      y: currentY,
       stats: {
         hitPoints: character.stats?.hitPoints?.current || 0,
         fatigue: character.stats?.fatigue?.current || 0,

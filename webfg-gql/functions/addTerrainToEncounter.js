@@ -10,7 +10,6 @@ const tableName = process.env.ENCOUNTERS_TABLE;
 exports.handler = async (event) => {
   const { encounterId, input } = event.arguments;
   const { type, startX, startY, length, color } = input;
-  const currentTime = Date.now() / 1000;
 
   console.log(`Attempting to add terrain type ${type} to encounter ${encounterId}`);
 

@@ -14,7 +14,6 @@ const objectsTable = process.env.OBJECTS_TABLE; // Assuming OBJECTS_TABLE env va
 
 exports.handler = async (event) => {
   const { encounterId, objectId, x, y } = event.arguments;
-  const currentTime = Date.now() / 1000;
 
   console.log(`Attempting to update object ${objectId} in encounter ${encounterId} to (${x}, ${y})`);
 
@@ -55,7 +54,7 @@ exports.handler = async (event) => {
     const scaledX = x * 5; // Scale coordinates for description
     const scaledY = y * 5;
     const historyEvent = {
-      time: encounter.currentTime || currentTime, // Use encounter time if available
+      time: encounter.currentTime, // Always use encounter's current time
       type: TimelineEventType.OBJECT_MOVED,
       objectId: objectId,
       description: `${objectName} moved to (${scaledX}ft, ${scaledY}ft)`, // Enriched description with scaled coords
