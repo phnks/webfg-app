@@ -101,31 +101,31 @@ const EncounterDetail = () => {
           },
           (existingData) => {
             if (!existingData?.getEncounter) return existingData;
-            
-            // Only update fields that are present in the response
-            const updates = {};
-            if (updatedEncounter.characterPositions !== null) {
-              updates.characterPositions = updatedEncounter.characterPositions;
-              // If character positions were updated, also merge the history
-              if (existingData.getEncounter.history && updatedEncounter.history) {
-                updates.history = [...existingData.getEncounter.history, ...updatedEncounter.history];
-              }
+
+            // Create a copy of the existing encounter data to modify
+            const newEncounterData = { ...existingData.getEncounter };
+
+            // Update fields individually if they exist and are not null in the subscription payload
+            if (updatedEncounter.characterPositions !== undefined && updatedEncounter.characterPositions !== null) {
+              newEncounterData.characterPositions = updatedEncounter.characterPositions;
             }
-            if (updatedEncounter.gridElements !== null) {
-              updates.gridElements = updatedEncounter.gridElements;
+            if (updatedEncounter.objectPositions !== undefined && updatedEncounter.objectPositions !== null) {
+              newEncounterData.objectPositions = updatedEncounter.objectPositions;
             }
-            if (updatedEncounter.objectPositions !== null) {
-              updates.objectPositions = updatedEncounter.objectPositions;
+            if (updatedEncounter.terrainElements !== undefined && updatedEncounter.terrainElements !== null) {
+              newEncounterData.terrainElements = updatedEncounter.terrainElements;
             }
-            if (updatedEncounter.terrainElements !== null) {
-              updates.terrainElements = updatedEncounter.terrainElements;
+            if (updatedEncounter.gridElements !== undefined && updatedEncounter.gridElements !== null) {
+              newEncounterData.gridElements = updatedEncounter.gridElements;
             }
-            
+            // Crucially, update history if it's present in the payload, replacing the old one
+            // Assumes the backend sends the complete updated history array on VTT changes.
+            if (updatedEncounter.history !== undefined && updatedEncounter.history !== null) {
+              newEncounterData.history = updatedEncounter.history; 
+            }
+
             return {
-              getEncounter: {
-                ...existingData.getEncounter,
-                ...updates
-              }
+              getEncounter: newEncounterData
             };
           }
         );
@@ -631,4 +631,4 @@ const EncounterDetail = () => {
   );
 };
 
-export default EncounterDetail; 
+export default EncounterDetail;
