@@ -59,6 +59,30 @@ Resources:
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
 
+  SkillsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ServiceName}-Skills" # Follow naming convention
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: skillId # Assuming skillId is the primary key
+          AttributeType: S
+      KeySchema:
+        - AttributeName: skillId
+          KeyType: HASH
+
+  AttributesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ServiceName}-Attributes" # Follow naming convention
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: attributeId # Assuming attributeId is the primary key
+          AttributeType: S
+      KeySchema:
+        - AttributeName: attributeId
+          KeyType: HASH
+
 Outputs:
   CharactersTableName:
     Description: 'Name of the Characters table'
@@ -72,3 +96,9 @@ Outputs:
   EncountersTableName:
     Description: 'Name of the Encounters table'
     Value: !Ref EncountersTable
+  SkillsTableName:
+    Description: 'Name of the Skills table'
+    Value: !Ref SkillsTable
+  AttributesTableName:
+    Description: 'Name of the Attributes table'
+    Value: !Ref AttributesTable

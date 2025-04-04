@@ -140,7 +140,7 @@ const CharacterView = () => {
       <div className="view-header">
         <div>
           <h1>{character.name}</h1>
-          <div className="character-race">{character.race}</div>
+          {/* Race display removed */}
         </div>
         <div className="view-actions">
           <button className="edit-button" onClick={handleEdit}>Edit</button>
@@ -234,4 +234,4 @@ const CharacterView = () => {
   );
 };
 
-export default CharacterView; 
+export default CharacterView;

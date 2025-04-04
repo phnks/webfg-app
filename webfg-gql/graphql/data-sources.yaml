@@ -29,6 +29,19 @@ Parameters:
   EncountersTableName:
     Type: String
     Description: 'Name of table'
+  SkillsTableName: # Add new parameter
+    Type: String
+    Description: 'Name of Skills table'
+  AttributesTableName: # Add new parameter
+    Type: String
+    Description: 'Name of Attributes table'
+  SkillsDataSourceName: # Add new parameter
+    Type: String
+    Description: 'Name for Skills DynamoDB data source'
+  AttributesDataSourceName: # Add new parameter
+    Type: String
+    Description: 'Name for Attributes DynamoDB data source'
+
 
 Resources:
   AppSyncDynamoDBRole:
@@ -60,6 +73,8 @@ Resources:
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ObjectsTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ActionsTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EncountersTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SkillsTableName} # Add Skills table ARN
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AttributesTableName} # Add Attributes table ARN
 
   AppSyncLambdaServiceRole:
     Type: AWS::IAM::Role
@@ -127,10 +142,32 @@ Resources:
         TableName: !Ref EncountersTableName
         AwsRegion: !Sub ${AWS::Region}
 
+  SkillsDataSource: # Add Skills data source
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref SkillsDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref SkillsTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  AttributesDataSource: # Add Attributes data source
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref AttributesDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref AttributesTableName
+        AwsRegion: !Sub ${AWS::Region}
+
 Outputs:
   AppSyncDynamoDBRoleArn:
     Description: 'ARN of the IAM role for AppSync to access DynamoDB'
     Value: !GetAtt AppSyncDynamoDBRole.Arn
   AppSyncLambdaServiceRoleArn:
     Description: 'ARN of the IAM role for AppSync to invoke Lambda functions'
-    Value: !GetAtt AppSyncLambdaServiceRole.Arn 
+    Value: !GetAtt AppSyncLambdaServiceRole.Arn

@@ -6,7 +6,7 @@ export const LIST_CHARACTERS = gql`
     listCharacters {
       characterId
       name
-      race
+      # race removed
     }
   }
 `;
@@ -16,77 +16,25 @@ export const GET_CHARACTER = gql`
     getCharacter(characterId: $characterId) {
       characterId
       name
-      race
-      attributes {
-        strength {
-          base
-          current
-          max
-        }
-        agility {
-          base
-          current
-          max
-        }
-        dexterity {
-          base
-          current
-          max
-        }
-        endurance {
-          base
-          current
-          max
-        }
-        intelligence {
-          base
-          current
-          max
-        }
-        charisma {
-          base
-          current
-          max
-        }
-        perception {
-          base
-          current
-          max
-        }
-        resolve {
-          base
-          current
-          max
-        }
+      # race removed
+      attributeData { # Get stored data
+        attributeId
+        attributeValue
       }
-      skills {
-        combat {
-          striking
-          grappling
-          dodging
-          parrying
-          blocking
-          feinting
-          disarming
-          countering
-        }
-        weapons {
-          swords
-          daggers
-        }
-        physical {
-          weightlifting
-          sprinting
-          throwing
-        }
-        technical {
-          ambits
-          spindling
-          spindleHandling
-        }
-        intrapersonal {
-          emotionRegulation
-        }
+      attributes { # Get resolved data
+        attributeId
+        attributeValue
+        attributeName
+      }
+      skillData { # Get stored data
+        skillId
+        skillValue
+      }
+      skills { # Get resolved data
+        skillId
+        skillValue
+        skillName
+        skillCategory
       }
       stats {
         hitPoints {
@@ -174,6 +122,29 @@ export const GET_OBJECT = gql`
   }
 `;
 
+// SKILL QUERIES (NEW)
+export const LIST_SKILLS = gql`
+  query ListSkills {
+    listSkills { # Assuming this query exists
+      skillId
+      skillName
+      skillCategory
+      # description # Optional
+    }
+  }
+`;
+
+// ATTRIBUTE QUERIES (NEW)
+export const LIST_ATTRIBUTES = gql`
+  query ListAttributes {
+    listAttributes { # Assuming this query exists
+      attributeId
+      attributeName
+      # description # Optional
+    }
+  }
+`;
+
 // ACTION QUERIES
 export const LIST_ACTIONS = gql`
   query ListActions {
@@ -246,23 +217,23 @@ export const GET_ACTION = gql`
 export const CREATE_CHARACTER = gql`
   mutation CreateCharacter(
     $name: String!
-    $race: Race!
-    $attributes: AttributesInput
-    $skills: SkillsInput
-    $stats: StatsInput
-    $physical: PhysicalInput
+    # race removed
+    $attributeData: [CharacterAttributeInput!] # Use new input type
+    $skillData: [CharacterSkillInput!] # Use new input type
+    $stats: StatsInput # Assuming StatsInput exists
+    $physical: PhysicalInput # Assuming PhysicalInput exists
   ) {
     createCharacter(
       name: $name
-      race: $race
-      attributes: $attributes
-      skills: $skills
+      # race removed
+      attributeData: $attributeData # Pass new data field
+      skillData: $skillData # Pass new data field
       stats: $stats
       physical: $physical
     ) {
       characterId
       name
-      race
+      # race removed
     }
   }
 `;
@@ -271,24 +242,26 @@ export const UPDATE_CHARACTER = gql`
   mutation UpdateCharacter(
     $characterId: ID!
     $name: String
-    $race: Race
-    $attributes: AttributesInput
-    $skills: SkillsInput
-    $stats: StatsInput
-    $physical: PhysicalInput
+    # race removed
+    $attributeData: [CharacterAttributeInput!] # Use new input type
+    $skillData: [CharacterSkillInput!] # Use new input type
+    $stats: StatsInput # Assuming StatsInput exists
+    $physical: PhysicalInput # Assuming PhysicalInput exists
+    # Add other updatable fields like conditions, inventoryIds, etc. if needed
   ) {
     updateCharacter(
       characterId: $characterId
       name: $name
-      race: $race
-      attributes: $attributes
-      skills: $skills
+      # race removed
+      attributeData: $attributeData # Pass new data field
+      skillData: $skillData # Pass new data field
       stats: $stats
       physical: $physical
+      # Pass other fields here
     ) {
       characterId
       name
-      race
+      # race removed
     }
   }
 `;
@@ -414,7 +387,7 @@ export const ON_CREATE_CHARACTER = gql`
     onCreateCharacter {
       characterId
       name
-      race
+      # race removed
     }
   }
 `;
@@ -424,7 +397,7 @@ export const ON_UPDATE_CHARACTER = gql`
     onUpdateCharacter {
       characterId
       name
-      race
+      # race removed
     }
   }
 `;
@@ -511,6 +484,9 @@ export const defaultAttributes = {
   resolve: {...defaultAttributeValue}
 };
 
+// Removed defaultAttributeData array - will be generated in form from fetched list
+
+
 export const defaultCombatSkills = {
   striking: 0,
   grappling: 0,
@@ -543,13 +519,8 @@ export const defaultIntrapersonalSkills = {
   emotionRegulation: 0
 };
 
-export const defaultSkills = {
-  combat: defaultCombatSkills,
-  weapons: defaultWeaponSkills,
-  physical: defaultPhysicalSkills,
-  technical: defaultTechnicalSkills,
-  intrapersonal: defaultIntrapersonalSkills
-};
+// Removed defaultSkillData array - will be generated in form from fetched list
+
 
 export const defaultStatValue = {
   current: 10,
@@ -1250,4 +1221,3 @@ export const REMOVE_TERRAIN_FROM_ENCOUNTER = gql`
     }
   }
 `;
-

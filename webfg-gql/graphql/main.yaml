@@ -27,6 +27,14 @@ Parameters:
   EncountersDataSourceName:
     Type: String
     Description: 'Name of db data source'
+  SkillsDataSourceName: # Re-add parameter
+    Type: String
+    Description: 'Name of Skills db data source'
+    Default: 'SkillsDataSource' # Add default consistent with template.yaml
+  AttributesDataSourceName: # Re-add parameter
+    Type: String
+    Description: 'Name of Attributes db data source'
+    Default: 'AttributesDataSource' # Add default consistent with template.yaml
   CharactersTableName:
     Type: String
     Description: 'Name of table'
@@ -36,6 +44,12 @@ Parameters:
   ActionsTableName:
     Type: String
     Description: 'Name of table'
+  SkillsTableName: # Re-add parameter
+    Type: String
+    Description: 'Name of Skills table'
+  AttributesTableName: # Re-add parameter
+    Type: String
+    Description: 'Name of Attributes table'
   PhnksCertArn:
     Type: String
     Description: 'ARN of the certificate for the custom domain'
@@ -90,6 +104,10 @@ Resources:
         ObjectsTableName: !Ref ObjectsTableName
         ActionsTableName: !Ref ActionsTableName
         EncountersTableName: !Ref EncountersTableName
+        SkillsTableName: !Ref SkillsTableName # Pass down
+        AttributesTableName: !Ref AttributesTableName # Pass down
+        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down parameter reference
+        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down parameter reference
 
   CharacterResolversStack:
     Type: AWS::CloudFormation::Stack
@@ -99,6 +117,11 @@ Resources:
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         CharactersDataSourceName: !Ref CharactersDataSourceName
+        SkillsTableName: !Ref SkillsTableName # Pass down
+        AttributesTableName: !Ref AttributesTableName # Pass down
+        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down
+        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Pass down
 
   ObjectResolversStack:
     Type: AWS::CloudFormation::Stack
