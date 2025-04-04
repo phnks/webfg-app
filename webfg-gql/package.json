@@ -27,7 +27,7 @@
   },
   "config": {
     "qa_schema": "v20",
-    "prod_schema": "v10",
+    "prod_schema": "v11",
     "stack_name": "webfg-gql"
   }
 }

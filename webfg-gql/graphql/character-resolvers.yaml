@@ -142,7 +142,6 @@ Resources:
         $util.toJson($ctx.result)
 
   # --- Resolvers for Base Skills/Attributes ---
-
   ListSkillsResolver: 
     Type: AWS::AppSync::Resolver 
     Properties: 
