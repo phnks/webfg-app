@@ -78,7 +78,8 @@ const CharacterSummary = ({ characters, history, currentTime, onSelectCharacter 
           >
             <div className="character-header">
               <h4>{char.name}</h4>
-              <div className={`character-token-indicator ${char.race?.toLowerCase()}`}></div>
+              {/* Removed race-based token indicator */}
+              {/* <div className={`character-token-indicator ${char.race?.toLowerCase()}`}></div> */}
             </div>
             
             <div className="character-stats">
@@ -130,8 +131,8 @@ const CharacterSummary = ({ characters, history, currentTime, onSelectCharacter 
                 </div>
               ) : char.state?.lastEvent?.type === 'CHARACTER_MOVED' ? (
                 <div>Moved to ({char.state.lastPosition.x * 5}', {char.state.lastPosition.y * 5}')</div>
-              ) : char.state?.lastEvent?.type === 'CHARACTER_JOINED' ? (
-                <div>Just joined the encounter</div>
+              ) : char.state?.lastEvent?.type === 'CHARACTER_ADDED' ? ( // Use correct event type
+                <div>Added to encounter</div> // Adjusted text
               ) : char.state?.lastEvent?.type === 'ACTION_COMPLETED' ? (
                 <div>Finished {char.state.lastEvent.actionName || 'an action'}</div>
               ) : (

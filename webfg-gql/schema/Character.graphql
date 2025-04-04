@@ -1,23 +1,61 @@
+# Type representing the stored attribute data
+type StoredAttributeData {
+  attributeId: ID!
+  attributeValue: Int!
+}
+
+# Type representing the stored skill data
+type StoredSkillData {
+  skillId: ID!
+  skillValue: Int!
+}
+
 type Character {
   characterId: ID!
   name: String!
-  race: Race!
-  attributes: Attributes!
-  skills: Skills!
+
+  attributeData: [StoredAttributeData!]! # Use output type for stored data
+  attributes: [CharacterAttribute]!      # Resolved data (Lambda)
+  
+  skillData: [StoredSkillData!]! # Use output type for stored data
+  skills: [CharacterSkill!]!     # Resolved data (Lambda)
+
   stats: Stats!
   physical: Physical!
   conditions: [String]
-  inventoryIds: [ID]  # References to Objects
-  equipmentIds: [ID]  # References to Objects
-  actionIds: [ID]     # References to Actions
   
-  # Resolved fields (not stored in DynamoDB)
+  inventoryIds: [ID]
   inventory: [Object]
+
+  equipmentIds: [ID]
   equipment: [Object]
+
+  actionIds: [ID]
   actions: [Action]
+  
+  traitIds: [ID]
+  traits: [Trait]
 }
 
-enum Race {
-  HUMAN
-  TREPIDITE
-} 
+input CharacterSkillInput { # Should already be input, but double-checking
+  skillId: ID!
+  skillValue: Int!
+}
+
+type CharacterSkill {
+  skillId: ID!
+  skillValue: Int!
+  skillName: SkillName!
+  skillCategory: SkillCategory!
+}
+
+input CharacterAttributeInput { # Ensure this uses 'input' keyword
+  attributeId: ID!
+  attributeValue: Int!
+}
+
+type CharacterAttribute {
+  attributeId: ID!
+  attributeValue: Int!
+  attributeName: AttributeName!
+}

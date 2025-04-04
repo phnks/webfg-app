@@ -1,0 +1,4 @@
+type Trait {
+  traitId: ID!
+  name: String # Capitalize String
+}

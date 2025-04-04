@@ -47,6 +47,14 @@ Parameters:
     Type: String
     Description: 'Name of db data source'
     Default: 'EncountersDataSource'
+  SkillsDataSourceName: # Add new parameter
+    Type: String
+    Description: 'Name of Skills db data source'
+    Default: 'SkillsDataSource'
+  AttributesDataSourceName: # Add new parameter
+    Type: String
+    Description: 'Name of Attributes db data source'
+    Default: 'AttributesDataSource'
   CharactersTableName:
     Type: String
     Description: 'Name of table'
@@ -99,10 +107,14 @@ Resources:
         ObjectsTableName: !GetAtt DatabasesNestedStack.Outputs.ObjectsTableName
         ActionsTableName: !GetAtt DatabasesNestedStack.Outputs.ActionsTableName
         EncountersTableName: !GetAtt DatabasesNestedStack.Outputs.EncountersTableName
+        SkillsTableName: !GetAtt DatabasesNestedStack.Outputs.SkillsTableName # Pass output
+        AttributesTableName: !GetAtt DatabasesNestedStack.Outputs.AttributesTableName # Pass output
         CharactersDataSourceName: !Ref CharactersDataSourceName
         ObjectsDataSourceName: !Ref ObjectsDataSourceName
         ActionsDataSourceName: !Ref ActionsDataSourceName
         EncountersDataSourceName: !Ref EncountersDataSourceName
+        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down
+        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down
         PhnksCertArn: !Ref PhnksCertArn
         PhnksHostedZoneId: !Ref PhnksHostedZoneId
         DomainName: !Ref DomainName

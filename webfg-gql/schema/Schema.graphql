@@ -6,6 +6,12 @@ type Query {
   # Object queries
   getObject(objectId: ID!): Object
   listObjects(filter: ObjectFilterInput): [Object]
+
+  # Skill queries
+  listSkills: [Skill] # Added
+
+  # Attribute queries
+  listAttributes: [Attribute] # Added
   
   # Action queries
   getAction(actionId: ID!): Action
@@ -21,9 +27,11 @@ type Mutation {
   # Character mutations
   createCharacter(
     name: String!
-    race: Race!
-    attributes: AttributesInput
-    skills: SkillsInput
+    # race: Race! # Removed
+    # attributes: AttributesInput # Replaced
+    # skills: SkillsInput # Replaced
+    attributeData: [CharacterAttributeInput!] # Added
+    skillData: [CharacterSkillInput!] # Added
     stats: StatsInput
     physical: PhysicalInput
     conditions: [String]
@@ -35,9 +43,11 @@ type Mutation {
   updateCharacter(
     characterId: ID!
     name: String
-    race: Race
-    attributes: AttributesInput
-    skills: SkillsInput
+    # race: Race # Removed
+    # attributes: AttributesInput # Replaced
+    # skills: SkillsInput # Replaced
+    attributeData: [CharacterAttributeInput!] # Added
+    skillData: [CharacterSkillInput!] # Added
     stats: StatsInput
     physical: PhysicalInput
     conditions: [String]
@@ -151,7 +161,7 @@ type Subscription {
 # Filter inputs for queries
 input CharacterFilterInput {
   name: StringFilterInput
-  race: Race
+  # race: Race # Removed
   hasObjectWithName: StringFilterInput
   hasActionWithName: StringFilterInput
 }

@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { useMutation } from "@apollo/client";
+import React, { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation } from "@apollo/client"; // Import useQuery
 import { 
   CREATE_CHARACTER, 
   UPDATE_CHARACTER,
   LIST_CHARACTERS,
-  defaultAttributes,
-  defaultSkills,
-  defaultStats,
-  defaultPhysical 
+  LIST_SKILLS, // Import new query
+  LIST_ATTRIBUTES, // Import new query
+  // defaultAttributeData removed
+  // defaultSkillData removed
+  defaultStats, // Keep existing defaults
+  defaultPhysical // Keep existing defaults
 } from "../../graphql/operations";
 import "./Form.css";
 
@@ -171,35 +173,69 @@ const stripTypename = (obj) => {
 };
 
 const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => {
-  // Initialize with defaults or existing character data
-  const getInitialFormData = () => {
+  // Removed getInitialFormData function as initialization is now handled in useEffect
+
+  // State for the form data - Initialize as null until base data loads or editing data is set
+  const [formData, setFormData] = useState(null); 
+
+  // Fetch base skills and attributes
+  const { data: skillsListData, loading: skillsLoading, error: skillsError } = useQuery(LIST_SKILLS);
+  const { data: attributesListData, loading: attributesLoading, error: attributesError } = useQuery(LIST_ATTRIBUTES);
+
+  // Create maps for easy lookup once data is loaded
+  const baseSkillsMap = useMemo(() => {
+    const map = new Map();
+    if (skillsListData?.listSkills) {
+      skillsListData.listSkills.forEach(skill => map.set(skill.skillId, skill));
+    }
+    return map;
+  }, [skillsListData]);
+
+  const baseAttributesMap = useMemo(() => {
+    const map = new Map();
+    if (attributesListData?.listAttributes) {
+      attributesListData.listAttributes.forEach(attr => map.set(attr.attributeId, attr));
+    }
+    return map;
+    // Removed duplicate return map;
+  }, [attributesListData]);
+
+  // Effect to initialize form data
+  useEffect(() => {
+    // If editing, use the provided character data directly
     if (isEditing && character) {
-      return {
+      console.log("Initializing form for editing:", character);
+      setFormData({
         name: character.name || "",
-        race: character.race || "HUMAN",
-        attributes: character.attributes ? JSON.parse(JSON.stringify(character.attributes)) : { ...defaultAttributes },
-        skills: character.skills ? JSON.parse(JSON.stringify(character.skills)) : { ...defaultSkills },
+        attributeData: character.attributeData ? JSON.parse(JSON.stringify(character.attributeData)) : [],
+        skillData: character.skillData ? JSON.parse(JSON.stringify(character.skillData)) : [],
         stats: character.stats ? JSON.parse(JSON.stringify(character.stats)) : { ...defaultStats },
         physical: character.physical ? JSON.parse(JSON.stringify(character.physical)) : { ...defaultPhysical }
-      };
-    }
-    
-    return {
-      name: "",
-      race: "HUMAN",
-      attributes: { ...defaultAttributes },
-      skills: { ...defaultSkills },
-      stats: { ...defaultStats },
-      physical: { ...defaultPhysical }
-    };
-  };
+      });
+    } 
+    // If creating, wait for base data to load, then initialize
+    else if (!isEditing && !skillsLoading && !attributesLoading && skillsListData && attributesListData) {
+      console.log("Initializing form for creating with base data...");
+      const initialAttributeData = attributesListData.listAttributes.map(attr => ({
+        attributeId: attr.attributeId,
+        attributeValue: 10 // Default value for new characters
+      }));
+      const initialSkillData = skillsListData.listSkills.map(skill => ({
+        skillId: skill.skillId,
+        skillValue: 0 // Default value for new characters
+      }));
 
-  const [formData, setFormData] = useState(getInitialFormData());
-  
-  // Re-initialize if character changes
-  useEffect(() => {
-    setFormData(getInitialFormData());
-  }, [isEditing, character]);
+      setFormData({
+        name: "",
+        attributeData: initialAttributeData,
+        skillData: initialSkillData,
+        stats: { ...defaultStats },
+        physical: { ...defaultPhysical }
+      });
+    }
+    // If creating but base data hasn't loaded yet, formData remains null (or could set a loading state)
+    
+  }, [isEditing, character, skillsListData, attributesListData, skillsLoading, attributesLoading]); // Dependencies for initialization
 
   const [createCharacter, { loading: createLoading }] = useMutation(CREATE_CHARACTER, {
     update(cache, { data: { createCharacter } }) {
@@ -231,17 +267,27 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     current[path[path.length - 1]] = value;
     setFormData(newFormData);
   };
+
+  // Specific handler for attribute/skill value changes
+  const handleDataChange = (dataType, index, field, value) => {
+    setFormData(prevFormData => {
+      const newData = [...prevFormData[dataType]]; // e.g., [...prevFormData.skillData]
+      newData[index] = { ...newData[index], [field]: value };
+      return { ...prevFormData, [dataType]: newData };
+    });
+  };
   
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      // Create clean copies of form data with __typename stripped out
+      // Create clean copies of form data, using the new data structures
+      // Create clean copies of form data, using the new data structures
       const cleanedData = {
         name: formData.name,
-        race: formData.race,
-        attributes: stripTypename(formData.attributes),
-        skills: stripTypename(formData.skills),
+        // race removed
+        attributeData: stripTypename(formData.attributeData), // Send attributeData
+        skillData: stripTypename(formData.skillData), // Send skillData
         stats: stripTypename(formData.stats),
         physical: stripTypename(formData.physical),
       };
@@ -282,6 +328,16 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     }
   };
 
+  // Render loading state while form data is initializing (especially for create)
+  if (!formData && !isEditing && (skillsLoading || attributesLoading)) {
+    return <div className="loading">Loading base definitions...</div>;
+  }
+  // Handle case where form data failed to initialize (e.g., error fetching base data)
+  if (!formData) {
+     return <div className="error">Could not initialize form. {skillsError?.message || attributesError?.message}</div>;
+  }
+
+
   return (
     <div className="form-container">
       <h2>{isEditing ? "Edit Character" : "Create Character"}</h2>
@@ -298,37 +354,53 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           />
         </div>
         
-        <div className="form-group">
-          <label htmlFor="race">Race</label>
-          <select
-            id="race"
-            name="race"
-            value={formData.race}
-            onChange={handleChange}
-          >
-            <option value="HUMAN">Human</option>
-            <option value="ELF">Elf</option>
-            <option value="DWARF">Dwarf</option>
-            <option value="HALFLING">Halfling</option>
-            <option value="GNOME">Gnome</option>
-            <option value="HALF_ORC">Half-Orc</option>
-            <option value="HALF_ELF">Half-Elf</option>
-          </select>
-        </div>
-        
+        {/* Race dropdown removed */}
+
+        {/* Attributes Section */}
         <h3>Attributes</h3>
-        <NestedFormFields 
-          data={formData.attributes} 
-          path={['attributes']} 
-          onChange={updateNestedFormData} 
-        />
-        
+        {(attributesLoading || skillsLoading) && <p>Loading definitions...</p>}
+        {attributesError && <p>Error loading attributes: {attributesError.message}</p>}
+        <div className="form-grid">
+          {formData.attributeData.map((attrData, index) => {
+            const baseAttr = baseAttributesMap.get(attrData.attributeId);
+            return (
+              <div key={attrData.attributeId} className="form-group attribute-value-group">
+                <label htmlFor={`attribute-${index}`}>
+                  {baseAttr?.attributeName || attrData.attributeId} 
+                </label>
+                <input
+                  type="number"
+                  id={`attribute-${index}`}
+                  value={attrData.attributeValue}
+                  onChange={(e) => handleDataChange('attributeData', index, 'attributeValue', parseInt(e.target.value, 10))}
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Skills Section */}
         <h3>Skills</h3>
-        <NestedFormFields 
-          data={formData.skills} 
-          path={['skills']} 
-          onChange={updateNestedFormData} 
-        />
+        {skillsError && <p>Error loading skills: {skillsError.message}</p>}
+        <div className="form-grid">
+          {formData.skillData.map((skillData, index) => {
+            const baseSkill = baseSkillsMap.get(skillData.skillId);
+            return (
+              <div key={skillData.skillId} className="form-group skill-value-group">
+                 <label htmlFor={`skill-${index}`}>
+                  {baseSkill?.skillName || skillData.skillId} 
+                  {baseSkill?.skillCategory && ` (${baseSkill.skillCategory})`}
+                </label>
+                <input
+                  type="number"
+                  id={`skill-${index}`}
+                  value={skillData.skillValue}
+                  onChange={(e) => handleDataChange('skillData', index, 'skillValue', parseInt(e.target.value, 10))}
+                />
+              </div>
+            );
+          })}
+        </div>
         
         <h3>Stats</h3>
         <NestedFormFields 
@@ -355,4 +427,4 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   );
 };
 
-export default CharacterForm; 
+export default CharacterForm;

@@ -1,0 +1,17 @@
+type Attribute {
+  attributeId: ID!
+  attributeName: AttributeName!
+}
+
+# Removed unused AttributeInput type
+
+enum AttributeName {
+  STRENGTH
+  AGILITY
+  DEXTERITY
+  ENDURANCE
+  INTELLIGENCE
+  CHARISMA
+  PERCEPTION
+  RESOLVE
+}
