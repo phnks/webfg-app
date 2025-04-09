@@ -1,0 +1,41 @@
+name: Cleanup QA Environment on PR Close
+
+on:
+  pull_request:
+    types: [closed] # Trigger when a PR is closed (merged or just closed)
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  cleanup-qa-stacks:
+    name: Delete QA Stacks (PR-${{ github.event.number }})
+    runs-on: ubuntu-latest
+    env:
+      DEPLOYMENT_ID: ${{ github.event.number }}
+      GQL_STACK_NAME: webfg-gql-qa${{ github.event.number }}
+      GM_APP_STACK_NAME: webfg-gm-app-qa${{ github.event.number }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Delete GQL QA Stack (${{ env.GQL_STACK_NAME }})
+        run: |
+          echo "Attempting to delete stack: ${{ env.GQL_STACK_NAME }}"
+          aws cloudformation delete-stack --stack-name ${{ env.GQL_STACK_NAME }} || echo "Stack ${{ env.GQL_STACK_NAME }} not found or already deleted."
+
+      - name: Delete GM App QA Stack (${{ env.GM_APP_STACK_NAME }})
+        run: |
+          echo "Attempting to delete stack: ${{ env.GM_APP_STACK_NAME }}"
+          aws cloudformation delete-stack --stack-name ${{ env.GM_APP_STACK_NAME }} || echo "Stack ${{ env.GM_APP_STACK_NAME }} not found or already deleted."
+
+      # Optional: Wait for deletion if needed, but usually not necessary for cleanup
+      # - name: Wait for GQL Stack Deletion
+      #   run: aws cloudformation wait stack-delete-complete --stack-name ${{ env.GQL_STACK_NAME }} || echo "Stack deletion wait failed or stack didn't exist."
+      # - name: Wait for GM App Stack Deletion
+      #   run: aws cloudformation wait stack-delete-complete --stack-name ${{ env.GM_APP_STACK_NAME }} || echo "Stack deletion wait failed or stack didn't exist."
