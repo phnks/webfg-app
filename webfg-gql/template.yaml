@@ -78,6 +78,9 @@ Parameters:
   SchemaS3Key:
     Type: String
     Description: S3 key for the GraphQL schema file
+  SchemaS3BucketName: # Add parameter to receive bucket name
+    Type: String
+    Description: Name of the S3 bucket for GraphQL schemas
 
 Conditions:
   IsQA: !Equals [!Ref Environment, 'qa']
@@ -132,17 +135,7 @@ Resources:
         PhnksHostedZoneId: !Ref PhnksHostedZoneId
         DomainName: !Ref DomainName
         SchemaS3Key: !Ref SchemaS3Key
-        SchemaS3BucketName: !Ref GraphQLSchemaStorageBucket
-
-  GraphQLSchemaStorageBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      # Construct BucketName based on Environment and DeploymentId
-      BucketName: !Sub
-        - "${BaseServiceName}-schema${EnvSuffix}${IdSuffix}"
-        - BaseServiceName: !Ref ServiceName
-          EnvSuffix: !If [ IsQA, "-qa", "" ]
-          IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
+        SchemaS3BucketName: !Ref SchemaS3BucketName # Pass this parameter down
 
 Outputs:
   GraphQLApiEndpoint:
@@ -151,6 +144,3 @@ Outputs:
   GraphQLApiKey:
     Description: 'GraphQL API Key'
     Value: !GetAtt GraphQLNestedStack.Outputs.AppSyncAPIKey
-  SchemaS3BucketName:
-    Description: "S3 Bucket for storing GraphQL schemas"
-    Value: !Ref GraphQLSchemaStorageBucket

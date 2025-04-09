@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Nested template for the GraphQL Schema S3 Bucket'
+
+Parameters:
+  ServiceName:
+    Type: String
+    Description: 'Base name of the service (e.g., webfg-gql)'
+  Environment:
+    Type: String
+    Description: 'Deployment environment (prod/qa)'
+    AllowedValues:
+      - 'prod'
+      - 'qa'
+  DeploymentId:
+    Type: String
+    Description: 'Unique ID for QA deployments (e.g., PR number, none for prod/default qa)'
+    Default: 'none'
+
+Conditions:
+  IsQA: !Equals [!Ref Environment, 'qa']
+  IsQADeployment: !And
+    - Condition: IsQA
+    - !Not [!Equals [!Ref DeploymentId, 'none']]
+
+Resources:
+  GraphQLSchemaStorageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Construct BucketName based on Environment and DeploymentId
+      BucketName: !Sub
+        - "${BaseServiceName}-schema${EnvSuffix}${IdSuffix}"
+        - BaseServiceName: !Ref ServiceName
+          EnvSuffix: !If [ IsQA, "-qa", "" ]
+          IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
+
+Outputs:
+  BucketName:
+    Description: "Name of the S3 bucket created for GraphQL schemas"
+    Value: !Ref GraphQLSchemaStorageBucket
+  BucketArn:
+    Description: "ARN of the S3 bucket created for GraphQL schemas"
+    Value: !GetAtt GraphQLSchemaStorageBucket.Arn
