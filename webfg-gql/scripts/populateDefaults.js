@@ -1,9 +1,10 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, BatchWriteCommand } = require("@aws-sdk/lib-dynamodb");
-const { v4: uuidv4 } = require('uuid');
+const { v5: uuidv5 } = require('uuid'); // Import v5
 
 // --- Configuration ---
 const REGION = process.env.AWS_REGION || "us-east-1"; // Or your default region
+const WEBFG_NAMESPACE_UUID = '1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed'; // Namespace for deterministic UUIDs
 
 // Determine environment from command line arguments (default to 'prod')
 const environment = process.argv[2] === 'qa' ? 'qa' : 'prod';
@@ -104,34 +105,34 @@ async function batchWriteItems(tableName, items) {
 
 // --- Main Population Logic ---
 async function populateDefaults() {
-    console.log("Starting default data population...");
+    console.log("Starting default data population (upserting)...");
 
-    // Prepare Skill Items (using correct categories)
+    // Prepare Skill Items (using deterministic UUIDs)
     const skillItems = skillNames.map(name => ({
-        skillId: uuidv4(),
+        skillId: uuidv5(name, WEBFG_NAMESPACE_UUID), // Use v5 with namespace
         skillName: name,
         skillCategory: skillCategories[name] // Use mapped category
     }));
 
-    // Prepare Attribute Items (using plain JS objects)
+    // Prepare Attribute Items (using deterministic UUIDs)
     const attributeItems = attributeNames.map(name => ({
-        attributeId: uuidv4(),
+        attributeId: uuidv5(name, WEBFG_NAMESPACE_UUID), // Use v5 with namespace
         attributeName: name
     }));
 
-    // Write to DynamoDB
+    // Write to DynamoDB (BatchWriteCommand handles upserts automatically)
     try {
-        console.log(`Populating ${skillsTableName} with ${skillItems.length} skills...`);
+        console.log(`Upserting ${skillItems.length} skills into ${skillsTableName}...`);
         await batchWriteItems(skillsTableName, skillItems);
-        console.log(`Successfully populated ${skillsTableName}.`);
+        console.log(`Successfully upserted skills into ${skillsTableName}.`);
 
-        console.log(`Populating ${attributesTableName} with ${attributeItems.length} attributes...`);
+        console.log(`Upserting ${attributeItems.length} attributes into ${attributesTableName}...`);
         await batchWriteItems(attributesTableName, attributeItems);
-        console.log(`Successfully populated ${attributesTableName}.`);
+        console.log(`Successfully upserted attributes into ${attributesTableName}.`);
 
-        console.log("Default data population completed successfully.");
+        console.log("Default data population/update completed successfully.");
     } catch (error) {
-        console.error("Error during default data population:", error);
+        console.error("Error during default data population/update:", error);
         process.exit(1); // Exit with error code
     }
 }
