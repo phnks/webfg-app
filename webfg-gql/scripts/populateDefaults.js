@@ -13,18 +13,59 @@ const serviceName = environment === 'qa' ? 'webfg-gql-qa' : 'webfg-gql';
 const skillsTableName = `${serviceName}-Skills`;
 const attributesTableName = `${serviceName}-Attributes`;
 
-// --- Enum Values (from GraphQL Schema) ---
-const skillNames = [
-    "STRIKING", "GRAPPLING", "DODGING", "PARRYING", "BLOCKING", "FEINTING", "DISARMING", "COUNTERING",
-    "DAGGERS", "SWORDS", "GREATSWORDS", "AXES", "HAMMERS", "POLEARMS", "THROWBLADES", "JAVELINS",
-    "BOWS", "CROSSBOWS", "SIEGE", "GRENADES", "PISTOLS", "SHOTGUNS", "RIFLES", "SNIPERS", "MGS",
-    "ROCKETS", "MISSILES", "ARTILLERY", "GUNNERY", "TORPEDOES", "BOMBS", "AMBITS", "SPINDLING",
-    "SPINDLE_HANDLING", "THROWING", "SNEAKING", "WEIGHTLIFTING", "SWIMMING", "CLIMBING", "JUMPING",
-    "TRACKING", "SPRINTING", "EMOTION_REGULATION"
-];
+// --- Enum Values & Categories (from GraphQL Schema & Rulebook) ---
+const skillCategories = {
+    // Weapon Skills
+    DAGGERS: "WEAPONS",
+    SWORDS: "WEAPONS",
+    GREATSWORDS: "WEAPONS",
+    AXES: "WEAPONS",
+    HAMMERS: "WEAPONS",
+    POLEARMS: "WEAPONS",
+    THROWBLADES: "WEAPONS",
+    JAVELINS: "WEAPONS",
+    BOWS: "WEAPONS",
+    CROSSBOWS: "WEAPONS",
+    SIEGE: "WEAPONS",
+    GRENADES: "WEAPONS",
+    PISTOLS: "WEAPONS",
+    SHOTGUNS: "WEAPONS",
+    RIFLES: "WEAPONS",
+    SNIPERS: "WEAPONS",
+    MGS: "WEAPONS",
+    ROCKETS: "WEAPONS",
+    MISSILES: "WEAPONS",
+    ARTILLERY: "WEAPONS",
+    GUNNERY: "WEAPONS",
+    TORPEDOES: "WEAPONS",
+    BOMBS: "WEAPONS",
+    // Combat Skills
+    STRIKING: "COMBAT",
+    GRAPPLING: "COMBAT",
+    DODGING: "COMBAT",
+    PARRYING: "COMBAT",
+    BLOCKING: "COMBAT",
+    FEINTING: "COMBAT",
+    DISARMING: "COMBAT",
+    COUNTERING: "COMBAT",
+    // Technical Skills
+    AMBITS: "TECHNICAL",
+    SPINDLING: "TECHNICAL",
+    SPINDLE_HANDLING: "TECHNICAL",
+    // Physical Skills
+    THROWING: "PHYSICAL",
+    SNEAKING: "PHYSICAL",
+    WEIGHTLIFTING: "PHYSICAL",
+    SWIMMING: "PHYSICAL",
+    CLIMBING: "PHYSICAL",
+    JUMPING: "PHYSICAL",
+    TRACKING: "PHYSICAL",
+    SPRINTING: "PHYSICAL",
+    // Intrapersonal Skills
+    EMOTION_REGULATION: "INTRAPERSONAL"
+};
 
-// TODO: Assign appropriate categories based on game design. Using 'PHYSICAL' as a placeholder.
-const defaultSkillCategory = "PHYSICAL";
+const skillNames = Object.keys(skillCategories);
 
 const attributeNames = [
     "STRENGTH", "AGILITY", "DEXTERITY", "ENDURANCE", "INTELLIGENCE", "CHARISMA", "PERCEPTION", "RESOLVE"
@@ -65,11 +106,11 @@ async function batchWriteItems(tableName, items) {
 async function populateDefaults() {
     console.log("Starting default data population...");
 
-    // Prepare Skill Items (using plain JS objects)
+    // Prepare Skill Items (using correct categories)
     const skillItems = skillNames.map(name => ({
         skillId: uuidv4(),
         skillName: name,
-        skillCategory: defaultSkillCategory // Using placeholder category
+        skillCategory: skillCategories[name] // Use mapped category
     }));
 
     // Prepare Attribute Items (using plain JS objects)
