@@ -75,7 +75,7 @@ Resources:
       Type: A
       AliasTarget:
         DNSName: !GetAtt AppSyncDomainName.AppSyncDomainName
-        HostedZoneId: !GetAtt AppSyncDomainName.HostedZoneId
+        HostedZoneId: Z2FDTNDATAQYW2 # Use fixed regional AppSync Hosted Zone ID
 
 Outputs:
   GraphQLApiId:
@@ -86,4 +86,4 @@ Outputs:
     Value: !Sub 'https://${ServiceName}.${DomainName}'
   AppSyncApiKey:
     Description: 'GraphQL API Key'
-    Value: !Ref GraphQLApiKey 
+    Value: !Ref GraphQLApiKey
