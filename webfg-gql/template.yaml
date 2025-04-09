@@ -71,12 +71,22 @@ Parameters:
     Type: String
     Description: 'Name of table'
     Default: ''
+  DeploymentId: # New parameter for PR ID
+    Type: String
+    Description: 'Unique ID for QA deployments (e.g., PR number)'
+    Default: 'none'
   SchemaS3Key:
     Type: String
     Description: S3 key for the GraphQL schema file
+  SchemaS3BucketName: # Add parameter to receive bucket name
+    Type: String
+    Description: Name of the S3 bucket for GraphQL schemas
 
 Conditions:
   IsQA: !Equals [!Ref Environment, 'qa']
+  IsQADeployment: !And # New condition for PR-specific QA
+    - Condition: IsQA
+    - !Not [!Equals [!Ref DeploymentId, 'none']]
 
 Resources:
   DatabasesNestedStack:
@@ -84,10 +94,12 @@ Resources:
     Properties:
       TemplateURL: ./databases.yaml
       Parameters:
-        ServiceName: !If 
-          - IsQA
-          - !Sub ${ServiceName}-qa
-          - !Ref ServiceName
+        # Construct ServiceName based on Environment and DeploymentId
+        ServiceName: !Sub
+          - "${BaseServiceName}${EnvSuffix}${IdSuffix}"
+          - BaseServiceName: !Ref ServiceName
+            EnvSuffix: !If [ IsQA, "-qa", "" ]
+            IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
 
   GraphQLNestedStack:
     Type: AWS::CloudFormation::Stack
@@ -95,14 +107,18 @@ Resources:
       TemplateURL: ./graphql/main.yaml
       Parameters:
         Environment: !Ref Environment
-        AppSyncApiName: !If 
-          - IsQA
-          - !Sub ${AppSyncApiName}-qa
-          - !Ref AppSyncApiName
-        ServiceName: !If 
-          - IsQA
-          - !Sub ${ServiceName}-qa
-          - !Ref ServiceName
+        # Construct AppSyncApiName based on Environment and DeploymentId
+        AppSyncApiName: !Sub
+          - "${BaseApiName}${EnvSuffix}${IdSuffix}"
+          - BaseApiName: !Ref AppSyncApiName
+            EnvSuffix: !If [ IsQA, "-qa", "" ]
+            IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
+        # Construct ServiceName based on Environment and DeploymentId
+        ServiceName: !Sub
+          - "${BaseServiceName}${EnvSuffix}${IdSuffix}"
+          - BaseServiceName: !Ref ServiceName
+            EnvSuffix: !If [ IsQA, "-qa", "" ]
+            IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
         CharactersTableName: !GetAtt DatabasesNestedStack.Outputs.CharactersTableName
         ObjectsTableName: !GetAtt DatabasesNestedStack.Outputs.ObjectsTableName
         ActionsTableName: !GetAtt DatabasesNestedStack.Outputs.ActionsTableName
@@ -119,16 +135,8 @@ Resources:
         PhnksHostedZoneId: !Ref PhnksHostedZoneId
         DomainName: !Ref DomainName
         SchemaS3Key: !Ref SchemaS3Key
-        SchemaS3BucketName: !Ref GraphQLSchemaStorageBucket
+        SchemaS3BucketName: !Ref SchemaS3BucketName # Pass this parameter down
 
-  GraphQLSchemaStorageBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !If 
-        - IsQA
-        - !Sub ${ServiceName}-schema-qa
-        - !Sub ${ServiceName}-schema
-        
 Outputs:
   GraphQLApiEndpoint:
     Description: 'GraphQL API Endpoint'
@@ -136,6 +144,3 @@ Outputs:
   GraphQLApiKey:
     Description: 'GraphQL API Key'
     Value: !GetAtt GraphQLNestedStack.Outputs.AppSyncAPIKey
-  SchemaS3BucketName:
-    Description: "S3 Bucket for storing GraphQL schemas"
-    Value: !Ref GraphQLSchemaStorageBucket
