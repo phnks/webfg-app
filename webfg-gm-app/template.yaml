@@ -33,18 +33,14 @@ Conditions:
     - Condition: IsQA
     - !Not [!Equals [!Ref DeploymentId, 'none']]
 
-Globals: # Define dynamic subdomain construction once
-  Variables:
-    DynamicSubdomain: !Sub
-      - "webfg-gm-app${EnvSuffix}${IdSuffix}"
-      - EnvSuffix: !If [ IsQA, "-qa", "" ]
-        IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
-
 Resources:
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${Variables.DynamicSubdomain}-website" # Use dynamic subdomain
+      BucketName: !Sub # Construct name directly
+        - "webfg-gm-app${EnvSuffix}${IdSuffix}-website"
+        - EnvSuffix: !If [ IsQA, "-qa", "" ]
+          IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
       CorsConfiguration:
         CorsRules:
           - AllowedOrigins:
@@ -62,7 +58,10 @@ Resources:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: !Sub "${Variables.DynamicSubdomain}-oac" # Use dynamic subdomain
+        Name: !Sub # Construct name directly
+          - "webfg-gm-app${EnvSuffix}${IdSuffix}-oac"
+          - EnvSuffix: !If [ IsQA, "-qa", "" ]
+            IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
@@ -77,7 +76,10 @@ Resources:
               OriginAccessIdentity: ""
             OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
         Enabled: true
-        Comment: !Sub "CloudFront distribution for ${Variables.DynamicSubdomain}.${RootDomain}" # Add dynamic comment
+        Comment: !Sub # Construct comment directly
+          - "CloudFront distribution for webfg-gm-app${EnvSuffix}${IdSuffix}.${RootDomain}"
+          - EnvSuffix: !If [ IsQA, "-qa", "" ]
+            IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
         DefaultRootObject: index.html
         HttpVersion: http2
         DefaultCacheBehavior:
@@ -103,7 +105,10 @@ Resources:
           SslSupportMethod: sni-only
           MinimumProtocolVersion: TLSv1.2_2021
         Aliases:
-          - !Sub "${Variables.DynamicSubdomain}.${RootDomain}" # Use dynamic subdomain
+          - !Sub # Construct alias directly
+            - "webfg-gm-app${EnvSuffix}${IdSuffix}.${RootDomain}"
+            - EnvSuffix: !If [ IsQA, "-qa", "" ]
+              IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 200
@@ -131,7 +136,10 @@ Resources:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneId: !Ref PhnksHostedZoneId
-      Name: !Sub "${Variables.DynamicSubdomain}.${RootDomain}." # Use dynamic subdomain
+      Name: !Sub # Construct name directly
+        - "webfg-gm-app${EnvSuffix}${IdSuffix}.${RootDomain}."
+        - EnvSuffix: !If [ IsQA, "-qa", "" ]
+          IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
       Type: A
       AliasTarget:
         DNSName: !GetAtt WebsiteDistribution.DomainName
@@ -146,4 +154,7 @@ Outputs:
     Value: !GetAtt WebsiteDistribution.DomainName
   WebsiteUrl:
     Description: "URL for the website"
-    Value: !Sub "https://${Variables.DynamicSubdomain}.${RootDomain}" # Use dynamic subdomain
+    Value: !Sub # Construct URL directly
+      - "https://webfg-gm-app${EnvSuffix}${IdSuffix}.${RootDomain}"
+      - EnvSuffix: !If [ IsQA, "-qa", "" ]
+        IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
