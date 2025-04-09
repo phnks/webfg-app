@@ -24,6 +24,9 @@
     "build": "react-scripts build",
     "build:prod": "env-cmd -f .env.prod react-scripts build",
     "test": "react-scripts test",
+    "start:bg": "nohup env-cmd -f .env.dev react-scripts start > webfg-gm-app.log 2>&1 & echo $! > webfg-gm-app.pid",
+    "stop:bg": "if [ -f webfg-gm-app.pid ]; then kill $(cat webfg-gm-app.pid) && rm webfg-gm-app.pid && echo 'Stopped server.'; else echo 'Server not running (no PID file)'; fi",
+    "restart:bg": "npm run stop:bg && sleep 1 && npm run start:bg",
     "eject": "react-scripts eject",
     "deploy": "export AWS_PROFILE=personal && npm run build:prod && aws s3 sync build/ s3://$(aws cloudformation describe-stacks --stack-name webfg-gm-app --query 'Stacks[0].Outputs[?OutputKey==`WebsiteBucketName`].OutputValue' --output text) --delete && aws cloudfront create-invalidation --distribution-id $(aws cloudfront list-distributions --query 'DistributionList.Items[?Aliases.Items[?contains(@,`webfg-gm.phnks.com`)]].Id' --output text) --paths \"/*\""
   },
