@@ -1,12 +1,19 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  SAM Template for hosting a React static website on a subdomain
+  SAM Template for hosting the webfg-gm-app React static website with dynamic QA deployments.
 Parameters:
-  SubDomain:
+  Environment:
     Type: String
-    Description: "Subdomain for this app"
-    Default: "webfg-gm"
+    Description: 'Deployment environment (prod/qa)'
+    Default: 'prod'
+    AllowedValues:
+      - 'prod'
+      - 'qa'
+  DeploymentId: # New parameter for PR ID
+    Type: String
+    Description: 'Unique ID for QA deployments (e.g., PR number)'
+    Default: 'none'
   RootDomain:
     Type: String
     Description: "Root domain name"
@@ -19,11 +26,21 @@ Parameters:
     Type: String
     Description: "Route53 hosted zone ID for phnks.com"
     Default: "Z0011216DMAXI27AITHT"
+
+Conditions:
+  IsQA: !Equals [!Ref Environment, 'qa']
+  IsQADeployment: !And
+    - Condition: IsQA
+    - !Not [!Equals [!Ref DeploymentId, 'none']]
+
 Resources:
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${SubDomain}-${RootDomain}-website"
+      BucketName: !Sub # Construct name directly
+        - "webfg-gm-app${EnvSuffix}${IdSuffix}-website"
+        - EnvSuffix: !If [ IsQA, "-qa", "" ]
+          IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
       CorsConfiguration:
         CorsRules:
           - AllowedOrigins:
@@ -41,7 +58,10 @@ Resources:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: !Sub "${SubDomain}-${RootDomain}-oac"
+        Name: !Sub # Construct name directly
+          - "webfg-gm-app${EnvSuffix}${IdSuffix}-oac"
+          - EnvSuffix: !If [ IsQA, "-qa", "" ]
+            IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
@@ -56,6 +76,10 @@ Resources:
               OriginAccessIdentity: ""
             OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
         Enabled: true
+        Comment: !Sub # Construct comment directly
+          - "CloudFront distribution for webfg-gm-app${EnvSuffix}${IdSuffix}.${RootDomain}"
+          - EnvSuffix: !If [ IsQA, "-qa", "" ]
+            IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
         DefaultRootObject: index.html
         HttpVersion: http2
         DefaultCacheBehavior:
@@ -81,7 +105,10 @@ Resources:
           SslSupportMethod: sni-only
           MinimumProtocolVersion: TLSv1.2_2021
         Aliases:
-          - !Sub "${SubDomain}.${RootDomain}"
+          - !Sub # Construct alias directly
+            - "webfg-gm-app${EnvSuffix}${IdSuffix}.${RootDomain}"
+            - EnvSuffix: !If [ IsQA, "-qa", "" ]
+              IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 200
@@ -109,7 +136,10 @@ Resources:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneId: !Ref PhnksHostedZoneId
-      Name: !Sub "${SubDomain}.${RootDomain}."
+      Name: !Sub # Construct name directly
+        - "webfg-gm-app${EnvSuffix}${IdSuffix}.${RootDomain}."
+        - EnvSuffix: !If [ IsQA, "-qa", "" ]
+          IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
       Type: A
       AliasTarget:
         DNSName: !GetAtt WebsiteDistribution.DomainName
@@ -124,4 +154,7 @@ Outputs:
     Value: !GetAtt WebsiteDistribution.DomainName
   WebsiteUrl:
     Description: "URL for the website"
-    Value: !Sub "https://${SubDomain}.${RootDomain}"
+    Value: !Sub # Construct URL directly
+      - "https://webfg-gm-app${EnvSuffix}${IdSuffix}.${RootDomain}"
+      - EnvSuffix: !If [ IsQA, "-qa", "" ]
+        IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
