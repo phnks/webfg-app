@@ -30,6 +30,7 @@
     "eject": "react-scripts eject",
     "deploy:prod": "bash scripts/deploy.sh prod none",
     "deploy:qa": "bash scripts/deploy.sh qa ${DEPLOYMENT_ID:-none}",
+    "check-deploy:qa": "bash scripts/check-deploy.sh qa ${DEPLOYMENT_ID:-none}",
     "delete:qa": "bash scripts/delete.sh qa ${DEPLOYMENT_ID:?DEPLOYMENT_ID is required}",
     "delete:prod": "bash scripts/delete.sh prod none"
   },
