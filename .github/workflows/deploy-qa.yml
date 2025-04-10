@@ -39,7 +39,20 @@ jobs:
         run: npm install
 
       - name: Deploy GQL QA Stack (PR-${{ env.DEPLOYMENT_ID }})
-        run: npm run deploy:qa # DEPLOYMENT_ID is passed via env var
+        id: deploy_gql # Add id to step
+        run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script directly
+
+      - name: Get GQL Stack Outputs
+        id: gql_outputs
+        run: |
+          API_URL=$(aws cloudformation describe-stacks --stack-name webfg-gql-qa${{ env.DEPLOYMENT_ID }} --query 'Stacks[0].Outputs[?OutputKey==`GraphQLApiEndpoint`].OutputValue' --output text)
+          API_KEY=$(aws cloudformation describe-stacks --stack-name webfg-gql-qa${{ env.DEPLOYMENT_ID }} --query 'Stacks[0].Outputs[?OutputKey==`GraphQLApiKey`].OutputValue' --output text)
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          echo "api_key=$API_KEY" >> $GITHUB_OUTPUT
+
+    outputs: # Define job outputs
+      api_url: ${{ steps.gql_outputs.outputs.api_url }}
+      api_key: ${{ steps.gql_outputs.outputs.api_key }}
 
   deploy-gm-app-qa:
     name: Deploy GM App to QA (PR-${{ github.event.number }})
@@ -74,5 +87,12 @@ jobs:
       - name: Install GM App dependencies
         run: npm install
 
+      - name: Build GM App with QA GQL Endpoint
+        env: # Set env vars for build
+          REACT_APP_APPSYNC_URL: ${{ needs.deploy-gql-qa.outputs.api_url }}
+          REACT_APP_APPSYNC_API_KEY: ${{ needs.deploy-gql-qa.outputs.api_key }}
+        run: npm run build # Use standard build
+
       - name: Deploy GM App QA Stack (PR-${{ env.DEPLOYMENT_ID }})
-        run: npm run deploy:qa # DEPLOYMENT_ID is passed via env var
+        # Deploy script now uses the build artifacts created in the previous step
+        run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script directly

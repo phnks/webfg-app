@@ -12,6 +12,7 @@ jobs:
     env:
       DEPLOYMENT_ID: ${{ github.event.number }}
       GQL_STACK_NAME: webfg-gql-qa${{ github.event.number }}
+      GQL_BUCKET_STACK_NAME: webfg-gql-schema-qa${{ github.event.number }} # Add bucket stack name
       GM_APP_STACK_NAME: webfg-gm-app-qa${{ github.event.number }}
     steps:
       - name: Checkout code
@@ -33,6 +34,22 @@ jobs:
         run: |
           echo "Attempting to delete stack: ${{ env.GM_APP_STACK_NAME }}"
           aws cloudformation delete-stack --stack-name ${{ env.GM_APP_STACK_NAME }} || echo "Stack ${{ env.GM_APP_STACK_NAME }} not found or already deleted."
+
+      - name: Empty GQL Schema Bucket # Add step to empty bucket
+        run: |
+          BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name ${{ env.GQL_BUCKET_STACK_NAME }} --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' --output text 2>/dev/null)
+          if [ -n "${BUCKET_NAME}" ]; then
+            echo "Emptying S3 Bucket: ${BUCKET_NAME}..."
+            aws s3 rm "s3://${BUCKET_NAME}" --recursive || echo "Warning: Failed to empty bucket ${BUCKET_NAME}."
+          else
+            echo "Warning: Could not retrieve bucket name for stack ${{ env.GQL_BUCKET_STACK_NAME }} to empty it."
+          fi
+        continue-on-error: true # Allow workflow to continue even if bucket emptying fails
+
+      - name: Delete GQL Schema Bucket Stack (${{ env.GQL_BUCKET_STACK_NAME }}) # Add step to delete bucket stack
+        run: |
+          echo "Attempting to delete stack: ${{ env.GQL_BUCKET_STACK_NAME }}"
+          aws cloudformation delete-stack --stack-name ${{ env.GQL_BUCKET_STACK_NAME }} || echo "Stack ${{ env.GQL_BUCKET_STACK_NAME }} not found or already deleted."
 
       # Optional: Wait for deletion if needed, but usually not necessary for cleanup
       # - name: Wait for GQL Stack Deletion
