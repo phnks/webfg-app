@@ -75,7 +75,7 @@ Resources:
       Type: A
       AliasTarget:
         DNSName: !GetAtt AppSyncDomainName.AppSyncDomainName
-        HostedZoneId: Z2FDTNDATAQYW2 # Use fixed regional AppSync Hosted Zone ID
+        HostedZoneId: !GetAtt AppSyncDomainName.HostedZoneId
 
 Outputs:
   GraphQLApiId:
