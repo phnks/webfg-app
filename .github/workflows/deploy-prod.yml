@@ -1,0 +1,94 @@
+name: Deploy Production
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy-gql-prod:
+    name: Deploy GQL to Prod
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./webfg-gql
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Match runtime in template.yaml
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install SAM CLI
+        run: |
+          pip install aws-sam-cli
+        working-directory: . # Run at root
+
+      - name: Install GQL dependencies
+        run: npm install
+
+      - name: Deploy GQL Prod Stack
+        id: deploy_gql # Add id
+        run: bash scripts/deploy.sh prod none # Call script
+
+      - name: Get GQL Stack Outputs
+        id: gql_outputs
+        run: |
+          API_URL=$(aws cloudformation describe-stacks --stack-name webfg-gql --query 'Stacks[0].Outputs[?OutputKey==`GraphQLApiEndpoint`].OutputValue' --output text)
+          API_KEY=$(aws cloudformation describe-stacks --stack-name webfg-gql --query 'Stacks[0].Outputs[?OutputKey==`GraphQLApiKey`].OutputValue' --output text)
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          echo "api_key=$API_KEY" >> $GITHUB_OUTPUT
+
+    outputs: # Define job outputs
+      api_url: ${{ steps.gql_outputs.outputs.api_url }}
+      api_key: ${{ steps.gql_outputs.outputs.api_key }}
+
+  deploy-gm-app-prod:
+    name: Deploy GM App to Prod
+    runs-on: ubuntu-latest
+    needs: deploy-gql-prod # Run after GQL deployment
+    defaults:
+      run:
+        working-directory: ./webfg-gm-app
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install SAM CLI
+        run: |
+          pip install aws-sam-cli
+        working-directory: . # Run at root
+
+      - name: Install GM App dependencies
+        run: npm install
+
+      - name: Build GM App with Prod GQL Endpoint
+        env: # Set env vars for build
+          REACT_APP_APPSYNC_URL: ${{ needs.deploy-gql-prod.outputs.api_url }}
+          REACT_APP_APPSYNC_API_KEY: ${{ needs.deploy-gql-prod.outputs.api_key }}
+        run: npm run build:prod # Use prod build
+
+      - name: Deploy GM App Prod Stack
+        # Deploy script now uses the build artifacts created in the previous step
+        run: bash scripts/deploy.sh prod none # Call script
