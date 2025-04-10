@@ -37,7 +37,20 @@ jobs:
         run: npm install
 
       - name: Deploy GQL Prod Stack
-        run: npm run deploy:prod
+        id: deploy_gql # Add id
+        run: bash scripts/deploy.sh prod none # Call script
+
+      - name: Get GQL Stack Outputs
+        id: gql_outputs
+        run: |
+          API_URL=$(aws cloudformation describe-stacks --stack-name webfg-gql --query 'Stacks[0].Outputs[?OutputKey==`GraphQLApiEndpoint`].OutputValue' --output text)
+          API_KEY=$(aws cloudformation describe-stacks --stack-name webfg-gql --query 'Stacks[0].Outputs[?OutputKey==`GraphQLApiKey`].OutputValue' --output text)
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          echo "api_key=$API_KEY" >> $GITHUB_OUTPUT
+
+    outputs: # Define job outputs
+      api_url: ${{ steps.gql_outputs.outputs.api_url }}
+      api_key: ${{ steps.gql_outputs.outputs.api_key }}
 
   deploy-gm-app-prod:
     name: Deploy GM App to Prod
@@ -70,6 +83,12 @@ jobs:
       - name: Install GM App dependencies
         run: npm install
 
+      - name: Build GM App with Prod GQL Endpoint
+        env: # Set env vars for build
+          REACT_APP_APPSYNC_URL: ${{ needs.deploy-gql-prod.outputs.api_url }}
+          REACT_APP_APPSYNC_API_KEY: ${{ needs.deploy-gql-prod.outputs.api_key }}
+        run: npm run build:prod # Use prod build
+
       - name: Deploy GM App Prod Stack
-        # Note: The deploy:prod script already handles build, SAM deploy, S3 sync, and CF invalidation
-        run: npm run deploy:prod
+        # Deploy script now uses the build artifacts created in the previous step
+        run: bash scripts/deploy.sh prod none # Call script

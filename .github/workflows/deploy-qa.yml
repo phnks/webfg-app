@@ -39,8 +39,8 @@ jobs:
         run: npm install
 
       - name: Deploy GQL QA Stack (PR-${{ env.DEPLOYMENT_ID }})
-        id: deploy_gql # Add id to step
-        run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script directly
+        id: deploy_gql
+        run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script
 
       - name: Get GQL Stack Outputs
         id: gql_outputs
@@ -95,4 +95,4 @@ jobs:
 
       - name: Deploy GM App QA Stack (PR-${{ env.DEPLOYMENT_ID }})
         # Deploy script now uses the build artifacts created in the previous step
-        run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script directly
+        run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script
