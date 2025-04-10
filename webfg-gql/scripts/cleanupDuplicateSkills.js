@@ -6,11 +6,20 @@ const { v5: uuidv5 } = require('uuid');
 const REGION = process.env.AWS_REGION || "us-east-1";
 const WEBFG_NAMESPACE_UUID = '1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed'; // Must match the namespace in populateDefaults.js
 
-// Determine environment from command line arguments (default to 'qa')
-const environment = process.argv[2] === 'qa' ? 'qa' : 'prod';
-console.log(`Targeting environment for cleanup: ${environment}`);
+// Determine environment and deployment ID from command line arguments
+const environment = process.argv[2] === 'qa' ? 'qa' : 'prod'; // Arg 2: 'qa' or 'prod'
+const deploymentId = process.argv[3] && process.argv[3] !== 'none' ? process.argv[3] : null; // Arg 3: Deployment ID or 'none'
 
-const serviceName = environment === 'qa' ? 'webfg-gql-qa' : 'webfg-gql';
+console.log(`Targeting environment for cleanup: ${environment}${deploymentId ? ` (Deployment ID: ${deploymentId})` : ''}`);
+
+// Construct service name based on environment and deployment ID
+let serviceNameSuffix = '';
+if (environment === 'qa') {
+  serviceNameSuffix = deploymentId ? `-qa${deploymentId}` : '-qa';
+}
+const baseServiceName = 'webfg-gql'; // Assuming this is the base name from config
+const serviceName = `${baseServiceName}${serviceNameSuffix}`;
+
 const skillsTableName = `${serviceName}-Skills`;
 
 // --- DynamoDB Client ---
