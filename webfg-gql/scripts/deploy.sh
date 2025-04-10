@@ -7,7 +7,7 @@ DEPLOYMENT_ID=${2:-none} # Deployment ID (e.g., PR number) or 'none'
 STACK_NAME_CONFIG=$(node -p "require('../package.json').config.stack_name")
 QA_SCHEMA_VERSION=$(node -p "require('../package.json').config.qa_schema")
 PROD_SCHEMA_VERSION=$(node -p "require('../package.json').config.prod_schema")
-SAM_DEPLOY_BUCKET="aws-sam-cli-managed-default-samclisourcebucket-ywih2vzoolbl" # Explicitly define
+# SAM_DEPLOY_BUCKET removed, will use resolve_s3 from samconfig.toml
 
 # --- Determine Names ---
 ID_SUFFIX=""
@@ -32,14 +32,13 @@ echo "DEPLOYMENT_ID: $DEPLOYMENT_ID"
 echo "BUCKET_STACK_NAME: $BUCKET_STACK_NAME"
 echo "MAIN_STACK_NAME: $MAIN_STACK_NAME"
 echo "SCHEMA_S3_KEY: $SCHEMA_S3_KEY"
-echo "SAM_DEPLOY_BUCKET: $SAM_DEPLOY_BUCKET"
+echo "SAM_DEPLOY_BUCKET: Using resolved bucket from samconfig.toml"
 
 # --- Step 1: Deploy S3 Bucket Stack ---
 echo "Deploying S3 Bucket Stack: ${BUCKET_STACK_NAME}..."
 sam deploy \
   --template-file s3-bucket.yaml \
   --stack-name "${BUCKET_STACK_NAME}" \
-  --s3-bucket "${SAM_DEPLOY_BUCKET}" \
   --parameter-overrides Environment="${ENVIRONMENT}" ServiceName="${STACK_NAME_CONFIG}" DeploymentId="${DEPLOYMENT_ID}" \
   --capabilities CAPABILITY_IAM \
   --no-fail-on-empty-changeset
@@ -60,6 +59,7 @@ ENVIRONMENT="${ENVIRONMENT}" \
 DEPLOYMENT_ID="${DEPLOYMENT_ID}" \
 STACK_NAME="${MAIN_STACK_NAME}" \
 SCHEMA_S3_KEY="${SCHEMA_S3_KEY}" \
+STACK_NAME="${BUCKET_STACK_NAME}" \
 node schema/buildSchema.js || echo "Schema build/upload failed (might be expected on first deploy)."
 
 # --- Step 4: Build Main Stack ---
@@ -71,7 +71,6 @@ echo "Deploying Main Stack: ${MAIN_STACK_NAME}..."
 sam deploy \
   --template-file .aws-sam/build/template.yaml \
   --stack-name "${MAIN_STACK_NAME}" \
-  --s3-bucket "${SAM_DEPLOY_BUCKET}" \
   --parameter-overrides Environment="${ENVIRONMENT}" DeploymentId="${DEPLOYMENT_ID}" SchemaS3Key="${SCHEMA_S3_KEY}" SchemaS3BucketName="${BUCKET_NAME}" \
   --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND
 
