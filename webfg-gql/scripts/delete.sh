@@ -4,7 +4,7 @@ set -e
 # --- Configuration ---
 ENVIRONMENT=$1 # 'qa' or 'prod'
 DEPLOYMENT_ID=${2:?DEPLOYMENT_ID is required for delete} # Require Deployment ID for QA delete
-STACK_NAME_CONFIG=$(node -p "require('../package.json').config.stack_name")
+STACK_NAME_CONFIG=$(node -p "require('./package.json').config.stack_name")
 
 # --- Determine Names ---
 ID_SUFFIX=""
