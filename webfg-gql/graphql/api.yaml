@@ -42,11 +42,11 @@ Resources:
       AdditionalAuthenticationProviders: []
       XrayEnabled: true
 
-  GraphQLApiKey:
-    Type: AWS::AppSync::ApiKey
-     Properties:
+   GraphQLApiKey:
+     Type: AWS::AppSync::ApiKey
+     Properties: # Corrected indentation
        ApiId: !GetAtt GraphQLApi.ApiId
-       Expires: 1771131600 # Corrected indentation
+       Expires: 1771131600
  
     # Temporarily commented out schema attachment for debugging
    # GraphQLSchema:
