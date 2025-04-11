@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AppSync Resolvers for Formula type'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  FormulasDataSourceName:
+    Type: String
+    Description: 'Name of the Formulas DynamoDB data source'
+
+Resources:
+  GetFormulaResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Query
+      FieldName: getFormula # Assuming a getFormula query will be added to the schema
+      DataSourceName: !Ref FormulasDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "formulaId": $util.dynamodb.toDynamoDBJson($ctx.args.formulaId)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  ListFormulasResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Query
+      FieldName: listFormulas
+      DataSourceName: !Ref FormulasDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Scan"
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result.items)
+
+  CreateFormulaResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: createFormula
+      DataSourceName: !Ref FormulasDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "key": {
+            "formulaId": $util.dynamodb.toDynamoDBJson($util.autoId())
+          },
+          "attributeValues": $util.dynamodb.toMapValuesJson($ctx.args.input)
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  UpdateFormulaResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: updateFormula
+      DataSourceName: !Ref FormulasDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "UpdateItem",
+          "key": {
+            "formulaId": $util.dynamodb.toDynamoDBJson($ctx.args.formulaId)
+          },
+          "update": {
+            "expression": "SET #formulaValue = :formulaValue",
+            "expressionNames": {
+              "#formulaValue": "formulaValue"
+            },
+            "expressionValues": {
+              ":formulaValue": $util.dynamodb.toDynamoDBJson($ctx.args.input.formulaValue)
+            }
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  DeleteFormulaResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: deleteFormula
+      DataSourceName: !Ref FormulasDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "DeleteItem",
+          "key": {
+            "formulaId": $util.dynamodb.toDynamoDBJson($ctx.args.formulaId)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)

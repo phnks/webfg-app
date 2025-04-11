@@ -170,44 +170,46 @@ export const GET_ACTION = gql`
     getAction(actionId: $actionId) {
       actionId
       name
-      type
-      timing {
-        duration
-        timeUnit
-        initiative {
-          duration
-          timeUnit
-          type
-        }
+      actionCategory
+      initDurationId
+      initDuration {
+        formulaId
+        formulaValue
       }
-      effects {
-        start {
-          type
-          amount
-          cancelable
-          range
-          resource
-          speed
-          targetType
-        }
-        during {
-          type
-          amount
-          cancelable
-          range
-          resource
-          speed
-          targetType
-        }
-        end {
-          type
-          amount
-          cancelable
-          range
-          resource
-          speed
-          targetType
-        }
+      defaultInitDuration
+      durationId
+      duration {
+        formulaId
+        formulaValue
+      }
+      defaultDuration
+      fatigueCost
+      difficultyClassId
+      difficultyClass {
+        formulaId
+        formulaValue
+      }
+      guaranteedFormulaId
+      guaranteedFormula {
+        formulaId
+        formulaValue
+      }
+      units
+      description
+      actionTargets {
+        targetType
+        quantity
+        sequenceId
+      }
+      actionSources {
+        sourceType
+        quantity
+        sequenceId
+      }
+      actionEffects {
+        effectType
+        quantity
+        sequenceId
       }
     }
   }
@@ -314,50 +316,55 @@ export const DELETE_OBJECT = gql`
   }
 `;
 
+// FORMULA QUERIES
+export const LIST_FORMULAS = gql`
+  query ListFormulas {
+    listFormulas {
+      formulaId
+      formulaValue
+    }
+  }
+`;
+
+export const GET_FORMULA = gql`
+  query GetFormula($formulaId: ID!) {
+    getFormula(formulaId: $formulaId) {
+      formulaId
+      formulaValue
+    }
+  }
+`;
+
 // ACTION MUTATIONS
 export const CREATE_ACTION = gql`
   mutation CreateAction($input: ActionInput!) {
     createAction(input: $input) {
       actionId
       name
-      type
-      timing {
-        duration
-        timeUnit
-        initiative {
-          duration
-          timeUnit
-          type
-        }
+      actionCategory
+      initDurationId
+      defaultInitDuration
+      durationId
+      defaultDuration
+      fatigueCost
+      difficultyClassId
+      guaranteedFormulaId
+      units
+      description
+      actionTargets {
+        targetType
+        quantity
+        sequenceId
       }
-      effects {
-        start {
-          type
-          amount
-          cancelable
-          range
-          resource
-          speed
-          targetType
-        }
-        during {
-          type
-          amount
-          cancelable
-          range
-          resource
-          speed
-          targetType
-        }
-        end {
-          type
-          amount
-          cancelable
-          range
-          resource
-          speed
-          targetType
-        }
+      actionSources {
+        sourceType
+        quantity
+        sequenceId
+      }
+      actionEffects {
+        effectType
+        quantity
+        sequenceId
       }
     }
   }
@@ -368,6 +375,31 @@ export const UPDATE_ACTION = gql`
     updateAction(actionId: $actionId, input: $input) {
       actionId
       name
+      actionCategory
+      initDurationId
+      defaultInitDuration
+      durationId
+      defaultDuration
+      fatigueCost
+      difficultyClassId
+      guaranteedFormulaId
+      units
+      description
+      actionTargets {
+        targetType
+        quantity
+        sequenceId
+      }
+      actionSources {
+        sourceType
+        quantity
+        sequenceId
+      }
+      actionEffects {
+        effectType
+        quantity
+        sequenceId
+      }
     }
   }
 `;
@@ -377,6 +409,34 @@ export const DELETE_ACTION = gql`
     deleteAction(actionId: $actionId) {
       actionId
       name
+    }
+  }
+`;
+
+// FORMULA MUTATIONS
+export const CREATE_FORMULA = gql`
+  mutation CreateFormula($input: FormulaInput!) {
+    createFormula(input: $input) {
+      formulaId
+      formulaValue
+    }
+  }
+`;
+
+export const UPDATE_FORMULA = gql`
+  mutation UpdateFormula($formulaId: ID!, $input: FormulaInput!) {
+    updateFormula(formulaId: $formulaId, input: $input) {
+      formulaId
+      formulaValue
+    }
+  }
+`;
+
+export const DELETE_FORMULA = gql`
+  mutation DeleteFormula($formulaId: ID!) {
+    deleteFormula(formulaId: $formulaId) {
+      formulaId
+      formulaValue
     }
   }
 `;
@@ -567,9 +627,19 @@ export const defaultObjectForm = {
 
 export const defaultActionForm = {
   name: "",
+  actionCategory: "MOVE", // Default category
+  initDurationId: "", // Needs to be selected or created
+  defaultInitDuration: 0.0,
+  durationId: "", // Needs to be selected or created
+  defaultDuration: 0.0,
+  fatigueCost: 0,
+  difficultyClassId: "", // Needs to be selected or created
+  guaranteedFormulaId: "", // Needs to be selected or created
+  units: null, // Optional, use null or specific default like SECONDS if applicable
   description: "",
-  requiredStats: "",
-  effects: ""
+  actionTargets: [],
+  actionSources: [],
+  actionEffects: []
 };
 
 // Add these new mutations to your operations.js file

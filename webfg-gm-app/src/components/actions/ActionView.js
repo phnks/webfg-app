@@ -125,58 +125,18 @@ const ActionView = () => {
         onClose={handleEditCancel} 
         onSuccess={handleEditSuccess}
       />
-    );
-  }
-  
-  const renderEffectPhase = (phaseEffects, phaseName) => {
-    if (!phaseEffects) return null;
-
-    return (
-      <div className="effect-phase">
-        <h4>{phaseName} Effects</h4>
-        <div className="effect-details">
-          {phaseEffects.type && (
-            <div className="effect-item">
-              <span className="label">Type:</span>
-              <span className="value">{phaseEffects.type}</span>
-            </div>
-          )}
-          {phaseEffects.amount && (
-            <div className="effect-item">
-              <span className="label">Amount:</span>
-              <span className="value">{phaseEffects.amount}</span>
-            </div>
-          )}
-          {phaseEffects.resource && (
-            <div className="effect-item">
-              <span className="label">Resource:</span>
-              <span className="value">{phaseEffects.resource}</span>
-            </div>
-          )}
-          {phaseEffects.targetType && (
-            <div className="effect-item">
-              <span className="label">Target Type:</span>
-              <span className="value">{phaseEffects.targetType}</span>
-            </div>
-          )}
-          {phaseEffects.range && (
-            <div className="effect-item">
-              <span className="label">Range:</span>
-              <span className="value">{phaseEffects.range}</span>
-            </div>
-          )}
-          {phaseEffects.cancelable !== undefined && (
-            <div className="effect-item">
-              <span className="label">Cancelable:</span>
-              <span className="value">{phaseEffects.cancelable ? "Yes" : "No"}</span>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-  
-  return (
+     );
+   }
+   
+   // Helper to display formula or default value
+   const displayFormula = (formula, defaultValue) => {
+     if (formula && formula.formulaValue) {
+       return <span className="formula-value" title={formula.formulaId}>{formula.formulaValue}</span>;
+     }
+     return defaultValue !== undefined ? defaultValue : 'N/A';
+   };
+   
+   return (
     <div className="action-view">
       <div className="action-header">
         <h1>{action.name}</h1>
@@ -196,45 +156,85 @@ const ActionView = () => {
       </div>
       
       <div className="action-content">
-        <div className="action-details">
-          <h3>Details</h3>
-          <div className="detail-row">
-            <span>Type:</span>
-            <span>{action.type || "N/A"}</span>
-          </div>
-          <div className="detail-row">
-            <span>Description:</span>
-            <p>{action.description || "No description available."}</p>
-          </div>
-          <div className="detail-row">
-            <span>Duration:</span>
-            <span>
-              {action.timing?.duration} {action.timing?.timeUnit?.toLowerCase()}
-            </span>
-          </div>
-          <div className="detail-row">
-            <span>Range:</span>
-            <span>{action.rangeInMeters} meters</span>
-          </div>
-          <div className="detail-row">
-            <span>Targets:</span>
-            <span>{action.targetCount}</span>
-          </div>
-          
-          <h3>Effects</h3>
-          {action.effects ? (
-            <div className="effects-container">
-              {renderEffectPhase(action.effects.start, "Start")}
-              {renderEffectPhase(action.effects.during, "During")}
-              {renderEffectPhase(action.effects.end, "End")}
-            </div>
-          ) : (
-            <p>No effects defined</p>
-          )}
-        </div>
+         <div className="action-details">
+           <h3>Details</h3>
+           <div className="detail-row">
+             <span>Category:</span>
+             <span>{action.actionCategory || "N/A"}</span>
+           </div>
+            <div className="detail-row">
+             <span>Description:</span>
+             <p>{action.description || "No description available."}</p>
+           </div>
+           <div className="detail-row">
+             <span>Units:</span>
+             <span>{action.units || "N/A"}</span>
+           </div>
+           <div className="detail-row">
+             <span>Fatigue Cost:</span>
+             <span>{action.fatigueCost !== null ? action.fatigueCost : "N/A"}</span>
+           </div>
+
+           <h3>Formulas & Defaults</h3>
+           <div className="detail-row">
+             <span>Initial Duration:</span>
+             <span>{displayFormula(action.initDuration, action.defaultInitDuration)}</span>
+           </div>
+           <div className="detail-row">
+             <span>Duration:</span>
+             <span>{displayFormula(action.duration, action.defaultDuration)}</span>
+           </div>
+           <div className="detail-row">
+             <span>Difficulty Class:</span>
+             <span>{displayFormula(action.difficultyClass)}</span>
+           </div>
+           <div className="detail-row">
+             <span>Guaranteed Formula:</span>
+             <span>{displayFormula(action.guaranteedFormula)}</span>
+           </div>
+
+           <h3>Targets</h3>
+           {action.actionTargets && action.actionTargets.length > 0 ? (
+             <ul className="array-list">
+               {action.actionTargets.map((target, index) => (
+                 <li key={`target-${index}`}>
+                   {target.quantity} x {target.targetType} (Seq: {target.sequenceId})
+                 </li>
+               ))}
+             </ul>
+           ) : (
+             <p>No targets defined</p>
+           )}
+
+           <h3>Sources</h3>
+           {action.actionSources && action.actionSources.length > 0 ? (
+             <ul className="array-list">
+               {action.actionSources.map((source, index) => (
+                 <li key={`source-${index}`}>
+                   {source.quantity} x {source.sourceType} (Seq: {source.sequenceId})
+                 </li>
+               ))}
+             </ul>
+           ) : (
+             <p>No sources defined</p>
+           )}
+
+           <h3>Effects</h3>
+           {action.actionEffects && action.actionEffects.length > 0 ? (
+             <ul className="array-list">
+               {action.actionEffects.map((effect, index) => (
+                 <li key={`effect-${index}`}>
+                   {effect.effectType} (Qty: {effect.quantity}, Seq: {effect.sequenceId})
+                 </li>
+               ))}
+             </ul>
+           ) : (
+             <p>No effects defined</p>
+           )}
+         </div>
       </div>
     </div>
   );
 };
 
-export default ActionView; 
+export default ActionView;

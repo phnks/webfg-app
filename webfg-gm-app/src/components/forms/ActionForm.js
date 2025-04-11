@@ -1,7 +1,19 @@
-import React, { useState } from "react";
-import { useMutation } from "@apollo/client";
-import { CREATE_ACTION, UPDATE_ACTION, LIST_ACTIONS, defaultActionForm } from "../../graphql/operations";
+import React, { useState, useEffect } from "react"; // Added useEffect
+import { useQuery, useMutation } from "@apollo/client"; // Added useQuery
+import {
+  CREATE_ACTION,
+  UPDATE_ACTION,
+  LIST_ACTIONS,
+  LIST_FORMULAS, // Import LIST_FORMULAS
+  defaultActionForm
+} from "../../graphql/operations";
 import "./Form.css";
+// Define Enums used in the form
+const ActionCategory = ["MOVE", "ATTACK", "DEFEND", "RECOVER", "INTERACT", "MANIPULATE", "ASSIST"];
+const Units = ["POUNDS", "FEET", "SECONDS"];
+const TargetType = ["ACTION", "SELF", "OBJECT", "CHARACTER", "LOCATION"];
+const SourceType = ["ACTION", "SELF", "OBJECT", "CHARACTER", "LOCATION"];
+const EffectType = ["MODIFY_STAT", "MODIFY_SKILL", "MODIFY_ATTRIBUTE", "CANCEL_MOVE", "MOVE", "HIT", "CANCEL_HIT"];
 
 // Helper function to strip __typename fields recursively
 const stripTypename = (obj) => {
@@ -23,185 +35,112 @@ const stripTypename = (obj) => {
   return newObj;
 };
 
-// More precise preparation of action data for GraphQL input
+// Updated preparation function for the new ActionInput structure
 const prepareActionInput = (data) => {
-  // Create a new input object with only the fields that are in the schema
-  // Based on the ActionInput type definition
   const input = {
     name: data.name,
-    type: data.type
+    actionCategory: data.actionCategory,
+    initDurationId: data.initDurationId,
+    defaultInitDuration: parseFloat(data.defaultInitDuration) || 0.0,
+    durationId: data.durationId,
+    defaultDuration: parseFloat(data.defaultDuration) || 0.0,
+    fatigueCost: parseInt(data.fatigueCost) || 0,
+    difficultyClassId: data.difficultyClassId,
+    guaranteedFormulaId: data.guaranteedFormulaId,
+    units: data.units || null, // Handle optional enum
+    description: data.description || "",
+    // Ensure arrays are always present, even if empty
+    actionTargets: data.actionTargets ? data.actionTargets.map(stripTypename) : [],
+    actionSources: data.actionSources ? data.actionSources.map(stripTypename) : [],
+    actionEffects: data.actionEffects ? data.actionEffects.map(stripTypename) : [],
   };
 
-  // Handle timing - required field
-  if (data.timing) {
-    input.timing = {
-      duration: data.timing.duration,
-      timeUnit: data.timing.timeUnit
-    };
-    
-    // Only add initiative if it has values
-    if (data.timing.initiative && data.timing.initiative.duration) {
-      input.timing.initiative = {
-        duration: data.timing.initiative.duration,
-        timeUnit: data.timing.initiative.timeUnit || "SECONDS"
-      };
-      
-      // Only add type if it has a non-empty value
-      if (data.timing.initiative.type) {
-        input.timing.initiative.type = data.timing.initiative.type;
-      }
-    }
-  }
-
-  // Handle effects - carefully construct each phase
-  if (data.effects) {
-    input.effects = {};
-    
-    // Process each phase (start, during, end)
-    ['start', 'during', 'end'].forEach(phase => {
-      if (data.effects[phase]) {
-        const effect = data.effects[phase];
-        
-        // Only include effect in input if it has required fields
-        if (effect.type && effect.resource) {
-          input.effects[phase] = {
-            type: effect.type,
-            resource: effect.resource,
-            amount: effect.amount,
-            range: effect.range,
-            targetType: effect.targetType,
-            cancelable: effect.cancelable
-          };
-          
-          // Only include speed if it's a number
-          const speedNum = parseFloat(effect.speed);
-          if (!isNaN(speedNum)) {
-            input.effects[phase].speed = speedNum;
-          }
-        }
-      }
-    });
-    
-    // Remove effects completely if empty
-    if (Object.keys(input.effects).length === 0) {
-      delete input.effects;
-    }
-  }
+  // Remove null/empty IDs before sending
+  if (!input.initDurationId) delete input.initDurationId;
+  if (!input.durationId) delete input.durationId;
+  if (!input.difficultyClassId) delete input.difficultyClassId;
+  if (!input.guaranteedFormulaId) delete input.guaranteedFormulaId;
+  if (!input.units) delete input.units; // Remove if null/empty
 
   return input;
 };
 
 const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
-  const initialFormData = isEditing && action 
-    ? { ...action }
+  const initialFormData = isEditing && action
+    ? { ...defaultActionForm, ...action } // Merge defaults with existing action data
     : { ...defaultActionForm };
 
   const [formData, setFormData] = useState(initialFormData);
-  
+
+  // Fetch existing formulas
+  const { data: formulasData, loading: formulasLoading, error: formulasError } = useQuery(LIST_FORMULAS);
+
   const [createAction, { loading: createLoading }] = useMutation(CREATE_ACTION, {
     update(cache, { data: { createAction } }) {
       try {
         // Read the current list of actions from the cache
         const { listActions } = cache.readQuery({ query: LIST_ACTIONS }) || { listActions: [] };
-        
+
         // Update the cache with the new action
         cache.writeQuery({
           query: LIST_ACTIONS,
           data: { listActions: [...listActions, createAction] },
         });
-        
+
         console.log("Action created successfully:", createAction);
       } catch (err) {
         console.error("Error updating cache:", err);
       }
     }
   });
-  
-  const [updateAction, { loading: updateLoading }] = useMutation(UPDATE_ACTION);
-  
-  const loading = createLoading || updateLoading;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const [updateAction, { loading: updateLoading }] = useMutation(UPDATE_ACTION);
+
+   const loading = createLoading || updateLoading;
+
+   const handleChange = (e) => {
+     const { name, value, type } = e.target;
+     // Handle numeric inputs specifically
+     const numericFields = ['defaultInitDuration', 'defaultDuration', 'fatigueCost'];
+    const parsedValue = type === 'number' ? parseFloat(value) : value;
+    const finalValue = numericFields.includes(name) && isNaN(parsedValue) ? 0 : parsedValue;
+
+    setFormData({ ...formData, [name]: finalValue });
   };
-  
-  const handleTypeChange = (e) => {
-    setFormData({
-      ...formData,
-      type: e.target.value
-    });
-  };
-  
-  const handleDurationChange = (e) => {
-    const timing = formData.timing || {};
-    setFormData({
-      ...formData,
-      timing: {
-        ...timing,
-        duration: parseInt(e.target.value)
-      }
-    });
-  };
-  
-  const handleTimeUnitChange = (e) => {
-    const timing = formData.timing || {};
-    setFormData({
-      ...formData,
-      timing: {
-        ...timing,
-        timeUnit: e.target.value
-      }
-    });
-  };
-  
-  const handleInitiativeDurationChange = (e) => {
-    const timing = formData.timing || {};
-    const initiative = timing.initiative || {};
-    
-    setFormData({
-      ...formData,
-      timing: {
-        ...timing,
-        initiative: {
-          ...initiative,
-          duration: parseInt(e.target.value)
-        }
-      }
-    });
-  };
+
+  // Removed old handlers for type, duration, timeUnit, initiativeDuration
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       // Clean the form data by removing __typename fields
       const cleanedData = stripTypename(formData);
-      
+
       if (isEditing) {
         // Prepare only the fields that belong in ActionInput
         const inputData = prepareActionInput(cleanedData);
         console.log("Updating action with input:", inputData);
-        
+
         const result = await updateAction({
           variables: {
             actionId: action.actionId,
             input: inputData
           }
         });
-        
+
         onSuccess(result.data.updateAction.actionId);
       } else {
         // Prepare only the fields that belong in ActionInput
         const inputData = prepareActionInput(cleanedData);
         console.log("Creating action with input:", inputData);
-        
+
         const result = await createAction({
           variables: {
             input: inputData
           }
         });
-        
+
         onSuccess(result.data.createAction.actionId);
       }
     } catch (err) {
@@ -214,181 +153,109 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
       }
     }
   };
-  
-  const setEffect = (phase, effect) => {
-    const newEffects = {...formData.effects || {}};
-    newEffects[phase] = effect;
-    setFormData({
-      ...formData,
-      effects: newEffects
-    });
-  };
-  
-  const handleAddEffect = (phase) => {
-    const newEffect = {
-      type: "MODIFY_RESOURCE",
-      amount: 0,
-      cancelable: false,
-      range: "SELF",
-      resource: "FATIGUE",
-      speed: "",
-      targetType: "CHARACTER"
-    };
-    
-    setEffect(phase, newEffect);
-  };
-  
-  const handleRemoveEffect = (phase) => {
-    const newEffects = {...formData.effects};
-    newEffects[phase] = null;
-    setFormData({
-      ...formData,
-      effects: newEffects
-    });
-  };
-  
-  const handleEffectFieldChange = (phase, field, value) => {
-    if (field === "amount") {
-      value = parseFloat(value);
-    }
-    
-    if (field === "cancelable") {
-      value = value === "true";
-    }
-    
-    const newEffects = {...formData.effects};
-    if (newEffects[phase]) {
-      newEffects[phase] = {
-        ...newEffects[phase],
-        [field]: value
-      };
-      
-      setFormData({
-        ...formData,
-        effects: newEffects
-      });
-    }
-  };
-  
-  const renderEffectForm = (phase) => {
-    const effect = formData.effects?.[phase];
-    
-    if (!effect) {
-      return (
-        <div className="effect-container">
-          <h4>{phase.charAt(0).toUpperCase() + phase.slice(1)} Phase</h4>
-          <button 
-            type="button"
-            onClick={() => handleAddEffect(phase)}
-            className="add-effect-button"
-          >
-            Add Effect
-          </button>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="effect-container">
-        <h4>{phase.charAt(0).toUpperCase() + phase.slice(1)} Phase</h4>
-        
-        <div className="effect-field">
-          <label>Type</label>
-          <select 
-            value={effect.type}
-            onChange={(e) => handleEffectFieldChange(phase, "type", e.target.value)}
-          >
-            <option value="MODIFY_RESOURCE">Modify Resource</option>
-            <option value="DAMAGE">Damage</option>
-            <option value="HEAL">Heal</option>
-            <option value="BUFF">Buff</option>
-            <option value="DEBUFF">Debuff</option>
-            <option value="CONTROL">Control</option>
-            <option value="UTILITY">Utility</option>
-          </select>
-        </div>
-        
-        <div className="effect-field">
-          <label>Resource</label>
-          <select 
-            value={effect.resource}
-            onChange={(e) => handleEffectFieldChange(phase, "resource", e.target.value)}
-          >
-            <option value="HEALTH">Health</option>
-            <option value="MANA">Mana</option>
-            <option value="STAMINA">Stamina</option>
-            <option value="FATIGUE">Fatigue</option>
-            <option value="FOCUS">Focus</option>
-          </select>
-        </div>
-        
-        <div className="effect-field">
-          <label>Amount</label>
-          <input 
-            type="number"
-            value={effect.amount}
-            onChange={(e) => handleEffectFieldChange(phase, "amount", e.target.value)}
-          />
-        </div>
-        
-        <div className="effect-field">
-          <label>Range</label>
-          <select 
-            value={effect.range}
-            onChange={(e) => handleEffectFieldChange(phase, "range", e.target.value)}
-          >
-            <option value="SELF">Self</option>
-            <option value="TOUCH">Touch</option>
-            <option value="MELEE">Melee</option>
-            <option value="RANGED">Ranged</option>
-            <option value="AREA">Area</option>
-          </select>
-        </div>
-        
-        <div className="effect-field">
-          <label>Target Type</label>
-          <select 
-            value={effect.targetType}
-            onChange={(e) => handleEffectFieldChange(phase, "targetType", e.target.value)}
-          >
-            <option value="CHARACTER">Character</option>
-            <option value="OBJECT">Object</option>
-            <option value="AREA">Area</option>
-          </select>
-        </div>
-        
-        <div className="effect-field">
-          <label>Cancelable</label>
-          <select 
-            value={effect.cancelable.toString()}
-            onChange={(e) => handleEffectFieldChange(phase, "cancelable", e.target.value)}
-          >
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-          </select>
-        </div>
-        
-        <div className="effect-field">
-          <label>Speed</label>
-          <input 
-            type="text"
-            value={effect.speed}
-            onChange={(e) => handleEffectFieldChange(phase, "speed", e.target.value)}
-          />
-        </div>
-        
-        <button 
-          type="button" 
-          className="remove-effect-button"
-          onClick={() => handleRemoveEffect(phase)}
-        >
-          Remove Effect
-        </button>
-      </div>
-    );
-  };
 
-  return (
+   // --- Handlers for Targets, Sources, Effects Arrays ---
+
+   const handleArrayChange = (arrayName, index, field, value) => {
+     setFormData(prev => {
+       const newArray = [...(prev[arrayName] || [])]; // Ensure array exists
+       // Ensure the item exists at the index
+       if (newArray[index]) {
+          // Handle numeric fields
+          const numericFields = ['quantity', 'sequenceId'];
+          const parsedValue = numericFields.includes(field) ? parseInt(value, 10) : value;
+          newArray[index] = { ...newArray[index], [field]: isNaN(parsedValue) ? 0 : parsedValue };
+       }
+       return { ...prev, [arrayName]: newArray };
+     });
+   };
+
+   const addArrayItem = (arrayName, defaultItem) => {
+     setFormData(prev => ({
+       ...prev,
+       [arrayName]: [...(prev[arrayName] || []), { ...defaultItem, sequenceId: (prev[arrayName]?.length || 0) + 1 }]
+     }));
+   };
+
+   const removeArrayItem = (arrayName, index) => {
+     setFormData(prev => ({
+       ...prev,
+       [arrayName]: (prev[arrayName] || []).filter((_, i) => i !== index)
+     }));
+   };
+
+   // --- Render Functions for Array Items ---
+
+   const renderTargetForm = (target, index) => (
+     <div key={`target-${index}`} className="array-item-form">
+       <h5>Target {index + 1}</h5>
+       <div className="form-grid-small">
+         <div className="form-group">
+           <label>Type</label>
+           <select value={target.targetType || ""} onChange={(e) => handleArrayChange('actionTargets', index, 'targetType', e.target.value)}>
+             {TargetType.map(t => <option key={t} value={t}>{t}</option>)}
+           </select>
+         </div>
+         <div className="form-group">
+           <label>Quantity</label>
+           <input type="number" value={target.quantity || 1} onChange={(e) => handleArrayChange('actionTargets', index, 'quantity', e.target.value)} />
+         </div>
+          <div className="form-group">
+           <label>Sequence ID</label>
+           <input type="number" value={target.sequenceId || index + 1} onChange={(e) => handleArrayChange('actionTargets', index, 'sequenceId', e.target.value)} />
+         </div>
+       </div>
+       <button type="button" onClick={() => removeArrayItem('actionTargets', index)} className="remove-item-button">Remove Target</button>
+     </div>
+   );
+
+   const renderSourceForm = (source, index) => (
+      <div key={`source-${index}`} className="array-item-form">
+       <h5>Source {index + 1}</h5>
+        <div className="form-grid-small">
+         <div className="form-group">
+           <label>Type</label>
+           <select value={source.sourceType || ""} onChange={(e) => handleArrayChange('actionSources', index, 'sourceType', e.target.value)}>
+             {SourceType.map(t => <option key={t} value={t}>{t}</option>)}
+           </select>
+         </div>
+         <div className="form-group">
+           <label>Quantity</label>
+           <input type="number" value={source.quantity || 1} onChange={(e) => handleArrayChange('actionSources', index, 'quantity', e.target.value)} />
+         </div>
+          <div className="form-group">
+           <label>Sequence ID</label>
+           <input type="number" value={source.sequenceId || index + 1} onChange={(e) => handleArrayChange('actionSources', index, 'sequenceId', e.target.value)} />
+         </div>
+       </div>
+       <button type="button" onClick={() => removeArrayItem('actionSources', index)} className="remove-item-button">Remove Source</button>
+     </div>
+   );
+
+   const renderEffectForm = (effect, index) => (
+      <div key={`effect-${index}`} className="array-item-form">
+        <h5>Effect {index + 1}</h5>
+        <div className="form-grid-small">
+         <div className="form-group">
+           <label>Type</label>
+           <select value={effect.effectType || ""} onChange={(e) => handleArrayChange('actionEffects', index, 'effectType', e.target.value)}>
+             {EffectType.map(t => <option key={t} value={t}>{t}</option>)}
+           </select>
+         </div>
+         <div className="form-group">
+           <label>Quantity</label>
+           <input type="number" value={effect.quantity || 1} onChange={(e) => handleArrayChange('actionEffects', index, 'quantity', e.target.value)} />
+         </div>
+          <div className="form-group">
+           <label>Sequence ID</label>
+           <input type="number" value={effect.sequenceId || index + 1} onChange={(e) => handleArrayChange('actionEffects', index, 'sequenceId', e.target.value)} />
+         </div>
+       </div>
+       <button type="button" onClick={() => removeArrayItem('actionEffects', index)} className="remove-item-button">Remove Effect</button>
+     </div>
+   );
+
+   return (
     <div className="form-container">
       <h2>{isEditing ? "Edit Action" : "Create Action"}</h2>
       <form onSubmit={handleSubmit}>
@@ -403,79 +270,152 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
             required
           />
         </div>
-        
-        <div className="form-group">
-          <label htmlFor="type">Type</label>
+
+        {/* Removed old 'Type' dropdown */}
+
+         <div className="form-group">
+          <label htmlFor="actionCategory">Category</label>
           <select
-            id="type"
-            name="type"
-            value={formData.type || ""}
-            onChange={handleTypeChange}
+            id="actionCategory"
+            name="actionCategory"
+            value={formData.actionCategory || ""}
+            onChange={handleChange}
             required
           >
-            <option value="">Select Type</option>
-            <option value="GENERAL">General</option>
-            <option value="STRENGTH">Strength</option>
-            <option value="AGILITY">Agility</option>
-            <option value="DEXTERITY">Dexterity</option>
-            <option value="ENDURANCE">Endurance</option>
-            <option value="INTELLIGENCE">Intelligence</option>
-            <option value="CHARISMA">Charisma</option>
-            <option value="PERCEPTION">Perception</option>
-            <option value="RESOLVE">Resolve</option>
-            <option value="COMBAT">Combat</option>
-            <option value="MAGIC">Magic</option>
+            {ActionCategory.map(cat => <option key={cat} value={cat}>{cat}</option>)}
           </select>
         </div>
-        
-        <h3>Timing</h3>
+
+        {/* --- Formula Selection --- */}
+        <h3>Formulas</h3>
+        {formulasLoading && <p>Loading formulas...</p>}
+        {formulasError && <p>Error loading formulas: {formulasError.message}</p>}
         <div className="form-group">
-          <label htmlFor="duration">Duration</label>
+          <label htmlFor="initDurationId">Initial Duration Formula</label>
+          <select id="initDurationId" name="initDurationId" value={formData.initDurationId || ""} onChange={handleChange}>
+             <option value="">-- Select Formula --</option>
+             {formulasData?.listFormulas.map(f => <option key={f.formulaId} value={f.formulaId}>{f.formulaValue}</option>)}
+          </select>
+        </div>
+         <div className="form-group">
+          <label htmlFor="durationId">Duration Formula</label>
+           <select id="durationId" name="durationId" value={formData.durationId || ""} onChange={handleChange}>
+             <option value="">-- Select Formula --</option>
+             {formulasData?.listFormulas.map(f => <option key={f.formulaId} value={f.formulaId}>{f.formulaValue}</option>)}
+          </select>
+        </div>
+         <div className="form-group">
+          <label htmlFor="difficultyClassId">Difficulty Class Formula</label>
+           <select id="difficultyClassId" name="difficultyClassId" value={formData.difficultyClassId || ""} onChange={handleChange}>
+             <option value="">-- Select Formula --</option>
+             {formulasData?.listFormulas.map(f => <option key={f.formulaId} value={f.formulaId}>{f.formulaValue}</option>)}
+          </select>
+        </div>
+         <div className="form-group">
+          <label htmlFor="guaranteedFormulaId">Guaranteed Formula</label>
+           <select id="guaranteedFormulaId" name="guaranteedFormulaId" value={formData.guaranteedFormulaId || ""} onChange={handleChange}>
+             <option value="">-- Select Formula --</option>
+             {formulasData?.listFormulas.map(f => <option key={f.formulaId} value={f.formulaId}>{f.formulaValue}</option>)}
+          </select>
+        </div>
+        {/* --- End Formula Selection --- */}
+
+        <h3>Defaults & Costs</h3>
+         <div className="form-group">
+          <label htmlFor="defaultInitDuration">Default Initial Duration</label>
           <input
             type="number"
-            id="duration"
-            name="duration"
-            value={formData.timing?.duration || 0}
-            onChange={handleDurationChange}
-            min="0"
+            id="defaultInitDuration"
+            name="defaultInitDuration"
+            value={formData.defaultInitDuration || 0}
+            onChange={handleChange}
             step="0.1"
           />
         </div>
-        
         <div className="form-group">
-          <label htmlFor="timeUnit">Time Unit</label>
-          <select
-            id="timeUnit"
-            name="timeUnit"
-            value={formData.timing?.timeUnit || "SECONDS"}
-            onChange={handleTimeUnitChange}
-          >
-            <option value="SECONDS">Seconds</option>
-            <option value="MINUTES">Minutes</option>
-            <option value="HOURS">Hours</option>
-            <option value="DAYS">Days</option>
-          </select>
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="initiativeDuration">Initiative Duration</label>
+          <label htmlFor="defaultDuration">Default Duration</label>
           <input
             type="number"
-            id="initiativeDuration"
-            name="initiativeDuration"
-            value={formData.timing?.initiative?.duration || 0}
-            onChange={handleInitiativeDurationChange}
-            min="0"
+            id="defaultDuration"
+            name="defaultDuration"
+            value={formData.defaultDuration || 0}
+            onChange={handleChange}
+            step="0.1"
           />
         </div>
-        
-        <h3>Effects</h3>
-        <div className="effects-container">
-          {renderEffectForm('start')}
-          {renderEffectForm('during')}
-          {renderEffectForm('end')}
+        <div className="form-group">
+          <label htmlFor="fatigueCost">Fatigue Cost</label>
+          <input
+            type="number"
+            id="fatigueCost"
+            name="fatigueCost"
+            value={formData.fatigueCost || 0}
+            onChange={handleChange}
+            step="1"
+          />
         </div>
-        
+        <div className="form-group">
+          <label htmlFor="units">Units</label>
+          <select
+            id="units"
+            name="units"
+            value={formData.units || ""}
+            onChange={handleChange}
+          >
+            <option value="">-- None --</option>
+            {Units.map(unit => <option key={unit} value={unit}>{unit}</option>)}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            value={formData.description || ""}
+            onChange={handleChange}
+          />
+        </div>
+
+        {/* --- Targets --- */}
+        <div className="array-section">
+          <h3>Targets</h3>
+          {(formData.actionTargets || []).map((target, index) => renderTargetForm(target, index))}
+          <button
+            type="button"
+            onClick={() => addArrayItem('actionTargets', { targetType: TargetType[0], quantity: 1 })}
+            className="add-item-button"
+          >
+            Add Target
+          </button>
+        </div>
+
+        {/* --- Sources --- */}
+         <div className="array-section">
+          <h3>Sources</h3>
+          {(formData.actionSources || []).map((source, index) => renderSourceForm(source, index))}
+          <button
+            type="button"
+            onClick={() => addArrayItem('actionSources', { sourceType: SourceType[0], quantity: 1 })}
+            className="add-item-button"
+          >
+            Add Source
+          </button>
+        </div>
+
+        {/* --- Effects --- */}
+         <div className="array-section">
+          <h3>Effects</h3>
+          {(formData.actionEffects || []).map((effect, index) => renderEffectForm(effect, index))}
+          <button
+            type="button"
+            onClick={() => addArrayItem('actionEffects', { effectType: EffectType[0], quantity: 1 })}
+            className="add-item-button"
+          >
+            Add Effect
+          </button>
+        </div>
+
         <div className="form-actions">
           <button type="button" onClick={onClose}>Cancel</button>
           <button type="submit" disabled={loading}>
@@ -487,4 +427,4 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
   );
 };
 
-export default ActionForm; 
+export default ActionForm;

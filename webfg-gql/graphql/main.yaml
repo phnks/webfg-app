@@ -50,6 +50,13 @@ Parameters:
   AttributesTableName: # Re-add parameter
     Type: String
     Description: 'Name of Attributes table'
+  FormulasDataSourceName:
+    Type: String
+    Description: 'Name of Formulas db data source'
+    Default: 'FormulasDataSource'
+  FormulasTableName:
+    Type: String
+    Description: 'Name of Formulas table'
   PhnksCertArn:
     Type: String
     Description: 'ARN of the certificate for the custom domain'
@@ -108,6 +115,8 @@ Resources:
         AttributesTableName: !Ref AttributesTableName # Pass down
         SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down parameter reference
         AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down parameter reference
+        FormulasDataSourceName: !Ref FormulasDataSourceName # Pass down parameter reference
+        FormulasTableName: !Ref FormulasTableName # Pass down parameter reference
 
   CharacterResolversStack:
     Type: AWS::CloudFormation::Stack
@@ -144,6 +153,15 @@ Resources:
         ActionsDataSourceName: !Ref ActionsDataSourceName
         ActionsTableName: !Ref ActionsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  FormulaResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DataSourcesStack
+    Properties:
+      TemplateURL: ./formula-resolvers.yaml # Assuming this file will be created
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        FormulasDataSourceName: !Ref FormulasDataSourceName
   
   AppSyncLambdaServiceRole:
     Type: AWS::IAM::Role

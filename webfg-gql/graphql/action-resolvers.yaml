@@ -15,6 +15,9 @@ Parameters:
   AppSyncLambdaServiceRoleArn:
     Type: String
     Description: 'ARN of the AppSync Lambda service role'
+  FormulasDataSourceName: # Add parameter for Formulas data source
+    Type: String
+    Description: 'Name of the Formulas DynamoDB data source'
 
 Resources:
   GetActionResolver:
@@ -90,7 +93,18 @@ Resources:
             "requiredStats": $util.dynamodb.toDynamoDBJson($ctx.args.input.requiredStats),
             "effects": $util.dynamodb.toDynamoDBJson($ctx.args.input.effects),
             "type": $util.dynamodb.toDynamoDBJson($ctx.args.input.type),
-            "timing": $util.dynamodb.toDynamoDBJson($ctx.args.input.timing),
+            "actionCategory": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionCategory),
+            "initDurationId": $util.dynamodb.toDynamoDBJson($ctx.args.input.initDurationId),
+            "defaultInitDuration": $util.dynamodb.toDynamoDBJson($ctx.args.input.defaultInitDuration),
+            "durationId": $util.dynamodb.toDynamoDBJson($ctx.args.input.durationId),
+            "defaultDuration": $util.dynamodb.toDynamoDBJson($ctx.args.input.defaultDuration),
+            "fatigueCost": $util.dynamodb.toDynamoDBJson($ctx.args.input.fatigueCost),
+            "difficultyClassId": $util.dynamodb.toDynamoDBJson($ctx.args.input.difficultyClassId),
+            "guaranteedFormulaId": $util.dynamodb.toDynamoDBJson($ctx.args.input.guaranteedFormulaId),
+            "units": $util.dynamodb.toDynamoDBJson($ctx.args.input.units),
+            "actionTargets": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionTargets),
+            "actionSources": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionSources),
+            "actionEffects": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionEffects),
             "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
           }
         }
@@ -112,19 +126,111 @@ Resources:
             "actionId": $util.dynamodb.toDynamoDBJson($ctx.args.actionId)
           },
           "update": {
-            "expression": "SET #name = :name, #description = :description, #requiredStats = :requiredStats, #effects = :effects",
+            "expression": "SET #name = :name, #actionCategory = :actionCategory, #initDurationId = :initDurationId, #defaultInitDuration = :defaultInitDuration, #durationId = :durationId, #defaultDuration = :defaultDuration, #fatigueCost = :fatigueCost, #difficultyClassId = :difficultyClassId, #guaranteedFormulaId = :guaranteedFormulaId, #units = :units, #description = :description, #actionTargets = :actionTargets, #actionSources = :actionSources, #actionEffects = :actionEffects",
             "expressionNames": {
               "#name": "name",
+              "#actionCategory": "actionCategory",
+              "#initDurationId": "initDurationId",
+              "#defaultInitDuration": "defaultInitDuration",
+              "#durationId": "durationId",
+              "#defaultDuration": "defaultDuration",
+              "#fatigueCost": "fatigueCost",
+              "#difficultyClassId": "difficultyClassId",
+              "#guaranteedFormulaId": "guaranteedFormulaId",
+              "#units": "units",
               "#description": "description",
-              "#requiredStats": "requiredStats",
-              "#effects": "effects"
+              "#actionTargets": "actionTargets",
+              "#actionSources": "actionSources",
+              "#actionEffects": "actionEffects"
             },
             "expressionValues": {
               ":name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
+              ":actionCategory": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionCategory),
+              ":initDurationId": $util.dynamodb.toDynamoDBJson($ctx.args.input.initDurationId),
+              ":defaultInitDuration": $util.dynamodb.toDynamoDBJson($ctx.args.input.defaultInitDuration),
+              ":durationId": $util.dynamodb.toDynamoDBJson($ctx.args.input.durationId),
+              ":defaultDuration": $util.dynamodb.toDynamoDBJson($ctx.args.input.defaultDuration),
+              ":fatigueCost": $util.dynamodb.toDynamoDBJson($ctx.args.input.fatigueCost),
+              ":difficultyClassId": $util.dynamodb.toDynamoDBJson($ctx.args.input.difficultyClassId),
+              ":guaranteedFormulaId": $util.dynamodb.toDynamoDBJson($ctx.args.input.guaranteedFormulaId),
+              ":units": $util.dynamodb.toDynamoDBJson($ctx.args.input.units),
               ":description": $util.dynamodb.toDynamoDBJson($ctx.args.input.description),
-              ":requiredStats": $util.dynamodb.toDynamoDBJson($ctx.args.input.requiredStats),
-              ":effects": $util.dynamodb.toDynamoDBJson($ctx.args.input.effects)
+              ":actionTargets": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionTargets),
+              ":actionSources": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionSources),
+              ":actionEffects": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionEffects)
             }
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  ActionInitDurationResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Action
+      FieldName: initDuration
+      DataSourceName: !Ref FormulasDataSourceName # Use Formulas data source
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "formulaId": $util.dynamodb.toDynamoDBJson($ctx.source.initDurationId)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  ActionDurationResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Action
+      FieldName: duration
+      DataSourceName: !Ref FormulasDataSourceName # Use Formulas data source
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "formulaId": $util.dynamodb.toDynamoDBJson($ctx.source.durationId)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  ActionDifficultyClassResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Action
+      FieldName: difficultyClass
+      DataSourceName: !Ref FormulasDataSourceName # Use Formulas data source
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "formulaId": $util.dynamodb.toDynamoDBJson($ctx.source.difficultyClassId)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  ActionGuaranteedFormulaResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Action
+      FieldName: guaranteedFormula
+      DataSourceName: !Ref FormulasDataSourceName # Use Formulas data source
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "formulaId": $util.dynamodb.toDynamoDBJson($ctx.source.guaranteedFormulaId)
           }
         }
       ResponseMappingTemplate: |
