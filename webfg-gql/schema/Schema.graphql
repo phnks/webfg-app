@@ -186,10 +186,10 @@ input ObjectFilterInput {
   maxWeight: Float
 }
 
-input ActionFilterInput {
-  name: StringFilterInput
-  type: ActionType
-}
+ input ActionFilterInput {
+   name: StringFilterInput
+   actionCategory: ActionCategory # Changed from 'type: ActionType'
+ }
 
 input StringFilterInput {
   eq: String

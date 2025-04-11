@@ -58,14 +58,14 @@ Resources:
                   #set($filters.name = {"contains": $ctx.args.filter.name.contains})
                 #end
                 #if($ctx.args.filter.name.beginsWith)
-                  #set($filters.name = {"beginsWith": $ctx.args.filter.name.beginsWith})
-                #end
-              #end
-              #if($ctx.args.filter.type)
-                #set($filters.type = {"eq": $ctx.args.filter.type})
-              #end
-              $util.toJson($filters)
-          #end
+                   #set($filters.name = {"beginsWith": $ctx.args.filter.name.beginsWith})
+                 #end
+               #end
+               #if($ctx.args.filter.actionCategory) ## Check for actionCategory instead of type
+                 #set($filters.actionCategory = {"eq": $ctx.args.filter.actionCategory}) ## Set filter for actionCategory
+               #end
+               $util.toJson($filters)
+           #end
         }
       ResponseMappingTemplate: '$util.toJson($context.result.items)'
 
