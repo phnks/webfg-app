@@ -32,5 +32,8 @@
     "qa_schema": "v20",
     "prod_schema": "v11",
     "stack_name": "webfg-gql"
+  },
+  "devDependencies": {
+    "graphql": "^16.10.0"
   }
 }
