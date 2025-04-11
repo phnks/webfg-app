@@ -32,8 +32,8 @@ Parameters:
 
 Conditions:
    IsQA: !Equals [!Ref Environment, 'qa']
- 
- Resources: # Corrected indentation (removed leading space)
+
+Resources: # Removed leading space
    GraphQLApi:
      Type: AWS::AppSync::GraphQLApi
      Properties:
