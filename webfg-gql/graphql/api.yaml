@@ -44,11 +44,11 @@ Resources:
 
   GraphQLApiKey:
     Type: AWS::AppSync::ApiKey
-    Properties:
-      ApiId: !GetAtt GraphQLApi.ApiId
-       Expires: 1771131600
+     Properties:
+       ApiId: !GetAtt GraphQLApi.ApiId
+       Expires: 1771131600 # Corrected indentation
  
-   # Temporarily commented out schema attachment for debugging
+    # Temporarily commented out schema attachment for debugging
    # GraphQLSchema:
    #   Type: AWS::AppSync::GraphQLSchema
    #   Properties:
