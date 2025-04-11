@@ -4,7 +4,7 @@ set -e
 # --- Configuration ---
 ENVIRONMENT=$1 # 'qa' or 'prod'
 DEPLOYMENT_ID=${2:-none} # Deployment ID (e.g., PR number) or 'none'
-STACK_NAME_CONFIG=$(node -p "require('../package.json').config.stack_name")
+STACK_NAME_CONFIG=$(node -p "require('./package.json').config.stack_name") # Corrected path
 
 # --- Determine Names ---
 ID_SUFFIX=""
