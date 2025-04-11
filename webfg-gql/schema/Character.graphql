@@ -22,7 +22,9 @@ type Character {
 
   stats: Stats!
   physical: Physical!
-  conditions: [String]
+
+  conditionIds: [ID]
+  conditions: [Trait]
   
   inventoryIds: [ID]
   inventory: [Object]

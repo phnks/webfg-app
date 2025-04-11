@@ -1,27 +1,15 @@
 type Physical {
+    width: Float!
+    length: Float!
     height: Float!
     bodyFatPercentage: Float
-    weight: Float
-    size: Size!
     adjacency: Float!
 }
 
 input PhysicalInput {
+    width: Float!
+    length: Float!
     height: Float!
     bodyFatPercentage: Float
-    weight: Float
-    size: SizeInput!
     adjacency: Float!
-}
-
-type Size {
-    width: Float!
-    length: Float!
-    height: Float!
-}
-
-input SizeInput {
-    width: Float!
-    length: Float!
-    height: Float!
 }
