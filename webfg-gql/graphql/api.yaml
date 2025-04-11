@@ -39,12 +39,12 @@ Resources:
     Properties:
       Name: !Ref AppSyncApiName
       AuthenticationType: API_KEY
-      AdditionalAuthenticationProviders: []
-      XrayEnabled: true
-
-   GraphQLApiKey:
+       AdditionalAuthenticationProviders: []
+       XrayEnabled: true
+ 
+   GraphQLApiKey: # Corrected indentation
      Type: AWS::AppSync::ApiKey
-     Properties: # Corrected indentation
+     Properties:
        ApiId: !GetAtt GraphQLApi.ApiId
        Expires: 1771131600
  
