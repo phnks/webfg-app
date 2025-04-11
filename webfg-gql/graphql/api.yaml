@@ -36,13 +36,13 @@ Conditions:
 Resources:
   GraphQLApi:
     Type: AWS::AppSync::GraphQLApi
-    Properties:
-      Name: !Ref AppSyncApiName
-      AuthenticationType: API_KEY
-       AdditionalAuthenticationProviders: []
-       XrayEnabled: true
+     Properties:
+       Name: !Ref AppSyncApiName
+       AuthenticationType: API_KEY
+       AdditionalAuthenticationProviders: [] # Corrected indentation
+       XrayEnabled: true # Corrected indentation
  
-   GraphQLApiKey: # Corrected indentation
+   GraphQLApiKey:
      Type: AWS::AppSync::ApiKey
      Properties:
        ApiId: !GetAtt GraphQLApi.ApiId
