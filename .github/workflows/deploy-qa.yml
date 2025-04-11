@@ -1,0 +1,98 @@
+name: Deploy QA Environment per PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened] # Trigger on PR creation/update
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy-gql-qa:
+    name: Deploy GQL to QA (PR-${{ github.event.number }})
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./webfg-gql
+    env:
+      DEPLOYMENT_ID: ${{ github.event.number }} # Use PR number as Deployment ID
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install SAM CLI
+        run: |
+          pip install aws-sam-cli
+        working-directory: . # Run at root
+
+      - name: Install GQL dependencies
+        run: npm install
+
+      - name: Deploy GQL QA Stack (PR-${{ env.DEPLOYMENT_ID }})
+        id: deploy_gql
+        run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script
+
+      - name: Get GQL Stack Outputs
+        id: gql_outputs
+        run: |
+          API_URL=$(aws cloudformation describe-stacks --stack-name webfg-gql-qa${{ env.DEPLOYMENT_ID }} --query 'Stacks[0].Outputs[?OutputKey==`GraphQLApiEndpoint`].OutputValue' --output text)
+          API_KEY=$(aws cloudformation describe-stacks --stack-name webfg-gql-qa${{ env.DEPLOYMENT_ID }} --query 'Stacks[0].Outputs[?OutputKey==`GraphQLApiKey`].OutputValue' --output text)
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          echo "api_key=$API_KEY" >> $GITHUB_OUTPUT
+
+    outputs: # Define job outputs
+      api_url: ${{ steps.gql_outputs.outputs.api_url }}
+      api_key: ${{ steps.gql_outputs.outputs.api_key }}
+
+  deploy-gm-app-qa:
+    name: Deploy GM App to QA (PR-${{ github.event.number }})
+    runs-on: ubuntu-latest
+    needs: deploy-gql-qa # Run after GQL deployment
+    defaults:
+      run:
+        working-directory: ./webfg-gm-app
+    env:
+      DEPLOYMENT_ID: ${{ github.event.number }} # Use PR number as Deployment ID
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install SAM CLI
+        run: |
+          pip install aws-sam-cli
+        working-directory: . # Run at root
+
+      - name: Install GM App dependencies
+        run: npm install
+
+      - name: Build GM App with QA GQL Endpoint
+        env: # Set env vars for build
+          REACT_APP_APPSYNC_URL: ${{ needs.deploy-gql-qa.outputs.api_url }}
+          REACT_APP_APPSYNC_API_KEY: ${{ needs.deploy-gql-qa.outputs.api_key }}
+        run: npm run build # Use standard build
+
+      - name: Deploy GM App QA Stack (PR-${{ env.DEPLOYMENT_ID }})
+        # Deploy script now uses the build artifacts created in the previous step
+        run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script

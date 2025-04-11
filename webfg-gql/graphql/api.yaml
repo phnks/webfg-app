@@ -86,4 +86,4 @@ Outputs:
     Value: !Sub 'https://${ServiceName}.${DomainName}'
   AppSyncApiKey:
     Description: 'GraphQL API Key'
-    Value: !Ref GraphQLApiKey 
+    Value: !Ref GraphQLApiKey
