@@ -4,9 +4,9 @@ set -e # Exit immediately if a command exits with a non-zero status.
 # --- Configuration ---
 ENVIRONMENT=$1 # 'qa' or 'prod'
 DEPLOYMENT_ID=${2:-none} # Deployment ID (e.g., PR number) or 'none'
-STACK_NAME_CONFIG=$(node -p "require('../package.json').config.stack_name")
-QA_SCHEMA_VERSION=$(node -p "require('../package.json').config.qa_schema")
-PROD_SCHEMA_VERSION=$(node -p "require('../package.json').config.prod_schema")
+STACK_NAME_CONFIG=$(node -p "require('./package.json').config.stack_name")
+QA_SCHEMA_VERSION=$(node -p "require('./package.json').config.qa_schema")
+PROD_SCHEMA_VERSION=$(node -p "require('./package.json').config.prod_schema")
 # SAM_DEPLOY_BUCKET removed, will use resolve_s3 from samconfig.toml
 
 # --- Determine Names ---
@@ -70,9 +70,10 @@ sam build --cached --parallel
 echo "Deploying Main Stack: ${MAIN_STACK_NAME}..."
 sam deploy \
   --template-file .aws-sam/build/template.yaml \
-  --stack-name "${MAIN_STACK_NAME}" \
-  --parameter-overrides Environment="${ENVIRONMENT}" DeploymentId="${DEPLOYMENT_ID}" SchemaS3Key="${SCHEMA_S3_KEY}" SchemaS3BucketName="${BUCKET_NAME}" \
-  --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND
+   --stack-name "${MAIN_STACK_NAME}" \
+   --parameter-overrides Environment="${ENVIRONMENT}" DeploymentId="${DEPLOYMENT_ID}" SchemaS3Key="${SCHEMA_S3_KEY}" SchemaS3BucketName="${BUCKET_NAME}" \
+   --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
+   --resolve-s3 # Add this flag to let SAM manage the deployment bucket
 
 # --- Step 6: Populate Defaults ---
 echo "Populating defaults for ${ENVIRONMENT} ${DEPLOYMENT_ID}..."
