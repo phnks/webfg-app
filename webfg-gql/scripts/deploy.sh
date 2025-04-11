@@ -4,9 +4,9 @@ set -e # Exit immediately if a command exits with a non-zero status.
 # --- Configuration ---
 ENVIRONMENT=$1 # 'qa' or 'prod'
 DEPLOYMENT_ID=${2:-none} # Deployment ID (e.g., PR number) or 'none'
-STACK_NAME_CONFIG=$(node -p "require('../package.json').config.stack_name")
-QA_SCHEMA_VERSION=$(node -p "require('../package.json').config.qa_schema")
-PROD_SCHEMA_VERSION=$(node -p "require('../package.json').config.prod_schema")
+STACK_NAME_CONFIG=$(node -p "require('./package.json').config.stack_name")
+QA_SCHEMA_VERSION=$(node -p "require('./package.json').config.qa_schema")
+PROD_SCHEMA_VERSION=$(node -p "require('./package.json').config.prod_schema")
 # SAM_DEPLOY_BUCKET removed, will use resolve_s3 from samconfig.toml
 
 # --- Determine Names ---
