@@ -31,12 +31,12 @@ Parameters:
       - 'qa'
 
 Conditions:
-  IsQA: !Equals [!Ref Environment, 'qa']
-
- Resources:
+   IsQA: !Equals [!Ref Environment, 'qa']
+ 
+ Resources: # Corrected indentation (removed leading space)
    GraphQLApi:
      Type: AWS::AppSync::GraphQLApi
-     Properties: # Corrected indentation
+     Properties:
        Name: !Ref AppSyncApiName
        AuthenticationType: API_KEY
        AdditionalAuthenticationProviders: []
