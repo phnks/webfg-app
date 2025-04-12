@@ -49,12 +49,12 @@ Resources:
       Expires: 1771131600 # Set a far-future expiration date (e.g., 10 years from 2023)
 
   GraphQLSchema:
-    Type: AWS::AppSync::GraphQLSchema
-    Properties:
-      ApiId: !GetAtt GraphQLApi.ApiId
-       DefinitionS3Location: !Sub "s3://${SchemaS3BucketName}/${SchemaS3Key}"
+     Type: AWS::AppSync::GraphQLSchema
+     Properties:
+       ApiId: !GetAtt GraphQLApi.ApiId
+       DefinitionS3Location: !Sub "s3://${SchemaS3BucketName}/${SchemaS3Key}" # Corrected indentation
  
-   # Temporarily commented out custom domain resources for debugging
+    # Temporarily commented out custom domain resources for debugging
    # AppSyncDomainName:
    #   Type: AWS::AppSync::DomainName
    #   Properties:
