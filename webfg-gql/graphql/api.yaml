@@ -52,38 +52,42 @@ Resources:
     Type: AWS::AppSync::GraphQLSchema
     Properties:
       ApiId: !GetAtt GraphQLApi.ApiId
-      DefinitionS3Location: !Sub "s3://${SchemaS3BucketName}/${SchemaS3Key}"
-
-  AppSyncDomainName:
-    Type: AWS::AppSync::DomainName
-    Properties:
-      DomainName: !Sub '${ServiceName}.${DomainName}'
-      CertificateArn: !Ref PhnksCertArn
+       DefinitionS3Location: !Sub "s3://${SchemaS3BucketName}/${SchemaS3Key}"
+ 
+   # Temporarily commented out custom domain resources for debugging
+   # AppSyncDomainName:
+   #   Type: AWS::AppSync::DomainName
+   #   Properties:
+   #     DomainName: !Sub '${ServiceName}.${DomainName}'
+   #     CertificateArn: !Ref PhnksCertArn
 
   AppSyncDomainNameApiAssociation:
     Type: AWS::AppSync::DomainNameApiAssociation
     DependsOn: AppSyncDomainName
     Properties:
       ApiId: !GetAtt GraphQLApi.ApiId
-      DomainName: !Sub '${ServiceName}.${DomainName}'
+       DomainName: !Sub '${ServiceName}.${DomainName}'
+ 
+   # AppSyncDomainRecordSet:
+   #   Type: AWS::Route53::RecordSet
+   #   Properties:
+   #     HostedZoneId: !Ref PhnksHostedZoneId
+   #     Name: !Sub '${ServiceName}.${DomainName}.'
+   #     Type: A
+   #     AliasTarget:
+   #       DNSName: !GetAtt AppSyncDomainName.AppSyncDomainName
+   #       HostedZoneId: !GetAtt AppSyncDomainName.HostedZoneId
 
-  AppSyncDomainRecordSet:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneId: !Ref PhnksHostedZoneId
-      Name: !Sub '${ServiceName}.${DomainName}.'
-      Type: A
-      AliasTarget:
-        DNSName: !GetAtt AppSyncDomainName.AppSyncDomainName
-        HostedZoneId: !GetAtt AppSyncDomainName.HostedZoneId
-
-Outputs:
-  GraphQLApiId:
-    Description: 'AppSync GraphQL API ID'
-    Value: !GetAtt GraphQLApi.ApiId
-  AppSyncEndpoint:
-    Description: 'GraphQL API Custom Domain'
-    Value: !Sub 'https://${ServiceName}.${DomainName}'
-  AppSyncApiKey:
-    Description: 'GraphQL API Key'
-    Value: !Ref GraphQLApiKey
+ Outputs:
+   GraphQLApiId:
+     Description: 'AppSync GraphQL API ID'
+     Value: !GetAtt GraphQLApi.ApiId
+   # AppSyncEndpoint: # Commented out as it depends on the custom domain
+   #   Description: 'GraphQL API Custom Domain'
+   #   Value: !Sub 'https://${ServiceName}.${DomainName}'
+   AppSyncDefaultEndpoint: # Add default endpoint output
+     Description: 'Default GraphQL API Endpoint'
+     Value: !GetAtt GraphQLApi.GraphQLUrl
+   AppSyncApiKey:
+     Description: 'GraphQL API Key'
+     Value: !Ref GraphQLApiKey
