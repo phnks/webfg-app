@@ -76,9 +76,9 @@ Resources:
    #     Type: A
    #     AliasTarget:
    #       DNSName: !GetAtt AppSyncDomainName.AppSyncDomainName
-   #       HostedZoneId: !GetAtt AppSyncDomainName.HostedZoneId
+    #       HostedZoneId: !GetAtt AppSyncDomainName.HostedZoneId
 
- Outputs:
+Outputs: # Corrected indentation
    GraphQLApiId:
      Description: 'AppSync GraphQL API ID'
      Value: !GetAtt GraphQLApi.ApiId
