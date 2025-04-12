@@ -61,12 +61,12 @@ Resources:
    #     DomainName: !Sub '${ServiceName}.${DomainName}'
    #     CertificateArn: !Ref PhnksCertArn
 
-  AppSyncDomainNameApiAssociation:
-    Type: AWS::AppSync::DomainNameApiAssociation
-     DependsOn: AppSyncDomainName
+   AppSyncDomainNameApiAssociation:
+     Type: AWS::AppSync::DomainNameApiAssociation
+     DependsOn: AppSyncDomainName # Corrected indentation
      Properties:
        ApiId: !GetAtt GraphQLApi.ApiId
-       DomainName: !Sub '${ServiceName}.${DomainName}' # Corrected indentation
+       DomainName: !Sub '${ServiceName}.${DomainName}'
  
     # AppSyncDomainRecordSet:
    #   Type: AWS::Route53::RecordSet
