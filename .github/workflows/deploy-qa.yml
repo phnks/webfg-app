@@ -87,13 +87,6 @@ jobs:
       - name: Install GM App dependencies
         run: npm install
 
-      - name: Build GM App with QA GQL Endpoint
-        env: # Set env vars for build
-          REACT_APP_APPSYNC_URL: ${{ needs.deploy-gql-qa.outputs.api_url }}
-          REACT_APP_APPSYNC_API_KEY: ${{ needs.deploy-gql-qa.outputs.api_key }}
-          CI: false
-        run: npm run build # Use standard build
-
       - name: Deploy GM App QA Stack (PR-${{ env.DEPLOYMENT_ID }})
         # Deploy script now uses the build artifacts created in the previous step
         run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script

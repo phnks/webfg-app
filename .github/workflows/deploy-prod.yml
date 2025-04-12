@@ -83,13 +83,6 @@ jobs:
       - name: Install GM App dependencies
         run: npm install
 
-      - name: Build GM App with Prod GQL Endpoint
-        env: # Set env vars for build
-          REACT_APP_APPSYNC_URL: ${{ needs.deploy-gql-prod.outputs.api_url }}
-          REACT_APP_APPSYNC_API_KEY: ${{ needs.deploy-gql-prod.outputs.api_key }}
-          CI: false
-        run: npm run build:prod # Use prod build
-
       - name: Deploy GM App Prod Stack
         # Deploy script now uses the build artifacts created in the previous step
         run: bash scripts/deploy.sh prod none # Call script

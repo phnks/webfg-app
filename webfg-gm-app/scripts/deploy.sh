@@ -48,6 +48,7 @@ echo "GQL API Key: ${GQL_API_KEY}" # Be cautious logging keys
 echo "Building frontend ($BUILD_SCRIPT) with GQL endpoint..."
 REACT_APP_APPSYNC_URL="${GQL_API_URL}" \
 REACT_APP_APPSYNC_API_KEY="${GQL_API_KEY}" \
+CI=false \
 npm run "$BUILD_SCRIPT"
 
 # --- Deploy Stack ---
