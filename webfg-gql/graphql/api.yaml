@@ -63,12 +63,12 @@ Resources:
 
   AppSyncDomainNameApiAssociation:
     Type: AWS::AppSync::DomainNameApiAssociation
-    DependsOn: AppSyncDomainName
-    Properties:
-      ApiId: !GetAtt GraphQLApi.ApiId
-       DomainName: !Sub '${ServiceName}.${DomainName}'
+     DependsOn: AppSyncDomainName
+     Properties:
+       ApiId: !GetAtt GraphQLApi.ApiId
+       DomainName: !Sub '${ServiceName}.${DomainName}' # Corrected indentation
  
-   # AppSyncDomainRecordSet:
+    # AppSyncDomainRecordSet:
    #   Type: AWS::Route53::RecordSet
    #   Properties:
    #     HostedZoneId: !Ref PhnksHostedZoneId
