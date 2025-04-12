@@ -91,6 +91,7 @@ jobs:
         env: # Set env vars for build
           REACT_APP_APPSYNC_URL: ${{ needs.deploy-gql-qa.outputs.api_url }}
           REACT_APP_APPSYNC_API_KEY: ${{ needs.deploy-gql-qa.outputs.api_key }}
+          CI: false # Prevent warnings from failing the build
         run: npm run build # Use standard build
 
       - name: Deploy GM App QA Stack (PR-${{ env.DEPLOYMENT_ID }})

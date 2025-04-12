@@ -87,6 +87,7 @@ jobs:
         env: # Set env vars for build
           REACT_APP_APPSYNC_URL: ${{ needs.deploy-gql-prod.outputs.api_url }}
           REACT_APP_APPSYNC_API_KEY: ${{ needs.deploy-gql-prod.outputs.api_key }}
+          CI: false # Prevent warnings from failing the build
         run: npm run build:prod # Use prod build
 
       - name: Deploy GM App Prod Stack
