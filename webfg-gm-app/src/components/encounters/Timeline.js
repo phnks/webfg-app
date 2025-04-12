@@ -1,6 +1,4 @@
 import React from 'react';
-import { useQuery } from '@apollo/client';
-import { GET_ACTIONS } from '../../graphql/operations';
 import './Timeline.css';
 
 // Remove characterTimelines prop
@@ -8,44 +6,11 @@ const Timeline = ({ currentTime, history, onSelectCharacter }) => {
   const [eventHeights, setEventHeights] = React.useState({});
   const eventRefs = React.useRef({});
   const prevEventsRef = React.useRef(null);
-  const [actionNames, setActionNames] = React.useState({});
 
   // Remove characterNameMap logic
   // const characterNameMap = React.useMemo(() => { ... });
-
-  // Collect all unique action IDs (Keep this for fetching action names)
-  const actionIds = React.useMemo(() => {
-    const ids = new Set();
-    history.forEach(event => {
-      // Add check for event existence before accessing actionId
-      if (event && event.actionId) {
-        ids.add(event.actionId);
-      }
-    });
-    return Array.from(ids);
-  }, [history]);
-
-  // Fetch action names
-  const { loading, error, data } = useQuery(GET_ACTIONS, {
-    variables: { actionIds },
-    skip: actionIds.length === 0
-  });
-
-  React.useEffect(() => {
-    if (data?.getActions) {
-      const names = {};
-      data.getActions.forEach(action => {
-        names[action.actionId] = action.name;
-      });
-      setActionNames(names);
-    }
-  }, [data]);
-
   // Format event description - Now relies on backend-provided description
   const getFormattedDescription = (event) => {
-    // Fetch action name if needed for specific types
-    const actionName = actionNames[event.actionId] || 'Unknown Action';
-
     // Use the description from the event directly for most types
     // Potentially enhance specific types like ACTION_STARTED/COMPLETED if needed
     switch (event.type) {

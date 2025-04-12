@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   LIST_ENCOUNTERS, 
   CREATE_ENCOUNTER, 
@@ -174,4 +174,4 @@ const EncountersList = () => {
   );
 };
 
-export default EncountersList; 
+export default EncountersList;

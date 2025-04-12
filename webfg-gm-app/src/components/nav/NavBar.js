@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useSubscription } from '@apollo/client';
-import { FaBars, FaTimes, FaUser, FaCube, FaBolt, FaHome, FaChessBoard } from 'react-icons/fa';
+import { FaBars, FaTimes, FaUser, FaCube, FaBolt, FaChessBoard } from 'react-icons/fa';
 import { 
   ON_CREATE_CHARACTER, ON_UPDATE_CHARACTER, ON_DELETE_CHARACTER,
   ON_CREATE_OBJECT, ON_UPDATE_OBJECT, ON_DELETE_OBJECT,
@@ -32,7 +32,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
   });
 
   // Fetch encounters
-  const { data: encounterData } = useQuery(LIST_ENCOUNTERS, {
+  useQuery(LIST_ENCOUNTERS, {
     fetchPolicy: 'network-only',
     onCompleted: (data) => {
       if (data && data.listEncounters) {
@@ -452,4 +452,4 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
   );
 };
 
-export default NavBar; 
+export default NavBar;

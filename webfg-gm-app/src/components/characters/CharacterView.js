@@ -12,7 +12,6 @@ import CharacterAttributes from "./CharacterAttributes";
 import CharacterSkills from "./CharacterSkills";
 import CharacterStats from "./CharacterStats";
 import CharacterPhysical from "./CharacterPhysical";
-import CharacterEquipment from "./CharacterEquipment";
 import CharacterDetails from "./CharacterDetails";
 import CharacterForm from "../forms/CharacterForm";
 import "./CharacterView.css";
@@ -108,19 +107,11 @@ const CharacterView = () => {
   
   const character = currentCharacter;
   
-  const addToInventory = (objectId) => {
-    // Implementation
-  };
-
   const equipItem = (objectId, slot) => {
     // Implementation
   };
 
   const removeItem = (objectId) => {
-    // Implementation
-  };
-
-  const addAction = (actionId) => {
     // Implementation
   };
   

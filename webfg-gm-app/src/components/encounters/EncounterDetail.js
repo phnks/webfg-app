@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useSubscription, useApolloClient } from '@apollo/client';
 import { 
   GET_ENCOUNTER,
   LIST_CHARACTERS,
   LIST_OBJECTS,
-  UPDATE_ENCOUNTER,
   ADD_CHARACTER_TO_ENCOUNTER,
   ADD_ACTION_TO_TIMELINE,
   ADVANCE_ENCOUNTER_TIME,
@@ -25,7 +24,7 @@ import {
 import VirtualTableTop from './VirtualTableTop';
 import Timeline from './Timeline';
 import CharacterActionSelector from './CharacterActionSelector';
-import { FaArrowLeft, FaPlay, FaPause, FaUserPlus, FaClock, FaBoxOpen, FaMountain, FaTrash } from 'react-icons/fa';
+import { FaArrowLeft, FaUserPlus, FaClock, FaBoxOpen, FaMountain } from 'react-icons/fa';
 import './EncounterDetail.css';
 
 const EncounterDetail = () => {
@@ -41,7 +40,7 @@ const EncounterDetail = () => {
   const client = useApolloClient();
   
   // Queries
-  const { loading, error, data, refetch } = useQuery(GET_ENCOUNTER, {
+  const { loading, error, data } = useQuery(GET_ENCOUNTER, {
     variables: { encounterId },
     fetchPolicy: 'network-only'
   });

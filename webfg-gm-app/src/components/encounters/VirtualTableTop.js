@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import CharacterSummary from './CharacterSummary';
 import './VirtualTableTop.css';
 import { FaTrash } from 'react-icons/fa';
@@ -33,8 +33,9 @@ const VirtualTableTop = ({
   const TERRAIN_COLOR = '#8B4513'; // Brown for terrain
   const TERRAIN_LINE_WIDTH = 3;
   
-  const getGridCoordinates = (e) => {
+  const getGridCoordinates = useCallback((e) => {
     const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0, canvasX: 0, canvasY: 0 }; // Handle case where canvas is not yet available
     const rect = canvas.getBoundingClientRect();
     const LABEL_SPACE = 20;
     
@@ -63,7 +64,102 @@ const VirtualTableTop = ({
     
     // Return raw canvas coordinates as well for precise item checking
     return { x: gridX, y: gridY, canvasX, canvasY };
-  };
+  }, [canvasRef]); // Dependencies updated based on ESLint warning
+
+  // --- Drawing Functions (wrapped in useCallback) ---
+  const drawCharacter = useCallback((ctx, character) => {
+    const { x, y, name, race } = character;
+    if (x < 0 || y < 0 || x >= gridColumns || y >= gridRows) return;
+    
+    ctx.fillStyle = race === 'HUMAN' ? '#2196F3' : '#FF9800';
+    ctx.beginPath();
+    ctx.arc(
+      x * CELL_SIZE + CELL_SIZE / 2,
+      y * CELL_SIZE + CELL_SIZE / 2,
+      CELL_SIZE / 2 - 4,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+    
+    ctx.fillStyle = 'white';
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(
+      name.charAt(0),
+      x * CELL_SIZE + CELL_SIZE / 2,
+      y * CELL_SIZE + CELL_SIZE / 2
+    );
+  }, [gridColumns, gridRows]); // Dependencies updated based on ESLint warning
+
+  const drawObject = useCallback((ctx, obj) => {
+    const { x, y, name } = obj;
+    if (x < 0 || y < 0 || x >= gridColumns || y >= gridRows) return;
+
+    ctx.fillStyle = OBJECT_COLOR;
+    const objSize = CELL_SIZE - 8;
+    const objX = x * CELL_SIZE + 4;
+    const objY = y * CELL_SIZE + 4;
+    ctx.fillRect(objX, objY, objSize, objSize);
+
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(
+      name.charAt(0).toUpperCase(),
+      x * CELL_SIZE + CELL_SIZE / 2,
+      y * CELL_SIZE + CELL_SIZE / 2
+    );
+  }, [gridColumns, gridRows, OBJECT_COLOR]); // Dependencies updated based on ESLint warning
+
+  const drawTerrainElement = useCallback((ctx, terrainElement) => {
+    const { type, startX, startY, length, color } = terrainElement;
+    ctx.strokeStyle = color || TERRAIN_COLOR;
+    ctx.lineWidth = TERRAIN_LINE_WIDTH;
+    ctx.beginPath();
+
+    switch (type) {
+      case 'VERTICAL_LINE':
+        ctx.moveTo(
+          startX * CELL_SIZE,
+          startY * CELL_SIZE
+        );
+        ctx.lineTo(
+          startX * CELL_SIZE,
+          (startY + length) * CELL_SIZE
+        );
+        break;
+      case 'HORIZONTAL_LINE':
+        ctx.moveTo(
+          startX * CELL_SIZE,
+          startY * CELL_SIZE
+        );
+        ctx.lineTo(
+          (startX + length) * CELL_SIZE,
+          startY * CELL_SIZE
+        );
+        break;
+      case 'DIAGONAL_LINE':
+        ctx.moveTo(
+          startX * CELL_SIZE,
+          startY * CELL_SIZE
+        );
+        ctx.lineTo(
+          (startX + length) * CELL_SIZE,
+          (startY + length) * CELL_SIZE
+        );
+        break;
+      default:
+        // Optional: Log unknown terrain type
+        console.warn(`Unknown terrain type: ${type}`);
+        break;
+    }
+    
+    ctx.stroke();
+  }, [TERRAIN_COLOR, TERRAIN_LINE_WIDTH]); // Dependencies updated based on ESLint warning
+  // --- End Drawing Functions ---
 
   // Effect for drawing the canvas
   useEffect(() => {
@@ -268,7 +364,7 @@ const VirtualTableTop = ({
     // Reset transform before finishing
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     // Ensure draggingItem state changes also trigger redraw if needed for visual feedback
-  }, [gridRows, gridColumns, characters, objects, terrain, gridElements, hoveredCell, draggingItem]); // Add hoveredCell and draggingItem
+  }, [gridRows, gridColumns, characters, objects, terrain, gridElements, hoveredCell, draggingItem, drawCharacter, drawObject, drawTerrainElement]); // Add draw functions to dependencies
 
   // Effect to handle passive touchmove listener
   useEffect(() => {
@@ -426,6 +522,10 @@ const VirtualTableTop = ({
             return { type: 'terrain', id: terr.terrainId, item: terr };
           }
           break;
+        default:
+          // Optional: Log unknown terrain type during check
+          // console.warn(`Unknown terrain type in findItemAt: ${terr.type}`);
+          break;
       }
     }
 
@@ -510,49 +610,9 @@ const VirtualTableTop = ({
   };
   // --- END OF TOUCH HANDLERS ---
 
-  // Helper function to draw a terrain element
-  function drawTerrainElement(ctx, terrainElement) {
-    const { type, startX, startY, length, color } = terrainElement;
-    ctx.strokeStyle = color || TERRAIN_COLOR;
-    ctx.lineWidth = TERRAIN_LINE_WIDTH;
-    ctx.beginPath();
+  // Moved drawCharacter, drawObject, drawTerrainElement outside and wrapped in useCallback above
 
-    switch (type) {
-      case 'VERTICAL_LINE':
-        ctx.moveTo(
-          startX * CELL_SIZE,
-          startY * CELL_SIZE
-        );
-        ctx.lineTo(
-          startX * CELL_SIZE,
-          (startY + length) * CELL_SIZE
-        );
-        break;
-      case 'HORIZONTAL_LINE':
-        ctx.moveTo(
-          startX * CELL_SIZE,
-          startY * CELL_SIZE
-        );
-        ctx.lineTo(
-          (startX + length) * CELL_SIZE,
-          startY * CELL_SIZE
-        );
-        break;
-      case 'DIAGONAL_LINE':
-        ctx.moveTo(
-          startX * CELL_SIZE,
-          startY * CELL_SIZE
-        );
-        ctx.lineTo(
-          (startX + length) * CELL_SIZE,
-          (startY + length) * CELL_SIZE
-        );
-        break;
-    }
-    
-    ctx.stroke();
-  }
-
+  /* // Original drawCharacter (now moved and wrapped)
   function drawCharacter(ctx, character) {
     const { x, y, name, race } = character;
     if (x < 0 || y < 0 || x >= gridColumns || y >= gridRows) return;
@@ -578,7 +638,9 @@ const VirtualTableTop = ({
       y * CELL_SIZE + CELL_SIZE / 2
     );
   }
+  */
 
+  /* // Original drawObject (now moved and wrapped)
   function drawObject(ctx, obj) {
     const { x, y, name } = obj;
     if (x < 0 || y < 0 || x >= gridColumns || y >= gridRows) return;
@@ -599,6 +661,7 @@ const VirtualTableTop = ({
       y * CELL_SIZE + CELL_SIZE / 2
     );
   }
+  */
 
   return (
     <div className="virtual-tabletop">
@@ -650,4 +713,4 @@ const VirtualTableTop = ({
   );
 };
 
-export default VirtualTableTop; 
+export default VirtualTableTop;
