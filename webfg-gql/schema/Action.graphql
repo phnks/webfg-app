@@ -94,22 +94,22 @@ input ActionInput {
   description: String
   actionTargets: [TargetInput]
   actionSources: [SourceInput]
-  actionEffects: [EffectInput]!
-}
-
-type TargetInput {
+   actionEffects: [EffectInput]!
+ }
+ 
+ input TargetInput { # Changed from type to input
   targetType: TargetType!
   quantity: Int!
-  sequenceId: Int!
-}
-
-type SourceInput {
+   sequenceId: Int!
+ }
+ 
+ input SourceInput { # Changed from type to input
   sourceType: SourceType!
   quantity: Int!
-  sequenceId: Int!
-}
-
-type EffectInput {
+   sequenceId: Int!
+ }
+ 
+ input EffectInput { # Changed from type to input
   effectType: EffectType!
   quantity: Int!
   sequenceId: Int!
