@@ -2,7 +2,7 @@ name: Deploy Production
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Match runtime in template.yaml
+          node-version: "20" # Match runtime in template.yaml
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -66,7 +66,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -82,12 +82,6 @@ jobs:
 
       - name: Install GM App dependencies
         run: npm install
-
-      - name: Build GM App with Prod GQL Endpoint
-        env: # Set env vars for build
-          REACT_APP_APPSYNC_URL: ${{ needs.deploy-gql-prod.outputs.api_url }}
-          REACT_APP_APPSYNC_API_KEY: ${{ needs.deploy-gql-prod.outputs.api_key }}
-        run: npm run build:prod # Use prod build
 
       - name: Deploy GM App Prod Stack
         # Deploy script now uses the build artifacts created in the previous step

@@ -35,7 +35,7 @@ fi
 
 echo "Retrieving outputs from GQL stack: ${GQL_STACK_NAME}..."
 GQL_API_URL=$(aws cloudformation describe-stacks --stack-name "${GQL_STACK_NAME}" --query 'Stacks[0].Outputs[?OutputKey==`GraphQLApiEndpoint`].OutputValue' --output text 2>/dev/null)
-GQL_API_KEY=$(aws cloudformation describe-stacks --stack-name "${GQL_STACK_NAME}" --query 'Stacks[0].Outputs[?OutputKey==`GraphQLApiKey`].OutputValue' --output text 2>/dev/null)
+GQL_API_KEY=$(aws cloudformation describe-stacks --stack-name "${GQL_STACK_NAME}" --query 'Stacks[0].Outputs[?OutputKey==`GraphQLApiKey`].OutputValue' --output text 2>/dev/null  | awk -F'/' '{print $NF}')
 
 if [ -z "${GQL_API_URL}" ] || [ -z "${GQL_API_KEY}" ]; then
   echo "Error: Failed to retrieve AppSync URL or API Key from stack ${GQL_STACK_NAME}"
@@ -48,6 +48,7 @@ echo "GQL API Key: ${GQL_API_KEY}" # Be cautious logging keys
 echo "Building frontend ($BUILD_SCRIPT) with GQL endpoint..."
 REACT_APP_APPSYNC_URL="${GQL_API_URL}" \
 REACT_APP_APPSYNC_API_KEY="${GQL_API_KEY}" \
+CI=false \
 npm run "$BUILD_SCRIPT"
 
 # --- Deploy Stack ---

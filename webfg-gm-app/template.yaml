@@ -158,3 +158,6 @@ Outputs:
       - "https://webfg-gm-app${EnvSuffix}${IdSuffix}.${RootDomain}"
       - EnvSuffix: !If [ IsQA, "-qa", "" ]
         IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
+  CloudFrontDistributionId:
+    Description: "CloudFront Distribution ID"
+    Value: !Ref WebsiteDistribution

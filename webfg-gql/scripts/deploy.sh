@@ -70,11 +70,10 @@ sam build --cached --parallel
 echo "Deploying Main Stack: ${MAIN_STACK_NAME}..."
 sam deploy \
   --template-file .aws-sam/build/template.yaml \
-    --stack-name "${MAIN_STACK_NAME}" \
-    --parameter-overrides Environment="${ENVIRONMENT}" DeploymentId="${DEPLOYMENT_ID}" SchemaS3Key="${SCHEMA_S3_KEY}" SchemaS3BucketName="${BUCKET_NAME}" \
-    --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
-    --resolve-s3 \
-    --disable-rollback # Add flag to prevent rollback on failure for easier debugging
+  --stack-name "${MAIN_STACK_NAME}" \
+  --resolve-s3 true \
+  --parameter-overrides Environment="${ENVIRONMENT}" DeploymentId="${DEPLOYMENT_ID}" SchemaS3Key="${SCHEMA_S3_KEY}" SchemaS3BucketName="${BUCKET_NAME}" \
+  --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND
 
 # --- Step 6: Populate Defaults ---
 echo "Populating defaults for ${ENVIRONMENT} ${DEPLOYMENT_ID}..."
