@@ -150,9 +150,10 @@ Resources:
       TemplateURL: ./action-resolvers.yaml
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
-        ActionsDataSourceName: !Ref ActionsDataSourceName
-        ActionsTableName: !Ref ActionsTableName
-        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+         ActionsDataSourceName: !Ref ActionsDataSourceName
+         ActionsTableName: !Ref ActionsTableName
+         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+         FormulasDataSourceName: !Ref FormulasDataSourceName # Pass down FormulasDataSourceName
 
   FormulaResolversStack:
     Type: AWS::CloudFormation::Stack
