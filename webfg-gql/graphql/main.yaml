@@ -147,13 +147,13 @@ Resources:
       - DataSourcesStack
       - AppSyncLambdaServiceRole
     Properties:
-      TemplateURL: ./action-resolvers.yaml
-      Parameters:
-        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
-         ActionsDataSourceName: !Ref ActionsDataSourceName
-         ActionsTableName: !Ref ActionsTableName
-         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
-         FormulasDataSourceName: !Ref FormulasDataSourceName # Pass down FormulasDataSourceName
+       TemplateURL: ./action-resolvers.yaml
+       Parameters:
+         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+         ActionsDataSourceName: !Ref ActionsDataSourceName # Corrected Indent
+         ActionsTableName: !Ref ActionsTableName # Corrected Indent
+         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Corrected Indent
+         FormulasDataSourceName: !Ref FormulasDataSourceName # Corrected Indent
 
   FormulaResolversStack:
     Type: AWS::CloudFormation::Stack
