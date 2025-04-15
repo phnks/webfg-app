@@ -257,8 +257,8 @@ Resources:
   GetActionsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ../
-      Handler: ./functions/getActions.handler
+      CodeUri: ../functions/ # Corrected CodeUri
+      Handler: getActions.handler # Corrected Handler path relative to CodeUri
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 30
