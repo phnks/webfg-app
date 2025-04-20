@@ -267,7 +267,7 @@ Resources:
 Outputs:
   AppSyncAPIEndpoint:
     Description: 'GraphQL API Custom Domain'
-    Value: !GetAtt ApiStack.Outputs.AppSyncEndpoint
+    Value: !Sub "${ApiStack.Outputs.AppSyncEndpoint}/graphql"
   AppSyncAPIKey:
     Description: 'GraphQL API Key'
     Value: !GetAtt ApiStack.Outputs.AppSyncApiKey
