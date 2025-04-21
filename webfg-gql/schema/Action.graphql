@@ -2,16 +2,16 @@ type Action {
   actionId: ID!
   name: String!
   actionCategory: ActionCategory!
-  initDurationId: ID
+  initDurationId: ID!
   initDuration: Formula!
   defaultInitDuration: Float!
-  durationId: ID
+  durationId: ID!
   duration: Formula!
   defaultDuration: Float!
   fatigueCost: Int
   difficultyClass: Formula!
-  difficultyClassId: ID
-  guaranteedFormulaId: ID
+  difficultyClassId: ID!
+  guaranteedFormulaId: ID!
   guaranteedFormula: Formula!
   units: Units
   description: String
@@ -83,13 +83,13 @@ enum EffectType {
 input ActionInput {
   name: String!
   actionCategory: ActionCategory!
-  initDurationId: ID
+  initDurationId: ID!
   defaultInitDuration: Float!
-  durationId: ID
+  durationId: ID!
   defaultDuration: Float!
   fatigueCost: Int
-  difficultyClassId: ID
-  guaranteedFormulaId: ID
+  difficultyClassId: ID!
+  guaranteedFormulaId: ID!
   units: Units
   description: String
   actionTargets: [TargetInput]
