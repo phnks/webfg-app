@@ -402,7 +402,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
          </div>
          <div className="form-group">
              <label htmlFor="physical.weight">Weight</label>
-             <input type="number" id="physical.weight" name="physical.physical.weight" value={formData.physical?.weight ?? ''} onChange={handleChange} step="0.1" />
+             <input type="number" id="physical.weight" name="physical.weight" value={formData.physical?.weight ?? ''} onChange={handleChange} step="0.1" />
          </div>
          <h4>Size</h4>
           <div className="form-group">
