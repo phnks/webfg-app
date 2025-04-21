@@ -1,6 +1,12 @@
-import React, { useState } from "react";
-import { useMutation } from "@apollo/client";
-import { CREATE_OBJECT, UPDATE_OBJECT, LIST_OBJECTS, defaultObjectForm } from "../../graphql/operations";
+import React, { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@apollo/client";
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import {
+  CREATE_OBJECT,
+  UPDATE_OBJECT,
+  LIST_OBJECTS,
+  defaultObjectForm // Ensure this is imported
+} from "../../graphql/operations";
 import "./Form.css";
 
 // Helper function to strip __typename fields recursively
@@ -23,88 +29,80 @@ const stripTypename = (obj) => {
   return newObj;
 };
 
-// Prepare object data for input by only including relevant fields
-const prepareObjectInput = (data) => {
-  // Only include fields that are part of the ObjectInput type
-  // This list should match your GraphQL schema
-  const allowedFields = ['name', 'type', 'description', 'fit', 'weight', 'noise', 'value'];
-  
-  const input = {};
-  allowedFields.forEach(field => {
-    if (data[field] !== undefined) {
-      input[field] = data[field];
-    }
-  });
-  
+const prepareObjectInput = (data, isEditing) => {
+  const input = {
+    name: data.name,
+    type: data.type || "",
+    weight: data.weight === '' ? 0 : parseFloat(data.weight) || 0.0,
+    value: data.value === '' ? 0 : parseFloat(data.value) || 0.0,
+    quantity: data.quantity === '' ? 0 : parseInt(data.quantity, 10) || 0,
+    // Add other numeric fields as needed based on defaultObjectForm structure
+  };
+
+   if (!isEditing) {
+      delete input.objectId;
+  }
+
   return input;
 };
 
 const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
-  const initialFormData = isEditing && object 
-    ? { ...object }
+  const initialFormData = isEditing && object
+    ? { ...defaultObjectForm, ...object }
     : { ...defaultObjectForm };
 
   const [formData, setFormData] = useState(initialFormData);
-  
+  const navigate = useNavigate();
+
   const [createObject, { loading: createLoading }] = useMutation(CREATE_OBJECT, {
     update(cache, { data: { createObject } }) {
       try {
-        // Read the current list of objects from the cache
         const { listObjects } = cache.readQuery({ query: LIST_OBJECTS }) || { listObjects: [] };
-        
-        // Update the cache with the new object
         cache.writeQuery({
           query: LIST_OBJECTS,
           data: { listObjects: [...listObjects, createObject] },
         });
-        
         console.log("Object created successfully:", createObject);
       } catch (err) {
         console.error("Error updating cache:", err);
       }
     }
   });
-  
+
   const [updateObject, { loading: updateLoading }] = useMutation(UPDATE_OBJECT);
-  
+
   const loading = createLoading || updateLoading;
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type } = e.target;
+    const finalValue = type === 'number' && value === '' ? '' : value;
+    setFormData({ ...formData, [name]: finalValue });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
-      // Clean the form data by removing __typename fields
       const cleanedData = stripTypename(formData);
-      
+
       if (isEditing) {
-        // Prepare only the fields that belong in ObjectInput
-        const inputData = prepareObjectInput(cleanedData);
+        const inputData = prepareObjectInput(cleanedData, true);
         console.log("Updating object with input:", inputData);
-        
         const result = await updateObject({
           variables: {
             objectId: object.objectId,
             input: inputData
           }
         });
-        
         onSuccess(result.data.updateObject.objectId);
       } else {
-        // Prepare only the fields that belong in ObjectInput
-        const inputData = prepareObjectInput(cleanedData);
+        const inputData = prepareObjectInput(cleanedData, false);
         console.log("Creating object with input:", inputData);
-        
         const result = await createObject({
           variables: {
             input: inputData
           }
         });
-        
         onSuccess(result.data.createObject.objectId);
       }
     } catch (err) {
@@ -114,6 +112,20 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
       }
       if (err.networkError) {
         console.error("Network Error:", err.networkError);
+      }
+    }
+  };
+
+  const handleCancel = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      const currentPath = window.location.pathname;
+      if (currentPath.endsWith('/new')) {
+          const listPath = currentPath.replace('/new', '');
+          navigate(listPath);
+      } else {
+          navigate(-1);
       }
     }
   };
@@ -128,97 +140,60 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
             type="text"
             id="name"
             name="name"
-            value={formData.name}
+            value={formData.name || ""}
             onChange={handleChange}
             required
           />
         </div>
-        
-        <div className="form-group">
+         <div className="form-group">
           <label htmlFor="type">Type</label>
-          <select
+          <input
+            type="text"
             id="type"
             name="type"
-            value={formData.type}
+            value={formData.type || ""}
             onChange={handleChange}
-            required
-          >
-            <option value="">Select Type</option>
-            <option value="WEAPON">Weapon</option>
-            <option value="ARMOR">Armor</option>
-            <option value="CLOTHING">Clothing</option>
-            <option value="JEWELRY">Jewelry</option>
-            <option value="FOOD">Food</option>
-            <option value="TOOL">Tool</option>
-            <option value="CONTAINER">Container</option>
-            <option value="MISCELLANEOUS">Miscellaneous</option>
-          </select>
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description || ""}
-            onChange={handleChange}
-            rows={3}
           />
         </div>
-        
+
+        {/* Example numeric fields */}
+        <div className="form-group">
+          <label htmlFor="weight">Weight</label>
+          <input
+            type="number"
+            id="weight"
+            name="weight"
+            value={formData.weight ?? ''}
+            onChange={handleChange}
+            step="0.1"
+          />
+        </div>
         <div className="form-group">
           <label htmlFor="value">Value</label>
           <input
             type="number"
             id="value"
             name="value"
-            value={formData.value || 0}
-            onChange={handleChange}
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="weight">Weight (kg)</label>
-          <input
-            type="number"
-            id="weight"
-            name="weight"
-            value={formData.weight || 0}
+            value={formData.value ?? ''}
             onChange={handleChange}
             step="0.1"
           />
         </div>
-
-        <div className="form-group">
-          <label htmlFor="fit">Fit</label>
-          <select
-            id="fit"
-            name="fit"
-            value={formData.fit || "ONE_HAND"}
-            onChange={handleChange}
-          >
-            <option value="ONE_HAND">One Hand</option>
-            <option value="TWO_HAND">Two Hands</option>
-            <option value="BODY">Body</option>
-            <option value="HEAD">Head</option>
-            <option value="FEET">Feet</option>
-            <option value="NONE">None</option>
-          </select>
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="noise">Noise</label>
+         <div className="form-group">
+          <label htmlFor="quantity">Quantity</label>
           <input
             type="number"
-            id="noise"
-            name="noise"
-            value={formData.noise || 0}
+            id="quantity"
+            name="quantity"
+            value={formData.quantity ?? ''}
             onChange={handleChange}
+            step="1"
           />
         </div>
-        
+        {/* ... other form fields ... */}
+
         <div className="form-actions">
-          <button type="button" onClick={onClose}>Cancel</button>
+          <button type="button" onClick={handleCancel}>Cancel</button>
           <button type="submit" disabled={loading}>
             {loading ? (isEditing ? "Updating..." : "Creating...") : (isEditing ? "Update" : "Create")}
           </button>
@@ -228,4 +203,4 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
   );
 };
 
-export default ObjectForm; 
+export default ObjectForm;
