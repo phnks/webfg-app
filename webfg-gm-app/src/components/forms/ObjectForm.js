@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import {
   CREATE_OBJECT,
   UPDATE_OBJECT,
   LIST_OBJECTS,
-  defaultObjectForm // Ensure this is imported
+  // defaultObjectForm is exported, but we'll build initial state based on schema
 } from "../../graphql/operations";
 import "./Form.css";
 
@@ -14,45 +14,69 @@ const stripTypename = (obj) => {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
-
   if (Array.isArray(obj)) {
     return obj.map(item => stripTypename(item));
   }
-
   const newObj = {};
   Object.entries(obj).forEach(([key, value]) => {
     if (key !== '__typename') {
       newObj[key] = stripTypename(value);
     }
   });
-
   return newObj;
 };
 
 const prepareObjectInput = (data, isEditing) => {
   const input = {
     name: data.name,
-    type: data.type || "",
-    weight: data.weight === '' ? 0 : parseFloat(data.weight) || 0.0,
-    value: data.value === '' ? 0 : parseFloat(data.value) || 0.0,
-    quantity: data.quantity === '' ? 0 : parseInt(data.quantity, 10) || 0,
-    // Add other numeric fields as needed based on defaultObjectForm structure
+    type: data.type || "MISCELLANEOUS", // Assuming default type
+    fit: data.fit || "ONE_HAND", // Assuming default fit
+    weight: data.weight === '' ? 0.0 : parseFloat(data.weight) || 0.0,
+    noise: data.noise === '' ? 0 : parseInt(data.noise, 10) || 0, // Assuming noise is Int
+    hitPoints: data.hitPoints ? {
+        max: data.hitPoints.max === '' ? 0 : parseInt(data.hitPoints.max, 10) || 0,
+        current: data.hitPoints.current === '' ? 0 : parseInt(data.hitPoints.current, 10) || 0,
+    } : { max: 0, current: 0 }, // Initialize hitPoints if null
   };
 
    if (!isEditing) {
-      delete input.objectId;
+      delete input.objectId; // Ensure objectId is not sent for creation
   }
-
   return input;
 };
 
+// Define Enums used in the form (assuming these exist based on schema)
+const ObjectType = ["MISCELLANEOUS", "WEAPON", "ARMOR", "CONSUMABLE"]; // Example types
+const FitType = ["ONE_HAND", "TWO_HAND", "HEAD", "TORSO", "LEGS", "ARMS", "FINGERS", "FEET", "BACK"]; // Example fits
+
+
 const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
+  // Initialize state based on schema fields
   const initialFormData = isEditing && object
-    ? { ...defaultObjectForm, ...object }
-    : { ...defaultObjectForm };
+    ? {
+        name: object.name || "",
+        type: object.type || "MISCELLANEOUS",
+        fit: object.fit || "ONE_HAND",
+        weight: object.weight ?? '', // Use ?? '' for input value
+        noise: object.noise ?? '', // Use ?? ''
+        hitPoints: object.hitPoints ? {
+            max: object.hitPoints.max ?? '', // Use ?? ''
+            current: object.hitPoints.current ?? '', // Use ?? ''
+        } : { max: '', current: '' }, // Initialize with empty strings for inputs
+      }
+    : {
+        name: "",
+        type: "MISCELLANEOUS",
+        fit: "ONE_HAND",
+        weight: '', // Initialize with empty string for input
+        noise: '', // Initialize with empty string
+        hitPoints: { max: '', current: '' }, // Initialize with empty strings
+      };
+
 
   const [formData, setFormData] = useState(initialFormData);
   const navigate = useNavigate();
+
 
   const [createObject, { loading: createLoading }] = useMutation(CREATE_OBJECT, {
     update(cache, { data: { createObject } }) {
@@ -73,10 +97,27 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
 
   const loading = createLoading || updateLoading;
 
+  // Modified handleChange to handle nested fields
   const handleChange = (e) => {
     const { name, value, type } = e.target;
-    const finalValue = type === 'number' && value === '' ? '' : value;
-    setFormData({ ...formData, [name]: finalValue });
+    const [field, nestedField] = name.split('.');
+
+    setFormData(prev => {
+        let updatedFormData = { ...prev };
+
+        if (nestedField) {
+            // Handle nested fields (like hitPoints.max)
+            updatedFormData[field] = {
+                ...updatedFormData[field],
+                [nestedField]: type === 'number' && value === '' ? '' : value,
+            };
+        } else {
+            // Handle top-level fields (like name, type, fit, weight, noise)
+            updatedFormData[field] = type === 'number' && value === '' ? '' : value;
+        }
+
+        return updatedFormData;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -84,11 +125,13 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
 
     try {
       const cleanedData = stripTypename(formData);
+      const inputData = prepareObjectInput(cleanedData, isEditing);
 
+      console.log(isEditing ? "Updating object with input:" : "Creating object with input:", inputData);
+
+      let result;
       if (isEditing) {
-        const inputData = prepareObjectInput(cleanedData, true);
-        console.log("Updating object with input:", inputData);
-        const result = await updateObject({
+        result = await updateObject({
           variables: {
             objectId: object.objectId,
             input: inputData
@@ -96,9 +139,7 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
         });
         onSuccess(result.data.updateObject.objectId);
       } else {
-        const inputData = prepareObjectInput(cleanedData, false);
-        console.log("Creating object with input:", inputData);
-        const result = await createObject({
+        result = await createObject({
           variables: {
             input: inputData
           }
@@ -134,6 +175,7 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
     <div className="form-container">
       <h2>{isEditing ? "Edit Object" : "Create Object"}</h2>
       <form onSubmit={handleSubmit}>
+        {/* Basic Fields */}
         <div className="form-group">
           <label htmlFor="name">Name</label>
           <input
@@ -145,18 +187,34 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
             required
           />
         </div>
+
+        {/* Type Dropdown */}
          <div className="form-group">
           <label htmlFor="type">Type</label>
-          <input
-            type="text"
+          <select
             id="type"
             name="type"
             value={formData.type || ""}
             onChange={handleChange}
-          />
+          >
+            {ObjectType.map(type => <option key={type} value={type}>{type}</option>)}
+          </select>
         </div>
 
-        {/* Example numeric fields */}
+        {/* Fit Dropdown */}
+         <div className="form-group">
+          <label htmlFor="fit">Fit</label>
+          <select
+            id="fit"
+            name="fit"
+            value={formData.fit || ""}
+            onChange={handleChange}
+          >
+            {FitType.map(fit => <option key={fit} value={fit}>{fit}</option>)}
+          </select>
+        </div>
+
+        {/* Numeric Fields based on schema */}
         <div className="form-group">
           <label htmlFor="weight">Weight</label>
           <input
@@ -168,29 +226,31 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
             step="0.1"
           />
         </div>
-        <div className="form-group">
-          <label htmlFor="value">Value</label>
-          <input
-            type="number"
-            id="value"
-            name="value"
-            value={formData.value ?? ''}
-            onChange={handleChange}
-            step="0.1"
-          />
-        </div>
          <div className="form-group">
-          <label htmlFor="quantity">Quantity</label>
+          <label htmlFor="noise">Noise</label>
           <input
             type="number"
-            id="quantity"
-            name="quantity"
-            value={formData.quantity ?? ''}
+            id="noise"
+            name="noise"
+            value={formData.noise ?? ''}
             onChange={handleChange}
             step="1"
           />
         </div>
-        {/* ... other form fields ... */}
+
+        {/* Hit Points (Nested Object) */}
+        <h3>Hit Points</h3>
+         <div className="form-group">
+             <label htmlFor="hitPoints.max">Max Hit Points</label>
+             <input type="number" id="hitPoints.max" name="hitPoints.max" value={formData.hitPoints?.max ?? ''} onChange={handleChange} step="1" />
+         </div>
+         <div className="form-group">
+             <label htmlFor="hitPoints.current">Current Hit Points</label>
+             <input type="number" id="hitPoints.current" name="hitPoints.current" value={formData.hitPoints?.current ?? ''} onChange={handleChange} step="1" />
+         </div>
+
+
+        {/* Removed Quantity and Value based on schema */}
 
         <div className="form-actions">
           <button type="button" onClick={handleCancel}>Cancel</button>
