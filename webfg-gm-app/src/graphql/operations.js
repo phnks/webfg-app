@@ -217,22 +217,8 @@ export const GET_ACTION = gql`
 
 // CHARACTER MUTATIONS
 export const CREATE_CHARACTER = gql`
-  mutation CreateCharacter(
-    $name: String!
-    # race removed
-    $attributeData: [CharacterAttributeInput!] # Use new input type
-    $skillData: [CharacterSkillInput!] # Use new input type
-    $stats: StatsInput # Assuming StatsInput exists
-    $physical: PhysicalInput # Assuming PhysicalInput exists
-  ) {
-    createCharacter(
-      name: $name
-      # race removed
-      attributeData: $attributeData # Pass new data field
-      skillData: $skillData # Pass new data field
-      stats: $stats
-      physical: $physical
-    ) {
+  mutation CreateCharacter($input: CharacterInput!) {
+    createCharacter(input: $input) {
       characterId
       name
       # race removed
@@ -241,26 +227,8 @@ export const CREATE_CHARACTER = gql`
 `;
 
 export const UPDATE_CHARACTER = gql`
-  mutation UpdateCharacter(
-    $characterId: ID!
-    $name: String
-    # race removed
-    $attributeData: [CharacterAttributeInput!] # Use new input type
-    $skillData: [CharacterSkillInput!] # Use new input type
-    $stats: StatsInput # Assuming StatsInput exists
-    $physical: PhysicalInput # Assuming PhysicalInput exists
-    # Add other updatable fields like conditions, inventoryIds, etc. if needed
-  ) {
-    updateCharacter(
-      characterId: $characterId
-      name: $name
-      # race removed
-      attributeData: $attributeData # Pass new data field
-      skillData: $skillData # Pass new data field
-      stats: $stats
-      physical: $physical
-      # Pass other fields here
-    ) {
+  mutation UpdateCharacter($characterId: ID!, $input: CharacterInput!) {
+    updateCharacter(characterId: $characterId, input: $input) {
       characterId
       name
       # race removed
@@ -452,12 +420,52 @@ export const ON_CREATE_CHARACTER = gql`
   }
 `;
 
-export const ON_UPDATE_CHARACTER = gql`
-  subscription OnUpdateCharacter {
-    onUpdateCharacter {
-      characterId
+export const ON_UPDATE_ACTION = gql`
+  subscription OnUpdateAction {
+    onUpdateAction {
+      actionId
       name
-      # race removed
+      actionCategory
+      initDurationId
+      initDuration {
+        formulaId
+        formulaValue
+      }
+      defaultInitDuration
+      durationId
+      duration {
+        formulaId
+        formulaValue
+      }
+      defaultDuration
+      fatigueCost
+      difficultyClassId
+      difficultyClass {
+        formulaId
+        formulaValue
+      }
+      guaranteedFormulaId
+      guaranteedFormula {
+        formulaId
+        formulaValue
+      }
+      units
+      description
+      actionTargets {
+        targetType
+        quantity
+        sequenceId
+      }
+      actionSources {
+        sourceType
+        quantity
+        sequenceId
+      }
+      actionEffects {
+        effectType
+        quantity
+        sequenceId
+      }
     }
   }
 `;
@@ -508,20 +516,43 @@ export const ON_CREATE_ACTION = gql`
   }
 `;
 
-export const ON_UPDATE_ACTION = gql`
-  subscription OnUpdateAction {
-    onUpdateAction {
-      actionId
-      name
-    }
-  }
-`;
 
 export const ON_DELETE_ACTION = gql`
   subscription OnDeleteAction {
     onDeleteAction {
       actionId
       name
+    }
+  }
+`;
+
+// Additional Mutations
+export const ADD_ACTION_TO_CHARACTER = gql`
+  mutation AddActionToCharacter($characterId: ID!, $actionId: ID!) {
+    addActionToCharacter(characterId: $characterId, actionId: $actionId) {
+      characterId
+      name
+      actionIds
+      actions {
+        actionId
+        name
+        description
+      }
+    }
+  }
+`;
+
+export const ADD_OBJECT_TO_INVENTORY = gql`
+  mutation AddObjectToInventory($characterId: ID!, $objectId: ID!) {
+    addObjectToInventory(characterId: $characterId, objectId: $objectId) {
+      characterId
+      name
+      inventoryIds
+      inventory {
+        objectId
+        name
+        type
+      }
     }
   }
 `;
@@ -545,7 +576,6 @@ export const defaultAttributes = {
 };
 
 // Removed defaultAttributeData array - will be generated in form from fetched list
-
 
 export const defaultCombatSkills = {
   striking: 0,
@@ -580,7 +610,6 @@ export const defaultIntrapersonalSkills = {
 };
 
 // Removed defaultSkillData array - will be generated in form from fetched list
-
 
 export const defaultStatValue = {
   current: 10,
@@ -642,38 +671,6 @@ export const defaultActionForm = {
   actionEffects: []
 };
 
-// Add these new mutations to your operations.js file
-
-export const ADD_ACTION_TO_CHARACTER = gql`
-  mutation AddActionToCharacter($characterId: ID!, $actionId: ID!) {
-    addActionToCharacter(characterId: $characterId, actionId: $actionId) {
-      characterId
-      name
-      actionIds
-      actions {
-        actionId
-        name
-        description
-      }
-    }
-  }
-`;
-
-export const ADD_OBJECT_TO_INVENTORY = gql`
-  mutation AddObjectToInventory($characterId: ID!, $objectId: ID!) {
-    addObjectToInventory(characterId: $characterId, objectId: $objectId) {
-      characterId
-      name
-      inventoryIds
-      inventory {
-        objectId
-        name
-        type
-      }
-    }
-  }
-`;
-
 // ENCOUNTER QUERIES
 export const GET_ENCOUNTER = gql`
   query GetEncounter($encounterId: ID!) {
@@ -691,7 +688,6 @@ export const GET_ENCOUNTER = gql`
       }
       objectPositions {
         objectId
-        x
         y
       }
       terrainElements { terrainId type startX startY length color }
@@ -768,17 +764,17 @@ export const DELETE_ENCOUNTER = gql`
 
 export const ADD_CHARACTER_TO_ENCOUNTER = gql`
   mutation AddCharacterToEncounter(
-    $encounterId: ID!, 
-    $characterId: ID!, 
-    $startTime: Float, 
-    $x: Int, 
+    $encounterId: ID!,
+    $characterId: ID!,
+    $startTime: Float,
+    $x: Int,
     $y: Int
   ) {
     addCharacterToEncounter(
-      encounterId: $encounterId, 
-      characterId: $characterId, 
-      startTime: $startTime, 
-      x: $x, 
+      encounterId: $encounterId,
+      characterId: $characterId,
+      startTime: $startTime,
+      x: $x,
       y: $y
     ) {
       encounterId
@@ -815,9 +811,9 @@ export const ADD_CHARACTER_TO_ENCOUNTER = gql`
 
 export const ADD_ACTION_TO_TIMELINE = gql`
   mutation AddActionToTimeline(
-    $encounterId: ID!, 
-    $characterId: ID!, 
-    $actionId: ID!, 
+    $encounterId: ID!,
+    $characterId: ID!,
+    $actionId: ID!,
     $startTime: Float!
   ) {
     addActionToTimeline(
@@ -895,15 +891,15 @@ export const ADVANCE_ENCOUNTER_TIME = gql`
 
 export const UPDATE_CHARACTER_POSITION = gql`
   mutation UpdateCharacterPosition(
-    $encounterId: ID!, 
-    $characterId: ID!, 
-    $x: Int!, 
+    $encounterId: ID!,
+    $characterId: ID!,
+    $x: Int!,
     $y: Int!
   ) {
     updateCharacterPosition(
-      encounterId: $encounterId, 
-      characterId: $characterId, 
-      x: $x, 
+      encounterId: $encounterId,
+      characterId: $characterId,
+      x: $x,
       y: $y
     ) {
       encounterId
