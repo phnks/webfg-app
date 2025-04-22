@@ -178,11 +178,11 @@ const ActionView = () => {
            <h3>Formulas & Defaults</h3>
            <div className="detail-row">
              <span>Initial Duration:</span>
-             <span>{displayFormula(action.initDuration, action.defaultInitDuration)}</span>
+             <span>{action.defaultInitDuration !== null && action.defaultInitDuration !== undefined ? action.defaultInitDuration : "N/A"}{action.initDuration ? " (" + displayFormula(action.initDuration) + ")" : ""}</span>
            </div>
            <div className="detail-row">
              <span>Duration:</span>
-             <span>{displayFormula(action.duration, action.defaultDuration)}</span>
+             <span>{action.defaultDuration !== null && action.defaultDuration !== undefined ? action.defaultDuration : "N/A"}{action.duration ? " (" + displayFormula(action.duration) + ")" : ""}</span>
            </div>
            <div className="detail-row">
              <span>Difficulty Class:</span>
@@ -192,8 +192,6 @@ const ActionView = () => {
              <span>Guaranteed Formula:</span>
              <span>{displayFormula(action.guaranteedFormula)}</span>
            </div>
-
-           <h3>Targets</h3>
            {action.actionTargets && action.actionTargets.length > 0 ? (
              <ul className="array-list">
                {action.actionTargets.map((target, index) => (
