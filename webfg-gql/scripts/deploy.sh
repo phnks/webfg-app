@@ -37,11 +37,13 @@ echo "SAM_DEPLOY_BUCKET: Using resolved bucket from samconfig.toml"
 # --- Step 1: Deploy S3 Bucket Stack ---
 echo "Deploying S3 Bucket Stack: ${BUCKET_STACK_NAME}..."
 sam deploy \
+  --no-confirm-changeset \
+  --no-progressbar \
+  --no-fail-on-empty-changeset \
   --template-file s3-bucket.yaml \
   --stack-name "${BUCKET_STACK_NAME}" \
   --parameter-overrides Environment="${ENVIRONMENT}" ServiceName="${STACK_NAME_CONFIG}" DeploymentId="${DEPLOYMENT_ID}" \
   --capabilities CAPABILITY_IAM \
-  --no-fail-on-empty-changeset
 
 # --- Step 2: Get Bucket Name ---
 echo "Retrieving Bucket Name from stack ${BUCKET_STACK_NAME}..."
@@ -69,6 +71,9 @@ sam build --cached --parallel
 # --- Step 5: Deploy Main Stack ---
 echo "Deploying Main Stack: ${MAIN_STACK_NAME}..."
 sam deploy \
+  --no-confirm-changeset \
+  --no-progressbar \
+  --no-fail-on-empty-changeset \
   --template-file .aws-sam/build/template.yaml \
   --stack-name "${MAIN_STACK_NAME}" \
   --resolve-s3 true \
