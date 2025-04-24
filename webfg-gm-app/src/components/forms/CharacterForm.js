@@ -31,7 +31,7 @@ const stripTypename = (obj) => {
 // Refactored prepareCharacterInput
 const prepareCharacterInput = (data, isEditing) => {
   const input = {
-    name: data.name,
+    name: data.name || "",
     race: data.race || "",
     // Use dynamically managed attribute and skill data
     attributeData: (data.attributeData || []).map(attr => ({
@@ -234,7 +234,13 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     e.preventDefault();
 
     try {
-      const cleanedData = stripTypename(formData);
+      // Ensure name is a string before preparing input
+      const dataToSend = {
+          ...formData,
+          name: formData.name || "" // Explicitly default to empty string if somehow null/undefined
+      };
+
+      const cleanedData = stripTypename(dataToSend); // Use dataToSend here
       const inputData = prepareCharacterInput(cleanedData, isEditing);
 
       console.log(isEditing ? "Updating character with input:" : "Creating character with input:", inputData);
@@ -244,14 +250,30 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         result = await updateCharacter({
           variables: {
             characterId: character.characterId,
-            input: inputData
+            name: inputData.name,
+            attributeData: inputData.attributeData,
+            skillData: inputData.skillData,
+            stats: inputData.stats,
+            physical: inputData.physical,
+            conditions: inputData.conditions,
+            inventoryIds: inputData.inventoryIds,
+            equipmentIds: inputData.equipmentIds,
+            actionIds: inputData.actionIds,
           }
         });
         onSuccess(result.data.updateCharacter.characterId);
       } else {
         result = await createCharacter({
           variables: {
-            input: inputData
+            name: inputData.name,
+            attributeData: inputData.attributeData,
+            skillData: inputData.skillData,
+            stats: inputData.stats,
+            physical: inputData.physical,
+            conditions: inputData.conditions,
+            inventoryIds: inputData.inventoryIds,
+            equipmentIds: inputData.equipmentIds,
+            actionIds: inputData.actionIds,
           }
         });
         onSuccess(result.data.createCharacter.characterId);
