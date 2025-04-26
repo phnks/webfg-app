@@ -3,7 +3,7 @@ import "./CharacterPhysical.css";
 
 const CharacterPhysical = ({ physical }) => {
   if (!physical) return null;
-  
+
   return (
     <div className="section character-physical">
       <h3>Physical Attributes</h3>
@@ -12,52 +12,41 @@ const CharacterPhysical = ({ physical }) => {
           <div className="stat-label">Height</div>
           <div className="stat-value">{physical.height} cm</div>
         </div>
-        
-        <div className="physical-stat">
-          <div className="stat-label">Weight</div>
-          <div className="stat-value">{physical.weight} kg</div>
-        </div>
-        
+
+        {/* Removed Weight display as it's not in schema's Physical type */}
+
         <div className="physical-stat">
           <div className="stat-label">Body Fat</div>
           <div className="stat-value">{physical.bodyFatPercentage}%</div>
         </div>
-        
+
+        {/* Added flattened size fields */}
+         <div className="physical-stat">
+          <div className="stat-label">Width</div>
+          <div className="stat-value">{physical.width}</div>
+        </div>
+
+         <div className="physical-stat">
+          <div className="stat-label">Length</div>
+          <div className="stat-value">{physical.length}</div>
+        </div>
+
+         <div className="physical-stat">
+          <div className="stat-label">Depth/Height (Physical)</div> {/* Renamed to avoid confusion with character height */}
+          <div className="stat-value">{physical.height}</div> {/* This is the physical height, not character height */}
+        </div>
+
+
         <div className="physical-stat">
           <div className="stat-label">Adjacency</div>
           <div className="stat-value">{physical.adjacency}</div>
         </div>
       </div>
-      
-      <h4>Size</h4>
-      <div className="size-stats">
-        <div className="size-stat">
-          <div className="stat-label">Width</div>
-          <div className="stat-value">{physical.size.width}</div>
-        </div>
-        
-        <div className="size-stat">
-          <div className="stat-label">Length</div>
-          <div className="stat-value">{physical.size.length}</div>
-        </div>
-        
-        <div className="size-stat">
-          <div className="stat-label">Height</div>
-          <div className="stat-value">{physical.size.height}</div>
-        </div>
-      </div>
-      
-      <div className="size-visualization">
-        <div 
-          className="size-box" 
-          style={{
-            width: `${physical.size.width * 20}px`,
-            height: `${physical.size.height * 20}px`
-          }}
-        />
-      </div>
+
+      {/* Removed Size sub-section and visualization */}
+
     </div>
   );
 };
 
-export default CharacterPhysical; 
+export default CharacterPhysical;

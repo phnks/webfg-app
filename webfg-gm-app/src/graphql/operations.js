@@ -57,15 +57,14 @@ export const GET_CHARACTER = gql`
       physical {
         height
         bodyFatPercentage
-        weight
-        size {
-          width
-          length
-          height
-        }
+        width
+        length
         adjacency
       }
-      conditions
+      conditions { # Added sub-selection for Trait fields
+        traitId
+        name
+      }
       inventoryIds
       equipmentIds
       actionIds
@@ -503,7 +502,7 @@ export const ADD_ACTION_TO_CHARACTER = gql`
 
 export const REMOVE_ACTION_FROM_CHARACTER = gql`
   mutation RemoveActionFromCharacter($characterId: ID!, $actionId: ID!) {
-    removeActionFromCharacter(characterId: $characterId, actionId: $actionId) {
+    removeActionFromCharacter(characterId: $characterId, actionId: $actionId) { # Corrected variable name
       characterId
       name
       actionIds
@@ -1428,8 +1427,8 @@ export const defaultSize = {
 export const defaultPhysical = {
   height: 180.0,
   bodyFatPercentage: 20.0,
-  weight: 80.0,
-  size: defaultSize,
+  width: 1.0, // Added flattened width
+  length: 1.0, // Added flattened length
   adjacency: 5.0
 };
 
