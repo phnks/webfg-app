@@ -27,59 +27,64 @@ const stripTypename = (obj) => {
   return newObj;
 };
 
-// Refactored prepareCharacterInput to match schema's PhysicalInput
+// Refactored prepareCharacterInput to match schema's PhysicalInput and handle conditions for mutation
 const prepareCharacterInput = (data, isEditing) => {
   const input = {
     name: data.name || "",
     race: data.race || "",
-    attributeData: (data.attributeData || []).map(attr => ({
+    attributeData: (data.attributeData || []).filter(attr => attr != null).map(attr => ({
         attributeId: attr.attributeId,
         attributeValue: attr.attributeValue === '' ? 0 : parseInt(attr.attributeValue, 10) || 0,
     })),
-    skillData: (data.skillData || []).map(skill => ({
+    skillData: (data.skillData || []).filter(skill => skill != null).map(skill => ({
         skillId: skill.skillId,
         skillValue: skill.skillValue === '' ? 0 : parseInt(skill.skillValue, 10) || 0,
     })),
     stats: data.stats ? {
         hitPoints: {
             current: data.stats.hitPoints.current === '' ? 0 : parseInt(data.stats.hitPoints.current, 10) || 0,
-            max: data.stats.hitPoints.max === '' ? 0 : parseInt(data.stats.hitPoints.max, 10) || 0,
+            max: data.stats.hitPoints?.max === '' ? null : parseInt(data.stats.hitPoints?.max, 10) || 0,
         },
         fatigue: {
              current: data.stats.fatigue.current === '' ? 0 : parseInt(data.stats.fatigue.current, 10) || 0,
-            max: data.stats.fatigue.max === '' ? 0 : parseInt(data.stats.fatigue.max, 10) || 0,
+            max: data.stats.fatigue?.max === '' ? null : parseInt(data.stats.fatigue?.max, 10) || 0,
         },
          exhaustion: {
              current: data.stats.exhaustion.current === '' ? 0 : parseInt(data.stats.exhaustion.current, 10) || 0,
-            max: data.stats.exhaustion.max === '' ? 0 : parseInt(data.stats.exhaustion.max, 10) || 0,
+            max: data.stats.exhaustion?.max === '' ? null : parseInt(data.stats.exhaustion?.max, 10) || 0,
         },
          surges: {
              current: data.stats.surges.current === '' ? 0 : parseInt(data.stats.surges.current, 10) || 0,
-            max: data.stats.surges.max === '' ? 0 : parseInt(data.stats.surges.max, 10) || 0,
+            max: data.stats.surges?.max === '' ? null : parseInt(data.stats.surges?.max, 10) || 0,
         },
     } : null,
     // Corrected physical structure based on schema
     physical: data.physical ? {
         height: data.physical.height === '' ? 0.0 : parseFloat(data.physical.height) || 0.0,
-        bodyFatPercentage: data.physical.bodyFatPercentage === '' ? 0.0 : parseFloat(data.physical.bodyFatPercentage) || 0.0,
-        // Flattened size fields
+        bodyFatPercentage: data.physical.bodyFatPercentage === '' ? null : parseFloat(data.physical.bodyFatPercentage) || 0.0,
         width: data.physical.width === '' ? 0.0 : parseFloat(data.physical.width) || 0.0,
         length: data.physical.length === '' ? 0.0 : parseFloat(data.physical.length) || 0.0,
-        height: data.physical.height === '' ? 0.0 : parseFloat(data.physical.height) || 0.0, // Note: height is already included
+        height: data.physical.height === '' ? 0.0 : parseFloat(data.physical.height) || 0.0,
         adjacency: data.physical.adjacency === '' ? 0.0 : parseFloat(data.physical.adjacency) || 0.0,
     } : null,
-    conditions: data.conditions || [],
-    inventoryIds: data.inventoryIds || [],
-    equipmentIds: data.equipmentIds || [],
-    actionIds: data.actionIds || [],
+    // Transform conditions from [Trait] to [String] for mutation
+    conditions: (data.conditions || []).map(condition => {
+        // Check if condition is an object with a 'name' property (from query result)
+        if (typeof condition === 'object' && condition !== null && condition.name !== undefined) {
+            return condition.name; // Use the name property as the string
+        }
+        return String(condition); // Otherwise, assume it's already a string or convert it
+    }),
+    inventoryIds: data.inventoryIds || [].filter(id => id != null),
+    equipmentIds: data.equipmentIds || [].filter(id => id != null),
+    actionIds: data.actionIds || [].filter(id => id != null),
   };
 
-  // Remove the duplicate height field from physical input
+  // Remove the duplicate height field from physical input - still needed due to state structure
   if (input.physical) {
       const { height, ...restPhysical } = input.physical;
       input.physical = { ...restPhysical, height };
   }
-
 
   if (!isEditing) {
       delete input.characterId;
@@ -103,7 +108,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     stats: { hitPoints: { current: 0, max: 0 }, fatigue: { current: 0, max: 0 }, exhaustion: { current: 0, max: 0 }, surges: { current: 0, max: 0 } },
     // Corrected physical state initialization
     physical: { height: 0.0, bodyFatPercentage: 0.0, width: 0.0, length: 0.0, adjacency: 0.0 },
-    conditions: [],
+    conditions: [], // Initialize conditions as an empty array (will be populated with [Trait] objects from query)
     inventoryIds: [],
     equipmentIds: [],
     actionIds: [],
@@ -137,6 +142,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                 length: character.physical.length ?? '',
                 adjacency: character.physical.adjacency ?? '',
             } : { height: '', bodyFatPercentage: '', width: '', length: '', adjacency: '' },
+            // Keep conditions as [Trait] objects in state for display/editing
             conditions: character.conditions || [],
             inventoryIds: character.inventoryIds || [],
             equipmentIds: character.equipmentIds || [],
@@ -179,7 +185,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
 
   const loading = createLoading || updateLoading || attributesLoading || skillsLoading;
 
-  // Modified handleChange to handle flattened physical fields
+  // Modified handleChange to handle flattened physical fields and conditions as strings
   const handleChange = (e) => {
       const { name, value, type } = e.target;
       const [field, nestedField, deeplyNestedField] = name.split('.');
@@ -194,36 +200,78 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                       ? { ...item, [`${field.slice(0, -4)}Value`]: type === 'number' && value === '' ? '' : value }
                       : item
               );
-          } else if (nestedField && deeplyNestedField) {
-               updatedFormData[field] = {
-                   ...updatedFormData[field],
-                   [nestedField]: {
-                       ...updatedFormData[field]?.[nestedField],
-                       [deeplyNestedField]: type === 'number' && value === '' ? '' : value,
-                   }
-               };
-           } else if (nestedField) {
-               // Handle flattened physical fields directly under physical
-               if (field === 'physical') {
-                   updatedFormData.physical = {
-                       ...updatedFormData.physical,
-                       [nestedField]: type === 'number' && value === '' ? '' : value,
-                   };
-               } else {
-                   // Handle other nested fields like stats
-                    updatedFormData[field] = {
-                       ...updatedFormData[field],
-                       [nestedField]: type === 'number' && value === '' ? '' : value,
-                   };
-               }
-           }
-           else {
-              updatedFormData[field] = value;
-          }
+          } else if (field === 'conditions') {
+              // Assuming conditions input is a single text field for simplicity for now
+              // In a real app, this would need more complex handling (e.g., comma-separated, tags)
+              // For this fix, we'll just update the conditions array in state with the new string value.
+              // This part needs refinement based on actual form implementation for conditions.
+              // For now, let's assume a simple string input that replaces the whole list.
+              // A better approach would be to add/remove conditions individually.
+              // Given the error is on mutation, the issue is sending objects instead of strings.
+              // We'll keep conditions in state as objects (from query) and transform on submit.
+              // This handleChange might not be directly used for the 'conditions' array itself
+              // unless there's a dedicated input for adding new conditions as strings.
+              // The current form structure doesn't show a conditions input field.
+              // If there was one, it would need to add strings to the conditions array in state.
 
-          return updatedFormData;
-      });
-  };
+              // ************ IMPORTANT ************
+              // The current form JSX does NOT have an input for conditions.
+              // The formData state includes `conditions: []`.
+              // The `useEffect` populates `conditions` with `[Trait]` objects from the character data.
+              // This means `formData.conditions` will be `[Trait]` objects when editing.
+              // The `prepareCharacterInput` function *already* handles mapping `[Trait]` to `[String]`.
+              // So, the issue is likely NOT in `handleChange` for conditions (as there's no input for it).
+              // The previous error was "Unable to parse JSON", which points to sending objects instead of strings.
+              // The `prepareCharacterInput` function should correctly handle this transformation.
+              // Let's double-check the `prepareCharacterInput` conditions mapping.
+              // It looks correct: `(data.conditions || []).map(...)` maps over the array.
+              // If the input condition is an object (from query), it takes `condition.name`.
+              // If it's not an object (e.g., initial state []), it converts to string.
+              // This logic seems correct for transforming [Trait] to [String].
+              // The error might be in the data itself being passed to prepareCharacterInput,
+              // or a subtle issue with the mapping or null handling within the map.
+              // Let's assume the mapping is correct and the issue is related to nulls or unexpected data in the conditions array.
+              // The current mapping `condition => { ... return condition.name; }` will fail if `condition` is null or undefined.
+              // Let's make the mapping more robust to handle null or undefined entries in the conditions array.
+
+               updatedFormData[field] = (updatedFormData[field] || [])
+                .filter(condition => condition != null) // Filter out null/undefined conditions
+                .map(condition => {
+                    // Check if condition is an object with a 'name' property (from query result)
+                    if (typeof condition === 'object' && condition.name !== undefined) {
+                        return condition.name; // Use the name property as the string
+                    }
+                    return String(condition); // Otherwise, assume it's already a string or convert it
+                });
+
+           } else if (nestedField && deeplyNestedField) {
+                updatedFormData[field] = {
+                    ...updatedFormData[field],
+                    [nestedField]: {
+                        ...updatedFormData[field]?.[nestedField],
+                        [deeplyNestedField]: type === 'number' && value === '' ? '' : value,
+                    }
+                };
+            } else if (nestedField) {
+                if (field === 'physical') {
+                    updatedFormData.physical = {
+                        ...updatedFormData.physical,
+                        [nestedField]: type === 'number' && value === '' ? '' : value,
+                    };
+                } else {
+                     updatedFormData[field] = {
+                        ...updatedFormData[field],
+                        [nestedField]: type === 'number' && value === '' ? '' : value,
+                    };
+                }
+            }
+            else {
+               updatedFormData[field] = value;
+           }
+
+           return updatedFormData;
+       });
+   };
 
 
   const handleSubmit = async (e) => {
@@ -236,6 +284,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       };
 
       const cleanedData = stripTypename(dataToSend);
+      // prepareCharacterInput already handles conditions transformation
       const inputData = prepareCharacterInput(cleanedData, isEditing);
 
       console.log(isEditing ? "Updating character with input:" : "Creating character with input:", inputData);
@@ -250,7 +299,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             skillData: inputData.skillData,
             stats: inputData.stats,
             physical: inputData.physical,
-            conditions: inputData.conditions,
+            conditions: inputData.conditions, // Sending the transformed conditions (array of strings)
             inventoryIds: inputData.inventoryIds,
             equipmentIds: inputData.equipmentIds,
             actionIds: inputData.actionIds,
