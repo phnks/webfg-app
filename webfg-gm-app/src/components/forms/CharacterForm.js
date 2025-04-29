@@ -30,7 +30,7 @@ const stripTypename = (obj) => {
 // Refactored prepareCharacterInput to match schema's PhysicalInput and handle conditions for mutation
 const prepareCharacterInput = (data, isEditing) => {
   const input = {
-    name: JSON.stringify(data.name || ""),
+    name: data.name || "",
     // race removed as per schema
     attributeData: (data.attributeData || []).filter(attr => attr != null).map(attr => ({
         attributeId: attr.attributeId,
