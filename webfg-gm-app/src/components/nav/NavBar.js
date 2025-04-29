@@ -3,7 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useSubscription } from '@apollo/client';
 import { FaBars, FaTimes, FaUser, FaCube, FaBolt, FaHome, FaChessBoard } from 'react-icons/fa';
 import { 
-  ON_CREATE_CHARACTER, ON_UPDATE_ACTION, ON_DELETE_CHARACTER,
+  ON_CREATE_CHARACTER, ON_UPDATE_CHARACTER, ON_DELETE_CHARACTER,
   ON_CREATE_OBJECT, ON_UPDATE_OBJECT, ON_DELETE_OBJECT,
   ON_CREATE_ACTION, ON_DELETE_ACTION,
   ON_CREATE_ENCOUNTER, ON_UPDATE_ENCOUNTER, ON_DELETE_ENCOUNTER,
@@ -114,7 +114,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
     }
   });
   
-  useSubscription(ON_UPDATE_ACTION, {
+  useSubscription(ON_UPDATE_CHARACTER, {
     onData: ({ data }) => {
       const updatedCharacter = data.data.onUpdateCharacter;
       
@@ -218,7 +218,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
     }
   });
   
-  useSubscription(ON_UPDATE_ACTION, {
+  useSubscription(ON_UPDATE_CHARACTER, {
     onData: ({ data }) => {
       const updatedAction = data.data.onUpdateAction;
       

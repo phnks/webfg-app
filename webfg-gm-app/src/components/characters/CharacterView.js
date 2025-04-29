@@ -4,7 +4,7 @@ import { useQuery, useMutation, useSubscription } from "@apollo/client";
 import { 
   GET_CHARACTER, 
   DELETE_CHARACTER,
-  ON_UPDATE_ACTION,
+  ON_UPDATE_CHARACTER,
   ON_DELETE_CHARACTER
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
@@ -42,7 +42,7 @@ const CharacterView = () => {
   const [deleteCharacter] = useMutation(DELETE_CHARACTER);
   
   // Subscribe to character updates
-  useSubscription(ON_UPDATE_ACTION, {
+  useSubscription(ON_UPDATE_CHARACTER, {
     onData: ({ data }) => {
       const updatedCharacter = data.data.onUpdateCharacter;
       if (updatedCharacter && updatedCharacter.characterId === characterId) {
