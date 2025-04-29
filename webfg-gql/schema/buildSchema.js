@@ -84,6 +84,7 @@ function combineSchemas() {
     'Physical.graphql',
     'Equipment.graphql',
     'Object.graphql',
+    'Formula.graphql',
     'Action.graphql',
     'Schema.graphql',
     'Encounter.graphql'

@@ -1,171 +1,116 @@
 type Action {
   actionId: ID!
   name: String!
-  type: ActionType!
-  timing: Timing!
-  cost: Cost
-  dc: DC
-  guaranteed: Formula
+  actionCategory: ActionCategory!
+  initDurationId: ID!
+  initDuration: Formula!
+  defaultInitDuration: Float!
+  durationId: ID!
+  duration: Formula!
+  defaultDuration: Float!
+  fatigueCost: Int
+  difficultyClass: Formula!
+  difficultyClassId: ID!
+  guaranteedFormulaId: ID!
+  guaranteedFormula: Formula!
   units: Units
-  effects: Effects
   description: String
-  requiredStats: String
-  createdAt: String
+  actionTargets: [Target]
+  actionSources: [Source]
+  actionEffects: [Effect]!
 }
 
-enum ActionType {
-  GENERAL
-  STRENGTH
-  AGILITY
-  DEXTERITY
-  ENDURANCE
-  INTELLIGENCE
-  CHARISMA
-  PERCEPTION
-  RESOLVE
-  COMBAT
-  MAGIC
-}
-
-type Timing {
-  initiative: Initiative
-  duration: Float
-  timeUnit: TimeUnit
-}
-
-type Initiative {
-  type: String
-  duration: Float
-  timeUnit: TimeUnit
-}
-
-enum TimeUnit {
-  SECONDS
-  MINUTES
-  HOURS
-  DAYS
-  VARIES
-}
-
-type Cost {
-  fatigue: Int
-  exhaustion: Int
-  hitPoints: Int
-  surges: Int
-}
-
-type DC {
-  type: String!
-  formula: String
-}
-
-type Formula {
-  type: String!
-  formula: String
+enum ActionCategory {
+  MOVE
+  ATTACK
+  DEFEND
+  RECOVER
+  INTERACT
+  MANIPULATE
+  ASSIST
 }
 
 enum Units {
   POUNDS
   FEET
-  METERS
   SECONDS
 }
 
-type Effects {
-  start: [Effect]
-  during: [Effect]
-  end: [Effect]
-}
-
-type Effect {
-  type: EffectType!
-  resource: Resource
-  amount: Int
-  range: Range
-  targetType: [TargetType]
-  speed: String
-  cancelable: Boolean
-}
-
-enum EffectType {
-  MODIFY_RESOURCE
-  TARGET_SELECTION
-  LIFT_OBJECT
-  MOVEMENT
-}
-
-enum Resource {
-  FATIGUE
-  EXHAUSTION
-  HIT_POINTS
-  SURGES
-}
-
-enum Range {
-  SELF
-  ADJACENT
-  MELEE
-  RANGED
+type Target {
+  targetType: TargetType!
+  quantity: Int!
+  sequenceId: Int!
 }
 
 enum TargetType {
-  CHARACTER
+  ACTION
+  SELF
   OBJECT
+  CHARACTER
   LOCATION
+}
+
+type Source {
+  sourceType: SourceType!
+  quantity: Int!
+  sequenceId: Int!
+}
+
+enum SourceType {
+  ACTION
+  SELF
+  OBJECT
+  CHARACTER
+  LOCATION
+}
+
+type Effect {
+  effectType: EffectType!
+  quantity: Int!
+  sequenceId: Int!
+}
+
+enum EffectType {
+  MODIFY_STAT
+  MODIFY_SKILL
+  MODIFY_ATTRIBUTE
+  CANCEL_MOVE
+  MOVE
+  HIT
+  CANCEL_HIT
 }
 
 input ActionInput {
   name: String!
-  type: ActionType!
-  timing: TimingInput!
-  cost: CostInput
-  dc: DCInput
-  guaranteed: FormulaInput
+  actionCategory: ActionCategory!
+  initDurationId: ID!
+  defaultInitDuration: Float!
+  durationId: ID!
+  defaultDuration: Float!
+  fatigueCost: Int
+  difficultyClassId: ID!
+  guaranteedFormulaId: ID!
   units: Units
-  effects: EffectsInput
-}
-
-input TimingInput {
-  initiative: InitiativeInput
-  duration: Float
-  timeUnit: TimeUnit
-}
-
-input InitiativeInput {
-  type: String
-  duration: Float
-  timeUnit: TimeUnit
-}
-
-input CostInput {
-  fatigue: Int
-  exhaustion: Int
-  hitPoints: Int
-  surges: Int
-}
-
-input DCInput {
-  type: String!
-  formula: String
-}
-
-input FormulaInput {
-  type: String!
-  formula: String
-}
-
-input EffectsInput {
-  start: [EffectInput]
-  during: [EffectInput]
-  end: [EffectInput]
-}
-
-input EffectInput {
-  type: EffectType!
-  resource: Resource
-  amount: Int
-  range: Range
-  targetType: [TargetType]
-  speed: String
-  cancelable: Boolean
+  description: String
+  actionTargets: [TargetInput]
+  actionSources: [SourceInput]
+   actionEffects: [EffectInput]!
+ }
+ 
+ input TargetInput { # Changed from type to input
+  targetType: TargetType!
+  quantity: Int!
+   sequenceId: Int!
+ }
+ 
+ input SourceInput { # Changed from type to input
+  sourceType: SourceType!
+  quantity: Int!
+   sequenceId: Int!
+ }
+ 
+ input EffectInput { # Changed from type to input
+  effectType: EffectType!
+  quantity: Int!
+  sequenceId: Int!
 }

@@ -41,6 +41,12 @@ Parameters:
   AttributesDataSourceName: # Add new parameter
     Type: String
     Description: 'Name for Attributes DynamoDB data source'
+  FormulasDataSourceName: # Add new parameter
+    Type: String
+    Description: 'Name for Formulas DynamoDB data source'
+  FormulasTableName: # Add new parameter
+    Type: String
+    Description: 'Name of Formulas table'
 
 
 Resources:
@@ -75,6 +81,7 @@ Resources:
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EncountersTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SkillsTableName} # Add Skills table ARN
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AttributesTableName} # Add Attributes table ARN
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${FormulasTableName} # Add Formulas table ARN
 
   AppSyncLambdaServiceRole:
     Type: AWS::IAM::Role
@@ -162,6 +169,17 @@ Resources:
       ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
       DynamoDBConfig:
         TableName: !Ref AttributesTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  FormulasDataSource: # Add Formulas data source
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref FormulasDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref FormulasTableName
         AwsRegion: !Sub ${AWS::Region}
 
 Outputs:

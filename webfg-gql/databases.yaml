@@ -83,6 +83,18 @@ Resources:
         - AttributeName: attributeId
           KeyType: HASH
 
+  FormulasTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ServiceName}-Formulas" # Follow naming convention
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: formulaId # Assuming formulaId is the primary key
+          AttributeType: S
+      KeySchema:
+        - AttributeName: formulaId
+          KeyType: HASH
+
 Outputs:
   CharactersTableName:
     Description: 'Name of the Characters table'
@@ -102,3 +114,6 @@ Outputs:
   AttributesTableName:
     Description: 'Name of the Attributes table'
     Value: !Ref AttributesTable
+  FormulasTableName:
+    Description: 'Name of the Formulas table'
+    Value: !Ref FormulasTable

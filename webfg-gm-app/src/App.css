@@ -43,6 +43,7 @@
 }
 
 .content {
+  padding-top: 60px;
   flex: 1;
   padding: 20px;
 }
@@ -50,6 +51,7 @@
 /* Important: This ensures content doesn't get overlapped by navbar on desktop */
 @media (min-width: 1024px) {
   .content {
+  padding-top: 60px;
     margin-left: 250px; /* Match navbar width */
   }
 }

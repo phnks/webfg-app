@@ -1,6 +1,12 @@
-import React, { useState } from "react";
-import { useMutation } from "@apollo/client";
-import { CREATE_OBJECT, UPDATE_OBJECT, LIST_OBJECTS, defaultObjectForm } from "../../graphql/operations";
+import React, { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@apollo/client";
+import { useNavigate } from 'react-router-dom';
+import {
+  CREATE_OBJECT,
+  UPDATE_OBJECT,
+  LIST_OBJECTS,
+  // defaultObjectForm is exported, but we'll build initial state based on schema
+} from "../../graphql/operations";
 import "./Form.css";
 
 // Helper function to strip __typename fields recursively
@@ -8,103 +14,136 @@ const stripTypename = (obj) => {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
-
   if (Array.isArray(obj)) {
     return obj.map(item => stripTypename(item));
   }
-
   const newObj = {};
   Object.entries(obj).forEach(([key, value]) => {
     if (key !== '__typename') {
       newObj[key] = stripTypename(value);
     }
   });
-
   return newObj;
 };
 
-// Prepare object data for input by only including relevant fields
-const prepareObjectInput = (data) => {
-  // Only include fields that are part of the ObjectInput type
-  // This list should match your GraphQL schema
-  const allowedFields = ['name', 'type', 'description', 'fit', 'weight', 'noise', 'value'];
-  
-  const input = {};
-  allowedFields.forEach(field => {
-    if (data[field] !== undefined) {
-      input[field] = data[field];
-    }
-  });
-  
+const prepareObjectInput = (data, isEditing) => {
+  const input = {
+    name: data.name,
+    type: data.type || "MISCELLANEOUS", // Assuming default type
+    fit: data.fit || "ONE_HAND", // Assuming default fit
+    weight: data.weight === '' ? 0.0 : parseFloat(data.weight) || 0.0,
+    noise: data.noise === '' ? 0 : parseInt(data.noise, 10) || 0, // Assuming noise is Int
+    hitPoints: data.hitPoints ? {
+        max: data.hitPoints.max === '' ? 0 : parseInt(data.hitPoints.max, 10) || 0,
+        current: data.hitPoints.current === '' ? 0 : parseInt(data.hitPoints.current, 10) || 0,
+    } : { max: 0, current: 0 }, // Initialize hitPoints if null
+  };
+
+   if (!isEditing) {
+      delete input.objectId; // Ensure objectId is not sent for creation
+  }
   return input;
 };
 
+// Define Enums used in the form (assuming these exist based on schema)
+const ObjectType = ["MISCELLANEOUS", "WEAPON", "ARMOR", "CONSUMABLE"]; // Example types
+const FitType = ["ONE_HAND", "TWO_HAND", "HEAD", "TORSO", "LEGS", "ARMS", "FINGERS", "FEET", "BACK"]; // Example fits
+
+
 const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
-  const initialFormData = isEditing && object 
-    ? { ...object }
-    : { ...defaultObjectForm };
+  // Initialize state based on schema fields
+  const initialFormData = isEditing && object
+    ? {
+        name: object.name || "",
+        type: object.type || "MISCELLANEOUS",
+        fit: object.fit || "ONE_HAND",
+        weight: object.weight ?? '', // Use ?? '' for input value
+        noise: object.noise ?? '', // Use ?? ''
+        hitPoints: object.hitPoints ? {
+            max: object.hitPoints.max ?? '', // Use ?? ''
+            current: object.hitPoints.current ?? '', // Use ?? ''
+        } : { max: '', current: '' }, // Initialize with empty strings for inputs
+      }
+    : {
+        name: "",
+        type: "MISCELLANEOUS",
+        fit: "ONE_HAND",
+        weight: '', // Initialize with empty string for input
+        noise: '', // Initialize with empty string
+        hitPoints: { max: '', current: '' }, // Initialize with empty strings
+      };
+
 
   const [formData, setFormData] = useState(initialFormData);
-  
+  const navigate = useNavigate();
+
+
   const [createObject, { loading: createLoading }] = useMutation(CREATE_OBJECT, {
     update(cache, { data: { createObject } }) {
       try {
-        // Read the current list of objects from the cache
         const { listObjects } = cache.readQuery({ query: LIST_OBJECTS }) || { listObjects: [] };
-        
-        // Update the cache with the new object
         cache.writeQuery({
           query: LIST_OBJECTS,
           data: { listObjects: [...listObjects, createObject] },
         });
-        
         console.log("Object created successfully:", createObject);
       } catch (err) {
         console.error("Error updating cache:", err);
       }
     }
   });
-  
+
   const [updateObject, { loading: updateLoading }] = useMutation(UPDATE_OBJECT);
-  
+
   const loading = createLoading || updateLoading;
 
+  // Modified handleChange to handle nested fields
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type } = e.target;
+    const [field, nestedField] = name.split('.');
+
+    setFormData(prev => {
+        let updatedFormData = { ...prev };
+
+        if (nestedField) {
+            // Handle nested fields (like hitPoints.max)
+            updatedFormData[field] = {
+                ...updatedFormData[field],
+                [nestedField]: type === 'number' && value === '' ? '' : value,
+            };
+        } else {
+            // Handle top-level fields (like name, type, fit, weight, noise)
+            updatedFormData[field] = type === 'number' && value === '' ? '' : value;
+        }
+
+        return updatedFormData;
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
-      // Clean the form data by removing __typename fields
       const cleanedData = stripTypename(formData);
-      
+      const inputData = prepareObjectInput(cleanedData, isEditing);
+
+      console.log(isEditing ? "Updating object with input:" : "Creating object with input:", inputData);
+
+      let result;
       if (isEditing) {
-        // Prepare only the fields that belong in ObjectInput
-        const inputData = prepareObjectInput(cleanedData);
-        console.log("Updating object with input:", inputData);
-        
-        const result = await updateObject({
+        result = await updateObject({
           variables: {
             objectId: object.objectId,
             input: inputData
           }
         });
-        
         onSuccess(result.data.updateObject.objectId);
       } else {
-        // Prepare only the fields that belong in ObjectInput
-        const inputData = prepareObjectInput(cleanedData);
-        console.log("Creating object with input:", inputData);
-        
-        const result = await createObject({
+        result = await createObject({
           variables: {
             input: inputData
           }
         });
-        
         onSuccess(result.data.createObject.objectId);
       }
     } catch (err) {
@@ -118,107 +157,103 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
     }
   };
 
+  const handleCancel = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      const currentPath = window.location.pathname;
+      if (currentPath.endsWith('/new')) {
+          const listPath = currentPath.replace('/new', '');
+          navigate(listPath);
+      } else {
+          navigate(-1);
+      }
+    }
+  };
+
   return (
     <div className="form-container">
       <h2>{isEditing ? "Edit Object" : "Create Object"}</h2>
       <form onSubmit={handleSubmit}>
+        {/* Basic Fields */}
         <div className="form-group">
           <label htmlFor="name">Name</label>
           <input
             type="text"
             id="name"
             name="name"
-            value={formData.name}
+            value={formData.name || ""}
             onChange={handleChange}
             required
           />
         </div>
-        
-        <div className="form-group">
+
+        {/* Type Dropdown */}
+         <div className="form-group">
           <label htmlFor="type">Type</label>
           <select
             id="type"
             name="type"
-            value={formData.type}
+            value={formData.type || ""}
             onChange={handleChange}
-            required
           >
-            <option value="">Select Type</option>
-            <option value="WEAPON">Weapon</option>
-            <option value="ARMOR">Armor</option>
-            <option value="CLOTHING">Clothing</option>
-            <option value="JEWELRY">Jewelry</option>
-            <option value="FOOD">Food</option>
-            <option value="TOOL">Tool</option>
-            <option value="CONTAINER">Container</option>
-            <option value="MISCELLANEOUS">Miscellaneous</option>
+            {ObjectType.map(type => <option key={type} value={type}>{type}</option>)}
           </select>
         </div>
-        
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description || ""}
-            onChange={handleChange}
-            rows={3}
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="value">Value</label>
-          <input
-            type="number"
-            id="value"
-            name="value"
-            value={formData.value || 0}
-            onChange={handleChange}
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="weight">Weight (kg)</label>
-          <input
-            type="number"
-            id="weight"
-            name="weight"
-            value={formData.weight || 0}
-            onChange={handleChange}
-            step="0.1"
-          />
-        </div>
 
-        <div className="form-group">
+        {/* Fit Dropdown */}
+         <div className="form-group">
           <label htmlFor="fit">Fit</label>
           <select
             id="fit"
             name="fit"
-            value={formData.fit || "ONE_HAND"}
+            value={formData.fit || ""}
             onChange={handleChange}
           >
-            <option value="ONE_HAND">One Hand</option>
-            <option value="TWO_HAND">Two Hands</option>
-            <option value="BODY">Body</option>
-            <option value="HEAD">Head</option>
-            <option value="FEET">Feet</option>
-            <option value="NONE">None</option>
+            {FitType.map(fit => <option key={fit} value={fit}>{fit}</option>)}
           </select>
         </div>
-        
+
+        {/* Numeric Fields based on schema */}
         <div className="form-group">
+          <label htmlFor="weight">Weight</label>
+          <input
+            type="number"
+            id="weight"
+            name="weight"
+            value={formData.weight ?? ''}
+            onChange={handleChange}
+            step="0.1"
+          />
+        </div>
+         <div className="form-group">
           <label htmlFor="noise">Noise</label>
           <input
             type="number"
             id="noise"
             name="noise"
-            value={formData.noise || 0}
+            value={formData.noise ?? ''}
             onChange={handleChange}
+            step="1"
           />
         </div>
-        
+
+        {/* Hit Points (Nested Object) */}
+        <h3>Hit Points</h3>
+         <div className="form-group">
+             <label htmlFor="hitPoints.max">Max Hit Points</label>
+             <input type="number" id="hitPoints.max" name="hitPoints.max" value={formData.hitPoints?.max ?? ''} onChange={handleChange} step="1" />
+         </div>
+         <div className="form-group">
+             <label htmlFor="hitPoints.current">Current Hit Points</label>
+             <input type="number" id="hitPoints.current" name="hitPoints.current" value={formData.hitPoints?.current ?? ''} onChange={handleChange} step="1" />
+         </div>
+
+
+        {/* Removed Quantity and Value based on schema */}
+
         <div className="form-actions">
-          <button type="button" onClick={onClose}>Cancel</button>
+          <button type="button" onClick={handleCancel}>Cancel</button>
           <button type="submit" disabled={loading}>
             {loading ? (isEditing ? "Updating..." : "Creating...") : (isEditing ? "Update" : "Create")}
           </button>
@@ -228,4 +263,4 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
   );
 };
 
-export default ObjectForm; 
+export default ObjectForm;

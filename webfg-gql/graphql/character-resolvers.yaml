@@ -142,35 +142,35 @@ Resources:
         $util.toJson($ctx.result)
 
   # --- Resolvers for Base Skills/Attributes ---
-  ListSkillsResolver: 
-    Type: AWS::AppSync::Resolver 
-    Properties: 
+  ListSkillsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
       ApiId: !Ref ApiId
       TypeName: Query
       FieldName: listSkills
-      DataSourceName: !Ref SkillsDataSourceName 
+      DataSourceName: !Ref SkillsDataSourceName
       RequestMappingTemplate: |
         {
           "version": "2017-02-28",
           "operation": "Scan"
         }
-      ResponseMappingTemplate: | 
-        $util.toJson($ctx.result.items) 
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result.items)
 
-  ListAttributesResolver: 
-    Type: AWS::AppSync::Resolver 
-    Properties: 
+  ListAttributesResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
       ApiId: !Ref ApiId
       TypeName: Query
       FieldName: listAttributes
-      DataSourceName: !Ref AttributesDataSourceName 
+      DataSourceName: !Ref AttributesDataSourceName
       RequestMappingTemplate: |
         {
           "version": "2017-02-28",
           "operation": "Scan"
         }
-      ResponseMappingTemplate: | 
-        $util.toJson($ctx.result.items) 
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result.items)
 
   # --- Existing Character Resolvers ---
 
@@ -247,38 +247,37 @@ Resources:
       DataSourceName: !Ref CharactersDataSourceName
       RequestMappingTemplate: |
         {
-          "version": "2017-02-28",
+          "version": "2018-05-29", ## Changed version
           "operation": "UpdateItem",
           "key": {
             "characterId": $util.dynamodb.toDynamoDBJson($ctx.args.characterId)
           },
           "update": {
-            # Build the update expression dynamically based on provided arguments
-            # Initialize expression parts
-            #set($expression = "SET ")
-            #set($expressionNames = {})
-            #set($expressionValues = {})
-            #set($updates = [])
-
-            # Add updates for each field if present in args
-            #if($ctx.args.name) $util.qr($updates.add("#n = :n")) $util.qr($expressionNames.put("#n", "name")) $util.qr($expressionValues.put(":n", $util.dynamodb.toDynamoDBJson($ctx.args.name))) #end
-            #if($ctx.args.attributeData) $util.qr($updates.add("#ad = :ad")) $util.qr($expressionNames.put("#ad", "attributeData")) $util.qr($expressionValues.put(":ad", $util.dynamodb.toDynamoDBJson($ctx.args.attributeData))) #end
-            #if($ctx.args.skillData) $util.qr($updates.add("#sd = :sd")) $util.qr($expressionNames.put("#sd", "skillData")) $util.qr($expressionValues.put(":sd", $util.dynamodb.toDynamoDBJson($ctx.args.skillData))) #end
-            #if($ctx.args.stats) $util.qr($updates.add("#st = :st")) $util.qr($expressionNames.put("#st", "stats")) $util.qr($expressionValues.put(":st", $util.dynamodb.toDynamoDBJson($ctx.args.stats))) #end
-            #if($ctx.args.physical) $util.qr($updates.add("#ph = :ph")) $util.qr($expressionNames.put("#ph", "physical")) $util.qr($expressionValues.put(":ph", $util.dynamodb.toDynamoDBJson($ctx.args.physical))) #end
-            #if($ctx.args.conditions) $util.qr($updates.add("#co = :co")) $util.qr($expressionNames.put("#co", "conditions")) $util.qr($expressionValues.put(":co", $util.dynamodb.toDynamoDBJson($ctx.args.conditions))) #end
-            #if($ctx.args.inventoryIds) $util.qr($updates.add("#ii = :ii")) $util.qr($expressionNames.put("#ii", "inventoryIds")) $util.qr($expressionValues.put(":ii", $util.dynamodb.toDynamoDBJson($ctx.args.inventoryIds))) #end
-            #if($ctx.args.equipmentIds) $util.qr($updates.add("#ei = :ei")) $util.qr($expressionNames.put("#ei", "equipmentIds")) $util.qr($expressionValues.put(":ei", $util.dynamodb.toDynamoDBJson($ctx.args.equipmentIds))) #end
-            #if($ctx.args.actionIds) $util.qr($updates.add("#ai = :ai")) $util.qr($expressionNames.put("#ai", "actionIds")) $util.qr($expressionValues.put(":ai", $util.dynamodb.toDynamoDBJson($ctx.args.actionIds))) #end
-            #if($ctx.args.traitIds) $util.qr($updates.add("#ti = :ti")) $util.qr($expressionNames.put("#ti", "traitIds")) $util.qr($expressionValues.put(":ti", $util.dynamodb.toDynamoDBJson($ctx.args.traitIds))) #end
-            ## race removed from update
-
-            # Combine updates
-            $util.qr($expression.append($updates.join(", ")))
-
-            "expression": "$expression",
-            "expressionNames": $utils.toJson($expressionNames),
-            "expressionValues": $utils.toJson($expressionValues)
+            "expression": "SET #name = :name, #attributeData = :attributeData, #skillData = :skillData, #stats = :stats, #physical = :physical, #conditions = :conditions, #inventoryIds = :inventoryIds, #equipmentIds = :equipmentIds, #actionIds = :actionIds, #traitIds = :traitIds", ## Include all fields
+            "expressionNames": {
+              "#name": "name",
+              "#attributeData": "attributeData",
+              "#skillData": "skillData",
+              "#stats": "stats",
+              "#physical": "physical",
+              "#conditions": "conditions",
+              "#inventoryIds": "inventoryIds",
+              "#equipmentIds": "equipmentIds",
+              "#actionIds": "actionIds",
+              "#traitIds": "traitIds"
+            },
+            "expressionValues": {
+              ":name": $util.dynamodb.toDynamoDBJson($ctx.args.name),
+              ":attributeData": $util.dynamodb.toDynamoDBJson($ctx.args.attributeData),
+              ":skillData": $util.dynamodb.toDynamoDBJson($ctx.args.skillData),
+              ":stats": $util.dynamodb.toDynamoDBJson($ctx.args.stats),
+              ":physical": $util.dynamodb.toDynamoDBJson($ctx.args.physical),
+              ":conditions": $util.dynamodb.toDynamoDBJson($ctx.args.conditions),
+              ":inventoryIds": $util.dynamodb.toDynamoDBJson($ctx.args.inventoryIds),
+              ":equipmentIds": $util.dynamodb.toDynamoDBJson($ctx.args.equipmentIds),
+              ":actionIds": $util.dynamodb.toDynamoDBJson($ctx.args.actionIds),
+              ":traitIds": $util.dynamodb.toDynamoDBJson($ctx.args.traitIds)
+            }
           }
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'

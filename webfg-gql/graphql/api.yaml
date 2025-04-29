@@ -46,7 +46,7 @@ Resources:
     Type: AWS::AppSync::ApiKey
     Properties:
       ApiId: !GetAtt GraphQLApi.ApiId
-      Expires: 1771131600
+      Expires: 1771131600 # Set a far-future expiration date (e.g., 10 years from 2023)
 
   GraphQLSchema:
     Type: AWS::AppSync::GraphQLSchema
@@ -55,20 +55,20 @@ Resources:
       DefinitionS3Location: !Sub "s3://${SchemaS3BucketName}/${SchemaS3Key}"
 
   AppSyncDomainName:
-    Type: AWS::AppSync::DomainName
+    Type: AWS::AppSync::DomainName # Restored Type
     Properties:
       DomainName: !Sub '${ServiceName}.${DomainName}'
       CertificateArn: !Ref PhnksCertArn
 
   AppSyncDomainNameApiAssociation:
-    Type: AWS::AppSync::DomainNameApiAssociation
+    Type: AWS::AppSync::DomainNameApiAssociation # Restored Type
     DependsOn: AppSyncDomainName
     Properties:
       ApiId: !GetAtt GraphQLApi.ApiId
       DomainName: !Sub '${ServiceName}.${DomainName}'
 
   AppSyncDomainRecordSet:
-    Type: AWS::Route53::RecordSet
+    Type: AWS::Route53::RecordSet # Restored Type
     Properties:
       HostedZoneId: !Ref PhnksHostedZoneId
       Name: !Sub '${ServiceName}.${DomainName}.'
@@ -82,7 +82,7 @@ Outputs:
     Description: 'AppSync GraphQL API ID'
     Value: !GetAtt GraphQLApi.ApiId
   AppSyncEndpoint:
-    Description: 'GraphQL API Custom Domain'
+    Description: 'GraphQL API Custom Domain' # Restored Custom Endpoint
     Value: !Sub 'https://${ServiceName}.${DomainName}'
   AppSyncApiKey:
     Description: 'GraphQL API Key'
