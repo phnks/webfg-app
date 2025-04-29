@@ -101,6 +101,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const { data: skillsData, loading: skillsLoading, error: skillsError } = useQuery(LIST_SKILLS);
 
   // State for form data, including dynamic attributes and skills
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     race: "",
@@ -327,12 +328,17 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       }
     } catch (err) {
       console.error("Error saving character:", err);
-      if (err.graphQLErrors) {
+      let errorMessage = "An unexpected error occurred.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
         console.error("GraphQL Errors:", err.graphQLErrors);
-      }
-      if (err.networkError) {
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
         console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
       }
+      setError(errorMessage);
     }
   };
 
@@ -483,6 +489,15 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           </button>
         </div>
       </form>
+      {error && (
+        <div className="error-popup">
+          <div className="error-popup-content">
+            <h3>Error</h3>
+            <pre>{error}</pre>
+            <button onClick={() => setError(null)}>Dismiss</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
