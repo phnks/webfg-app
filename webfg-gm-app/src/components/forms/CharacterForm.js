@@ -30,8 +30,8 @@ const stripTypename = (obj) => {
 // Refactored prepareCharacterInput to match schema's PhysicalInput and handle conditions for mutation
 const prepareCharacterInput = (data, isEditing) => {
   const input = {
-    name: data.name || "",
-    race: data.race || "",
+    name: JSON.stringify(data.name || ""),
+    // race removed as per schema
     attributeData: (data.attributeData || []).filter(attr => attr != null).map(attr => ({
         attributeId: attr.attributeId,
         attributeValue: attr.attributeValue === '' ? 0 : parseInt(attr.attributeValue, 10) || 0,
@@ -47,44 +47,45 @@ const prepareCharacterInput = (data, isEditing) => {
         },
         fatigue: {
              current: data.stats.fatigue.current === '' ? 0 : parseInt(data.stats.fatigue.current, 10) || 0,
-            max: data.stats.fatigue?.max === '' ? null : parseInt(data.stats.fatigue?.max, 10) || 0,
+            max: data.stats.fatigue?.max === '' ? 0 : parseInt(data.stats.fatigue?.max, 10) || 0,
         },
          exhaustion: {
              current: data.stats.exhaustion.current === '' ? 0 : parseInt(data.stats.exhaustion.current, 10) || 0,
-            max: data.stats.exhaustion?.max === '' ? null : parseInt(data.stats.exhaustion?.max, 10) || 0,
+            max: data.stats.exhaustion?.max === '' ? 0 : parseInt(data.stats.exhaustion?.max, 10) || 0,
         },
          surges: {
              current: data.stats.surges.current === '' ? 0 : parseInt(data.stats.surges.current, 10) || 0,
-            max: data.stats.surges?.max === '' ? null : parseInt(data.stats.surges?.max, 10) || 0,
+            max: data.stats.surges?.max === '' ? 0 : parseInt(data.stats.surges?.max, 10) || 0,
         },
     } : null,
     // Corrected physical structure based on schema
     physical: data.physical ? {
         height: data.physical.height === '' ? 0.0 : parseFloat(data.physical.height) || 0.0,
-        bodyFatPercentage: data.physical.bodyFatPercentage === '' ? null : parseFloat(data.physical.bodyFatPercentage) || 0.0,
+        bodyFatPercentage: data.physical.bodyFatPercentage === '' ? 0.0 : parseFloat(data.physical.bodyFatPercentage) || 0.0,
         width: data.physical.width === '' ? 0.0 : parseFloat(data.physical.width) || 0.0,
         length: data.physical.length === '' ? 0.0 : parseFloat(data.physical.length) || 0.0,
-        height: data.physical.height === '' ? 0.0 : parseFloat(data.physical.height) || 0.0,
+        // Removed duplicate height creation
         adjacency: data.physical.adjacency === '' ? 0.0 : parseFloat(data.physical.adjacency) || 0.0,
     } : null,
     // Transform conditions from [Trait] to [String] for mutation
-    conditions: (data.conditions || []).map(condition => {
+    conditions: (data.conditions || [])
+      .filter(condition => condition != null) // Filter out null/undefined conditions
+      .map(condition => {
         // Check if condition is an object with a 'name' property (from query result)
-        if (typeof condition === 'object' && condition !== null && condition.name !== undefined) {
+        if (typeof condition === 'object' && condition.name !== undefined) {
             return condition.name; // Use the name property as the string
         }
-        return String(condition); // Otherwise, assume it's already a string or convert it
+        // If it's not an object with a name, assume it's already a string or convert it.
+        // Since we filtered null/undefined, this should be safer now.
+        return String(condition);
     }),
     inventoryIds: data.inventoryIds || [].filter(id => id != null),
     equipmentIds: data.equipmentIds || [].filter(id => id != null),
     actionIds: data.actionIds || [].filter(id => id != null),
   };
 
-  // Remove the duplicate height field from physical input - still needed due to state structure
-  if (input.physical) {
-      const { height, ...restPhysical } = input.physical;
-      input.physical = { ...restPhysical, height };
-  }
+  // Correctly remove the duplicate height field from physical input
+
 
   if (!isEditing) {
       delete input.characterId;
@@ -133,7 +134,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                 fatigue: { current: character.stats.fatigue.current ?? '', max: character.stats.fatigue.max ?? '' },
                 exhaustion: { current: character.stats.exhaustion.current ?? '', max: character.stats.exhaustion.max ?? '' },
                 surges: { current: character.stats.surges.current ?? '', max: character.stats.surges.max ?? '' },
-            } : { hitPoints: { current: '', max: '' }, fatigue: { current: '', max: '' }, exhaustion: { current: '', max: '' }, surges: { current: '', max: '' } },
+            } : { hitPoints: { current: '', max: '' }, fatigue: { current: '', max: '', }, exhaustion: { current: '', max: '' }, surges: { current: '', max: '' } },
              // Corrected physical data mapping for editing
              physical: character.physical ? {
                 height: character.physical.height ?? '',
@@ -225,9 +226,11 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
               // The `prepareCharacterInput` function should correctly handle this transformation.
               // Let's double-check the `prepareCharacterInput` conditions mapping.
               // It looks correct: `(data.conditions || []).map(...)` maps over the array.
-              // If the input condition is an object (from query), it takes `condition.name`.
-              // If it's not an object (e.g., initial state []), it converts to string.
-              // This logic seems correct for transforming [Trait] to [String].
+              // If the input condition is an object with a 'name' property (from query result)
+              // if (typeof condition === 'object' && condition.name !== undefined) {
+              //     return condition.name; // Use the name property as the string
+              // }
+              // return String(condition); // Otherwise, assume it's already a string or convert it
               // The error might be in the data itself being passed to prepareCharacterInput,
               // or a subtle issue with the mapping or null handling within the map.
               // Let's assume the mapping is correct and the issue is related to nulls or unexpected data in the conditions array.
@@ -366,16 +369,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             required
           />
         </div>
-         <div className="form-group">
-          <label htmlFor="race">Race</label>
-          <input
-            type="text"
-            id="race"
-            name="race"
-            value={formData.race || ""}
-            onChange={handleChange}
-          />
-        </div>
+
 
         {/* Dynamic Attributes */}
         <h3>Attributes</h3>
