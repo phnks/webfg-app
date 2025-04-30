@@ -16,7 +16,7 @@ if [ "$ENVIRONMENT" == "qa" ]; then
   BUILD_SCRIPT="build" # Use standard build for QA
 else # prod
   STACK_NAME="webfg-gm-app"
-  BUILD_SCRIPT="build:prod" # Use prod build for Prod
+  BUILD_SCRIPT="build" # Use prod build for Prod
 fi
 
 echo "ENVIRONMENT: $ENVIRONMENT"
