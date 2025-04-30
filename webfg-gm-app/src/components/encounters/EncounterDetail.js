@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ErrorPopup from '../common/ErrorPopup';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useSubscription, useApolloClient } from '@apollo/client';
 import { 
@@ -31,6 +32,7 @@ import './EncounterDetail.css';
 const EncounterDetail = () => {
   const { encounterId } = useParams();
   const navigate = useNavigate();
+  const [error, setError] = useState(null);
   const [timeInput, setTimeInput] = useState('');
   const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
   const [showAddObjectModal, setShowAddObjectModal] = useState(false);
@@ -207,7 +209,21 @@ const EncounterDetail = () => {
       });
       setTimeInput('');
     } catch (err) {
-      console.error('Error advancing time:', err);
+      console.error("Error advancing time:", err);
+      let errorMessage = "An unexpected error occurred while advancing time.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -244,7 +260,21 @@ const EncounterDetail = () => {
       
       setShowAddCharacterModal(false);
     } catch (err) {
-      console.error('Error adding character:', err);
+      console.error("Error adding character:", err);
+      let errorMessage = "An unexpected error occurred while adding character.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -278,8 +308,22 @@ const EncounterDetail = () => {
           historyEvent
         }
       });
-    } catch (error) {
-      console.error('Error adding action:', error);
+    } catch (err) {
+      console.error("Error adding action:", err);
+      let errorMessage = "An unexpected error occurred while adding action.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -294,7 +338,21 @@ const EncounterDetail = () => {
         }
       });
     } catch (err) {
-      console.error('Error moving character:', err);
+      console.error("Error moving character:", err);
+      let errorMessage = "An unexpected error occurred while moving character.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -309,8 +367,22 @@ const EncounterDetail = () => {
           }
         }
       });
-    } catch (error) {
-      console.error('Failed to update grid size:', error);
+    } catch (err) {
+      console.error("Failed to update grid size:", err);
+      let errorMessage = "An unexpected error occurred while updating grid size.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -342,7 +414,21 @@ const EncounterDetail = () => {
       console.log(`Added object ${objectId} to encounter ${encounterId}`);
       setShowAddObjectModal(false);
     } catch (err) {
-      console.error('Error adding object to VTT:', err);
+      console.error("Error adding object to VTT:", err);
+      let errorMessage = "An unexpected error occurred while adding object.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -352,7 +438,21 @@ const EncounterDetail = () => {
         variables: { encounterId, objectId, x, y }
       });
     } catch (err) {
-      console.error('Error moving object:', err);
+      console.error("Error moving object:", err);
+      let errorMessage = "An unexpected error occurred while moving object.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -363,7 +463,21 @@ const EncounterDetail = () => {
         variables: { encounterId, objectId }
       });
     } catch (err) {
-      console.error('Error removing object:', err);
+      console.error("Error removing object:", err);
+      let errorMessage = "An unexpected error occurred while removing object.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -387,7 +501,21 @@ const EncounterDetail = () => {
       });
       setShowAddTerrainPanel(false); // Close panel after adding
     } catch (err) {
-      console.error('Error adding terrain:', err);
+      console.error("Error adding terrain:", err);
+      let errorMessage = "An unexpected error occurred while adding terrain.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -400,7 +528,21 @@ const EncounterDetail = () => {
         }
       });
     } catch (err) {
-      console.error('Error moving terrain:', err);
+      console.error("Error moving terrain:", err);
+      let errorMessage = "An unexpected error occurred while moving terrain.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -411,7 +553,21 @@ const EncounterDetail = () => {
         variables: { encounterId, terrainId }
       });
     } catch (err) {
-      console.error('Error removing terrain:', err);
+      console.error("Error removing terrain:", err);
+      let errorMessage = "An unexpected error occurred while removing terrain.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -617,6 +773,7 @@ const EncounterDetail = () => {
           </div>
         </div>
       )}
+      <ErrorPopup error={error} onClose={() => setError(null)} />
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ErrorPopup from '../common/ErrorPopup';
 import { useQuery, useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
@@ -61,6 +62,7 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
     ? { ...defaultActionForm, ...action }
     : { ...defaultActionForm };
 
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
   const [newFormulaTexts, setNewFormulaTexts] = useState({
     initDuration: '',
@@ -203,12 +205,20 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
       }
     } catch (err) {
       console.error("Error saving action:", err);
-      if (err.graphQLErrors) {
+      let errorMessage = "An unexpected error occurred.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
         console.error("GraphQL Errors:", err.graphQLErrors);
-      }
-      if (err.networkError) {
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
         console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
       }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
 
@@ -534,6 +544,7 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
           </button>
         </div>
       </form>
+      <ErrorPopup error={error} onClose={() => setError(null)} />
     </div>
   );
 };

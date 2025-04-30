@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ErrorPopup from '../common/ErrorPopup';
 import { useQuery, useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
@@ -494,22 +495,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           </button>
         </div>
       </form>
-      {error && (
-        <div className="error-popup">
-          <div className="error-popup-content">
-            <h3>Error</h3>
-            <p><strong>Message:</strong></p>
-            <pre>{error.message}</pre>
-            {error.stack && (
-              <>
-                <p><strong>Stack Trace:</strong></p>
-                <pre>{error.stack}</pre>
-              </>
-            )}
-            <button onClick={() => setError(null)}>Dismiss</button>
-          </div>
-        </div>
-      )}
+      <ErrorPopup error={error} onClose={() => setError(null)} />
     </div>
   );
 };
