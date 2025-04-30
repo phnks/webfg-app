@@ -201,20 +201,26 @@ const EncounterDetail = () => {
     if (isNaN(newTime)) return;
     
     try {
-      try {
-        await advanceEncounterTime({
-          variables: {
-            encounterId,
-            newTime
-          }
-        });
-        setTimeInput('');
-      } catch (mutationErr) {
-        console.log('Inner catch block triggered for advanceEncounterTime');
-        throw mutationErr; // Re-throw to be caught by the outer catch
+      const result = await advanceEncounterTime({
+        variables: {
+          encounterId,
+          newTime
+        }
+      });
+      setTimeInput('');
+
+      if (result.errors) {
+        console.error('GraphQL Errors:', result.errors);
+        const errorMessage = result.errors.map(e => e.message).join('\n');
+        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        setMutationError({ message: errorMessage, stack: errorStack });
+      } else {
+        // Success or data is null but no errors array
+        // Handle success or expected null data if needed
       }
+
     } catch (err) {
-      console.log('Outer Catch block triggered for advanceEncounterTime');
+      // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error advancing time:", err);
       let errorMessage = "An unexpected error occurred while advancing time.";
       let errorStack = err.stack || "No stack trace available.";
@@ -229,7 +235,6 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      console.log('Setting mutationError state:', { message: errorMessage, stack: errorStack });
       setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
@@ -306,7 +311,7 @@ const EncounterDetail = () => {
         conditions: character.conditions || []
       };
 
-      await addActionToTimeline({
+      const result = await addActionToTimeline({
         variables: {
           encounterId,
           characterId,
@@ -315,7 +320,19 @@ const EncounterDetail = () => {
           historyEvent
         }
       });
+
+      if (result.errors) {
+        console.error('GraphQL Errors:', result.errors);
+        const errorMessage = result.errors.map(e => e.message).join('\n');
+        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        setMutationError({ message: errorMessage, stack: errorStack });
+      } else {
+        // Success or data is null but no errors array
+        // Handle success or expected null data if needed
+      }
+
     } catch (err) {
+      // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error adding action:", err);
       let errorMessage = "An unexpected error occurred while adding action.";
       let errorStack = err.stack || "No stack trace available.";
@@ -336,7 +353,7 @@ const EncounterDetail = () => {
   
   const handleMoveCharacter = async (characterId, x, y) => {
     try {
-      await updateCharacterPosition({
+      const result = await updateCharacterPosition({
         variables: {
           encounterId,
           characterId,
@@ -344,8 +361,19 @@ const EncounterDetail = () => {
           y
         }
       });
+
+      if (result.errors) {
+        console.error('GraphQL Errors:', result.errors);
+        const errorMessage = result.errors.map(e => e.message).join('\n');
+        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        setMutationError({ message: errorMessage, stack: errorStack });
+      } else {
+        // Success or data is null but no errors array
+        // Handle success or expected null data if needed
+      }
+
     } catch (err) {
-      console.log('Catch block triggered for handleMoveCharacter');
+      // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error moving character:", err);
       let errorMessage = "An unexpected error occurred while moving character.";
       let errorStack = err.stack || "No stack trace available.";
@@ -360,14 +388,13 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      console.log('Setting mutationError state:', { message: errorMessage, stack: errorStack });
       setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
   const handleGridSizeUpdate = async (rows, columns) => {
     try {
-      await updateGridSize({
+      const result = await updateGridSize({
         variables: {
           input: {
             encounterId,
@@ -376,7 +403,19 @@ const EncounterDetail = () => {
           }
         }
       });
+
+      if (result.errors) {
+        console.error('GraphQL Errors:', result.errors);
+        const errorMessage = result.errors.map(e => e.message).join('\n');
+        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        setMutationError({ message: errorMessage, stack: errorStack });
+      } else {
+        // Success or data is null but no errors array
+        // Handle success or expected null data if needed
+      }
+
     } catch (err) {
+      // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Failed to update grid size:", err);
       let errorMessage = "An unexpected error occurred while updating grid size.";
       let errorStack = err.stack || "No stack trace available.";
@@ -412,7 +451,7 @@ const EncounterDetail = () => {
     }
 
     try {
-      await addObjectToVTT({
+      const result = await addObjectToVTT({
         variables: {
           encounterId,
           objectId,
@@ -421,8 +460,18 @@ const EncounterDetail = () => {
         }
       });
       console.log(`Added object ${objectId} to encounter ${encounterId}`);
-      setShowAddObjectModal(false);
+
+      if (result.errors) {
+        console.error('GraphQL Errors:', result.errors);
+        const errorMessage = result.errors.map(e => e.message).join('\n');
+        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        setMutationError({ message: errorMessage, stack: errorStack });
+      } else {
+        setShowAddObjectModal(false);
+      }
+
     } catch (err) {
+      // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error adding object to VTT:", err);
       let errorMessage = "An unexpected error occurred while adding object.";
       let errorStack = err.stack || "No stack trace available.";
@@ -443,10 +492,22 @@ const EncounterDetail = () => {
   
   const handleMoveObject = async (objectId, x, y) => {
     try {
-      await updateObjectPosition({
+      const result = await updateObjectPosition({
         variables: { encounterId, objectId, x, y }
       });
+
+      if (result.errors) {
+        console.error('GraphQL Errors:', result.errors);
+        const errorMessage = result.errors.map(e => e.message).join('\n');
+        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        setMutationError({ message: errorMessage, stack: errorStack });
+      } else {
+        // Success or data is null but no errors array
+        // Handle success or expected null data if needed
+      }
+
     } catch (err) {
+      // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error moving object:", err);
       let errorMessage = "An unexpected error occurred while moving object.";
       let errorStack = err.stack || "No stack trace available.";
@@ -468,10 +529,22 @@ const EncounterDetail = () => {
   const handleDeleteObject = async (objectId) => {
     if (!window.confirm("Are you sure you want to remove this object from the encounter?")) return;
     try {
-      await removeObjectFromVTT({
+      const result = await removeObjectFromVTT({
         variables: { encounterId, objectId }
       });
+
+      if (result.errors) {
+        console.error('GraphQL Errors:', result.errors);
+        const errorMessage = result.errors.map(e => e.message).join('\n');
+        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        setMutationError({ message: errorMessage, stack: errorStack });
+      } else {
+        // Success or data is null but no errors array
+        // Handle success or expected null data if needed
+      }
+
     } catch (err) {
+      // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error removing object:", err);
       let errorMessage = "An unexpected error occurred while removing object.";
       let errorStack = err.stack || "No stack trace available.";
@@ -496,7 +569,7 @@ const EncounterDetail = () => {
       // Simple placement at (0, 0) for now
       let startX = 0, startY = 0;
       // TODO: Allow user to click on grid to place?
-      await addTerrainToEncounter({
+      const result = await addTerrainToEncounter({
         variables: {
           encounterId,
           input: {
@@ -508,8 +581,18 @@ const EncounterDetail = () => {
           }
         }
       });
-      setShowAddTerrainPanel(false); // Close panel after adding
+
+      if (result.errors) {
+        console.error('GraphQL Errors:', result.errors);
+        const errorMessage = result.errors.map(e => e.message).join('\n');
+        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        setMutationError({ message: errorMessage, stack: errorStack });
+      } else {
+        setShowAddTerrainPanel(false); // Close panel after adding
+      }
+
     } catch (err) {
+      // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error adding terrain:", err);
       let errorMessage = "An unexpected error occurred while adding terrain.";
       let errorStack = err.stack || "No stack trace available.";
@@ -530,13 +613,25 @@ const EncounterDetail = () => {
   
   const handleMoveTerrain = async (terrainId, startX, startY) => {
     try {
-      await updateTerrainPosition({
+      const result = await updateTerrainPosition({
         variables: {
           encounterId,
           input: { terrainId, startX, startY }
         }
       });
+
+      if (result.errors) {
+        console.error('GraphQL Errors:', result.errors);
+        const errorMessage = result.errors.map(e => e.message).join('\n');
+        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        setMutationError({ message: errorMessage, stack: errorStack });
+      } else {
+        // Success or data is null but no errors array
+        // Handle success or expected null data if needed
+      }
+
     } catch (err) {
+      // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error moving terrain:", err);
       let errorMessage = "An unexpected error occurred while moving terrain.";
       let errorStack = err.stack || "No stack trace available.";
@@ -558,10 +653,22 @@ const EncounterDetail = () => {
   const handleDeleteTerrain = async (terrainId) => {
     if (!window.confirm("Are you sure you want to remove this terrain element?")) return;
     try {
-      await removeTerrainFromEncounter({
+      const result = await removeTerrainFromEncounter({
         variables: { encounterId, terrainId }
       });
+
+      if (result.errors) {
+        console.error('GraphQL Errors:', result.errors);
+        const errorMessage = result.errors.map(e => e.message).join('\n');
+        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        setMutationError({ message: errorMessage, stack: errorStack });
+      } else {
+        // Success or data is null but no errors array
+        // Handle success or expected null data if needed
+      }
+
     } catch (err) {
+      // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error removing terrain:", err);
       let errorMessage = "An unexpected error occurred while removing terrain.";
       let errorStack = err.stack || "No stack trace available.";
