@@ -338,7 +338,22 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       } else {
           errorMessage = err.message;
       }
-      setError(errorMessage);
+      let errorMessage = "An unexpected error occurred.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        // GraphQL errors might have a stack trace on individual errors or the main error object
+        // For simplicity, we'll use the main error object's stack for now, or indicate if none
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
 
@@ -493,7 +508,14 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         <div className="error-popup">
           <div className="error-popup-content">
             <h3>Error</h3>
-            <pre>{error}</pre>
+            <p><strong>Message:</strong></p>
+            <pre>{error.message}</pre>
+            {error.stack && (
+              <>
+                <p><strong>Stack Trace:</strong></p>
+                <pre>{error.stack}</pre>
+              </>
+            )}
             <button onClick={() => setError(null)}>Dismiss</button>
           </div>
         </div>
