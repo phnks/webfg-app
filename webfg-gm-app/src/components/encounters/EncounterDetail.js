@@ -209,6 +209,7 @@ const EncounterDetail = () => {
       });
       setTimeInput('');
     } catch (err) {
+      console.log('Catch block triggered for advanceEncounterTime');
       console.error("Error advancing time:", err);
       let errorMessage = "An unexpected error occurred while advancing time.";
       let errorStack = err.stack || "No stack trace available.";
@@ -223,6 +224,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
+      console.log('Setting mutationError state:', { message: errorMessage, stack: errorStack });
       setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
@@ -338,6 +340,7 @@ const EncounterDetail = () => {
         }
       });
     } catch (err) {
+      console.log('Catch block triggered for handleMoveCharacter');
       console.error("Error moving character:", err);
       let errorMessage = "An unexpected error occurred while moving character.";
       let errorStack = err.stack || "No stack trace available.";
@@ -352,6 +355,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
+      console.log('Setting mutationError state:', { message: errorMessage, stack: errorStack });
       setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
