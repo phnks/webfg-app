@@ -74,15 +74,15 @@ const EncounterDetail = () => {
           {
             query: GET_ENCOUNTER,
             variables: { encounterId }
-          },
+    ,
           (existingData) => {
             if (!existingData?.getEncounter) return existingData;
             return {
               getEncounter: {
                 ...existingData.getEncounter,
                 ...updatedEncounter
-              }
-            };
+        
+      ;
           }
         );
       }
@@ -207,6 +207,10 @@ const EncounterDetail = () => {
           newTime
         }
       });
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
       // Check for null data or errors
       if (!result.data || (result.errors && result.errors.length > 0)) {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");

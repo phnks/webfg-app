@@ -194,7 +194,7 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
             input: finalInputData
           }
         });
-        if (!result.data || (result.errors && result.errors.length > 0)) {
+        if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
             throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
         }
         onSuccess(result.data.updateAction.actionId);
@@ -204,7 +204,7 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
             input: finalInputData
           }
         });
-        if (!result.data || (result.errors && result.errors.length > 0)) {
+        if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
             throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
         }
         onSuccess(result.data.createAction.actionId);
