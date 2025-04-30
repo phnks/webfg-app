@@ -139,6 +139,9 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
             input: inputData
           }
         });
+        // Check for null data or errors
+
+
         onSuccess(result.data.updateObject.objectId);
       } else {
         result = await createObject({
@@ -146,6 +149,8 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
             input: inputData
           }
         });
+        // Check for null data or errors
+
         onSuccess(result.data.createObject.objectId);
       }
     } catch (err) {

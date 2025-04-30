@@ -194,6 +194,9 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
             input: finalInputData
           }
         });
+        if (!result.data || (result.errors && result.errors.length > 0)) {
+            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+        }
         onSuccess(result.data.updateAction.actionId);
       } else {
         result = await createAction({
@@ -201,6 +204,9 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
             input: finalInputData
           }
         });
+        if (!result.data || (result.errors && result.errors.length > 0)) {
+            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+        }
         onSuccess(result.data.createAction.actionId);
       }
     } catch (err) {

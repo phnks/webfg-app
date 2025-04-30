@@ -207,15 +207,23 @@ const EncounterDetail = () => {
           newTime
         }
       });
+      // Check for null data or errors
+      if (!result.data || (result.errors && result.errors.length > 0)) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
+      // Check for null data or errors
+      if (!result.data || (result.errors && result.errors.length > 0)) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
       setTimeInput('');
 
-      if (result.errors) {
-        console.error('GraphQL Errors:', result.errors);
-        const errorMessage = result.errors.map(e => e.message).join('\n');
-        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
-        setMutationError({ message: errorMessage, stack: errorStack });
-      } else {
-        // Success or data is null but no errors array
+
+        
+        
+        
+        
+      
+        
         // Handle success or expected null data if needed
       }
 
