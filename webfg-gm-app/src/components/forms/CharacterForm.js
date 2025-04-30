@@ -310,6 +310,10 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             actionIds: inputData.actionIds,
           }
         });
+        // Check for null data or errors
+        if (!result.data || (result.errors && result.errors.length > 0)) {
+            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+        }
         onSuccess(result.data.updateCharacter.characterId);
       } else {
         result = await createCharacter({
@@ -325,6 +329,10 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             actionIds: inputData.actionIds,
           }
         });
+        // Check for null data or errors
+         if (!result.data || (result.errors && result.errors.length > 0)) {
+            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+        }
         onSuccess(result.data.createCharacter.characterId);
       }
     } catch (err) {
