@@ -344,22 +344,8 @@ const EncounterDetail = () => {
           y
         }
       });
-    try {
-      try {
-        await updateCharacterPosition({
-          variables: {
-            encounterId,
-            characterId,
-            x,
-            y
-          }
-        });
-      } catch (mutationErr) {
-        console.log('Inner catch block triggered for handleMoveCharacter');
-        throw mutationErr; // Re-throw to be caught by the outer catch
-      }
     } catch (err) {
-      console.log('Outer Catch block triggered for handleMoveCharacter');
+      console.log('Catch block triggered for handleMoveCharacter');
       console.error("Error moving character:", err);
       let errorMessage = "An unexpected error occurred while moving character.";
       let errorStack = err.stack || "No stack trace available.";
