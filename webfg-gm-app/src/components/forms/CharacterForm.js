@@ -329,16 +329,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     } catch (err) {
       console.error("Error saving character:", err);
       let errorMessage = "An unexpected error occurred.";
-      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
-        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
-        console.error("GraphQL Errors:", err.graphQLErrors);
-      } else if (err.networkError) {
-        errorMessage = `Network Error: ${err.networkError.message}`;
-        console.error("Network Error:", err.networkError);
-      } else {
-          errorMessage = err.message;
-      }
-      let errorMessage = "An unexpected error occurred.";
       let errorStack = err.stack || "No stack trace available.";
       if (err.graphQLErrors && err.graphQLErrors.length > 0) {
         errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
