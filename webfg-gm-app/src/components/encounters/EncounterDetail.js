@@ -32,7 +32,7 @@ import './EncounterDetail.css';
 const EncounterDetail = () => {
   const { encounterId } = useParams();
   const navigate = useNavigate();
-  const [error, setError] = useState(null);
+  const [mutationError, setMutationError] = useState(null);
   const [timeInput, setTimeInput] = useState('');
   const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
   const [showAddObjectModal, setShowAddObjectModal] = useState(false);
@@ -223,7 +223,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      setError({ message: errorMessage, stack: errorStack });
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -274,7 +274,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      setError({ message: errorMessage, stack: errorStack });
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -323,7 +323,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      setError({ message: errorMessage, stack: errorStack });
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -352,7 +352,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      setError({ message: errorMessage, stack: errorStack });
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -382,7 +382,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      setError({ message: errorMessage, stack: errorStack });
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -428,7 +428,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      setError({ message: errorMessage, stack: errorStack });
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -452,7 +452,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      setError({ message: errorMessage, stack: errorStack });
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -477,7 +477,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      setError({ message: errorMessage, stack: errorStack });
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -515,7 +515,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      setError({ message: errorMessage, stack: errorStack });
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -542,7 +542,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      setError({ message: errorMessage, stack: errorStack });
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -567,7 +567,7 @@ const EncounterDetail = () => {
       } else {
           errorMessage = err.message;
       }
-      setError({ message: errorMessage, stack: errorStack });
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
   
@@ -773,7 +773,7 @@ const EncounterDetail = () => {
           </div>
         </div>
       )}
-      <ErrorPopup error={error} onClose={() => setError(null)} />
+      <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} />
     </div>
   );
 };
