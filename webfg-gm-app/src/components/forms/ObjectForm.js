@@ -142,12 +142,7 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
         // Check for null data or errors (including null values for all keys in data)
         if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
             throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
-        } (including null values for all keys in data)
-        if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
-            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
         }
-
-
         onSuccess(result.data.updateObject.objectId);
       } else {
         result = await createObject({
@@ -155,8 +150,10 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
             input: inputData
           }
         });
-        // Check for null data or errors
-
+        // Check for null data or errors (including null values for all keys in data)
+         if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+        }
         onSuccess(result.data.createObject.objectId);
       }
     } catch (err) {
