@@ -323,15 +323,7 @@ const EncounterDetail = () => {
         }
       });
 
-      if (result.errors) {
-        console.error('GraphQL Errors:', result.errors);
-        const errorMessage = result.errors.map(e => e.message).join('\n');
-        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
-        setMutationError({ message: errorMessage, stack: errorStack });
-      } else {
-        // Success or data is null but no errors array
-        // Handle success or expected null data if needed
-      }
+      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
 
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
@@ -364,15 +356,7 @@ const EncounterDetail = () => {
         }
       });
 
-      if (result.errors) {
-        console.error('GraphQL Errors:', result.errors);
-        const errorMessage = result.errors.map(e => e.message).join('\n');
-        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
-        setMutationError({ message: errorMessage, stack: errorStack });
-      } else {
-        // Success or data is null but no errors array
-        // Handle success or expected null data if needed
-      }
+      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
 
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
@@ -406,15 +390,7 @@ const EncounterDetail = () => {
         }
       });
 
-      if (result.errors) {
-        console.error('GraphQL Errors:', result.errors);
-        const errorMessage = result.errors.map(e => e.message).join('\n');
-        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
-        setMutationError({ message: errorMessage, stack: errorStack });
-      } else {
-        // Success or data is null but no errors array
-        // Handle success or expected null data if needed
-      }
+      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
 
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
@@ -463,14 +439,7 @@ const EncounterDetail = () => {
       });
       console.log(`Added object ${objectId} to encounter ${encounterId}`);
 
-      if (result.errors) {
-        console.error('GraphQL Errors:', result.errors);
-        const errorMessage = result.errors.map(e => e.message).join('\n');
-        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
-        setMutationError({ message: errorMessage, stack: errorStack });
-      } else {
-        setShowAddObjectModal(false);
-      }
+      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }\n      setShowAddObjectModal(false);
 
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
@@ -498,15 +467,7 @@ const EncounterDetail = () => {
         variables: { encounterId, objectId, x, y }
       });
 
-      if (result.errors) {
-        console.error('GraphQL Errors:', result.errors);
-        const errorMessage = result.errors.map(e => e.message).join('\n');
-        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
-        setMutationError({ message: errorMessage, stack: errorStack });
-      } else {
-        // Success or data is null but no errors array
-        // Handle success or expected null data if needed
-      }
+      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
 
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
@@ -535,15 +496,7 @@ const EncounterDetail = () => {
         variables: { encounterId, objectId }
       });
 
-      if (result.errors) {
-        console.error('GraphQL Errors:', result.errors);
-        const errorMessage = result.errors.map(e => e.message).join('\n');
-        const errorStack = result.errors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
-        setMutationError({ message: errorMessage, stack: errorStack });
-      } else {
-        // Success or data is null but no errors array
-        // Handle success or expected null data if needed
-      }
+      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
 
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
@@ -584,14 +537,7 @@ const EncounterDetail = () => {
         }
       });
 
-      if (result.errors) {
-        console.error('GraphQL Errors:', result.errors);
-        const errorMessage = result.errors.map(e => e.message).join('\n');
-        const errorStack = result.errors.map(e => e.message).join('\n\n') || "No stack trace available.";
-        setMutationError({ message: errorMessage, stack: errorStack });
-      } else {
-        setShowAddTerrainPanel(false); // Close panel after adding
-      }
+      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }\n      setShowAddTerrainPanel(false);
 
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
@@ -622,15 +568,7 @@ const EncounterDetail = () => {
         }
       });
 
-      if (result.errors) {
-        console.error('GraphQL Errors:', result.errors);
-        const errorMessage = result.errors.map(e => e.message).join('\n');
-        const errorStack = result.errors.map(e => e.message).join('\n\n') || "No stack trace available.";
-        setMutationError({ message: errorMessage, stack: errorStack });
-      } else {
-        // Success or data is null but no errors array
-        // Handle success or expected null data if needed
-      }
+      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
 
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
@@ -659,15 +597,7 @@ const EncounterDetail = () => {
         variables: { encounterId, terrainId }
       });
 
-      if (result.errors) {
-        console.error('GraphQL Errors:', result.errors);
-        const errorMessage = result.errors.map(e => e.message).join('\n');
-        const errorStack = result.errors.map(e => e.message).join('\n\n') || "No stack trace available.";
-        setMutationError({ message: errorMessage, stack: errorStack });
-      } else {
-        // Success or data is null but no errors array
-        // Handle success or expected null data if needed
-      }
+      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
 
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
