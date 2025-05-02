@@ -22,6 +22,7 @@ const VirtualTableTop = ({
   onDeleteTerrain,
   onUpdateGridSize
 }) => {
+  console.log('VirtualTableTop objects prop:', objects); // Added log
   const canvasRef = useRef(null);
   const [draggingItem, setDraggingItem] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
@@ -580,6 +581,7 @@ const VirtualTableTop = ({
   }
 
   function drawObject(ctx, obj) {
+    console.log('Drawing object:', obj); // Added log
     const { x, y, name } = obj;
     if (x < 0 || y < 0 || x >= gridColumns || y >= gridRows) return;
 
@@ -650,4 +652,4 @@ const VirtualTableTop = ({
   );
 };
 
-export default VirtualTableTop; 
+export default VirtualTableTop;
