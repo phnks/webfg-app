@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
+import ErrorPopup from '../common/ErrorPopup';
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useSubscription } from "@apollo/client";
-import { 
-  GET_OBJECT, 
+import {
+  GET_OBJECT,
   DELETE_OBJECT,
   ADD_OBJECT_TO_INVENTORY,
   ON_UPDATE_OBJECT,
-  ON_DELETE_OBJECT 
+  ON_DELETE_OBJECT
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import ObjectForm from "../forms/ObjectForm";
@@ -19,7 +20,8 @@ const ObjectView = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentObject, setCurrentObject] = useState(null);
   const [addObjectSuccess, setAddObjectSuccess] = useState(false);
-  
+  const [mutationError, setMutationError] = useState(null); // Added mutationError state
+
   // Initial query to get object data
   const { data, loading, error, refetch } = useQuery(GET_OBJECT, {
     variables: { objectId },
@@ -29,10 +31,10 @@ const ObjectView = () => {
       }
     }
   });
-  
+
   const [deleteObject] = useMutation(DELETE_OBJECT);
   const [addObjectToInventory] = useMutation(ADD_OBJECT_TO_INVENTORY);
-  
+
   // Subscribe to object updates
   useSubscription(ON_UPDATE_OBJECT, {
     onData: ({ data }) => {
@@ -47,7 +49,7 @@ const ObjectView = () => {
       }
     }
   });
-  
+
   // Subscribe to object deletions
   useSubscription(ON_DELETE_OBJECT, {
     onData: ({ data }) => {
@@ -59,14 +61,14 @@ const ObjectView = () => {
       }
     }
   });
-  
+
   // Ensure we're using the most recent data
   useEffect(() => {
     if (data && data.getObject) {
       setCurrentObject(data.getObject);
     }
   }, [data]);
-  
+
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this object?")) {
       try {
@@ -76,56 +78,110 @@ const ObjectView = () => {
         navigate("/objects");
       } catch (err) {
         console.error("Error deleting object:", err);
+        let errorMessage = "An unexpected error occurred while deleting object.";
+        let errorStack = err.stack || "No stack trace available.";
+        if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+          errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+          errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+          console.error("GraphQL Errors:", err.graphQLErrors);
+        } else if (err.networkError) {
+          errorMessage = `Network Error: ${err.networkError.message}`;
+          errorStack = err.networkError.stack || "No network error stack trace available.";
+          console.error("Network Error:", err.networkError);
+        } else {
+            errorMessage = err.message;
+        }
+        setMutationError({ message: errorMessage, stack: errorStack });
       }
     }
   };
-  
+
   const handleEdit = () => {
     setIsEditing(true);
   };
-  
+
   const handleEditSuccess = () => {
     setIsEditing(false);
     refetch(); // Refetch to ensure we have the latest data
   };
-  
+
   const handleEditCancel = () => {
     setIsEditing(false);
   };
-  
+
   // Handle adding object to selected character's inventory
   const handleAddToInventory = async () => {
-    if (!selectedCharacter) return;
-    
+    if (!selectedCharacter) {
+      // Optionally display an error or message if no character is selected
+      setMutationError({ message: "Please select a character first.", stack: null });
+      return;
+    }
+
     try {
-      await addObjectToInventory({
+      const result = await addObjectToInventory({
         variables: {
           characterId: selectedCharacter.characterId,
           objectId
         }
       });
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
+
       setAddObjectSuccess(true);
       setTimeout(() => setAddObjectSuccess(false), 3000);
     } catch (err) {
       console.error("Error adding object to inventory:", err);
+      let errorMessage = "An unexpected error occurred while adding object to inventory.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
+
+  const addToInventory = (objectId) => {
+    // Implementation
+  };
+
+  const equipItem = (objectId, slot) => {
+    // Implementation
+  };
+
+  const removeItem = (objectId) => {
+    // Implementation
+  };
+
+  const addAction = (actionId) => {
+    // Implementation
+  };
+
   if (loading) return <div className="loading">Loading object details...</div>;
   if (error) return <div className="error">Error: {error.message}</div>;
   if (!currentObject) return <div className="error">Object not found</div>;
-  
+
   if (isEditing) {
     return (
-      <ObjectForm 
-        object={currentObject} 
-        isEditing={true} 
-        onClose={handleEditCancel} 
+      <ObjectForm
+        object={currentObject}
+        isEditing={true}
+        onClose={handleEditCancel}
         onSuccess={handleEditSuccess}
       />
     );
   }
-  
+
   return (
     <div className="object-view">
       <div className="object-header">
@@ -137,14 +193,14 @@ const ObjectView = () => {
               className={`add-to-inventory-btn ${addObjectSuccess ? 'success' : ''}`}
               disabled={addObjectSuccess}
             >
-              {addObjectSuccess ? 'Added!' : `Add to ${selectedCharacter.name}'s Inventory`}
+              {addObjectSuccess ? 'Added!' : selectedCharacter ? `Add to ${selectedCharacter.name}'s Inventory` : 'Add to Inventory'}
             </button>
           )}
           <button onClick={handleEdit}>Edit</button>
           <button onClick={handleDelete} className="delete-button">Delete</button>
         </div>
       </div>
-      
+
       <div className="object-content">
         <div className="object-details">
           <h3>Details</h3>
@@ -167,8 +223,9 @@ const ObjectView = () => {
           {/* Render additional object details here */}
         </div>
       </div>
+      <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} /> {/* Added ErrorPopup */}
     </div>
   );
 };
 
-export default ObjectView; 
+export default ObjectView;

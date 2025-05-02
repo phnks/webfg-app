@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ErrorPopup from '../common/ErrorPopup';
 import { useQuery, useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
@@ -101,6 +102,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const { data: skillsData, loading: skillsLoading, error: skillsError } = useQuery(LIST_SKILLS);
 
   // State for form data, including dynamic attributes and skills
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     race: "",
@@ -308,6 +310,10 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             actionIds: inputData.actionIds,
           }
         });
+        // Check for null data or errors
+        if (!result.data || (result.errors && result.errors.length > 0)) {
+            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+        }
         onSuccess(result.data.updateCharacter.characterId);
       } else {
         result = await createCharacter({
@@ -323,16 +329,30 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             actionIds: inputData.actionIds,
           }
         });
+        // Check for null data or errors
+         if (!result.data || (result.errors && result.errors.length > 0)) {
+            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+        }
         onSuccess(result.data.createCharacter.characterId);
       }
     } catch (err) {
       console.error("Error saving character:", err);
-      if (err.graphQLErrors) {
+      let errorMessage = "An unexpected error occurred.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        // GraphQL errors might have a stack trace on individual errors or the main error object
+        // For simplicity, we'll use the main error object's stack for now, or indicate if none
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
         console.error("GraphQL Errors:", err.graphQLErrors);
-      }
-      if (err.networkError) {
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
         console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
       }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
 
@@ -483,6 +503,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           </button>
         </div>
       </form>
+      <ErrorPopup error={error} onClose={() => setError(null)} />
     </div>
   );
 };

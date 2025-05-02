@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import ErrorPopup from '../common/ErrorPopup';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useSubscription, useApolloClient } from '@apollo/client';
-import { 
+import {
   GET_ENCOUNTER,
   LIST_CHARACTERS,
   LIST_OBJECTS,
@@ -31,6 +32,7 @@ import './EncounterDetail.css';
 const EncounterDetail = () => {
   const { encounterId } = useParams();
   const navigate = useNavigate();
+  const [mutationError, setMutationError] = useState(null);
   const [timeInput, setTimeInput] = useState('');
   const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
   const [showAddObjectModal, setShowAddObjectModal] = useState(false);
@@ -39,16 +41,16 @@ const EncounterDetail = () => {
   const [terrainType, setTerrainType] = useState('VERTICAL_LINE');
   const [terrainLengthFeet, setTerrainLengthFeet] = useState(5);
   const client = useApolloClient();
-  
+
   // Queries
   const { loading, error, data, refetch } = useQuery(GET_ENCOUNTER, {
     variables: { encounterId },
     fetchPolicy: 'network-only'
   });
-  
+
   const { data: charactersData } = useQuery(LIST_CHARACTERS);
   const { data: objectsData } = useQuery(LIST_OBJECTS);
-  
+
   // Mutations
   const [advanceEncounterTime] = useMutation(ADVANCE_ENCOUNTER_TIME);
   const [addCharacterToEncounter] = useMutation(ADD_CHARACTER_TO_ENCOUNTER);
@@ -61,7 +63,7 @@ const EncounterDetail = () => {
   const [addTerrainToEncounter] = useMutation(ADD_TERRAIN_TO_ENCOUNTER);
   const [updateTerrainPosition] = useMutation(UPDATE_TERRAIN_POSITION);
   const [removeTerrainFromEncounter] = useMutation(REMOVE_TERRAIN_FROM_ENCOUNTER);
-  
+
   // Subscriptions
   useSubscription(ON_ENCOUNTER_TIMELINE_CHANGED, {
     variables: { encounterId },
@@ -71,7 +73,7 @@ const EncounterDetail = () => {
         client.cache.updateQuery(
           {
             query: GET_ENCOUNTER,
-            variables: { encounterId }
+            variables: { encounterId },
           },
           (existingData) => {
             if (!existingData?.getEncounter) return existingData;
@@ -86,7 +88,7 @@ const EncounterDetail = () => {
       }
     }
   });
-  
+
   useSubscription(ON_ENCOUNTER_VTT_CHANGED, {
     variables: { encounterId },
     onData: ({ data }) => {
@@ -121,7 +123,7 @@ const EncounterDetail = () => {
             // Crucially, update history if it's present in the payload, replacing the old one
             // Assumes the backend sends the complete updated history array on VTT changes.
             if (updatedEncounter.history !== undefined && updatedEncounter.history !== null) {
-              newEncounterData.history = updatedEncounter.history; 
+              newEncounterData.history = updatedEncounter.history;
             }
 
             return {
@@ -132,7 +134,7 @@ const EncounterDetail = () => {
       }
     }
   });
-  
+
   useSubscription(ON_GRID_SIZE_CHANGED, {
     variables: { encounterId },
     onData: ({ data }) => {
@@ -157,7 +159,7 @@ const EncounterDetail = () => {
       }
     }
   });
-  
+
   useSubscription(ON_ENCOUNTER_CHARACTER_CHANGED, {
     variables: { encounterId },
     onData: ({ data }) => {
@@ -181,58 +183,79 @@ const EncounterDetail = () => {
       }
     }
   });
-  
+
   // Get character by ID helper
   const getCharacterById = (characterId) => {
     if (!charactersData || !charactersData.listCharacters) return null;
     return charactersData.listCharacters.find(c => c.characterId === characterId);
   };
-  
+
   const getObjectById = (objectId) => {
     const object = objectsData?.listObjects?.find(obj => obj.objectId === objectId);
     console.log('Getting object by id:', objectId, 'Found:', object);
     return object;
   };
-  
+
   const handleAdvanceTime = async () => {
     const newTime = parseFloat(timeInput);
     if (isNaN(newTime)) return;
-    
+
     try {
-      await advanceEncounterTime({
+      const result = await advanceEncounterTime({
         variables: {
           encounterId,
           newTime
         }
       });
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
       setTimeInput('');
     } catch (err) {
-      console.error('Error advancing time:', err);
+      // This catch block will handle network errors or unexpected JavaScript errors
+      console.error("Error advancing time:", err);
+      let errorMessage = "An unexpected error occurred while advancing time.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        // GraphQL errors might have a stack trace on individual errors or the main error object
+        // For simplicity, we'll use the main error object's stack for now, or indicate if none
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
   const handleAddCharacter = async (characterId, startTime = 0) => {
     try {
       // Calculate character position based on agility
       const character = getCharacterById(characterId);
       const agility = character?.attributes?.agility || 0;
       const calculatedStartTime = agility / 10; // Convert agility to seconds
-      
+
       // Find an empty position on the grid (simple algorithm)
       const positions = data?.getEncounter?.characterPositions || [];
       const occupiedPositions = new Set();
-      
+
       positions.forEach(pos => {
         occupiedPositions.add(`${pos.x},${pos.y}`);
       });
-      
+
       let x = 0, y = 0;
       while (occupiedPositions.has(`${x},${y}`)) {
         x = (x + 1) % 10;
         if (x === 0) y++;
       }
-      
-      await addCharacterToEncounter({
+
+      const result = await addCharacterToEncounter({
         variables: {
           encounterId,
           characterId,
@@ -241,18 +264,39 @@ const EncounterDetail = () => {
           y
         }
       });
-      
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
+
       setShowAddCharacterModal(false);
     } catch (err) {
-      console.error('Error adding character:', err);
+      console.error("Error adding character:", err);
+      let errorMessage = "An unexpected error occurred while adding character.";
+      let errorStack = err.stack || "No stack trace available.";
+      // The catch block already handles setting the error state for display
+      // No need for an additional if (err.graphQLErrors) check here, as the thrown error
+      // from the try block or other JS errors will be caught.
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+         errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+         errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+         console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
   const handleAddAction = async (characterId, actionId, actionName) => {
     try {
       const character = getCharacterById(characterId);
       const startTime = data.getEncounter.currentTime;
-      
+
       // Add to history with full snapshot
       const historyEvent = {
         time: startTime,
@@ -269,7 +313,7 @@ const EncounterDetail = () => {
         conditions: character.conditions || []
       };
 
-      await addActionToTimeline({
+      const result = await addActionToTimeline({
         variables: {
           encounterId,
           characterId,
@@ -278,14 +322,34 @@ const EncounterDetail = () => {
           historyEvent
         }
       });
-    } catch (error) {
-      console.error('Error adding action:', error);
+
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
+    } catch (err) {
+      // This catch block will handle network errors or unexpected JavaScript errors
+      console.error("Error adding action:", err);
+      let errorMessage = "An unexpected error occurred while adding action.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
   const handleMoveCharacter = async (characterId, x, y) => {
     try {
-      await updateCharacterPosition({
+      const result = await updateCharacterPosition({
         variables: {
           encounterId,
           characterId,
@@ -293,14 +357,34 @@ const EncounterDetail = () => {
           y
         }
       });
+
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
-      console.error('Error moving character:', err);
+      // This catch block will handle network errors or unexpected JavaScript errors
+      console.error("Error moving character:", err);
+      let errorMessage = "An unexpected error occurred while moving character.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
   const handleGridSizeUpdate = async (rows, columns) => {
     try {
-      await updateGridSize({
+      const result = await updateGridSize({
         variables: {
           input: {
             encounterId,
@@ -309,11 +393,31 @@ const EncounterDetail = () => {
           }
         }
       });
-    } catch (error) {
-      console.error('Failed to update grid size:', error);
+
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
+    } catch (err) {
+      // This catch block will handle network errors or unexpected JavaScript errors
+      console.error("Failed to update grid size:", err);
+      let errorMessage = "An unexpected error occurred while updating grid size.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
   const handleAddObject = async (objectId) => {
     if (!encounterId || !objectId) {
       console.error("Missing encounterId or objectId for adding object.");
@@ -331,7 +435,7 @@ const EncounterDetail = () => {
     }
 
     try {
-      await addObjectToVTT({
+      const result = await addObjectToVTT({
         variables: {
           encounterId,
           objectId,
@@ -340,40 +444,100 @@ const EncounterDetail = () => {
         }
       });
       console.log(`Added object ${objectId} to encounter ${encounterId}`);
+
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
       setShowAddObjectModal(false);
     } catch (err) {
-      console.error('Error adding object to VTT:', err);
+      // This catch block will handle network errors or unexpected JavaScript errors
+      console.error("Error adding object to VTT:", err);
+      let errorMessage = "An unexpected error occurred while adding object.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
   const handleMoveObject = async (objectId, x, y) => {
     try {
-      await updateObjectPosition({
+      const result = await updateObjectPosition({
         variables: { encounterId, objectId, x, y }
       });
+
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
-      console.error('Error moving object:', err);
+      // This catch block will handle network errors or unexpected JavaScript errors
+      console.error("Error moving object:", err);
+      let errorMessage = "An unexpected error occurred while moving object.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
   const handleDeleteObject = async (objectId) => {
     if (!window.confirm("Are you sure you want to remove this object from the encounter?")) return;
     try {
-      await removeObjectFromVTT({
+      const result = await removeObjectFromVTT({
         variables: { encounterId, objectId }
       });
+
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
-      console.error('Error removing object:', err);
+      // This catch block will handle network errors or unexpected JavaScript errors
+      console.error("Error removing object:", err);
+      let errorMessage = "An unexpected error occurred while removing object.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
   const handleAddTerrain = async () => {
     try {
       const lengthInUnits = Math.max(1, Math.round(terrainLengthFeet / 5)); // Ensure at least 1 unit
       // Simple placement at (0, 0) for now
       let startX = 0, startY = 0;
       // TODO: Allow user to click on grid to place?
-      await addTerrainToEncounter({
+      const result = await addTerrainToEncounter({
         variables: {
           encounterId,
           input: {
@@ -385,48 +549,108 @@ const EncounterDetail = () => {
           }
         }
       });
-      setShowAddTerrainPanel(false); // Close panel after adding
+
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
+      setShowAddTerrainPanel(false);
     } catch (err) {
-      console.error('Error adding terrain:', err);
+      // This catch block will handle network errors or unexpected JavaScript errors
+      console.error("Error adding terrain:", err);
+      let errorMessage = "An unexpected error occurred while adding terrain.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
   const handleMoveTerrain = async (terrainId, startX, startY) => {
     try {
-      await updateTerrainPosition({
+      const result = await updateTerrainPosition({
         variables: {
           encounterId,
           input: { terrainId, startX, startY }
         }
       });
+
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
-      console.error('Error moving terrain:', err);
+      // This catch block will handle network errors or unexpected JavaScript errors
+      console.error("Error moving terrain:", err);
+      let errorMessage = "An unexpected error occurred while moving terrain.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
   const handleDeleteTerrain = async (terrainId) => {
     if (!window.confirm("Are you sure you want to remove this terrain element?")) return;
     try {
-      await removeTerrainFromEncounter({
+      const result = await removeTerrainFromEncounter({
         variables: { encounterId, terrainId }
       });
+
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
-      console.error('Error removing terrain:', err);
+      // This catch block will handle network errors or unexpected JavaScript errors
+      console.error("Error removing terrain:", err);
+      let errorMessage = "An unexpected error occurred while removing terrain.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
+
   if (loading) return <p>Loading encounter...</p>;
   if (error) return <p>Error loading encounter: {error.message}</p>;
-  
+
   const encounter = data?.getEncounter;
   if (!encounter) return <p>Encounter not found</p>;
-  
+
   const characters = charactersData?.listCharacters || [];
   const availableCharacters = characters.filter(character => {
     const characterPositions = encounter.characterPositions || [];
     return !characterPositions.some(pos => pos.characterId === character.characterId);
   });
-  
+
   return (
     <div className="encounter-detail-container">
       <div className="encounter-header">
@@ -437,10 +661,10 @@ const EncounterDetail = () => {
         <div className="time-controls">
           <span className="current-time">Current Time: {encounter.currentTime}s</span>
           <div className="time-input-group">
-            <input 
-              type="number" 
+            <input
+              type="number"
               step="0.1"
-              value={timeInput} 
+              value={timeInput}
               onChange={(e) => setTimeInput(e.target.value)}
               placeholder="Time (seconds)"
             />
@@ -450,7 +674,7 @@ const EncounterDetail = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="encounter-layout">
         <div className="vtt-container">
           <div className="vtt-header">
@@ -476,7 +700,7 @@ const EncounterDetail = () => {
               </button>
             </div>
           </div>
-          <VirtualTableTop 
+          <VirtualTableTop
             characters={encounter.characterPositions.map(pos => ({
               ...pos,
               name: getCharacterById(pos.characterId)?.name || 'Unknown',
@@ -501,7 +725,7 @@ const EncounterDetail = () => {
             onUpdateGridSize={handleGridSizeUpdate}
           />
         </div>
-        
+
         <div className="timeline-container">
           <Timeline
             currentTime={encounter.currentTime}
@@ -511,18 +735,18 @@ const EncounterDetail = () => {
           />
         </div>
       </div>
-      
+
       {selectedCharacter && (
         <div className="character-action-panel">
           <h3>Select an action for {getCharacterById(selectedCharacter)?.name || selectedCharacter}</h3>
-          <CharacterActionSelector 
+          <CharacterActionSelector
             characterId={selectedCharacter}
             onSelectAction={(action) => handleAddAction(selectedCharacter, action.actionId, action.name)}
             onClose={() => setSelectedCharacter(null)}
           />
         </div>
       )}
-      
+
       {showAddCharacterModal && (
         <div className="modal-overlay">
           <div className="add-character-modal">
@@ -549,7 +773,7 @@ const EncounterDetail = () => {
                 ))
               )}
             </div>
-            <button 
+            <button
               className="close-modal-btn"
               onClick={() => setShowAddCharacterModal(false)}
             >
@@ -558,7 +782,7 @@ const EncounterDetail = () => {
           </div>
         </div>
       )}
-      
+
       {showAddObjectModal && (
         <div className="modal-overlay">
           <div className="add-object-modal">
@@ -579,9 +803,10 @@ const EncounterDetail = () => {
             )}
             <button onClick={() => setShowAddObjectModal(false)}>Close</button>
           </div>
+
         </div>
       )}
-      
+
       {showAddTerrainPanel && (
         <div className="modal-overlay">
           <div className="add-terrain-panel">
@@ -608,7 +833,7 @@ const EncounterDetail = () => {
               </label>
               <button onClick={handleAddTerrain}>Add Terrain</button>
             </div>
-            <button 
+            <button
               className="close-modal-btn"
               onClick={() => setShowAddTerrainPanel(false)}
             >
@@ -617,6 +842,7 @@ const EncounterDetail = () => {
           </div>
         </div>
       )}
+      <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} />
     </div>
   );
 };

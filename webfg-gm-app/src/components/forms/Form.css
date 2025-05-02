@@ -119,8 +119,9 @@
   .form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .attribute-fields, .size-fields {
     grid-template-columns: 1fr;
   }
-} 
+}
+

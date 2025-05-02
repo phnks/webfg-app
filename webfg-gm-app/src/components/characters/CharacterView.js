@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useSubscription } from "@apollo/client";
-import { 
-  GET_CHARACTER, 
+import {
+  GET_CHARACTER,
   DELETE_CHARACTER,
   ON_UPDATE_ACTION,
   ON_DELETE_CHARACTER
@@ -16,6 +16,7 @@ import CharacterEquipment from "./CharacterEquipment";
 import CharacterDetails from "./CharacterDetails";
 import CharacterForm from "../forms/CharacterForm";
 import "./CharacterView.css";
+import ErrorPopup from '../common/ErrorPopup'; // Import ErrorPopup
 
 const CharacterView = () => {
   const { characterId } = useParams();
@@ -23,7 +24,8 @@ const CharacterView = () => {
   const { selectCharacter } = useSelectedCharacter();
   const [isEditing, setIsEditing] = useState(false);
   const [currentCharacter, setCurrentCharacter] = useState(null);
-  
+  const [mutationError, setMutationError] = useState(null); // Added mutationError state
+
   // Initial query to get character data
   const { data, loading, error, refetch } = useQuery(GET_CHARACTER, {
     variables: { characterId },
@@ -38,9 +40,9 @@ const CharacterView = () => {
       }
     }
   });
-  
+
   const [deleteCharacter] = useMutation(DELETE_CHARACTER);
-  
+
   // Subscribe to character updates
   useSubscription(ON_UPDATE_ACTION, {
     onData: ({ data }) => {
@@ -56,7 +58,7 @@ const CharacterView = () => {
     },
     variables: { characterId } // This may not be needed if the subscription doesn't filter
   });
-  
+
   // Subscribe to character deletions
   useSubscription(ON_DELETE_CHARACTER, {
     onData: ({ data }) => {
@@ -68,14 +70,14 @@ const CharacterView = () => {
       }
     }
   });
-  
+
   // Ensure we're using the most recent data
   useEffect(() => {
     if (data && data.getCharacter) {
       setCurrentCharacter(data.getCharacter);
     }
   }, [data]);
-  
+
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this character?")) {
       try {
@@ -85,29 +87,43 @@ const CharacterView = () => {
         navigate("/characters");
       } catch (err) {
         console.error("Error deleting character:", err);
+        let errorMessage = "An unexpected error occurred while deleting character.";
+        let errorStack = err.stack || "No stack trace available.";
+        if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+          errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+          errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+          console.error("GraphQL Errors:", err.graphQLErrors);
+        } else if (err.networkError) {
+          errorMessage = `Network Error: ${err.networkError.message}`;
+          errorStack = err.networkError.stack || "No network error stack trace available.";
+          console.error("Network Error:", err.networkError);
+        } else {
+            errorMessage = err.message;
+        }
+        setMutationError({ message: errorMessage, stack: errorStack });
       }
     }
   };
-  
+
   const handleEdit = () => {
     setIsEditing(true);
   };
-  
+
   const handleEditSuccess = () => {
     setIsEditing(false);
     refetch(); // Refetch to ensure we have the latest data
   };
-  
+
   const handleEditCancel = () => {
     setIsEditing(false);
   };
-  
+
   if (loading) return <div className="loading">Loading character details...</div>;
   if (error) return <div className="error">Error: {error.message}</div>;
   if (!currentCharacter) return <div className="error">Character not found</div>;
-  
+
   const character = currentCharacter;
-  
+
   const addToInventory = (objectId) => {
     // Implementation
   };
@@ -123,18 +139,18 @@ const CharacterView = () => {
   const addAction = (actionId) => {
     // Implementation
   };
-  
+
   if (isEditing) {
     return (
-      <CharacterForm 
-        character={character} 
+      <CharacterForm
+        character={character}
         isEditing={true}
         onClose={handleEditCancel}
         onSuccess={handleEditSuccess}
       />
     );
   }
-  
+
   return (
     <div className="character-view">
       <div className="view-header">
@@ -147,21 +163,21 @@ const CharacterView = () => {
           <button className="delete-button" onClick={handleDelete}>Delete</button>
         </div>
       </div>
-      
+
       <div className="character-sections">
         <div className="section-row">
           <CharacterDetails character={character} />
           <CharacterStats stats={character.stats} />
         </div>
-        
+
         <div className="section-row">
           <CharacterAttributes attributes={character.attributes} />
         </div>
-        
+
         <div className="section-row">
           <CharacterSkills skills={character.skills} />
         </div>
-        
+
         <div className="section-row">
           <CharacterPhysical physical={character.physical} />
           <div className="section character-equipment">
@@ -177,7 +193,7 @@ const CharacterView = () => {
             )}
           </div>
         </div>
-        
+
         <div className="section-row">
           <div className="section inventory">
             <h3>Inventory</h3>
@@ -197,7 +213,7 @@ const CharacterView = () => {
               <p>No items</p>
             )}
           </div>
-          
+
           <div className="section conditions">
             <h3>Conditions</h3>
             {character.conditions && character.conditions.length > 0 ? (
@@ -211,7 +227,7 @@ const CharacterView = () => {
             )}
           </div>
         </div>
-        
+
         <div className="section-row">
           <div className="section actions">
             <h3>Actions</h3>
@@ -230,6 +246,7 @@ const CharacterView = () => {
           </div>
         </div>
       </div>
+      <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} /> {/* Added ErrorPopup */}
     </div>
   );
 };

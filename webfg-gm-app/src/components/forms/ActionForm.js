@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ErrorPopup from '../common/ErrorPopup';
 import { useQuery, useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
@@ -38,9 +39,9 @@ const prepareActionInput = (data, isEditing) => {
     name: data.name,
     actionCategory: data.actionCategory,
     initDurationId: data.initDurationId,
-    defaultInitDuration: data.defaultInitDuration === '' ? 0.0 : parseFloat(data.defaultInitDuration) || 0.0,
+    defaultInitDuration: data.defaultInitDuration === '' ? 0.0 : parseFloat(data.defaultInitDuration || 0.0),
     durationId: data.durationId,
-    defaultDuration: data.defaultDuration === '' ? 0.0 : parseFloat(data.defaultDuration) || 0.0,
+    defaultDuration: data.defaultDuration === '' ? 0.0 : parseFloat(data.defaultDuration || 0.0),
     fatigueCost: data.fatigueCost === '' ? 0 : parseInt(data.fatigueCost, 10) || 0,
     difficultyClassId: data.difficultyClassId,
     guaranteedFormulaId: data.guaranteedFormulaId,
@@ -61,6 +62,7 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
     ? { ...defaultActionForm, ...action }
     : { ...defaultActionForm };
 
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
   const [newFormulaTexts, setNewFormulaTexts] = useState({
     initDuration: '',
@@ -169,6 +171,10 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
               const formulaResult = await createFormula({
                   variables: { input: { formulaValue: text } }
               });
+              // Check for null data or errors (including null values for all keys in data)
+              if (!formulaResult.data || (formulaResult.errors && formulaResult.errors.length > 0) || (formulaResult.data && Object.values(formulaResult.data).every(value => value === null))) {
+                  throw new Error(formulaResult.errors ? formulaResult.errors.map(e => e.message).join("\n") : "Formula creation returned null data.");
+              }
               formulaIdsToLink[`${field}Id`] = formulaResult.data.createFormula.formulaId;
           } else if (dropdownId) {
               formulaIdsToLink[`${field}Id`] = dropdownId;
@@ -192,6 +198,9 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
             input: finalInputData
           }
         });
+        if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+        }
         onSuccess(result.data.updateAction.actionId);
       } else {
         result = await createAction({
@@ -199,16 +208,27 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
             input: finalInputData
           }
         });
+        if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+        }
         onSuccess(result.data.createAction.actionId);
       }
     } catch (err) {
       console.error("Error saving action:", err);
-      if (err.graphQLErrors) {
+      let errorMessage = "An unexpected error occurred.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
         console.error("GraphQL Errors:", err.graphQLErrors);
-      }
-      if (err.networkError) {
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
         console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
       }
+      setError({ message: errorMessage, stack: errorStack });
     }
   };
 
@@ -534,6 +554,7 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
           </button>
         </div>
       </form>
+      <ErrorPopup error={error} onClose={() => setError(null)} />
     </div>
   );
 };
