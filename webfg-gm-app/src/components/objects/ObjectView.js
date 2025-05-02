@@ -167,6 +167,10 @@ const ObjectView = () => {
     // Implementation
   };
 
+  if (loading) return <div className="loading">Loading object details...</div>;
+  if (error) return <div className="error">Error: {error.message}</div>;
+  if (!currentObject) return <div className="error">Object not found</div>;
+
   if (isEditing) {
     return (
       <ObjectForm

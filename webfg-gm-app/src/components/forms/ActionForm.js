@@ -39,9 +39,9 @@ const prepareActionInput = (data, isEditing) => {
     name: data.name,
     actionCategory: data.actionCategory,
     initDurationId: data.initDurationId,
-    defaultInitDuration: data.defaultInitDuration === '' ? 0.0 : parseFloat(data.defaultInitDuration) || 0.0,
+    defaultInitDuration: data.defaultInitDuration === '' ? 0.0 : parseFloat(data.defaultInitDuration || 0.0),
     durationId: data.durationId,
-    defaultDuration: data.defaultDuration === '' ? 0.0 : parseFloat(data.defaultDuration) || 0.0,
+    defaultDuration: data.defaultDuration === '' ? 0.0 : parseFloat(data.defaultDuration || 0.0),
     fatigueCost: data.fatigueCost === '' ? 0 : parseInt(data.fatigueCost, 10) || 0,
     difficultyClassId: data.difficultyClassId,
     guaranteedFormulaId: data.guaranteedFormulaId,
@@ -171,6 +171,10 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
               const formulaResult = await createFormula({
                   variables: { input: { formulaValue: text } }
               });
+              // Check for null data or errors (including null values for all keys in data)
+              if (!formulaResult.data || (formulaResult.errors && formulaResult.errors.length > 0) || (formulaResult.data && Object.values(formulaResult.data).every(value => value === null))) {
+                  throw new Error(formulaResult.errors ? formulaResult.errors.map(e => e.message).join("\n") : "Formula creation returned null data.");
+              }
               formulaIdsToLink[`${field}Id`] = formulaResult.data.createFormula.formulaId;
           } else if (dropdownId) {
               formulaIdsToLink[`${field}Id`] = dropdownId;
