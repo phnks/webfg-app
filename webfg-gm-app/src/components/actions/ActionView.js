@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useSubscription } from "@apollo/client";
-import { 
-  GET_ACTION, 
+import {
+  GET_ACTION,
   DELETE_ACTION,
   ADD_ACTION_TO_CHARACTER,
   ON_UPDATE_ACTION,
-  ON_DELETE_ACTION 
+  ON_DELETE_ACTION
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import ActionForm from "../forms/ActionForm";
 import "./ActionView.css";
+import ErrorPopup from '../common/ErrorPopup'; // Import ErrorPopup
 
 const ActionView = () => {
   const { actionId } = useParams();
@@ -19,7 +20,8 @@ const ActionView = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentAction, setCurrentAction] = useState(null);
   const [addActionSuccess, setAddActionSuccess] = useState(false);
-  
+  const [mutationError, setMutationError] = useState(null); // Added mutationError state
+
   // Initial query to get action data
   const { data, loading, error, refetch } = useQuery(GET_ACTION, {
     variables: { actionId },
@@ -29,62 +31,52 @@ const ActionView = () => {
       }
     }
   });
-  
+
   const [deleteAction] = useMutation(DELETE_ACTION);
   const [addActionToCharacter] = useMutation(ADD_ACTION_TO_CHARACTER);
-  
+
   // Handle adding action to selected character
   const handleAddToCharacter = async () => {
-    if (!selectedCharacter) return;
-    
+    if (!selectedCharacter) {
+      // Optionally display an error or message if no character is selected
+      setMutationError({ message: "Please select a character first.", stack: null });
+      return;
+    }
+
     try {
-      await addActionToCharacter({
+      const result = await addActionToCharacter({
         variables: {
           characterId: selectedCharacter.characterId,
           actionId
         }
       });
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
+
       setAddActionSuccess(true);
       setTimeout(() => setAddActionSuccess(false), 3000);
     } catch (err) {
       console.error("Error adding action to character:", err);
+      let errorMessage = "An unexpected error occurred while adding action to character.";
+      let errorStack = err.stack || "No stack trace available.";
+      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+        console.error("GraphQL Errors:", err.graphQLErrors);
+      } else if (err.networkError) {
+        errorMessage = `Network Error: ${err.networkError.message}`;
+        errorStack = err.networkError.stack || "No network error stack trace available.";
+        console.error("Network Error:", err.networkError);
+      } else {
+          errorMessage = err.message;
+      }
+      setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-  
-  // Subscribe to action updates
-  useSubscription(ON_UPDATE_ACTION, {
-    onData: ({ data }) => {
-      const updatedAction = data.data.onUpdateAction;
-      if (updatedAction && updatedAction.actionId === actionId) {
-        console.log("Action update received via subscription:", updatedAction);
-        // Refresh the action data
-        setCurrentAction(prev => ({
-          ...prev,
-          ...updatedAction
-        }));
-      }
-    }
-  });
-  
-  // Subscribe to action deletions
-  useSubscription(ON_DELETE_ACTION, {
-    onData: ({ data }) => {
-      const deletedAction = data.data.onDeleteAction;
-      if (deletedAction && deletedAction.actionId === actionId) {
-        console.log("Action was deleted");
-        // Redirect to the action list since this action no longer exists
-        navigate("/actions");
-      }
-    }
-  });
-  
-  // Ensure we're using the most recent data
-  useEffect(() => {
-    if (data && data.getAction) {
-      setCurrentAction(data.getAction);
-    }
-  }, [data]);
-  
+
+
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this action?")) {
       try {
@@ -94,40 +86,43 @@ const ActionView = () => {
         navigate("/actions");
       } catch (err) {
         console.error("Error deleting action:", err);
+        let errorMessage = "An unexpected error occurred while deleting action.";
+        let errorStack = err.stack || "No stack trace available.";
+        if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+          errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+          errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
+          console.error("GraphQL Errors:", err.graphQLErrors);
+        } else if (err.networkError) {
+          errorMessage = `Network Error: ${err.networkError.message}`;
+          errorStack = err.networkError.stack || "No network error stack trace available.";
+          console.error("Network Error:", err.networkError);
+        } else {
+            errorMessage = err.message;
+        }
+        setMutationError({ message: errorMessage, stack: errorStack });
       }
     }
   };
-  
+
   const handleEdit = () => {
     setIsEditing(true);
   };
-  
+
   const handleEditSuccess = () => {
     setIsEditing(false);
     refetch(); // Refetch to ensure we have the latest data
   };
-  
+
   const handleEditCancel = () => {
     setIsEditing(false);
   };
-  
+
   if (loading) return <div className="loading">Loading action details...</div>;
   if (error) return <div className="error">Error: {error.message}</div>;
   if (!currentAction) return <div className="error">Action not found</div>;
-  
+
   const action = currentAction;
-  
-  if (isEditing) {
-    return (
-      <ActionForm 
-        action={action} 
-        isEditing={true} 
-        onClose={handleEditCancel} 
-        onSuccess={handleEditSuccess}
-      />
-     );
-   }
-   
+
    // Helper to display formula or default value
    const displayFormula = (formula, defaultValue) => {
      if (formula && formula.formulaValue) {
@@ -135,7 +130,7 @@ const ActionView = () => {
      }
      return defaultValue !== undefined ? defaultValue : 'N/A';
    };
-   
+
    return (
     <div className="action-view">
       <div className="action-header">
@@ -147,14 +142,14 @@ const ActionView = () => {
               className={`add-to-character-btn ${addActionSuccess ? 'success' : ''}`}
               disabled={addActionSuccess}
             >
-              {addActionSuccess ? 'Added!' : `Add to ${selectedCharacter.name}'s Actions`}
+              {addActionSuccess ? 'Added!' : selectedCharacter ? `Add to ${selectedCharacter.name}'s Actions` : 'Add to Character'}
             </button>
           )}
           <button onClick={handleEdit}>Edit</button>
           <button onClick={handleDelete} className="delete-button">Delete</button>
         </div>
       </div>
-      
+
       <div className="action-content">
          <div className="action-details">
            <h3>Details</h3>
@@ -231,6 +226,7 @@ const ActionView = () => {
            )}
          </div>
       </div>
+      <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} /> {/* Added ErrorPopup */}
     </div>
   );
 };
