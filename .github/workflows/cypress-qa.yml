@@ -30,7 +30,3 @@ jobs:
         run: |
           cd webfg-gm-app
           npm run cypress:run-env qa ${{ env.PR_NUMBER }}
-        env:
-          # Pass any necessary environment variables for Cypress if needed
-          # CYPRESS_VARIABLE_NAME: ${{ secrets.VARIABLE_NAME }}
-          # The CYPRESS_BASE_URL is set by run-cypress.sh based on the environment and PR_NUMBER
