@@ -41,4 +41,6 @@ For easier execution, use the NPM scripts added to `webfg-gm-app/package.json`:
 
 These scripts handle navigating to the correct directory and executing the `npx cypress` commands.
 
-Ensure the application is running (`npm start`) before running any Cypress commands.
+Ensure the application is running () before running any Cypress commands.
+
+# Dummy change to trigger workflow
