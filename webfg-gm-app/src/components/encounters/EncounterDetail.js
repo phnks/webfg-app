@@ -323,8 +323,10 @@ const EncounterDetail = () => {
         }
       });
 
-      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
-
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error adding action:", err);
@@ -356,8 +358,10 @@ const EncounterDetail = () => {
         }
       });
 
-      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
-
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error moving character:", err);
@@ -390,8 +394,10 @@ const EncounterDetail = () => {
         }
       });
 
-      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
-
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Failed to update grid size:", err);
@@ -439,8 +445,11 @@ const EncounterDetail = () => {
       });
       console.log(`Added object ${objectId} to encounter ${encounterId}`);
 
-      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }\n      setShowAddObjectModal(false);
-
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
+      setShowAddObjectModal(false);
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error adding object to VTT:", err);
@@ -467,8 +476,10 @@ const EncounterDetail = () => {
         variables: { encounterId, objectId, x, y }
       });
 
-      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
-
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error moving object:", err);
@@ -496,8 +507,10 @@ const EncounterDetail = () => {
         variables: { encounterId, objectId }
       });
 
-      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
-
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error removing object:", err);
@@ -537,8 +550,11 @@ const EncounterDetail = () => {
         }
       });
 
-      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }\n      setShowAddTerrainPanel(false);
-
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
+      setShowAddTerrainPanel(false);
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error adding terrain:", err);
@@ -568,8 +584,10 @@ const EncounterDetail = () => {
         }
       });
 
-      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
-
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error moving terrain:", err);
@@ -597,8 +615,10 @@ const EncounterDetail = () => {
         variables: { encounterId, terrainId }
       });
 
-      // Check for null data or errors (including null values for all keys in data)\n      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {\n          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");\n      }
-
+      // Check for null data or errors (including null values for all keys in data)
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+          throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error removing terrain:", err);
