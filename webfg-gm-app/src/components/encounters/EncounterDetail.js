@@ -327,7 +327,6 @@ const EncounterDetail = () => {
       if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
       }
-
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error adding action:", err);
@@ -363,7 +362,6 @@ const EncounterDetail = () => {
       if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
       }
-
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error moving character:", err);
@@ -400,7 +398,6 @@ const EncounterDetail = () => {
       if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
       }
-
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Failed to update grid size:", err);
@@ -453,7 +450,6 @@ const EncounterDetail = () => {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
       }
       setShowAddObjectModal(false);
-
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error adding object to VTT:", err);
@@ -484,7 +480,6 @@ const EncounterDetail = () => {
       if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
       }
-
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error moving object:", err);
@@ -516,7 +511,6 @@ const EncounterDetail = () => {
       if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
       }
-
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error removing object:", err);
@@ -561,7 +555,6 @@ const EncounterDetail = () => {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
       }
       setShowAddTerrainPanel(false);
-
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error adding terrain:", err);
@@ -595,7 +588,6 @@ const EncounterDetail = () => {
       if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
       }
-
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error moving terrain:", err);
@@ -627,7 +619,6 @@ const EncounterDetail = () => {
       if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
       }
-
     } catch (err) {
       // This catch block will handle network errors or unexpected JavaScript errors
       console.error("Error removing terrain:", err);
