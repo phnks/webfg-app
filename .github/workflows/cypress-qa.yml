@@ -1,0 +1,36 @@
+name: Cypress QA Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  run_cypress:
+    name: Run Cypress Tests on QA
+    runs-on: ubuntu-latest
+    needs: deploy-qa # Depends on the deploy-qa job from the deploy workflow
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use a recent stable Node version
+
+      - name: Install Dependencies
+        run: npm ci # Use npm ci for clean install in CI environments
+
+      - name: Get PR Number
+        id: get_pr_number
+        run: echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+
+      - name: Run Cypress Tests
+        run: |
+          cd webfg-gm-app
+          npm run cypress:run-env qa ${{ env.PR_NUMBER }}
+        env:
+          # Pass any necessary environment variables for Cypress if needed
+          # CYPRESS_VARIABLE_NAME: ${{ secrets.VARIABLE_NAME }}
+          # The CYPRESS_BASE_URL is set by run-cypress.sh based on the environment and PR_NUMBER
