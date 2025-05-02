@@ -22,7 +22,6 @@
   "scripts": {
     "start": "env-cmd -f .env.dev react-scripts start",
     "build": "react-scripts build",
-    "build:prod": "env-cmd -f .env.prod react-scripts build",
     "test": "react-scripts test",
     "start:bg": "nohup env-cmd -f .env.dev react-scripts start > webfg-gm-app.log 2>&1 & echo $! > webfg-gm-app.pid",
     "stop:bg": "if [ -f webfg-gm-app.pid ]; then kill $(cat webfg-gm-app.pid) && rm webfg-gm-app.pid && echo 'Stopped server.'; else echo 'Server not running (no PID file)'; fi",
