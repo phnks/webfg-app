@@ -29,4 +29,4 @@ fi
 echo "Running Cypress tests against $ENV environment: $BASE_URL"
 
 # Set the CYPRESS_BASE_URL environment variable and run Cypress
-cd /home/homonculus/webfg-app/webfg-gm-app && CYPRESS_BASE_URL="$BASE_URL" npx cypress run
+cd ./webfg-gm-app && CYPRESS_BASE_URL="$BASE_URL" npx cypress run
