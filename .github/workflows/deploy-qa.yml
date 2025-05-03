@@ -90,3 +90,32 @@ jobs:
       - name: Deploy GM App QA Stack (PR-${{ env.DEPLOYMENT_ID }})
         # Deploy script now uses the build artifacts created in the previous step
         run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script
+
+  run-cypress-tests:
+    name: Run Cypress Tests on QA
+    runs-on: ubuntu-latest
+    needs: deploy-gm-app-qa # Depends on the GM App deployment job
+    defaults: # Set default working directory for steps in this job
+      run:
+        working-directory: ./webfg-gm-app
+    env:
+      # DEPLOYMENT_ID is already set at the workflow level or in previous jobs,
+      # so it should be available here.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needs GITHUB_TOKEN for gh api
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use a recent stable Node version
+
+      - name: Install Dependencies
+        run: npm ci # Use npm ci for clean install in CI environments
+        # working-directory is set by defaults.run
+
+      - name: Run Cypress Tests
+        run: |
+          # DEPLOYMENT_ID is available as an environment variable from the workflow or previous jobs
+          npm run cypress:run-env qa ${{ env.DEPLOYMENT_ID }}
