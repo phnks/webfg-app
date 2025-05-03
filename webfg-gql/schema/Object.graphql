@@ -17,7 +17,10 @@ type Object {
   duration: Float!
   handling: Float!
   capacity: Float!
+  falloff: Float!
+  partsIds: [ID]!
   parts: [Object]
+  usage: [Usage]
 }
 
 enum ObjectCategory {
@@ -39,4 +42,20 @@ enum ObjectCategory {
   COMPONENT
   DEBRIS
   ARTIFACT
+}
+
+type Usage {
+  actionId: ID!
+  usageType: [UsageType]! 
+}
+
+enum UsageType {
+  SET_PENETRATION
+  MODIFY_PENETRATION
+  SET_DAMAGE
+  MODIFY_DAMAGE
+  SET_DURATION
+  MODIFY_DURATION
+  MODIFY_TARGET_DURATION
+  SET_NOISE
 }
