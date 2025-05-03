@@ -34,7 +34,7 @@
     "delete:prod": "bash scripts/delete.sh prod none",
     "cypress:open": "cd webfg-gm-app && npx cypress open",
     "cypress:run": "cd webfg-gm-app && npx cypress run",
-    "cypress:run-env": "cd webfg-gm-app && bash scripts/run-cypress.sh"
+    "cypress:run-env": "bash scripts/run-cypress.sh"
   },
   "eslintConfig": {
     "extends": [

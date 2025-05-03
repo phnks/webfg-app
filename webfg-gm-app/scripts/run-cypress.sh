@@ -17,7 +17,7 @@ elif [ "$ENV" == "qa" ]; then
     echo "Usage: $0 qa <deployment_id>"
     exit 1
   fi
-  BASE_URL="https://webfg-gm-ap-qa${DEPLOYMENT_ID}.phnks.com"
+  BASE_URL="https://webfg-gm-app-qa${DEPLOYMENT_ID}.phnks.com" # Corrected typo here
 elif [ "$ENV" == "prod" ]; then
   BASE_URL="https://webfg-gm-app.phnks.com"
 else
@@ -29,4 +29,4 @@ fi
 echo "Running Cypress tests against $ENV environment: $BASE_URL"
 
 # Set the CYPRESS_BASE_URL environment variable and run Cypress
-cd /home/homonculus/webfg-app/webfg-gm-app && CYPRESS_BASE_URL="$BASE_URL" npx cypress run
+cd . && CYPRESS_BASE_URL="$BASE_URL" npx cypress run
