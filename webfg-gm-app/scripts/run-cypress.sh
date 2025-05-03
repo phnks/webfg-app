@@ -17,7 +17,7 @@ elif [ "$ENV" == "qa" ]; then
     echo "Usage: $0 qa <deployment_id>"
     exit 1
   fi
-  BASE_URL="https://webfg-gm-ap-qa${DEPLOYMENT_ID}.phnks.com"
+  BASE_URL="https://webfg-gm-app-qa${DEPLOYMENT_ID}.phnks.com" # Corrected typo here
 elif [ "$ENV" == "prod" ]; then
   BASE_URL="https://webfg-gm-app.phnks.com"
 else
