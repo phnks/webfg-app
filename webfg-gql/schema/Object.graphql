@@ -5,6 +5,12 @@ type Object {
   width: Float!
   length: Float!
   height: Float!
+  weight: Float!
+  penetration: Float!
+  deflection: Float!
+  impact: Float!
+  absorption: Float!
+  isLimb: Boolean!
   parts: [Object]
 }
 
