@@ -10,7 +10,13 @@ type Object {
   deflection: Float!
   impact: Float!
   absorption: Float!
+  hitPoints: StatValue!
+  damage: Float!
   isLimb: Boolean!
+  noise: Float!
+  duration: Float!
+  handling: Float!
+  capacity: Float!
   parts: [Object]
 }
 
