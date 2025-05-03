@@ -117,5 +117,7 @@ jobs:
 
       - name: Run Cypress Tests
         run: |
-          # DEPLOYMENT_ID is available as an environment variable from the workflow or previous jobs
-          bash scripts/run-cypress.sh qa ${{ env.DEPLOYMENT_ID }}
+          # Set a local shell variable with the DEPLOYMENT_ID
+          PR_ID="${{ env.DEPLOYMENT_ID }}"
+          echo "Using Deployment ID: $PR_ID" # Debugging line
+          bash scripts/run-cypress.sh qa "$PR_ID" # Pass the shell variable as argument
