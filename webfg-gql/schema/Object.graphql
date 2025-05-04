@@ -11,14 +11,16 @@ type Object {
   impact: Float!
   absorption: Float!
   hitPoints: StatValue!
-  damage: Float!
+  damageMin: Float!
+  damageMax: Float!
+  damageType: DamageType!
   isLimb: Boolean!
   noise: Float!
   duration: Float!
   handling: Float!
   capacity: Float!
   falloff: Float!
-  partsIds: [ID]!
+  partsIds: [ID]
   parts: [Object]
   usage: [Usage]
 }
@@ -42,6 +44,17 @@ enum ObjectCategory {
   COMPONENT
   DEBRIS
   ARTIFACT
+}
+
+enum DamageType {
+  KINETIC
+  HYPERTHERMAL
+  HYPOTHERMAL
+  ELECTRIC
+  SONIC
+  CHEMICAL
+  BIOCHEMICAL
+  RADIATION
 }
 
 type Usage {
