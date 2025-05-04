@@ -3,23 +3,25 @@ describe('Character User Flow', () => {
 // Visit the home page
     cy.visit('/');
 
-    // Open the side navigation bar
-    cy.get('.menu-toggle').click();
+    cy.wait(10000); // Wait for initial page load and rendering
 
-    // Confirm the sidebar is open
-    cy.get('.sidebar').should('have.class', 'open');
+    // Open the side navigation bar
+    cy.get('[data-cy="menu-toggle"]').click();
+
+    // Confirm the sidebar is open and wait for it to be visible
+    cy.get('.sidebar').should('be.visible').should('have.class', 'open');
 
     // Confirm the Characters navigation option appears and click it
-    cy.get('.sidebar').contains('Characters').should('be.visible').click();
+    cy.get('[data-cy="nav-characters"]').should('be.visible').click();
 
     // Close the side navigation bar by clicking the toggle again
-    cy.get('.menu-toggle').click();
+    cy.get('[data-cy="menu-toggle"]').click();
 
     // Confirm the character listing page loads and wait for it to be visible
     cy.contains('h1', 'Characters').should('be.visible');
 
     // Confirm the "Create New Character" button appears and click it
-    cy.contains('button', 'Create New Character').should('be.visible').click();
+    cy.get('[data-cy="create-character-button"]').should('be.visible').click();
 
     // Confirm the character form appears
     cy.contains('h2', 'Create Character').should('be.visible');
@@ -64,7 +66,7 @@ describe('Character User Flow', () => {
     cy.get('#physical\\.adjacency').should('be.visible').clear().type('5').should('have.value', '5');
 
     // Click the Create button
-    cy.contains('button[type="submit"]', 'Create').should('be.visible').click();
+    cy.get('button[type="submit"]').contains('Create').should('be.visible').click();
 
     // Confirm redirection to the character view page
     cy.url().should('include', '/characters/'); // Check if the URL changes to /characters/<id>
