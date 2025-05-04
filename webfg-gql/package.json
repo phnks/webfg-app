@@ -29,8 +29,8 @@
     "uuid": "^11.1.0"
   },
   "config": {
-    "qa_schema": "v20",
-    "prod_schema": "v12",
+    "qa_schema": "v21",
+    "prod_schema": "v13",
     "stack_name": "webfg-gql"
   },
   "devDependencies": {
