@@ -54,6 +54,7 @@ npm run "$BUILD_SCRIPT"
 # --- Deploy Stack ---
 echo "Deploying stack: ${STACK_NAME}..."
 sam deploy \
+  --on-failure DELETE \
   --no-confirm-changeset \
   --no-progressbar \
   --no-fail-on-empty-changeset \
