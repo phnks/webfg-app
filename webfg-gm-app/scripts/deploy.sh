@@ -59,7 +59,7 @@ sam deploy \
   --no-fail-on-empty-changeset \
   --stack-name "${STACK_NAME}" \
   --parameter-overrides Environment="${ENVIRONMENT}" DeploymentId="${DEPLOYMENT_ID}" \
-  --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
+  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
 # --- Sync S3 ---
 echo "Retrieving bucket name..."
