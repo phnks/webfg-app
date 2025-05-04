@@ -75,7 +75,7 @@ sam deploy \
   --no-progressbar \
   --no-fail-on-empty-changeset \
   --template-file .aws-sam/build/template.yaml \
-  --stack-name "${MAIN_STACK_NAME}" \\\n  --region us-east-1 \
+  --stack-name "${MAIN_STACK_NAME}" \
   --resolve-s3 true \
   --parameter-overrides Environment="${ENVIRONMENT}" DeploymentId="${DEPLOYMENT_ID}" SchemaS3Key="${SCHEMA_S3_KEY}" SchemaS3BucketName="${BUCKET_NAME}" \
   --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND
