@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useSubscription } from '@apollo/client';
 import { FaBars, FaTimes, FaUser, FaCube, FaBolt, FaHome, FaChessBoard } from 'react-icons/fa';
-import { 
+import {
   ON_CREATE_CHARACTER, ON_UPDATE_ACTION, ON_DELETE_CHARACTER,
   ON_CREATE_OBJECT, ON_UPDATE_OBJECT, ON_DELETE_OBJECT,
   ON_CREATE_ACTION, ON_DELETE_ACTION,
@@ -16,13 +16,13 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
   const [activeSection, setActiveSection] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Maintain local state for lists that includes subscription updates
   const [characters, setCharacters] = useState(characterList);
   const [objects, setObjects] = useState(objectList);
   const [actions, setActions] = useState(actionList);
   const [encounters, setEncounters] = useState([]);
-  
+
   // Track deleted items to prevent them showing up
   const deletedItemIds = useRef({
     characters: new Set(),
@@ -104,7 +104,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
         if (deletedItemIds.current.characters.has(newCharacter.characterId)) {
           return prev;
         }
-        
+
         // Check if character already exists to avoid duplicates
         if (!prev.some(char => char.characterId === newCharacter.characterId)) {
           return [...prev, newCharacter];
@@ -113,34 +113,34 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
       });
     }
   });
-  
+
   useSubscription(ON_UPDATE_ACTION, {
     onData: ({ data }) => {
       const updatedCharacter = data.data.onUpdateCharacter;
-      
+
       // Don't update if character was deleted
       if (deletedItemIds.current.characters.has(updatedCharacter.characterId)) {
         return;
       }
-      
-      setCharacters(prev => 
-        prev.map(char => 
-          char.characterId === updatedCharacter.characterId 
-            ? updatedCharacter 
+
+      setCharacters(prev =>
+        prev.map(char =>
+          char.characterId === updatedCharacter.characterId
+            ? updatedCharacter
             : char
         )
       );
     }
   });
-  
+
   useSubscription(ON_DELETE_CHARACTER, {
     onData: ({ data }) => {
       const deletedCharacter = data.data.onDeleteCharacter;
-      
+
       // Mark character as deleted
       deletedItemIds.current.characters.add(deletedCharacter.characterId);
-      
-      setCharacters(prev => 
+
+      setCharacters(prev =>
         prev.filter(char => char.characterId !== deletedCharacter.characterId)
       );
     }
@@ -150,12 +150,12 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
   useSubscription(ON_CREATE_OBJECT, {
     onData: ({ data }) => {
       const newObject = data.data.onCreateObject;
-      
+
       // Don't add if it was deleted
       if (deletedItemIds.current.objects.has(newObject.objectId)) {
         return;
       }
-      
+
       setObjects(prev => {
         // Check if object already exists to avoid duplicates
         if (!prev.some(obj => obj.objectId === newObject.objectId)) {
@@ -165,34 +165,34 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
       });
     }
   });
-  
+
   useSubscription(ON_UPDATE_OBJECT, {
     onData: ({ data }) => {
       const updatedObject = data.data.onUpdateObject;
-      
+
       // Don't update if object was deleted
       if (deletedItemIds.current.objects.has(updatedObject.objectId)) {
         return;
       }
-      
-      setObjects(prev => 
-        prev.map(obj => 
-          obj.objectId === updatedObject.objectId 
-            ? updatedObject 
+
+      setObjects(prev =>
+        prev.map(obj =>
+          obj.objectId === updatedObject.objectId
+            ? updatedObject
             : obj
         )
       );
     }
   });
-  
+
   useSubscription(ON_DELETE_OBJECT, {
     onData: ({ data }) => {
       const deletedObject = data.data.onDeleteObject;
-      
+
       // Mark object as deleted
       deletedItemIds.current.objects.add(deletedObject.objectId);
-      
-      setObjects(prev => 
+
+      setObjects(prev =>
         prev.filter(obj => obj.objectId !== deletedObject.objectId)
       );
     }
@@ -202,12 +202,12 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
   useSubscription(ON_CREATE_ACTION, {
     onData: ({ data }) => {
       const newAction = data.data.onCreateAction;
-      
+
       // Don't add if it was deleted
       if (deletedItemIds.current.actions.has(newAction.actionId)) {
         return;
       }
-      
+
       setActions(prev => {
         // Check if action already exists to avoid duplicates
         if (!prev.some(action => action.actionId === newAction.actionId)) {
@@ -217,34 +217,34 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
       });
     }
   });
-  
+
   useSubscription(ON_UPDATE_ACTION, {
     onData: ({ data }) => {
       const updatedAction = data.data.onUpdateAction;
-      
+
       // Don't update if action was deleted
       if (deletedItemIds.current.actions.has(updatedAction.actionId)) {
         return;
       }
-      
-      setActions(prev => 
-        prev.map(action => 
-          action.actionId === updatedAction.actionId 
-            ? updatedAction 
+
+      setActions(prev =>
+        prev.map(action =>
+          action.actionId === updatedAction.actionId
+            ? updatedAction
             : action
         )
       );
     }
   });
-  
+
   useSubscription(ON_DELETE_ACTION, {
     onData: ({ data }) => {
       const deletedAction = data.data.onDeleteAction;
-      
+
       // Mark action as deleted
       deletedItemIds.current.actions.add(deletedAction.actionId);
-      
-      setActions(prev => 
+
+      setActions(prev =>
         prev.filter(action => action.actionId !== deletedAction.actionId)
       );
     }
@@ -259,7 +259,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
         if (deletedItemIds.current.encounters.has(newEncounter.encounterId)) {
           return prev;
         }
-        
+
         // Check if encounter already exists to avoid duplicates
         if (!prev.some(enc => enc.encounterId === newEncounter.encounterId)) {
           return [...prev, newEncounter];
@@ -268,26 +268,26 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
       });
     }
   });
-  
+
   useSubscription(ON_UPDATE_ENCOUNTER, {
     onData: ({ data }) => {
       const updatedEncounter = data.data.onUpdateEncounter;
-      
+
       // Don't update if encounter was deleted
       if (deletedItemIds.current.encounters.has(updatedEncounter.encounterId)) {
         return;
       }
-      
-      setEncounters(prev => 
-        prev.map(enc => 
-          enc.encounterId === updatedEncounter.encounterId 
-            ? updatedEncounter 
+
+      setEncounters(prev =>
+        prev.map(enc =>
+          enc.encounterId === updatedEncounter.encounterId
+            ? updatedEncounter
             : enc
         )
       );
     }
   });
-  
+
   useSubscription(ON_DELETE_ENCOUNTER, {
     onData: ({ data }) => {
       const deletedId = data.data.onDeleteEncounter.encounterId;
@@ -303,7 +303,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
   const closeMenu = () => {
     setIsOpen(false);
   };
-  
+
   const handleNewItem = () => {
     closeMenu();
     switch(activeSection) {
@@ -327,16 +327,16 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
   return (
     <>
       <nav className="navbar">
-        <div className="menu-toggle" onClick={toggleMenu}>
+        <div className="menu-toggle" onClick={toggleMenu} data-cy="menu-toggle">
           {isOpen ? <FaTimes /> : <FaBars />}
         </div>
         <NavLink to="/" className="logo" onClick={closeMenu}>WEBFG GM</NavLink>
       </nav>
-      
+
       <div className={`sidebar ${isOpen ? 'open' : ''}`}>
         <ul className="section-tabs">
           <li className={activeSection === 'characters' ? 'active' : ''}>
-            <NavLink to="/characters" onClick={() => setActiveSection('characters')}>
+            <NavLink to="/characters" onClick={() => setActiveSection('characters')} data-cy="nav-characters">
               <FaUser />
               <span>Characters</span>
             </NavLink>
@@ -360,20 +360,20 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
             </NavLink>
           </li>
         </ul>
-        
+
         {activeSection && (
           <div className="section-list">
             <div className="section-header">
               <h3>{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}</h3>
               <button className="add-btn" onClick={handleNewItem}>+ New</button>
             </div>
-            
+
             {activeSection === 'characters' && (
               <ul className="item-list">
                 {characters.length > 0 ? characters.map(char => (
                   <li key={char.characterId}>
-                    <NavLink 
-                      to={`/characters/${char.characterId}`} 
+                    <NavLink
+                      to={`/characters/${char.characterId}`}
                       onClick={closeMenu}
                       className={({ isActive }) => isActive ? 'active' : ''}
                     >
@@ -386,13 +386,13 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
                 )}
               </ul>
             )}
-            
+
             {activeSection === 'objects' && (
               <ul className="item-list">
                 {objects.length > 0 ? objects.map(obj => (
                   <li key={obj.objectId}>
-                    <NavLink 
-                      to={`/objects/${obj.objectId}`} 
+                    <NavLink
+                      to={`/objects/${obj.objectId}`}
                       onClick={closeMenu}
                       className={({ isActive }) => isActive ? 'active' : ''}
                     >
@@ -405,13 +405,13 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
                 )}
               </ul>
             )}
-            
+
             {activeSection === 'actions' && (
               <ul className="item-list">
                 {actions.length > 0 ? actions.map(action => (
                   <li key={action.actionId}>
-                    <NavLink 
-                      to={`/actions/${action.actionId}`} 
+                    <NavLink
+                      to={`/actions/${action.actionId}`}
                       onClick={closeMenu}
                       className={({ isActive }) => isActive ? 'active' : ''}
                     >
@@ -424,13 +424,13 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
                 )}
               </ul>
             )}
-            
+
             {activeSection === 'encounters' && (
               <ul className="item-list">
                 {encounters.length > 0 ? encounters.map(encounter => (
                   <li key={encounter.encounterId}>
-                    <NavLink 
-                      to={`/encounters/${encounter.encounterId}`} 
+                    <NavLink
+                      to={`/encounters/${encounter.encounterId}`}
                       onClick={closeMenu}
                       className={({ isActive }) => isActive ? 'active' : ''}
                     >
@@ -446,10 +446,10 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
           </div>
         )}
       </div>
-      
+
       {isOpen && <div className="menu-overlay" onClick={closeMenu}></div>}
     </>
   );
 };
 
-export default NavBar; 
+export default NavBar;

@@ -28,19 +28,21 @@
     "restart:bg": "npm run stop:bg && sleep 1 && npm run start:bg",
     "eject": "react-scripts eject",
     "deploy:prod": "bash scripts/deploy.sh prod none",
-    "deploy:qa": "bash scripts/deploy.sh qa ${DEPLOYMENT_ID:-none}",
-    "check-deploy:qa": "bash scripts/check-deploy.sh qa ${DEPLOYMENT_ID:-none}",
+    "deploy:qa": "bash scripts/deploy.sh qa ${DEPLOYMENT_ID:?DEPLOYMENT_ID is required}",
+    "check-deploy:qa": "bash scripts/check-deploy.sh qa ${DEPLOYMENT_ID:?DEPLOYMENT_ID is required}",
     "delete:qa": "bash scripts/delete.sh qa ${DEPLOYMENT_ID:?DEPLOYMENT_ID is required}",
     "delete:prod": "bash scripts/delete.sh prod none",
-    "cypress:open": "cd webfg-gm-app && npx cypress open",
-    "cypress:run": "cd webfg-gm-app && npx cypress run",
-    "cypress:run-env": "bash scripts/run-cypress.sh"
+    "cypress:open": "npx cypress open",
+    "cypress:run": "bash scripts/run-cypress.sh"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
     ]
+  },
+  "devDependencies": {
+    "cypress": "^14.3.2"
   },
   "browserslist": {
     "production": [
@@ -53,8 +55,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "cypress": "^14.3.2"
   }
 }
