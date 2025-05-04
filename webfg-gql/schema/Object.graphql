@@ -59,7 +59,7 @@ enum DamageType {
 
 type Usage {
   actionId: ID!
-  usageType: [UsageType]! 
+  usageType: [UsageType]!
 }
 
 enum UsageType {
@@ -71,4 +71,40 @@ enum UsageType {
   MODIFY_DURATION
   MODIFY_TARGET_DURATION
   SET_NOISE
+}
+
+input ObjectInput {
+  name: String
+  objectCategory: ObjectCategory
+  width: Float
+  length: Float
+  height: Float
+  weight: Float
+  penetration: Float
+  deflection: Float
+  impact: Float
+  absorption: Float
+  hitPoints: StatValueInput
+  damageMin: Float
+  damageMax: Float
+  damageType: DamageType
+  isLimb: Boolean
+  noise: Float
+  duration: Float
+  handling: Float
+  capacity: Float
+  falloff: Float
+  partsIds: [ID]
+  usage: [UsageInput]
+}
+
+input ObjectFilterInput {
+  name: StringFilterInput
+  objectCategory: ObjectCategory
+  maxWeight: Float
+}
+
+input UsageInput {
+  actionId: ID!
+  usageType: [UsageType]!
 }

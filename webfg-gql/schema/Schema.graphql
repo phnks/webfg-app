@@ -2,7 +2,7 @@ type Query {
   # Character queries
   getCharacter(characterId: ID!): Character
   listCharacters(filter: CharacterFilterInput): [Character]
-  
+
   # Object queries
   getObject(objectId: ID!): Object
   listObjects(filter: ObjectFilterInput): [Object]
@@ -12,12 +12,12 @@ type Query {
 
   # Attribute queries
   listAttributes: [Attribute] # Added
-  
+
   # Action queries
   getAction(actionId: ID!): Action
   getActions(actionIds: [ID!]!): [Action]
   listActions(filter: ActionFilterInput): [Action]
-  
+
   # Encounter queries
   getEncounter(encounterId: ID!): Encounter
   listEncounters(filter: EncounterFilterInput): [Encounter]
@@ -43,7 +43,7 @@ type Mutation {
     equipmentIds: [ID]
     actionIds: [ID]
   ): Character
-  
+
   updateCharacter(
     characterId: ID!
     name: String
@@ -59,39 +59,39 @@ type Mutation {
     equipmentIds: [ID]
     actionIds: [ID]
   ): Character
-  
+
   deleteCharacter(characterId: ID!): Character
-  
+
   # Object mutations
   createObject(input: ObjectInput!): Object
   updateObject(objectId: ID!, input: ObjectInput!): Object
   deleteObject(objectId: ID!): Object
-  
+
   # Action mutations
   createAction(input: ActionInput!): Action
   updateAction(actionId: ID!, input: ActionInput!): Action
   deleteAction(actionId: ID!): Action
-  
+
   # Character-Object relationship mutations
   addObjectToInventory(characterId: ID!, objectId: ID!): Character
   removeObjectFromInventory(characterId: ID!, objectId: ID!): Character
   addObjectToEquipment(characterId: ID!, objectId: ID!): Character
   removeObjectFromEquipment(characterId: ID!, objectId: ID!): Character
-  
+
   # Character-Action relationship mutations
   addActionToCharacter(characterId: ID!, actionId: ID!): Character
   removeActionFromCharacter(characterId: ID!, actionId: ID!): Character
-  
+
   # Encounter mutations
   createEncounter(input: EncounterInput!): Encounter
   updateEncounter(encounterId: ID!, input: EncounterInput!): Encounter
   deleteEncounter(encounterId: ID!): Encounter
   updateGridSize(input: UpdateGridSizeInput!): Encounter!
-  
+
   # Character-Encounter relationship mutations
   addCharacterToEncounter(encounterId: ID!, characterId: ID!, startTime: Float, x: Int, y: Int): Encounter
   removeCharacterFromEncounter(encounterId: ID!, characterId: ID!): Encounter
-  
+
   # Timeline and VTT mutations
   addActionToTimeline(encounterId: ID!, characterId: ID!, actionId: ID!, startTime: Float!): Encounter
   advanceEncounterTime(encounterId: ID!, newTime: Float!): Encounter
@@ -127,7 +127,7 @@ type Subscription {
       @aws_subscribe(mutations: ["updateCharacter"])
   onDeleteCharacter: Character
       @aws_subscribe(mutations: ["deleteCharacter"])
-  
+
   # Object subscriptions
   onCreateObject: Object
       @aws_subscribe(mutations: ["createObject"])
@@ -135,7 +135,7 @@ type Subscription {
       @aws_subscribe(mutations: ["updateObject"])
   onDeleteObject: Object
       @aws_subscribe(mutations: ["deleteObject"])
-  
+
   # Action subscriptions
   onCreateAction: Action
       @aws_subscribe(mutations: ["createAction"])
@@ -143,7 +143,7 @@ type Subscription {
       @aws_subscribe(mutations: ["updateAction"])
   onDeleteAction: Action
       @aws_subscribe(mutations: ["deleteAction"])
-  
+
   # Encounter subscriptions
   onCreateEncounter: Encounter
       @aws_subscribe(mutations: ["createEncounter"])
@@ -177,13 +177,6 @@ input CharacterFilterInput {
   # race: Race # Removed
   hasObjectWithName: StringFilterInput
   hasActionWithName: StringFilterInput
-}
-
-input ObjectFilterInput {
-  name: StringFilterInput
-  type: ObjectType
-  fit: FitType
-  maxWeight: Float
 }
 
  input ActionFilterInput {
