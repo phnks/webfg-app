@@ -37,13 +37,14 @@ echo "SAM_DEPLOY_BUCKET: Using resolved bucket from samconfig.toml"
 # --- Step 1: Deploy S3 Bucket Stack ---
 echo "Deploying S3 Bucket Stack: ${BUCKET_STACK_NAME}..."
 sam deploy \
+  --on-failure DELETE \
   --no-confirm-changeset \
   --no-progressbar \
   --no-fail-on-empty-changeset \
   --template-file s3-bucket.yaml \
   --stack-name "${BUCKET_STACK_NAME}" \
   --parameter-overrides Environment="${ENVIRONMENT}" ServiceName="${STACK_NAME_CONFIG}" DeploymentId="${DEPLOYMENT_ID}" \
-  --capabilities CAPABILITY_IAM \
+  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
 # --- Step 2: Get Bucket Name ---
 echo "Retrieving Bucket Name from stack ${BUCKET_STACK_NAME}..."
@@ -71,6 +72,7 @@ sam build --cached --parallel
 # --- Step 5: Deploy Main Stack ---
 echo "Deploying Main Stack: ${MAIN_STACK_NAME}..."
 sam deploy \
+  --on-failure DELETE \
   --no-confirm-changeset \
   --no-progressbar \
   --no-fail-on-empty-changeset \
@@ -78,7 +80,7 @@ sam deploy \
   --stack-name "${MAIN_STACK_NAME}" \
   --resolve-s3 true \
   --parameter-overrides Environment="${ENVIRONMENT}" DeploymentId="${DEPLOYMENT_ID}" SchemaS3Key="${SCHEMA_S3_KEY}" SchemaS3BucketName="${BUCKET_NAME}" \
-  --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND
+  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
 # --- Step 6: Populate Defaults ---
 echo "Populating defaults for ${ENVIRONMENT} ${DEPLOYMENT_ID}..."
