@@ -39,30 +39,56 @@ Resources:
         {
           "version": "2017-02-28",
           "operation": "Scan",
+          #set($filterExpression = "")
+          #set($expressionAttributeNames = {})
+          #set($expressionAttributeValues = {})
+
           #if($ctx.args.filter)
-            "filter": #set($filters = {})
-              #if($ctx.args.filter.name)
-                #if($ctx.args.filter.name.eq)
-                  #set($filters.name = {"eq": $ctx.args.filter.name.eq})
-                #end
-                #if($ctx.args.filter.name.contains)
-                  #set($filters.name = {"contains": $ctx.args.filter.name.contains})
-                #end
-                #if($ctx.args.filter.name.beginsWith)
-                  #set($filters.name = {"beginsWith": $ctx.args.filter.name.beginsWith})
-                #end
+            #set($filters = [])
+
+            ## Name Filter
+            #if($ctx.args.filter.name)
+              #if($ctx.args.filter.name.eq)
+                $util.qr($filters.add("(#name = :name_eq)"))
+                $util.qr($expressionAttributeNames.put("#name", "name"))
+                $util.qr($expressionAttributeValues.put(":name_eq", $util.dynamodb.toDynamoDB($ctx.args.filter.name.eq)))
               #end
-              #if($ctx.args.filter.type)
-                #set($filters.type = {"eq": $ctx.args.filter.type})
+              #if($ctx.args.filter.name.contains)
+                $util.qr($filters.add("(contains(#name, :name_contains))"))
+                $util.qr($expressionAttributeNames.put("#name", "name"))
+                $util.qr($expressionAttributeValues.put(":name_contains", $util.dynamodb.toDynamoDB($ctx.args.filter.name.contains)))
               #end
-              #if($ctx.args.filter.fit)
-                #set($filters.fit = {"eq": $ctx.args.filter.fit})
+              #if($ctx.args.filter.name.beginsWith)
+                $util.qr($filters.add("(begins_with(#name, :name_beginsWith))"))
+                $util.qr($expressionAttributeNames.put("#name", "name"))
+                $util.qr($expressionAttributeValues.put(":name_beginsWith", $util.dynamodb.toDynamoDB($ctx.args.filter.name.beginsWith)))
               #end
-              #if($ctx.args.filter.maxWeight)
-                #set($filters.weight = {"lte": $ctx.args.filter.maxWeight})
-              #end
-              $util.toJson($filters)
+            #end
+
+            ## ObjectCategory Filter
+            #if($ctx.args.filter.objectCategory)
+              $util.qr($filters.add("(#objectCategory = :objectCategory_eq)"))
+              $util.qr($expressionAttributeNames.put("#objectCategory", "objectCategory"))
+              $util.qr($expressionAttributeValues.put(":objectCategory_eq", $util.dynamodb.toDynamoDB($ctx.args.filter.objectCategory)))
+            #end
+
+            ## MaxWeight Filter (maps to 'weight' field, less than or equal)
+            #if($ctx.args.filter.maxWeight)
+              $util.qr($filters.add("(#weight <= :weight_lte)"))
+              $util.qr($expressionAttributeNames.put("#weight", "weight"))
+              $util.qr($expressionAttributeValues.put(":weight_lte", $util.dynamodb.toDynamoDB($ctx.args.filter.maxWeight)))
+            #end
+
+            #if(!$filters.isEmpty())
+              #set($filterExpression = $util.list.join(" AND ", $filters))
+            #end
           #end
+
+          "filter": #if($filterExpression != "") $util.toJson({
+                        "expression": $filterExpression,
+                        "expressionNames": $expressionAttributeNames,
+                        "expressionValues": $expressionAttributeValues
+                      }) #else null #end
         }
       ResponseMappingTemplate: '$util.toJson($context.result.items)'
 
@@ -74,9 +100,33 @@ Resources:
       FieldName: createObject
       DataSourceName: !Ref ObjectsDataSourceName
       RequestMappingTemplate: |
-        ## Automatically generate an ID if one is not provided
+        ## Automatically generate an ID
         #set($objectId = $util.autoId())
-        
+
+        ## Prepare attribute values, handling nested types
+        #set($attributeValues = {
+            "objectId": $util.dynamodb.toDynamoDBJson($objectId),
+            "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
+        })
+
+        ## Iterate through input fields to build the put item attributes
+        #foreach($key in $ctx.args.input.keySet())
+            #if($key != "objectId" && $key != "createdAt") ## Exclude auto-generated fields
+                #set($value = $ctx.args.input.get($key))
+                #if($value != null) ## Only include if value is not null
+                    #if($key == "partsIds" || $key == "usage")
+                        ## For lists, handle empty lists explicitly by omitting the attribute
+                        #if(!$value.isEmpty())
+                            $util.qr($attributeValues.put($key, $util.dynamodb.toDynamoDBJson($value)))
+                        #end
+                    #else
+                        ## For other types, directly convert
+                        $util.qr($attributeValues.put($key, $util.dynamodb.toDynamoDBJson($value)))
+                    #end
+                #end
+            #end
+        #end
+
         ## Set up the DynamoDB operation
         {
           "version": "2018-05-29",
@@ -84,15 +134,7 @@ Resources:
           "key": {
             "objectId": $util.dynamodb.toDynamoDBJson($objectId)
           },
-          "attributeValues": {
-            "name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
-            "type": $util.dynamodb.toDynamoDBJson($ctx.args.input.type),
-            "fit": $util.dynamodb.toDynamoDBJson($ctx.args.input.fit),
-            "weight": $util.dynamodb.toDynamoDBJson($ctx.args.input.weight),
-            "noise": $util.dynamodb.toDynamoDBJson($ctx.args.input.noise),
-            "hitPoints": $util.dynamodb.toDynamoDBJson($ctx.args.input.hitPoints),
-            "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
-          }
+          "attributeValues": $attributeValues
         }
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
@@ -105,31 +147,54 @@ Resources:
       FieldName: updateObject
       DataSourceName: !Ref ObjectsDataSourceName
       RequestMappingTemplate: |
+        ## Initialize UpdateExpression components
+        #set($updateExpression = "SET")
+        #set($expressionAttributeNames = {})
+        #set($expressionAttributeValues = {})
+        #set($comma = "") ## To control adding commas
+
+        ## Iterate through input fields to build the update expression
+        #foreach($key in $ctx.args.input.keySet())
+            #set($expressionKey = "#$key")
+            #set($expressionValue = ":$key")
+
+            #set($updateExpression = "$updateExpression$comma $expressionKey = $expressionValue")
+            $util.qr($expressionAttributeNames.put($expressionKey, $key))
+
+            ## Handle different types of input values
+            #if($key == "partsIds" || $key == "usage")
+                ## For lists, handle null/empty cases specifically
+                #if($ctx.args.input.get($key) && !$ctx.args.input.get($key).isEmpty())
+                    $util.qr($expressionAttributeValues.put($expressionValue, $util.dynamodb.toDynamoDBJson($ctx.args.input.get($key))))
+                #else
+                    ## Set to NULL if input list is null or empty
+                    $util.qr($expressionAttributeValues.put($expressionValue, { "NULL": true }))
+                #end
+            #else
+                ## For other types (String, Number, Boolean, Map), directly convert
+                $util.qr($expressionAttributeValues.put($expressionValue, $util.dynamodb.toDynamoDBJson($ctx.args.input.get($key))))
+            #end
+
+            #set($comma = ",") ## Add comma for the next potential attribute
+        #end
+
+        ## Add updatedAt timestamp
+        #set($updateExpression = "$updateExpression$comma #updatedAt = :updatedAt")
+        $util.qr($expressionAttributeNames.put("#updatedAt", "updatedAt"))
+        $util.qr($expressionAttributeValues.put(":updatedAt", $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())))
+
+        ## Final DynamoDB UpdateItem request
         {
-          "version": "2018-05-29",
-          "operation": "UpdateItem",
-          "key": {
-            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
-          },
-          "update": {
-            "expression": "SET #name = :name, #type = :type, #fit = :fit, #weight = :weight, #noise = :noise, #hitPoints = :hitPoints",
-            "expressionNames": {
-              "#name": "name",
-              "#type": "type",
-              "#fit": "fit",
-              "#weight": "weight",
-              "#noise": "noise",
-              "#hitPoints": "hitPoints"
+            "version": "2018-05-29",
+            "operation": "UpdateItem",
+            "key": {
+                "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
             },
-            "expressionValues": {
-              ":name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
-              ":type": $util.dynamodb.toDynamoDBJson($ctx.args.input.type),
-              ":fit": $util.dynamodb.toDynamoDBJson($ctx.args.input.fit),
-              ":weight": $util.dynamodb.toDynamoDBJson($ctx.args.input.weight),
-              ":noise": $util.dynamodb.toDynamoDBJson($ctx.args.input.noise),
-              ":hitPoints": $util.dynamodb.toDynamoDBJson($ctx.args.input.hitPoints)
+            "update": {
+                "expression": $updateExpression,
+                "expressionNames": $expressionAttributeNames,
+                "expressionValues": $expressionAttributeValues
             }
-          }
         }
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
@@ -150,4 +215,4 @@ Resources:
           }
         }
       ResponseMappingTemplate: |
-        $util.toJson($ctx.result) 
+        $util.toJson($ctx.result)
