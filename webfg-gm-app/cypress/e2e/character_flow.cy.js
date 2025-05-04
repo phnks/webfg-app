@@ -1,6 +1,6 @@
 describe('Character User Flow', () => {
   it('should allow creating and viewing a character', () => {
-    // Visit the home page
+// Visit the home page
     cy.visit('/');
 
     // Open the side navigation bar
@@ -12,7 +12,10 @@ describe('Character User Flow', () => {
     // Confirm the Characters navigation option appears and click it
     cy.get('.sidebar').contains('Characters').should('be.visible').click();
 
-    // Confirm the character listing page loads
+    // Close the side navigation bar by clicking the toggle again
+    cy.get('.menu-toggle').click();
+
+    // Confirm the character listing page loads and wait for it to be visible
     cy.contains('h1', 'Characters').should('be.visible');
 
     // Confirm the "Create New Character" button appears and click it
