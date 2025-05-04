@@ -88,6 +88,8 @@ exports.handler = async (event) => {
 
     const { Attributes: updatedEncounter } = await docClient.send(updateCommand);
     console.log(`Successfully added/updated object ${objectId} in encounter ${encounterId}`);
+    console.log('Lambda returning updated encounter:', updatedEncounter); // Added log
+
     return updatedEncounter;
 
   } catch (error) {
