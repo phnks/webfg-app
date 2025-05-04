@@ -1,3 +1,5 @@
+import { gql } from "@apollo/client";
+
 // CHARACTER QUERIES
 export const LIST_CHARACTERS = gql`
   query ListCharacters {
