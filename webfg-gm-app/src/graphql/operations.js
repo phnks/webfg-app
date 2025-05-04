@@ -561,6 +561,7 @@ export const GET_ENCOUNTER = gql`
       }
       objectPositions {
         objectId
+	x
         y
       }
       terrainElements { terrainId type startX startY length color }
