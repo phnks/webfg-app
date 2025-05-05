@@ -37,7 +37,6 @@ echo "SAM_DEPLOY_BUCKET: Using resolved bucket from samconfig.toml"
 # --- Step 1: Deploy S3 Bucket Stack ---
 echo "Deploying S3 Bucket Stack: ${BUCKET_STACK_NAME}..."
 sam deploy \
-  --on-failure DELETE \
   --no-confirm-changeset \
   --no-progressbar \
   --no-fail-on-empty-changeset \
@@ -72,7 +71,6 @@ sam build --cached --parallel
 # --- Step 5: Deploy Main Stack ---
 echo "Deploying Main Stack: ${MAIN_STACK_NAME}..."
 sam deploy \
-  --on-failure DELETE \
   --no-confirm-changeset \
   --no-progressbar \
   --no-fail-on-empty-changeset \
