@@ -34,7 +34,7 @@ aws cloudformation wait stack-delete-complete --stack-name "${MAIN_STACK_NAME}" 
 
 # --- Empty and Delete Bucket Stack ---
 echo "Retrieving Bucket Name from stack ${BUCKET_STACK_NAME}..."
-BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name "${BUCKET_STACK_NAME}" --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' --output text 2>/dev/null)
+BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name "${BUCKET_STACK_NAME}" --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' --output text)
 
 if [ -n "${BUCKET_NAME}" ]; then
   echo "Emptying S3 Bucket: ${BUCKET_NAME}..."
