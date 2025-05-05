@@ -104,25 +104,24 @@ Resources:
         #set($objectId = $util.autoId())
 
         ## Prepare attribute values, handling nested types
-        #set($attributeValues = {
-            "objectId": $util.dynamodb.toDynamoDBJson($objectId),
-            "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
-        })
+        #set($attributeValues = {})
+
+        ## Add auto-generated fields
+        $util.qr($attributeValues.put("objectId", $util.dynamodb.toDynamoDBJson($objectId)))
+        $util.qr($attributeValues.put("createdAt", $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())))
 
         ## Iterate through input fields to build the put item attributes
         #foreach($key in $ctx.args.input.keySet())
-            #if($key != "objectId" && $key != "createdAt") ## Exclude auto-generated fields
-                #set($value = $ctx.args.input.get($key))
-                #if($value != null) ## Only include if value is not null
-                    #if($key == "partsIds" || $key == "usage")
-                        ## For lists, handle empty lists explicitly by omitting the attribute
-                        #if(!$value.isEmpty())
-                            $util.qr($attributeValues.put($key, $util.dynamodb.toDynamoDBJson($value)))
-                        #end
-                    #else
-                        ## For other types, directly convert
+            #set($value = $ctx.args.input.get($key))
+            #if($key != "objectId" && $key != "createdAt" && $value != null) ## Exclude auto-generated fields and null values
+                #if($key == "partsIds" || $key == "usage")
+                    ## For lists, handle empty lists explicitly by omitting the attribute
+                    #if(!$value.isEmpty())
                         $util.qr($attributeValues.put($key, $util.dynamodb.toDynamoDBJson($value)))
                     #end
+                #else
+                    ## For other types, directly convert
+                    $util.qr($attributeValues.put($key, $util.dynamodb.toDynamoDBJson($value)))
                 #end
             #end
         #end
