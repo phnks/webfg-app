@@ -108,7 +108,7 @@ Resources:
 
         ## Add auto-generated fields
         $util.qr($attributeValues.put("objectId", $util.dynamodb.toDynamoDBJson($objectId)))
-        $util.qr($attributeValues.put("createdAt", $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())))
+        $util.qr($attributeValues.put("createdAt", $util.dynamodb.toDynamoDBJson("$util.time.nowISO8601()")))
 
         ## Iterate through input fields to build the put item attributes
         #foreach($key in $ctx.args.input.keySet())
