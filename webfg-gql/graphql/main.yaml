@@ -129,8 +129,8 @@ Resources:
         CharactersDataSourceName: !Ref CharactersDataSourceName
         SkillsTableName: !Ref SkillsTableName # Pass down
         AttributesTableName: !Ref AttributesTableName # Pass down
-        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down
-        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down
+        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down parameter reference
+        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down parameter reference
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Pass down
 
   ObjectResolversStack:
@@ -138,13 +138,18 @@ Resources:
     DependsOn:
       - ApiStack # Depend on ApiStack for ApiId
       - AppSyncLambdaServiceRole # Depend on the Lambda Service Role
-      # Removed - DatabasesNestedStack
+      - DatabasesNestedStack # Depend on DatabasesNestedStack for table name
     Properties:
       TemplateURL: ./object-resolvers.yaml
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
         ObjectsTableName: !Ref ObjectsTableName # Reference the parameter
+        GetObjectLambdaDataSourceName: get_object_lambda_data_source
+        ListObjectsLambdaDataSourceName: list_objects_lambda_data_source
+        CreateObjectLambdaDataSourceName: create_object_lambda_data_source
+        UpdateObjectLambdaDataSourceName: update_object_lambda_data_source
+        DeleteObjectLambdaDataSourceName: delete_object_lambda_data_source
 
   ActionResolversStack:
     Type: AWS::CloudFormation::Stack

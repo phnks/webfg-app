@@ -13,6 +13,22 @@ Parameters:
   ObjectsTableName:
     Type: String
     Description: 'Name of the Objects table'
+  # Add parameters for Lambda Data Source Names
+  GetObjectLambdaDataSourceName:
+    Type: String
+    Description: 'Name of the GetObject Lambda data source'
+  ListObjectsLambdaDataSourceName:
+    Type: String
+    Description: 'Name of the ListObjects Lambda data source'
+  CreateObjectLambdaDataSourceName:
+    Type: String
+    Description: 'Name of the CreateObject Lambda data source'
+  UpdateObjectLambdaDataSourceName:
+    Type: String
+    Description: 'Name of the UpdateObject Lambda data source'
+  DeleteObjectLambdaDataSourceName:
+    Type: String
+    Description: 'Name of the DeleteObject Lambda data source'
 
 Globals:
   Function:
@@ -85,7 +101,7 @@ Resources:
     DependsOn: GetObjectFunction # Depend on the local Lambda function
     Properties:
       ApiId: !Ref ApiId
-      Name: get_object_lambda_data_source
+      Name: !Ref GetObjectLambdaDataSourceName # Reference parameter
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
@@ -96,7 +112,7 @@ Resources:
     DependsOn: ListObjectsFunction # Depend on the local Lambda function
     Properties:
       ApiId: !Ref ApiId
-      Name: list_objects_lambda_data_source
+      Name: !Ref ListObjectsLambdaDataSourceName # Reference parameter
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
@@ -107,7 +123,7 @@ Resources:
     DependsOn: CreateObjectFunction # Depend on the local Lambda function
     Properties:
       ApiId: !Ref ApiId
-      Name: create_object_lambda_data_source
+      Name: !Ref CreateObjectLambdaDataSourceName # Reference parameter
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
@@ -118,7 +134,7 @@ Resources:
     DependsOn: UpdateObjectFunction # Depend on the local Lambda function
     Properties:
       ApiId: !Ref ApiId
-      Name: update_object_lambda_data_source
+      Name: !Ref UpdateObjectLambdaDataSourceName # Reference parameter
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
@@ -129,7 +145,7 @@ Resources:
     DependsOn: DeleteObjectFunction # Depend on the local Lambda function
     Properties:
       ApiId: !Ref ApiId
-      Name: delete_object_lambda_data_source
+      Name: !Ref DeleteObjectLambdaDataSourceName # Reference parameter
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
@@ -143,7 +159,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'getObject'
-      DataSourceName: get_object_lambda_data_source # Use the local Data Source
+      DataSourceName: !Ref GetObjectLambdaDataSource # Use the local Data Source Logical ID
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
@@ -155,7 +171,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'listObjects'
-      DataSourceName: list_objects_lambda_data_source # Use the local Data Source
+      DataSourceName: !Ref ListObjectsLambdaDataSource # Use the local Data Source Logical ID
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
@@ -167,7 +183,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: createObject
-      DataSourceName: create_object_lambda_data_source # Use the local Data Source
+      DataSourceName: !Ref CreateObjectLambdaDataSource # Use the local Data Source Logical ID
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
@@ -179,7 +195,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: updateObject
-      DataSourceName: update_object_lambda_data_source # Use the local Data Source
+      DataSourceName: !Ref UpdateObjectLambdaDataSource # Use the local Data Source Logical ID
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
@@ -191,7 +207,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: deleteObject
-      DataSourceName: delete_object_lambda_data_source # Use the local Data Source
+      DataSourceName: !Ref DeleteObjectLambdaDataSource # Use the local Data Source Logical ID
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
