@@ -54,12 +54,18 @@ export const GET_CHARACTER = gql`
           max
         }
       }
-      physical {
-        height
-        bodyFatPercentage
-        width
-        length
-        adjacency
+      valueData { # Get stored value data
+        valueId
+      }
+      values { # Get resolved value data
+        valueId
+        valueName
+      }
+      bodyId # Get body ID
+      body { # Get resolved body object
+        objectId
+        name
+        type
       }
       conditions { # Added sub-selection for Trait fields
         traitId
@@ -316,7 +322,8 @@ export const CREATE_CHARACTER = gql`
     $attributeData: [CharacterAttributeInput!]
     $skillData: [CharacterSkillInput!]
     $stats: StatsInput
-    $physical: PhysicalInput
+    $valueData: [StoredValueDataInput!] # Added valueData
+    $bodyId: ID # Changed bodyId to single ID
     $conditions: [String]
     $inventoryIds: [ID]
     $equipmentIds: [ID]
@@ -327,7 +334,8 @@ export const CREATE_CHARACTER = gql`
       attributeData: $attributeData
       skillData: $skillData
       stats: $stats
-      physical: $physical
+      valueData: $valueData # Pass valueData
+      bodyId: $bodyId # Pass bodyId
       conditions: $conditions
       inventoryIds: $inventoryIds
       equipmentIds: $equipmentIds
@@ -347,8 +355,9 @@ export const UPDATE_CHARACTER = gql`
     $attributeData: [CharacterAttributeInput!]
     $skillData: [CharacterSkillInput!]
     $stats: StatsInput
-    $physical: PhysicalInput
-    $conditions: [String] # Corrected: Added '$'
+    $valueData: [StoredValueDataInput!] # Added valueData
+    $bodyId: ID # Changed bodyId to single ID
+    $conditions: [String]
     $inventoryIds: [ID]
     $equipmentIds: [ID]
     $actionIds: [ID]
@@ -359,7 +368,8 @@ export const UPDATE_CHARACTER = gql`
       attributeData: $attributeData
       skillData: $skillData
       stats: $stats
-      physical: $physical
+      valueData: $valueData # Pass valueData
+      bodyId: $bodyId # Pass bodyId
       conditions: $conditions
       inventoryIds: $inventoryIds
       equipmentIds: $equipmentIds
@@ -1205,11 +1215,15 @@ export const ON_CREATE_CHARACTER = gql`
       characterId
       name
       # race removed
+      valueData { # Get stored value data
+        valueId
+      }
+      bodyId # Get body ID
     }
   }
 `;
 
-export const ON_UPDATE_ACTION = gql`
+export const ON_UPDATE_CHARACTER = gql`
   subscription OnUpdateAction {
     onUpdateAction {
       actionId

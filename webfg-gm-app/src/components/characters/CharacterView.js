@@ -4,14 +4,14 @@ import { useQuery, useMutation, useSubscription } from "@apollo/client";
 import {
   GET_CHARACTER,
   DELETE_CHARACTER,
-  ON_UPDATE_ACTION,
+  ON_UPDATE_CHARACTER, // Corrected import name
   ON_DELETE_CHARACTER
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import CharacterAttributes from "./CharacterAttributes";
 import CharacterSkills from "./CharacterSkills";
 import CharacterStats from "./CharacterStats";
-import CharacterPhysical from "./CharacterPhysical";
+
 import CharacterEquipment from "./CharacterEquipment";
 import CharacterDetails from "./CharacterDetails";
 import CharacterForm from "../forms/CharacterForm";
@@ -44,7 +44,7 @@ const CharacterView = () => {
   const [deleteCharacter] = useMutation(DELETE_CHARACTER);
 
   // Subscribe to character updates
-  useSubscription(ON_UPDATE_ACTION, {
+  useSubscription(ON_UPDATE_CHARACTER, {
     onData: ({ data }) => {
       const updatedCharacter = data.data.onUpdateCharacter;
       if (updatedCharacter && updatedCharacter.characterId === characterId) {
@@ -179,7 +179,7 @@ const CharacterView = () => {
         </div>
 
         <div className="section-row">
-          <CharacterPhysical physical={character.physical} />
+
           <div className="section character-equipment">
             <h3>Equipment</h3>
             {character.equipment && character.equipment.length > 0 ? (

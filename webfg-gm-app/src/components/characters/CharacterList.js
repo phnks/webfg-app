@@ -42,10 +42,7 @@ const CharacterList = () => {
                 onClick={() => handleCharacterClick(character.characterId)}
               >
                 <h3>{character.name}</h3>
-                <div className="character-meta">
-                  {character.race && <span>{character.race}</span>}
-                  {character.class && <span>{character.class}</span>}
-                </div>
+                {/* character-meta div removed */}
               </div>
             ))}
 
