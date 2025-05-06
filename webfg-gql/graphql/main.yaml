@@ -138,7 +138,7 @@ Resources:
     DependsOn:
       - ApiStack # Depend on ApiStack for ApiId
       - AppSyncLambdaServiceRole # Depend on the Lambda Service Role
-      - DatabasesNestedStack # Depend on DatabasesNestedStack for table name
+      # Removed - DatabasesNestedStack
     Properties:
       TemplateURL: ./object-resolvers.yaml
       Parameters:
