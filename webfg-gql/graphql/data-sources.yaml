@@ -47,22 +47,6 @@ Parameters:
   FormulasTableName: # Add new parameter
     Type: String
     Description: 'Name of Formulas table'
-  # Add parameters for Lambda Function ARNs (passed from template.yaml)
-  GetObjectFunctionArn:
-    Type: String
-    Description: 'ARN of the GetObject Lambda Function'
-  ListObjectsFunctionArn:
-    Type: String
-    Description: 'ARN of the ListObjects Lambda Function'
-  CreateObjectFunctionArn:
-    Type: String
-    Description: 'ARN of the CreateObject Lambda Function'
-  UpdateObjectFunctionArn:
-    Type: String
-    Description: 'ARN of the UpdateObject Lambda Function'
-  DeleteObjectFunctionArn:
-    Type: String
-    Description: 'ARN of the DeleteObject Lambda Function'
 
 
 Resources:
@@ -198,57 +182,6 @@ Resources:
         TableName: !Ref FormulasTableName
         AwsRegion: !Sub ${AWS::Region}
 
-  # Lambda Data Sources for Object Resolvers
-  GetObjectLambdaDataSource:
-    Type: AWS::AppSync::DataSource
-    Properties:
-      ApiId: !Ref ApiId
-      Name: GetObjectLambdaDataSource # Consistent naming
-      Type: AWS_LAMBDA
-      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
-      LambdaConfig:
-        LambdaFunctionArn: !Ref GetObjectFunctionArn
-
-  ListObjectsLambdaDataSource:
-    Type: AWS::AppSync::DataSource
-    Properties:
-      ApiId: !Ref ApiId
-      Name: ListObjectsLambdaDataSource # Consistent naming
-      Type: AWS_LAMBDA
-      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
-      LambdaConfig:
-        LambdaFunctionArn: !Ref ListObjectsFunctionArn
-
-  CreateObjectLambdaDataSource:
-    Type: AWS::AppSync::DataSource
-    Properties:
-      ApiId: !Ref ApiId
-      Name: CreateObjectLambdaDataSource # Consistent naming
-      Type: AWS_LAMBDA
-      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
-      LambdaConfig:
-        LambdaFunctionArn: !Ref CreateObjectFunctionArn
-
-  UpdateObjectLambdaDataSource:
-    Type: AWS::AppSync::DataSource
-    Properties:
-      ApiId: !Ref ApiId
-      Name: UpdateObjectLambdaDataSource # Consistent naming
-      Type: AWS_LAMBDA
-      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
-      LambdaConfig:
-        LambdaFunctionArn: !Ref UpdateObjectFunctionArn
-
-  DeleteObjectLambdaDataSource:
-    Type: AWS::AppSync::DataSource
-    Properties:
-      ApiId: !Ref ApiId
-      Name: DeleteObjectLambdaDataSource # Consistent naming
-      Type: AWS_LAMBDA
-      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
-      LambdaConfig:
-        LambdaFunctionArn: !Ref DeleteObjectFunctionArn
-
 Outputs:
   AppSyncDynamoDBRoleArn:
     Description: 'ARN of the IAM role for AppSync to access DynamoDB'
@@ -256,19 +189,25 @@ Outputs:
   AppSyncLambdaServiceRoleArn:
     Description: 'ARN of the IAM role for AppSync to invoke Lambda functions'
     Value: !GetAtt AppSyncLambdaServiceRole.Arn
-  # Add outputs for Lambda Data Source Names
-  GetObjectLambdaDataSourceName:
-    Description: 'Name of the GetObject Lambda Data Source'
-    Value: !Ref GetObjectLambdaDataSource
-  ListObjectsLambdaDataSourceName:
-    Description: 'Name of the ListObjects Lambda Data Source'
-    Value: !Ref ListObjectsLambdaDataSource
-  CreateObjectLambdaDataSourceName:
-    Description: 'Name of the CreateObject Lambda Data Source'
-    Value: !Ref CreateObjectLambdaDataSource
-  UpdateObjectLambdaDataSourceName:
-    Description: 'Name of the UpdateObject Lambda Data Source'
-    Value: !Ref UpdateObjectLambdaDataSource
-  DeleteObjectLambdaDataSourceName:
-    Description: 'Name of the DeleteObject Lambda Data Source'
-    Value: !Ref DeleteObjectLambdaDataSource
+  # DynamoDB Data Source Names
+  CharactersDataSourceName:
+    Description: 'Name of the Characters DynamoDB Data Source'
+    Value: !Ref CharactersDataSource
+  ObjectsDataSourceName:
+    Description: 'Name of the Objects DynamoDB Data Source'
+    Value: !Ref ObjectsDataSource
+  ActionsDataSourceName:
+    Description: 'Name of the Actions DynamoDB Data Source'
+    Value: !Ref ActionsDataSource
+  EncountersDataSourceName:
+    Description: 'Name of the Encounters DynamoDB Data Source'
+    Value: !Ref EncountersDataSource
+  SkillsDataSourceName:
+    Description: 'Name of the Skills DynamoDB Data Source'
+    Value: !Ref SkillsDataSource
+  AttributesDataSourceName:
+    Description: 'Name of the Attributes DynamoDB Data Source'
+    Value: !Ref AttributesDataSource
+  FormulasDataSourceName:
+    Description: 'Name of the Formulas DynamoDB Data Source'
+    Value: !Ref FormulasDataSource

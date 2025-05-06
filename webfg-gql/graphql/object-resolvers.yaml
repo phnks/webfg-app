@@ -1,81 +1,197 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31 # Add Transform for Serverless Functions
 
-Description: 'AppSync Object Resolvers'
+Description: 'AppSync Object Resolvers, Data Sources, and Functions'
 
 Parameters:
   ApiId:
     Type: String
     Description: 'AppSync GraphQL API ID'
-  # Update DataSourceName parameters to point to Lambda Data Source Names
-  GetObjectLambdaDataSourceName:
+  AppSyncLambdaServiceRoleArn:
     Type: String
-    Description: 'Name of the GetObject Lambda data source'
-  ListObjectsLambdaDataSourceName:
+    Description: 'ARN of the IAM role for AppSync to invoke Lambda functions'
+  ObjectsTableName:
     Type: String
-    Description: 'Name of the ListObjects Lambda data source'
-  CreateObjectLambdaDataSourceName:
-    Type: String
-    Description: 'Name of the CreateObject Lambda data source'
-  UpdateObjectLambdaDataSourceName:
-    Type: String
-    Description: 'Name of the UpdateObject Lambda data source'
-  DeleteObjectLambdaDataSourceName:
-    Type: String
-    Description: 'Name of the DeleteObject Lambda data source'
+    Description: 'Name of the Objects table'
 
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+    Runtime: nodejs20.x # Or your preferred runtime
+    Architectures:
+      - x86_64
 
 Resources:
+  # Lambda functions for Object resolvers - Defined Here
+  GetObjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/getObject.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ObjectsTableName
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
+
+  ListObjectsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/listObjects.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ObjectsTableName
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
+
+  CreateObjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/createObject.handler
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref ObjectsTableName
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
+
+  UpdateObjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/updateObject.handler
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref ObjectsTableName
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
+
+  DeleteObjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/deleteObject.handler
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref ObjectsTableName
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
+
+  # Lambda Data Sources for Object Resolvers - Defined Here
+  GetObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: GetObjectFunction # Depend on the local Lambda function
+    Properties:
+      ApiId: !Ref ApiId
+      Name: GetObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt GetObjectFunction.Arn # Reference local Lambda function ARN
+
+  ListObjectsLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: ListObjectsFunction # Depend on the local Lambda function
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ListObjectsLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ListObjectsFunction.Arn # Reference local Lambda function ARN
+
+  CreateObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: CreateObjectFunction # Depend on the local Lambda function
+    Properties:
+      ApiId: !Ref ApiId
+      Name: CreateObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt CreateObjectFunction.Arn # Reference local Lambda function ARN
+
+  UpdateObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: UpdateObjectFunction # Depend on the local Lambda function
+    Properties:
+      ApiId: !Ref ApiId
+      Name: UpdateObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt UpdateObjectFunction.Arn # Reference local Lambda function ARN
+
+  DeleteObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: DeleteObjectFunction # Depend on the local Lambda function
+    Properties:
+      ApiId: !Ref ApiId
+      Name: DeleteObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DeleteObjectFunction.Arn # Reference local Lambda function ARN
+
+  # Object Resolvers - Use Data Sources Defined Above
   GetObjectResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: GetObjectLambdaDataSource # Depend on the local data source
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'getObject'
-      DataSourceName: !Ref GetObjectLambdaDataSourceName # Use Lambda Data Source
+      DataSourceName: !Ref GetObjectLambdaDataSource # Use the local Data Source
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
 
   ListObjectsResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: ListObjectsLambdaDataSource # Depend on the local data source
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'listObjects'
-      DataSourceName: !Ref ListObjectsLambdaDataSourceName # Use Lambda Data Source
+      DataSourceName: !Ref ListObjectsLambdaDataSource # Use the local Data Source
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
 
   CreateObjectResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: CreateObjectLambdaDataSource # Depend on the local data source
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: createObject
-      DataSourceName: !Ref CreateObjectLambdaDataSourceName # Use Lambda Data Source
+      DataSourceName: !Ref CreateObjectLambdaDataSource # Use the local Data Source
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
 
   UpdateObjectResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: UpdateObjectLambdaDataSource # Depend on the local data source
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: updateObject
-      DataSourceName: !Ref UpdateObjectLambdaDataSourceName # Use Lambda Data Source
+      DataSourceName: !Ref UpdateObjectLambdaDataSource # Use the local Data Source
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
 
   DeleteObjectResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: DeleteObjectLambdaDataSource # Depend on the local data source
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: deleteObject
-      DataSourceName: !Ref DeleteObjectLambdaDataSourceName # Use Lambda Data Source
+      DataSourceName: !Ref DeleteObjectLambdaDataSource # Use the local Data Source
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
