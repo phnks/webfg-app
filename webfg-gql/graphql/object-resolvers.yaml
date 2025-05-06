@@ -143,7 +143,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'getObject'
-      DataSourceName: !Ref GetObjectLambdaDataSource # Use the local Data Source
+      DataSourceName: get_object_lambda_data_source # Use the local Data Source
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
@@ -155,7 +155,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'listObjects'
-      DataSourceName: !Ref ListObjectsLambdaDataSource # Use the local Data Source
+      DataSourceName: list_objects_lambda_data_source # Use the local Data Source
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
@@ -167,7 +167,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: createObject
-      DataSourceName: !Ref CreateObjectLambdaDataSource # Use the local Data Source
+      DataSourceName: create_object_lambda_data_source # Use the local Data Source
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
@@ -179,7 +179,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: updateObject
-      DataSourceName: !Ref UpdateObjectLambdaDataSource # Use the local Data Source
+      DataSourceName: update_object_lambda_data_source # Use the local Data Source
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
@@ -191,7 +191,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: deleteObject
-      DataSourceName: !Ref DeleteObjectLambdaDataSource # Use the local Data Source
+      DataSourceName: delete_object_lambda_data_source # Use the local Data Source
       RequestMappingTemplate: |
         $util.toJson($ctx) # Standard Lambda Request Template
       ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
