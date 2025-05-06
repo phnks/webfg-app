@@ -27,14 +27,14 @@ Parameters:
   EncountersDataSourceName:
     Type: String
     Description: 'Name of db data source'
-  SkillsDataSourceName: # Re-add parameter
+  SkillsDataSourceName:
     Type: String
     Description: 'Name of Skills db data source'
-    Default: 'SkillsDataSource' # Add default consistent with template.yaml
-  AttributesDataSourceName: # Re-add parameter
+    Default: 'SkillsDataSource'
+  AttributesDataSourceName:
     Type: String
     Description: 'Name of Attributes db data source'
-    Default: 'AttributesDataSource' # Add default consistent with template.yaml
+    Default: 'AttributesDataSource'
   CharactersTableName:
     Type: String
     Description: 'Name of table'
@@ -44,10 +44,10 @@ Parameters:
   ActionsTableName:
     Type: String
     Description: 'Name of table'
-  SkillsTableName: # Re-add parameter
+  SkillsTableName:
     Type: String
     Description: 'Name of Skills table'
-  AttributesTableName: # Re-add parameter
+  AttributesTableName:
     Type: String
     Description: 'Name of Attributes table'
   FormulasDataSourceName:
@@ -75,18 +75,89 @@ Parameters:
   EncountersTableName:
     Type: String
     Description: 'Name of encounters table'
+  GetObjectFunctionArn:
+    Type: String
+    Description: 'ARN of the GetObject Lambda Function'
+  ListObjectsFunctionArn:
+    Type: String
+    Description: 'ARN of the ListObjects Lambda Function'
+  CreateObjectFunctionArn:
+    Type: String
+    Description: 'ARN of the CreateObject Lambda Function'
+  UpdateObjectFunctionArn:
+    Type: String
+    Description: 'ARN of the UpdateObject Lambda Function'
+  DeleteObjectFunctionArn:
+    Type: String
+    Description: 'ARN of the DeleteObject Lambda Function'
+
 
 Globals:
   Function:
     Timeout: 30
     MemorySize: 1024
-    Runtime: nodejs20.x # Or your preferred runtime
+    Runtime: nodejs20.x
 
 Resources:
+  AppSyncDynamoDBRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: appsync.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AppSyncDynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:BatchGetItem
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CharactersTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ObjectsTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ActionsTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EncountersTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SkillsTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AttributesTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${FormulasTableName}
+
+  AppSyncLambdaServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: appsync.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs
+      Policies:
+        - PolicyName: InvokeLambdaFunction
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: "*"
+
   ApiStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: ./api.yaml 
+      TemplateURL: ./api.yaml
       Parameters:
         Environment: !Ref Environment
         ServiceName: !Ref ServiceName
@@ -97,8 +168,9 @@ Resources:
         SchemaS3Key: !Ref SchemaS3Key
         SchemaS3BucketName: !Ref SchemaS3BucketName
 
-  DataSourcesStack:
+  DataSourcesStack: # Keep DataSourcesStack for other data sources
     Type: AWS::CloudFormation::Stack
+    DependsOn: ApiStack
     Properties:
       TemplateURL: ./data-sources.yaml
       Parameters:
@@ -111,86 +183,312 @@ Resources:
         ObjectsTableName: !Ref ObjectsTableName
         ActionsTableName: !Ref ActionsTableName
         EncountersTableName: !Ref EncountersTableName
-        SkillsTableName: !Ref SkillsTableName # Pass down
-        AttributesTableName: !Ref AttributesTableName # Pass down
-        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down parameter reference
-        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down parameter reference
-        FormulasDataSourceName: !Ref FormulasDataSourceName # Pass down parameter reference
-        FormulasTableName: !Ref FormulasTableName # Pass down parameter reference
+        SkillsTableName: !Ref SkillsTableName
+        AttributesTableName: !Ref AttributesTableName
+        SkillsDataSourceName: !Ref SkillsDataSourceName
+        AttributesDataSourceName: !Ref AttributesDataSourceName
+        FormulasDataSourceName: !Ref FormulasDataSourceName
+        FormulasTableName: !Ref FormulasTableName
+        # Lambda ARNs are NOT passed to DataSourcesStack anymore
+
+  # Moved Lambda Data Sources here (removed from DataSourcesStack)
+  GetObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack # Depends on ApiStack for ApiId
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      Name: GetObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !Ref GetObjectFunctionArn # Reference Lambda function in parent template
+
+  ListObjectsLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack # Depends on ApiStack for ApiId
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      Name: ListObjectsLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !Ref ListObjectsFunctionArn # Reference Lambda function in parent template
+
+  CreateObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack # Depends on ApiStack for ApiId
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      Name: CreateObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !Ref CreateObjectFunctionArn # Reference Lambda function in parent template
+
+  UpdateObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack # Depends on ApiStack for ApiId
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      Name: UpdateObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !Ref UpdateObjectFunctionArn # Reference Lambda function in parent template
+
+  DeleteObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack # Depends on ApiStack for ApiId
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      Name: DeleteObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !Ref DeleteObjectFunctionArn # Reference Lambda function in parent template
+  # End Moved Lambda Data Sources
+
+  CharactersDataSource: # Keep existing DynamoDB data sources
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      Name: !Ref CharactersDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref CharactersTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  ObjectsDataSource: # Keep existing DynamoDB data sources (maybe needed for other resolvers?)
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      Name: !Ref ObjectsDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref ObjectsTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  ActionsDataSource: # Keep existing DynamoDB data sources
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      Name: !Ref ActionsDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref ActionsTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  EncountersDataSource: # Keep existing DynamoDB data sources
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack
+    Properties:
+      ApiId: !GetAtt ApiId
+      Name: !Ref EncountersDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref EncountersTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  SkillsDataSource: # Keep existing DynamoDB data sources
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref SkillsDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref SkillsTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  AttributesDataSource: # Keep existing DynamoDB data sources
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref AttributesDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref AttributesTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  FormulasDataSource: # Keep existing DynamoDB data sources
+    Type: AWS::AppSync::DataSource
+    DependsOn: ApiStack
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref FormulasDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref FormulasTableName
+        AwsRegion: !Sub ${AWS::Region}
+
+  # Moved Object Resolvers here (removed from ObjectResolversStack)
+  GetObjectResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: GetObjectLambdaDataSource # Depend on its data source
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      TypeName: 'Query'
+      FieldName: 'getObject'
+      DataSourceName: !Ref GetObjectLambdaDataSource # Use Lambda Data Source
+      RequestMappingTemplate: |
+        $util.toJson($ctx)
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  ListObjectsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: ListObjectsLambdaDataSource # Depend on its data source
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      TypeName: 'Query'
+      FieldName: 'listObjects'
+      DataSourceName: !Ref ListObjectsLambdaDataSource # Use Lambda Data Source
+      RequestMappingTemplate: |
+        $util.toJson($ctx)
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  CreateObjectResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: CreateObjectLambdaDataSource # Depend on its data source
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      TypeName: Mutation
+      FieldName: createObject
+      DataSourceName: !Ref CreateObjectLambdaDataSource # Use Lambda Data Source
+      RequestMappingTemplate: |
+        $util.toJson($ctx)
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  UpdateObjectResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: UpdateObjectLambdaDataSource # Depend on its data source
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      TypeName: Mutation
+      FieldName: updateObject
+      DataSourceName: !Ref UpdateObjectLambdaDataSource # Use Lambda Data Source
+      RequestMappingTemplate: |
+        $util.toJson($ctx)
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  DeleteObjectResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: DeleteObjectLambdaDataSource # Depend on its data source
+    Properties:
+      ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+      TypeName: Mutation
+      FieldName: deleteObject
+      DataSourceName: !Ref DeleteObjectLambdaDataSource # Use Lambda Data Source
+      RequestMappingTemplate: |
+        $util.toJson($ctx)
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+  # End Moved Object Resolvers
 
   CharacterResolversStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: DataSourcesStack
+    DependsOn:
+      - GetObjectLambdaDataSource # Explicitly depend on Lambda Data Sources
+      - ListObjectsLambdaDataSource
+      - CreateObjectLambdaDataSource
+      - UpdateObjectLambdaDataSource
+      - DeleteObjectLambdaDataSource
+      - CharactersDataSource # Depend on necessary DynamoDB data sources
+      - ObjectsDataSource
+      - ActionsDataSource
+      - EncountersDataSource
+      - SkillsDataSource
+      - AttributesDataSource
+      - FormulasDataSource
+      - ApiStack
+      - AppSyncLambdaServiceRole # Depend on AppSyncLambdaServiceRole
     Properties:
       TemplateURL: ./character-resolvers.yaml
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         CharactersDataSourceName: !Ref CharactersDataSourceName
-        SkillsTableName: !Ref SkillsTableName # Pass down
-        AttributesTableName: !Ref AttributesTableName # Pass down
-        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down
-        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down
-        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Pass down
+        SkillsTableName: !Ref SkillsTableName
+        AttributesTableName: !Ref AttributesTableName
+        SkillsDataSourceName: !GetAtt DataSourcesStack.Outputs.SkillsDataSourceName
+        AttributesDataSourceName: !GetAtt DataSourcesStack.Outputs.AttributesDataSourceName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
-  ObjectResolversStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn: DataSourcesStack
-    Properties:
-      TemplateURL: ./object-resolvers.yaml
-      Parameters:
-        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
-        ObjectsDataSourceName: !Ref ObjectsDataSourceName
+  # Removed ObjectResolversStack nested stack
 
   ActionResolversStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: 
-      - DataSourcesStack
+    DependsOn:
       - AppSyncLambdaServiceRole
+      - GetObjectLambdaDataSource # Explicitly depend on Lambda Data Sources
+      - ListObjectsLambdaDataSource
+      - CreateObjectLambdaDataSource
+      - UpdateObjectLambdaDataSource
+      - DeleteObjectLambdaDataSource
+      - CharactersDataSource # Depend on necessary DynamoDB data sources
+      - ObjectsDataSource
+      - ActionsDataSource
+      - EncountersDataSource
+      - SkillsDataSource
+      - AttributesDataSource
+      - FormulasDataSource
+      - ApiStack
     Properties:
        TemplateURL: ./action-resolvers.yaml
        Parameters:
          ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
-         ActionsDataSourceName: !Ref ActionsDataSourceName # Corrected Indent
-         ActionsTableName: !Ref ActionsTableName # Corrected Indent
-         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Corrected Indent
-         FormulasDataSourceName: !Ref FormulasDataSourceName # Corrected Indent
+         ActionsDataSourceName: !Ref ActionsDataSourceName
+         ActionsTableName: !Ref ActionsTableName
+         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+         FormulasDataSourceName: !GetAtt DataSourcesStack.Outputs.FormulasDataSourceName
 
   FormulaResolversStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: DataSourcesStack
+    DependsOn:
+      - GetObjectLambdaDataSource # Explicitly depend on Lambda Data Sources
+      - ListObjectsLambdaDataSource
+      - CreateObjectLambdaDataSource
+      - UpdateObjectLambdaDataSource
+      - DeleteObjectLambdaDataSource
+      - CharactersDataSource # Depend on necessary DynamoDB data sources
+      - ObjectsDataSource
+      - ActionsDataSource
+      - EncountersDataSource
+      - SkillsDataSource
+      - AttributesDataSource
+      - FormulasDataSource
+      - ApiStack
     Properties:
-      TemplateURL: ./formula-resolvers.yaml # Assuming this file will be created
+      TemplateURL: ./formula-resolvers.yaml
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
-        FormulasDataSourceName: !Ref FormulasDataSourceName
-  
-  AppSyncLambdaServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: appsync.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs
-      Policies:
-        - PolicyName: InvokeLambdaFunction
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action: lambda:InvokeFunction
-                Resource: '*'  
+        FormulasDataSourceName: !GetAtt DataSourcesStack.Outputs.FormulasDataSourceName
 
   ActionCharacterResolversStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: 
-      - DataSourcesStack
+    DependsOn:
       - ApiStack
       - AppSyncLambdaServiceRole
+      - GetObjectLambdaDataSource # Explicitly depend on Lambda Data Sources
+      - ListObjectsLambdaDataSource
+      - CreateObjectLambdaDataSource
+      - UpdateObjectLambdaDataSource
+      - DeleteObjectLambdaDataSource
+      - CharactersDataSource # Depend on necessary DynamoDB data sources
+      - ObjectsDataSource
+      - ActionsDataSource
+      - EncountersDataSource
+      - SkillsDataSource
+      - AttributesDataSource
+      - FormulasDataSource
     Properties:
       TemplateURL: ./action-character-resolvers.yaml
       Parameters:
@@ -202,9 +500,20 @@ Resources:
   ObjectCharacterResolversStack:
     Type: AWS::CloudFormation::Stack
     DependsOn:
-      - DataSourcesStack
       - ApiStack
       - AppSyncLambdaServiceRole
+      - GetObjectLambdaDataSource # Explicitly depend on Lambda Data Sources
+      - ListObjectsLambdaDataSource
+      - CreateObjectLambdaDataSource
+      - UpdateObjectLambdaDataSource
+      - DeleteObjectLambdaDataSource
+      - CharactersDataSource # Depend on necessary DynamoDB data sources
+      - ObjectsDataSource
+      - ActionsDataSource
+      - EncountersDataSource
+      - SkillsDataSource
+      - AttributesDataSource
+      - FormulasDataSource
     Properties:
       TemplateURL: ./object-character-resolvers.yaml
       Parameters:
@@ -215,7 +524,20 @@ Resources:
 
   EncounterResolversStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: DataSourcesStack
+    DependsOn:
+      - GetObjectLambdaDataSource # Explicitly depend on Lambda Data Sources
+      - ListObjectsLambdaDataSource
+      - CreateObjectLambdaDataSource
+      - UpdateObjectLambdaDataSource
+      - DeleteObjectLambdaDataSource
+      - CharactersDataSource # Depend on necessary DynamoDB data sources
+      - ObjectsDataSource
+      - ActionsDataSource
+      - EncountersDataSource
+      - SkillsDataSource
+      - AttributesDataSource
+      - FormulasDataSource
+      - ApiStack
     Properties:
       TemplateURL: ./encounter-resolvers.yaml
       Parameters:
@@ -225,9 +547,20 @@ Resources:
   EncounterCharacterResolversStack:
     Type: AWS::CloudFormation::Stack
     DependsOn:
-      - DataSourcesStack
       - ApiStack
       - AppSyncLambdaServiceRole
+      - GetObjectLambdaDataSource # Explicitly depend on Lambda Data Sources
+      - ListObjectsLambdaDataSource
+      - CreateObjectLambdaDataSource
+      - UpdateObjectLambdaDataSource
+      - DeleteObjectLambdaDataSource
+      - CharactersDataSource # Depend on necessary DynamoDB data sources
+      - ObjectsDataSource
+      - ActionsDataSource
+      - EncountersDataSource
+      - SkillsDataSource
+      - AttributesDataSource
+      - FormulasDataSource
     Properties:
       TemplateURL: ./encounter-character-resolvers.yaml
       Parameters:
@@ -240,29 +573,62 @@ Resources:
   EncounterObjectResolversStack:
     Type: AWS::CloudFormation::Stack
     DependsOn:
-      - DataSourcesStack
       - ApiStack
       - AppSyncLambdaServiceRole
+      - GetObjectLambdaDataSource # Explicitly depend on Lambda Data Sources
+      - ListObjectsLambdaDataSource
+      - CreateObjectLambdaDataSource
+      - UpdateObjectLambdaDataSource
+      - DeleteObjectLambdaDataSource
+      - CharactersDataSource # Depend on necessary DynamoDB data sources
+      - ObjectsDataSource
+      - ActionsDataSource
+      - EncountersDataSource
+      - SkillsDataSource
+      - AttributesDataSource
+      - FormulasDataSource
     Properties:
       TemplateURL: ./encounter-object-resolvers.yaml
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         EncountersTableName: !Ref EncountersTableName
-        ObjectsTableName: !Ref ObjectsTableName # Pass ObjectsTableName down
+        ObjectsTableName: !Ref ObjectsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+        # Pass Lambda Data Source Names to EncounterObjectResolversStack
+        GetObjectLambdaDataSourceName: !Ref GetObjectLambdaDataSource # Reference resource in this template
+        UpdateObjectLambdaDataSourceName: !Ref UpdateObjectLambdaDataSource # Reference resource in this template
+        RemoveObjectFromEncounterVTTLambdaDataSourceName: !Ref RemoveObjectFromEncounterVTTLambdaDataSource # Reference resource in this template
+        AddObjectToEncounterVTTLambdaDataSourceName: !Ref AddObjectToEncounterVTTLambdaDataSource # Reference resource in this template
+
 
   EncounterTerrainResolversStack:
     Type: AWS::CloudFormation::Stack
     DependsOn:
-      - DataSourcesStack
       - ApiStack
       - AppSyncLambdaServiceRole
+      - GetObjectLambdaDataSource # Explicitly depend on Lambda Data Sources
+      - ListObjectsLambdaDataSource
+      - CreateObjectLambdaDataSource
+      - UpdateObjectLambdaDataSource
+      - DeleteObjectLambdaDataSource
+      - CharactersDataSource # Depend on necessary DynamoDB data sources
+      - ObjectsDataSource
+      - ActionsDataSource
+      - EncountersDataSource
+      - SkillsDataSource
+      - AttributesDataSource
+      - FormulasDataSource
     Properties:
       TemplateURL: ./encounter-terrain-resolvers.yaml
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         EncountersTableName: !Ref EncountersTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+        # Pass Lambda Data Source Names to EncounterTerrainResolversStack
+        UpdateTerrainPositionLambdaDataSourceName: !Ref UpdateTerrainPositionLambdaDataSource # Reference resource in this template
+        RemoveTerrainFromEncounterLambdaDataSourceName: !Ref RemoveTerrainFromEncounterLambdaDataSource # Reference resource in this template
+        AddTerrainToEncounterLambdaDataSourceName: !Ref AddTerrainToEncounterLambdaDataSource # Reference resource in this template
+
 
 Outputs:
   AppSyncAPIEndpoint:

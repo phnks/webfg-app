@@ -1,14 +1,28 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
+
 Description: 'AppSync Object Resolvers'
 
 Parameters:
   ApiId:
     Type: String
     Description: 'AppSync GraphQL API ID'
-  ObjectsDataSourceName:
+  # Update DataSourceName parameters to point to Lambda Data Source Names
+  GetObjectLambdaDataSourceName:
     Type: String
-    Description: 'Name of objects data source'
+    Description: 'Name of the GetObject Lambda data source'
+  ListObjectsLambdaDataSourceName:
+    Type: String
+    Description: 'Name of the ListObjects Lambda data source'
+  CreateObjectLambdaDataSourceName:
+    Type: String
+    Description: 'Name of the CreateObject Lambda data source'
+  UpdateObjectLambdaDataSourceName:
+    Type: String
+    Description: 'Name of the UpdateObject Lambda data source'
+  DeleteObjectLambdaDataSourceName:
+    Type: String
+    Description: 'Name of the DeleteObject Lambda data source'
+
 
 Resources:
   GetObjectResolver:
@@ -17,16 +31,10 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'getObject'
-      DataSourceName: !Ref ObjectsDataSourceName
+      DataSourceName: !Ref GetObjectLambdaDataSourceName # Use Lambda Data Source
       RequestMappingTemplate: |
-        {
-          "version": "2017-02-28",
-          "operation": "GetItem",
-          "key": {
-            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
-          }
-        }
-      ResponseMappingTemplate: '$util.toJson($context.result)'
+        $util.toJson($ctx) # Standard Lambda Request Template
+      ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
 
   ListObjectsResolver:
     Type: AWS::AppSync::Resolver
@@ -34,63 +42,10 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'listObjects'
-      DataSourceName: !Ref ObjectsDataSourceName
+      DataSourceName: !Ref ListObjectsLambdaDataSourceName # Use Lambda Data Source
       RequestMappingTemplate: |
-        {
-          "version": "2017-02-28",
-          "operation": "Scan",
-          #set($filterExpression = "")
-          #set($expressionAttributeNames = {})
-          #set($expressionAttributeValues = {})
-
-          #if($ctx.args.filter)
-            #set($filters = [])
-
-            ## Name Filter
-            #if($ctx.args.filter.name)
-              #if($ctx.args.filter.name.eq)
-                $util.qr($filters.add("(#name = :name_eq)"))
-                $util.qr($expressionAttributeNames.put("#name", "name"))
-                $util.qr($expressionAttributeValues.put(":name_eq", $util.dynamodb.toDynamoDB($ctx.args.filter.name.eq)))
-              #end
-              #if($ctx.args.filter.name.contains)
-                $util.qr($filters.add("(contains(#name, :name_contains))"))
-                $util.qr($expressionAttributeNames.put("#name", "name"))
-                $util.qr($expressionAttributeValues.put(":name_contains", $util.dynamodb.toDynamoDB($ctx.args.filter.name.contains)))
-              #end
-              #if($ctx.args.filter.name.beginsWith)
-                $util.qr($filters.add("(begins_with(#name, :name_beginsWith))"))
-                $util.qr($expressionAttributeNames.put("#name", "name"))
-                $util.qr($expressionAttributeValues.put(":name_beginsWith", $util.dynamodb.toDynamoDB($ctx.args.filter.name.beginsWith)))
-              #end
-            #end
-
-            ## ObjectCategory Filter
-            #if($ctx.args.filter.objectCategory)
-              $util.qr($filters.add("(#objectCategory = :objectCategory_eq)"))
-              $util.qr($expressionAttributeNames.put("#objectCategory", "objectCategory"))
-              $util.qr($expressionAttributeValues.put(":objectCategory_eq", $util.dynamodb.toDynamoDB($ctx.args.filter.objectCategory)))
-            #end
-
-            ## MaxWeight Filter (maps to 'weight' field, less than or equal)
-            #if($ctx.args.filter.maxWeight)
-              $util.qr($filters.add("(#weight <= :weight_lte)"))
-              $util.qr($expressionAttributeNames.put("#weight", "weight"))
-              $util.qr($expressionAttributeValues.put(":weight_lte", $util.dynamodb.toDynamoDB($ctx.args.filter.maxWeight)))
-            #end
-
-            #if(!$filters.isEmpty())
-              #set($filterExpression = $util.list.join(" AND ", $filters))
-            #end
-          #end
-
-          "filter": #if($filterExpression != "") $util.toJson({
-                        "expression": $filterExpression,
-                        "expressionNames": $expressionAttributeNames,
-                        "expressionValues": $expressionAttributeValues
-                      }) #else null #end
-        }
-      ResponseMappingTemplate: '$util.toJson($context.result.items)'
+        $util.toJson($ctx) # Standard Lambda Request Template
+      ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
 
   CreateObjectResolver:
     Type: AWS::AppSync::Resolver
@@ -98,45 +53,10 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: createObject
-      DataSourceName: !Ref ObjectsDataSourceName
+      DataSourceName: !Ref CreateObjectLambdaDataSourceName # Use Lambda Data Source
       RequestMappingTemplate: |
-        ## Automatically generate an ID
-        #set($objectId = $util.autoId())
-
-        ## Prepare attribute values, handling nested types
-        #set($attributeValues = {})
-
-        ## Add auto-generated fields
-        $util.qr($attributeValues.put("objectId", $util.dynamodb.toDynamoDBJson($objectId)))
-        $util.qr($attributeValues.put("createdAt", $util.dynamodb.toDynamoDBJson("$util.time.nowISO8601()")))
-
-        ## Iterate through input fields to build the put item attributes
-        #foreach($key in $ctx.args.input.keySet())
-            #set($value = $ctx.args.input.get($key))
-            #if($key != "objectId" && $key != "createdAt" && $value != null) ## Exclude auto-generated fields and null values
-                #if($key == "partsIds" || $key == "usage")
-                    ## For lists, handle empty lists explicitly by omitting the attribute
-                    #if(!$value.isEmpty())
-                        $util.qr($attributeValues.put($key, $util.dynamodb.toDynamoDBJson($value)))
-                    #end
-                #else
-                    ## For other types, directly convert
-                    $util.qr($attributeValues.put($key, $util.dynamodb.toDynamoDBJson($value)))
-                #end
-            #end
-        #end
-
-        ## Set up the DynamoDB operation
-        {
-          "version": "2018-05-29",
-          "operation": "PutItem",
-          "key": {
-            "objectId": $util.dynamodb.toDynamoDBJson($objectId)
-          },
-          "attributeValues": $attributeValues
-        }
-      ResponseMappingTemplate: |
-        $util.toJson($ctx.result)
+        $util.toJson($ctx) # Standard Lambda Request Template
+      ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
 
   UpdateObjectResolver:
     Type: AWS::AppSync::Resolver
@@ -144,59 +64,10 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: updateObject
-      DataSourceName: !Ref ObjectsDataSourceName
+      DataSourceName: !Ref UpdateObjectLambdaDataSourceName # Use Lambda Data Source
       RequestMappingTemplate: |
-        ## Initialize UpdateExpression components
-        #set($updateExpression = "SET")
-        #set($expressionAttributeNames = {})
-        #set($expressionAttributeValues = {})
-        #set($comma = "") ## To control adding commas
-
-        ## Iterate through input fields to build the update expression
-        #foreach($key in $ctx.args.input.keySet())
-            #set($expressionKey = "#$key")
-            #set($expressionValue = ":$key")
-
-            #set($updateExpression = "$updateExpression$comma $expressionKey = $expressionValue")
-            $util.qr($expressionAttributeNames.put($expressionKey, $key))
-
-            ## Handle different types of input values
-            #if($key == "partsIds" || $key == "usage")
-                ## For lists, handle null/empty cases specifically
-                #if($ctx.args.input.get($key) && !$ctx.args.input.get($key).isEmpty())
-                    $util.qr($expressionAttributeValues.put($expressionValue, $util.dynamodb.toDynamoDBJson($ctx.args.input.get($key))))
-                #else
-                    ## Set to NULL if input list is null or empty
-                    $util.qr($expressionAttributeValues.put($expressionValue, { "NULL": true }))
-                #end
-            #else
-                ## For other types (String, Number, Boolean, Map), directly convert
-                $util.qr($expressionAttributeValues.put($expressionValue, $util.dynamodb.toDynamoDBJson($ctx.args.input.get($key))))
-            #end
-
-            #set($comma = ",") ## Add comma for the next potential attribute
-        #end
-
-        ## Add updatedAt timestamp
-        #set($updateExpression = "$updateExpression$comma #updatedAt = :updatedAt")
-        $util.qr($expressionAttributeNames.put("#updatedAt", "updatedAt"))
-        $util.qr($expressionAttributeValues.put(":updatedAt", $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())))
-
-        ## Final DynamoDB UpdateItem request
-        {
-            "version": "2018-05-29",
-            "operation": "UpdateItem",
-            "key": {
-                "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
-            },
-            "update": {
-                "expression": $updateExpression,
-                "expressionNames": $expressionAttributeNames,
-                "expressionValues": $expressionAttributeValues
-            }
-        }
-      ResponseMappingTemplate: |
-        $util.toJson($ctx.result)
+        $util.toJson($ctx) # Standard Lambda Request Template
+      ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
 
   DeleteObjectResolver:
     Type: AWS::AppSync::Resolver
@@ -204,14 +75,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: deleteObject
-      DataSourceName: !Ref ObjectsDataSourceName
+      DataSourceName: !Ref DeleteObjectLambdaDataSourceName # Use Lambda Data Source
       RequestMappingTemplate: |
-        {
-          "version": "2018-05-29",
-          "operation": "DeleteItem",
-          "key": {
-            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
-          }
-        }
-      ResponseMappingTemplate: |
-        $util.toJson($ctx.result)
+        $util.toJson($ctx) # Standard Lambda Request Template
+      ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
