@@ -144,7 +144,7 @@ Resources:
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
-        ObjectsTableName: !GetAtt DatabasesNestedStack.Outputs.ObjectsTableName
+        ObjectsTableName: !Ref ObjectsTableName # Reference the parameter
 
   ActionResolversStack:
     Type: AWS::CloudFormation::Stack
