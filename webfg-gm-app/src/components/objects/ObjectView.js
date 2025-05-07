@@ -205,22 +205,103 @@ const ObjectView = () => {
         <div className="object-details">
           <h3>Details</h3>
           <div className="detail-row">
-            <span>Type:</span>
-            <span>{currentObject.type || "N/A"}</span>
-          </div>
-          <div className="detail-row">
-            <span>Description:</span>
-            <p>{currentObject.description || "No description available."}</p>
-          </div>
-          <div className="detail-row">
-            <span>Value:</span>
-            <span>{currentObject.value || 0}</span>
+            <span>Category:</span>
+            <span>{currentObject.objectCategory || "N/A"}</span>
           </div>
           <div className="detail-row">
             <span>Weight:</span>
-            <span>{currentObject.weight || 0} kg</span>
+            <span>{currentObject.weight?.toFixed(2) || "0.00"} kg</span>
           </div>
-          {/* Render additional object details here */}
+          <div className="detail-row">
+            <span>Dimensions (W×L×H):</span>
+            <span>
+              {currentObject.width?.toFixed(2) || "N/A"} × {currentObject.length?.toFixed(2) || "N/A"} × {currentObject.height?.toFixed(2) || "N/A"} m
+            </span>
+          </div>
+          {currentObject.hitPoints && (
+            <div className="detail-row">
+              <span>Hit Points:</span>
+              <span>{currentObject.hitPoints.current} / {currentObject.hitPoints.max}</span>
+            </div>
+          )}
+          <div className="detail-row">
+            <span>Noise:</span>
+            <span>{currentObject.noise?.toFixed(1) || "0.0"}</span>
+          </div>
+          <div className="detail-row">
+            <span>Capacity:</span>
+            <span>{currentObject.capacity?.toFixed(2) || "0.00"}</span>
+          </div>
+
+          <h4>Combat Stats</h4>
+          <div className="detail-row">
+            <span>Damage:</span>
+            <span>{currentObject.damageMin}-{currentObject.damageMax} ({currentObject.damageType})</span>
+          </div>
+          <div className="detail-row">
+            <span>Penetration:</span>
+            <span>{currentObject.penetration?.toFixed(1) || "0.0"}</span>
+          </div>
+          <div className="detail-row">
+            <span>Deflection:</span>
+            <span>{currentObject.deflection?.toFixed(1) || "0.0"}</span>
+          </div>
+          <div className="detail-row">
+            <span>Impact:</span>
+            <span>{currentObject.impact?.toFixed(1) || "0.0"}</span>
+          </div>
+          <div className="detail-row">
+            <span>Absorption:</span>
+            <span>{currentObject.absorption?.toFixed(1) || "0.0"}</span>
+          </div>
+
+          <h4>Properties</h4>
+          <div className="detail-row">
+            <span>Is Limb:</span>
+            <span>{currentObject.isLimb ? "Yes" : "No"}</span>
+          </div>
+          <div className="detail-row">
+            <span>Handling:</span>
+            <span>{currentObject.handling?.toFixed(2) || "0.00"}</span>
+          </div>
+          <div className="detail-row">
+            <span>Duration:</span>
+            <span>{currentObject.duration?.toFixed(2) || "0.00"} s</span>
+          </div>
+          <div className="detail-row">
+            <span>Falloff:</span>
+            <span>{currentObject.falloff?.toFixed(2) || "0.00"}</span>
+          </div>
+
+          {currentObject.parts && currentObject.parts.length > 0 && (
+            <>
+              <h4>Parts</h4>
+              <ul>
+                {currentObject.parts.map(part => (
+                  <li key={part.objectId}>{part.name} (ID: {part.objectId})</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {(!currentObject.parts || currentObject.parts.length === 0) && currentObject.partsIds && currentObject.partsIds.length > 0 && (
+             <>
+              <h4>Part IDs</h4>
+              <span>{currentObject.partsIds.join(", ")}</span>
+             </>
+          )}
+
+          {currentObject.usage && currentObject.usage.length > 0 && (
+            <>
+              <h4>Usage</h4>
+              <ul>
+                {currentObject.usage.map((use, index) => (
+                  <li key={index}>
+                    Action ID: {use.actionId}, Types: {use.usageType.join(", ")}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
       </div>
       <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} /> {/* Added ErrorPopup */}

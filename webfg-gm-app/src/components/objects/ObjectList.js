@@ -41,7 +41,7 @@ const ObjectList = () => {
                 onClick={() => handleObjectClick(object.objectId)}
               >
                 <h3>{object.name}</h3>
-                {object.type && <div className="object-type">{object.type}</div>}
+                {object.objectCategory && <div className="object-type">{object.objectCategory}</div>}
               </div>
             ))}
             
