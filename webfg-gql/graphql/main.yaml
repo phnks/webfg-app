@@ -86,4 +86,188 @@ Resources:
   ApiStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: ./api.yaml
+      TemplateURL: ./api.yaml 
+        Parameters:
+        Environment: !Ref Environment
+        ServiceName: !Ref ServiceName
+        AppSyncApiName: !Ref AppSyncApiName
+        PhnksCertArn: !Ref PhnksCertArn
+        PhnksHostedZoneId: !Ref PhnksHostedZoneId
+        DomainName: !Ref DomainName
+        SchemaS3Key: !Ref SchemaS3Key
+        SchemaS3BucketName: !Ref SchemaS3BucketName
+
+  DataSourcesStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./data-sources.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        CharactersDataSourceName: !Ref CharactersDataSourceName
+        ObjectsDataSourceName: !Ref ObjectsDataSourceName
+        ActionsDataSourceName: !Ref ActionsDataSourceName
+        EncountersDataSourceName: !Ref EncountersDataSourceName
+        CharactersTableName: !Ref CharactersTableName
+        ObjectsTableName: !Ref ObjectsTableName
+        ActionsTableName: !Ref ActionsTableName
+        EncountersTableName: !Ref EncountersTableName
+        SkillsTableName: !Ref SkillsTableName # Pass down
+        AttributesTableName: !Ref AttributesTableName # Pass down
+        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down parameter reference
+        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down parameter reference
+        FormulasDataSourceName: !Ref FormulasDataSourceName # Pass down parameter reference
+        FormulasTableName: !Ref FormulasTableName # Pass down parameter reference
+
+  CharacterResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DataSourcesStack
+    Properties:
+      TemplateURL: ./character-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        CharactersDataSourceName: !Ref CharactersDataSourceName
+        SkillsTableName: !Ref SkillsTableName # Pass down
+        AttributesTableName: !Ref AttributesTableName # Pass down
+        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down
+        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Pass down
+
+  ObjectResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DataSourcesStack
+    Properties:
+      TemplateURL: ./object-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        ObjectsDataSourceName: !Ref ObjectsDataSourceName
+
+  ActionResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - AppSyncLambdaServiceRole
+    Properties:
+       TemplateURL: ./action-resolvers.yaml
+       Parameters:
+         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+         ActionsDataSourceName: !Ref ActionsDataSourceName # Corrected Indent
+         ActionsTableName: !Ref ActionsTableName # Corrected Indent
+         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Corrected Indent
+         FormulasDataSourceName: !Ref FormulasDataSourceName # Corrected Indent
+
+  FormulaResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DataSourcesStack
+    Properties:
+      TemplateURL: ./formula-resolvers.yaml # Assuming this file will be created
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        FormulasDataSourceName: !Ref FormulasDataSourceName
+
+  AppSyncLambdaServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: appsync.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs
+      Policies:
+        - PolicyName: InvokeLambdaFunction
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: '*'
+
+  ActionCharacterResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./action-character-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        CharactersTableName: !Ref CharactersTableName
+        ActionsTableName: !Ref ActionsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  ObjectCharacterResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./object-character-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        CharactersTableName: !Ref CharactersTableName
+        ObjectsTableName: !Ref ObjectsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  EncounterResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DataSourcesStack
+    Properties:
+      TemplateURL: ./encounter-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        EncountersDataSourceName: !Ref EncountersDataSourceName
+
+  EncounterCharacterResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./encounter-character-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        EncountersTableName: !Ref EncountersTableName
+        CharactersTableName: !Ref CharactersTableName
+        ActionsTableName: !Ref ActionsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  EncounterObjectResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./encounter-object-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        EncountersTableName: !Ref EncountersTableName
+        ObjectsTableName: !Ref ObjectsTableName # Pass ObjectsTableName down
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  EncounterTerrainResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./encounter-terrain-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        EncountersTableName: !Ref EncountersTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+Outputs:
+  AppSyncAPIEndpoint:
+    Description: 'GraphQL API Custom Domain'
+    Value: !Sub "${ApiStack.Outputs.AppSyncEndpoint}/graphql"
+  AppSyncAPIKey:
+    Description: 'GraphQL API Key'
+    Value: !GetAtt ApiStack.Outputs.AppSyncApiKey
