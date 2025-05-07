@@ -101,7 +101,7 @@ Resources:
     DependsOn: GetObjectFunction # Depend on the local Lambda function
     Properties:
       ApiId: !Ref ApiId
-      Name: !Ref GetObjectLambdaDataSourceName # Reference parameter
+      Name: get_object_lambda_data_source
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
@@ -112,7 +112,7 @@ Resources:
     DependsOn: ListObjectsFunction # Depend on the local Lambda function
     Properties:
       ApiId: !Ref ApiId
-      Name: !Ref ListObjectsLambdaDataSourceName # Reference parameter
+      Name: list_objects_lambda_data_source
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
@@ -123,7 +123,7 @@ Resources:
     DependsOn: CreateObjectFunction # Depend on the local Lambda function
     Properties:
       ApiId: !Ref ApiId
-      Name: !Ref CreateObjectLambdaDataSourceName # Reference parameter
+      Name: create_object_lambda_data_source
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
@@ -134,7 +134,7 @@ Resources:
     DependsOn: UpdateObjectFunction # Depend on the local Lambda function
     Properties:
       ApiId: !Ref ApiId
-      Name: !Ref UpdateObjectLambdaDataSourceName # Reference parameter
+      Name: update_object_lambda_data_source
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
@@ -145,7 +145,7 @@ Resources:
     DependsOn: DeleteObjectFunction # Depend on the local Lambda function
     Properties:
       ApiId: !Ref ApiId
-      Name: !Ref DeleteObjectLambdaDataSourceName # Reference parameter
+      Name: delete_object_lambda_data_source
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
