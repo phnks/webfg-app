@@ -87,7 +87,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./api.yaml 
-        Parameters:
+      Parameters:
         Environment: !Ref Environment
         ServiceName: !Ref ServiceName
         AppSyncApiName: !Ref AppSyncApiName
@@ -104,11 +104,11 @@ Resources:
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         CharactersDataSourceName: !Ref CharactersDataSourceName
+        ObjectsTableName: !Ref ObjectsTableName
         ObjectsDataSourceName: !Ref ObjectsDataSourceName
         ActionsDataSourceName: !Ref ActionsDataSourceName
         EncountersDataSourceName: !Ref EncountersDataSourceName
         CharactersTableName: !Ref CharactersTableName
-        ObjectsTableName: !Ref ObjectsTableName
         ActionsTableName: !Ref ActionsTableName
         EncountersTableName: !Ref EncountersTableName
         SkillsTableName: !Ref SkillsTableName # Pass down
@@ -139,7 +139,8 @@ Resources:
       TemplateURL: ./object-resolvers.yaml
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
-        ObjectsDataSourceName: !Ref ObjectsDataSourceName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+        ObjectsTableName: !Ref ObjectsTableName
 
   ActionResolversStack:
     Type: AWS::CloudFormation::Stack
