@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk'); // Keep for now, though might not be needed if only using v3
+
 const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 
@@ -10,7 +10,7 @@ const OBJECTS_TABLE_NAME = process.env.OBJECTS_TABLE_NAME;
 exports.handler = async (event) => {
     console.log('Received event:', JSON.stringify(event, null, 2));
 
-    const { filter } = event.arguments;
+    const { filter } = event; // Corrected: Access arguments directly from event
 
     const params = {
         TableName: OBJECTS_TABLE_NAME,

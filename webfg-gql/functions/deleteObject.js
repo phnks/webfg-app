@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+
 const { DynamoDBDocumentClient, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 
@@ -10,7 +10,7 @@ const OBJECTS_TABLE_NAME = process.env.OBJECTS_TABLE_NAME;
 exports.handler = async (event) => {
     console.log('Received event:', JSON.stringify(event, null, 2));
 
-    const { objectId } = event.arguments;
+    const { objectId } = event; // Corrected: Access arguments directly from event
 
     try {
         const params = {

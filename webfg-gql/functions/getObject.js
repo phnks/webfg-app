@@ -1,5 +1,5 @@
-const AWS = require('aws-sdk');
-const { DynamoDBDocumentClient } = require('@aws-sdk/lib-dynamodb');
+// Removed: const AWS = require('aws-sdk');
+const { DynamoDBDocumentClient, GetCommand } = require('@aws-sdk/lib-dynamodb'); // Added GetCommand
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 
 const client = new DynamoDBClient({});
@@ -10,7 +10,7 @@ const OBJECTS_TABLE_NAME = process.env.OBJECTS_TABLE_NAME;
 exports.handler = async (event) => {
     console.log('Received event:', JSON.stringify(event, null, 2));
 
-    const { objectId } = event.arguments;
+    const { objectId } = event; // Corrected: Access arguments directly from event
 
     try {
         const params = {
@@ -20,7 +20,9 @@ exports.handler = async (event) => {
             },
         };
 
-        const result = await ddbDocClient.get(params);
+        // Corrected to use send with GetCommand
+        const command = new GetCommand(params); 
+        const result = await ddbDocClient.send(command); 
         console.log('DynamoDB Get result:', JSON.stringify(result, null, 2));
 
         return result.Item;

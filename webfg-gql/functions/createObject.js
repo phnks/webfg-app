@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { v4: uuidv4 } = require('uuid');
@@ -11,7 +11,7 @@ const OBJECTS_TABLE_NAME = process.env.OBJECTS_TABLE_NAME;
 exports.handler = async (event) => {
     console.log('Received event:', JSON.stringify(event, null, 2));
 
-    const input = event.arguments.input;
+    const { input } = event; // Corrected: Access arguments directly from event
     const objectId = uuidv4();
     const createdAt = new Date().toISOString();
 
