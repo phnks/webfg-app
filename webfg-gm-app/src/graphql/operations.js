@@ -71,16 +71,64 @@ export const GET_CHARACTER = gql`
       inventory {
         objectId
         name
-        type
-        fit
+        objectCategory
+        width
+        length
+        height
         weight
+        penetration
+        deflection
+        impact
+        absorption
+        hitPoints {
+          current
+          max
+        }
+        damageMin
+        damageMax
+        damageType
+        isLimb
+        noise
+        duration
+        handling
+        capacity
+        falloff
+        partsIds
+        usage {
+          actionId
+          usageType
+        }
       }
       equipment {
         objectId
         name
-        type
-        fit
+        objectCategory
+        width
+        length
+        height
         weight
+        penetration
+        deflection
+        impact
+        absorption
+        hitPoints {
+          current
+          max
+        }
+        damageMin
+        damageMax
+        damageType
+        isLimb
+        noise
+        duration
+        handling
+        capacity
+        falloff
+        partsIds
+        usage {
+          actionId
+          usageType
+        }
       }
       actions {
         actionId
@@ -97,9 +145,33 @@ export const LIST_OBJECTS = gql`
     listObjects {
       objectId
       name
-      type
-      fit
+      objectCategory
+      width
+      length
+      height
       weight
+      penetration
+      deflection
+      impact
+      absorption
+      hitPoints {
+        current
+        max
+      }
+      damageMin
+      damageMax
+      damageType
+      isLimb
+      noise
+      duration
+      handling
+      capacity
+      falloff
+      partsIds
+      usage {
+        actionId
+        usageType
+      }
     }
   }
 `;
@@ -109,13 +181,36 @@ export const GET_OBJECT = gql`
     getObject(objectId: $objectId) {
       objectId
       name
-      type
-      fit
+      objectCategory
+      width
+      length
+      height
       weight
-      noise
+      penetration
+      deflection
+      impact
+      absorption
       hitPoints {
-        max
         current
+        max
+      }
+      damageMin
+      damageMax
+      damageType
+      isLimb
+      noise
+      duration
+      handling
+      capacity
+      falloff
+      partsIds
+      parts {
+        objectId
+        name
+      }
+      usage {
+        actionId
+        usageType
       }
     }
   }
@@ -292,13 +387,36 @@ export const CREATE_OBJECT = gql`
     createObject(input: $input) {
       objectId
       name
-      type
-      fit
+      objectCategory
+      width
+      length
+      height
       weight
-      noise
+      penetration
+      deflection
+      impact
+      absorption
       hitPoints {
-        max
         current
+        max
+      }
+      damageMin
+      damageMax
+      damageType
+      isLimb
+      noise
+      duration
+      handling
+      capacity
+      falloff
+      partsIds
+      parts {
+        objectId
+        name
+      }
+      usage {
+        actionId
+        usageType
       }
     }
   }
@@ -309,9 +427,37 @@ export const UPDATE_OBJECT = gql`
     updateObject(objectId: $objectId, input: $input) {
       objectId
       name
-      type
-      fit
+      objectCategory
+      width
+      length
+      height
       weight
+      penetration
+      deflection
+      impact
+      absorption
+      hitPoints {
+        current
+        max
+      }
+      damageMin
+      damageMax
+      damageType
+      isLimb
+      noise
+      duration
+      handling
+      capacity
+      falloff
+      partsIds
+      parts {
+        objectId
+        name
+      }
+      usage {
+        actionId
+        usageType
+      }
     }
   }
 `;
@@ -1127,7 +1273,33 @@ export const ON_CREATE_OBJECT = gql`
     onCreateObject {
       objectId
       name
-      type
+      objectCategory
+      width
+      length
+      height
+      weight
+      penetration
+      deflection
+      impact
+      absorption
+      hitPoints {
+        current
+        max
+      }
+      damageMin
+      damageMax
+      damageType
+      isLimb
+      noise
+      duration
+      handling
+      capacity
+      falloff
+      partsIds
+      usage {
+        actionId
+        usageType
+      }
     }
   }
 `;
@@ -1137,6 +1309,33 @@ export const ON_UPDATE_OBJECT = gql`
     onUpdateObject {
       objectId
       name
+      objectCategory
+      width
+      length
+      height
+      weight
+      penetration
+      deflection
+      impact
+      absorption
+      hitPoints {
+        current
+        max
+      }
+      damageMin
+      damageMax
+      damageType
+      isLimb
+      noise
+      duration
+      handling
+      capacity
+      falloff
+      partsIds
+      usage {
+        actionId
+        usageType
+      }
     }
   }
 `;
@@ -1444,10 +1643,27 @@ export const defaultEquipment = {
 
 export const defaultObjectForm = {
   name: "",
-  type: "MISCELLANEOUS",
-  fit: "ONE_HAND",
-  weight: 1.0,
-  noise: 0
+  objectCategory: "ITEM",
+  width: 0.1,
+  length: 0.1,
+  height: 0.1,
+  weight: 0.1,
+  penetration: 0,
+  deflection: 0,
+  impact: 0,
+  absorption: 0,
+  hitPoints: { current: 1, max: 1 },
+  damageMin: 0,
+  damageMax: 0,
+  damageType: "KINETIC",
+  isLimb: false,
+  noise: 0,
+  duration: 0,
+  handling: 0,
+  capacity: 0,
+  falloff: 0,
+  partsIds: [],
+  usage: []
 };
 
 export const defaultActionForm = {

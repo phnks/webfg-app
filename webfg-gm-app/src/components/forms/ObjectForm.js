@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ErrorPopup from '../common/ErrorPopup';
-import { useQuery, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
   CREATE_OBJECT,
   UPDATE_OBJECT,
-  LIST_OBJECTS,
-  // defaultObjectForm is exported, but we'll build initial state based on schema
+  defaultObjectForm 
 } from "../../graphql/operations";
 import "./Form.css";
+
+// Enums from schema
+const ObjectCategoryEnum = ["ITEM", "TOOL", "WEAPON", "ARMOR", "CONTAINER", "STRUCTURE", "FURNITURE", "BARRIER", "DEVICE", "MATERIAL", "RESOURCE", "CLOTHING", "LIGHT_SOURCE", "DISPLAY", "DOCUMENT", "COMPONENT", "DEBRIS", "ARTIFACT"];
+const DamageTypeEnum = ["KINETIC", "HYPERTHERMAL", "HYPOTHERMAL", "ELECTRIC", "SONIC", "CHEMICAL", "BIOCHEMICAL", "RADIATION"];
 
 // Helper function to strip __typename fields recursively
 const stripTypename = (obj) => {
@@ -27,151 +30,136 @@ const stripTypename = (obj) => {
   return newObj;
 };
 
-const prepareObjectInput = (data, isEditing) => {
+const prepareObjectInput = (data) => {
   const input = {
     name: data.name,
-    type: data.type || "MISCELLANEOUS", // Assuming default type
-    fit: data.fit || "ONE_HAND", // Assuming default fit
-    weight: data.weight === '' ? 0.0 : parseFloat(data.weight) || 0.0,
-    noise: data.noise === '' ? 0 : parseInt(data.noise, 10) || 0, // Assuming noise is Int
-    hitPoints: data.hitPoints ? {
-        max: data.hitPoints.max === '' ? 0 : parseInt(data.hitPoints.max, 10) || 0,
-        current: data.hitPoints.current === '' ? 0 : parseInt(data.hitPoints.current, 10) || 0,
-    } : { max: 0, current: 0 }, // Initialize hitPoints if null
+    objectCategory: data.objectCategory || ObjectCategoryEnum[0],
+    width: parseFloat(data.width) || 0.0,
+    length: parseFloat(data.length) || 0.0,
+    height: parseFloat(data.height) || 0.0,
+    weight: parseFloat(data.weight) || 0.0,
+    penetration: parseFloat(data.penetration) || 0.0,
+    deflection: parseFloat(data.deflection) || 0.0,
+    impact: parseFloat(data.impact) || 0.0,
+    absorption: parseFloat(data.absorption) || 0.0,
+    hitPoints: {
+        max: parseInt(data.hitPoints.max, 10) || 0,
+        current: parseInt(data.hitPoints.current, 10) || 0,
+    },
+    damageMin: parseFloat(data.damageMin) || 0.0,
+    damageMax: parseFloat(data.damageMax) || 0.0,
+    damageType: data.damageType || DamageTypeEnum[0],
+    isLimb: Boolean(data.isLimb),
+    noise: parseFloat(data.noise) || 0.0,
+    duration: parseFloat(data.duration) || 0.0,
+    handling: parseFloat(data.handling) || 0.0,
+    capacity: parseFloat(data.capacity) || 0.0,
+    falloff: parseFloat(data.falloff) || 0.0,
+    partsIds: typeof data.partsIds === 'string' ? data.partsIds.split(',').map(id => id.trim()).filter(id => id) : (Array.isArray(data.partsIds) ? data.partsIds : []),
+    usage: Array.isArray(data.usage) ? data.usage : [] 
   };
-
-   if (!isEditing) {
-      delete input.objectId; // Ensure objectId is not sent for creation
-  }
   return input;
 };
 
-// Define Enums used in the form (assuming these exist based on schema)
-const ObjectType = ["MISCELLANEOUS", "WEAPON", "ARMOR", "CONSUMABLE"]; // Example types
-const FitType = ["ONE_HAND", "TWO_HAND", "HEAD", "TORSO", "LEGS", "ARMS", "FINGERS", "FEET", "BACK"]; // Example fits
-
 
 const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
-  // Initialize state based on schema fields
-  const initialFormData = isEditing && object
-    ? {
-        name: object.name || "",
-        type: object.type || "MISCELLANEOUS",
-        fit: object.fit || "ONE_HAND",
-        weight: object.weight ?? '', // Use ?? '' for input value
-        noise: object.noise ?? '', // Use ?? ''
-        hitPoints: object.hitPoints ? {
-            max: object.hitPoints.max ?? '', // Use ?? ''
-            current: object.hitPoints.current ?? '', // Use ?? ''
-        } : { max: '', current: '' }, // Initialize with empty strings for inputs
-      }
-    : {
-        name: "",
-        type: "MISCELLANEOUS",
-        fit: "ONE_HAND",
-        weight: '', // Initialize with empty string for input
-        noise: '', // Initialize with empty string
-        hitPoints: { max: '', current: '' }, // Initialize with empty strings
-      };
+  const getInitialFormData = useCallback(() => {
+    const base = isEditing && object ? { ...defaultObjectForm, ...stripTypename(object) } : { ...defaultObjectForm };
 
+    // Ensure all fields are strings for form inputs, or boolean for checkbox
+    return {
+        name: base.name || "",
+        objectCategory: base.objectCategory || ObjectCategoryEnum[0],
+        width: base.width?.toString() ?? '',
+        length: base.length?.toString() ?? '',
+        height: base.height?.toString() ?? '',
+        weight: base.weight?.toString() ?? '',
+        penetration: base.penetration?.toString() ?? '',
+        deflection: base.deflection?.toString() ?? '',
+        impact: base.impact?.toString() ?? '',
+        absorption: base.absorption?.toString() ?? '',
+        hitPoints: {
+            max: base.hitPoints?.max?.toString() ?? '',
+            current: base.hitPoints?.current?.toString() ?? '',
+        },
+        damageMin: base.damageMin?.toString() ?? '',
+        damageMax: base.damageMax?.toString() ?? '',
+        damageType: base.damageType || DamageTypeEnum[0],
+        isLimb: base.isLimb || false, // Boolean for checkbox
+        noise: base.noise?.toString() ?? '',
+        duration: base.duration?.toString() ?? '',
+        handling: base.handling?.toString() ?? '',
+        capacity: base.capacity?.toString() ?? '',
+        falloff: base.falloff?.toString() ?? '',
+        partsIds: Array.isArray(base.partsIds) ? base.partsIds.join(', ') : (base.partsIds || ''),
+        usage: base.usage || [] // Not directly editable in UI for now
+    };
+  }, [isEditing, object]);
 
+  const [formData, setFormData] = useState(getInitialFormData());
   const [error, setError] = useState(null);
-  const [formData, setFormData] = useState(initialFormData);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    setFormData(getInitialFormData());
+  }, [getInitialFormData]);
 
-  const [createObject, { loading: createLoading }] = useMutation(CREATE_OBJECT, {
-    update(cache, { data: { createObject } }) {
-      try {
-        const { listObjects } = cache.readQuery({ query: LIST_OBJECTS }) || { listObjects: [] };
-        cache.writeQuery({
-          query: LIST_OBJECTS,
-          data: { listObjects: [...listObjects, createObject] },
-        });
-        console.log("Object created successfully:", createObject);
-      } catch (err) {
-        console.error("Error updating cache:", err);
-      }
-    }
-  });
 
-  const [updateObject, { loading: updateLoading }] = useMutation(UPDATE_OBJECT);
-
+  const [createObjectMutation, { loading: createLoading }] = useMutation(CREATE_OBJECT);
+  const [updateObjectMutation, { loading: updateLoading }] = useMutation(UPDATE_OBJECT);
   const loading = createLoading || updateLoading;
 
-  // Modified handleChange to handle nested fields
   const handleChange = (e) => {
-    const { name, value, type } = e.target;
+    const { name, value, type, checked } = e.target;
     const [field, nestedField] = name.split('.');
 
     setFormData(prev => {
-        let updatedFormData = { ...prev };
+        let updatedValue = type === 'checkbox' ? checked : value;
 
-        if (nestedField) {
-            // Handle nested fields (like hitPoints.max)
-            updatedFormData[field] = {
-                ...updatedFormData[field],
-                [nestedField]: type === 'number' && value === '' ? '' : value,
-            };
-        } else {
-            // Handle top-level fields (like name, type, fit, weight, noise)
-            updatedFormData[field] = type === 'number' && value === '' ? '' : value;
+        if (type === 'number' && value === '') {
+            updatedValue = ''; 
         }
 
-        return updatedFormData;
+        if (nestedField) {
+            return {
+                ...prev,
+                [field]: {
+                    ...prev[field],
+                    [nestedField]: updatedValue,
+                },
+            };
+        } else {
+            return {
+                ...prev,
+                [name]: updatedValue,
+            };
+        }
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setError(null); // Clear previous errors
     try {
-      const cleanedData = stripTypename(formData);
-      const inputData = prepareObjectInput(cleanedData, isEditing);
-
-      console.log(isEditing ? "Updating object with input:" : "Creating object with input:", inputData);
+      const inputData = prepareObjectInput(formData);
 
       let result;
       if (isEditing) {
-        result = await updateObject({
-          variables: {
-            objectId: object.objectId,
-            input: inputData
-          }
+        result = await updateObjectMutation({
+          variables: { objectId: object.objectId, input: inputData }
         });
-        // Check for null data or errors (including null values for all keys in data)
-        if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
-            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
-        }
-        onSuccess(result.data.updateObject.objectId);
+        if (!result.data?.updateObject) throw new Error("Failed to update object or no data returned.");
+        if (onSuccess) onSuccess(result.data.updateObject.objectId);
       } else {
-        result = await createObject({
-          variables: {
-            input: inputData
-          }
+        result = await createObjectMutation({
+          variables: { input: inputData }
         });
-        // Check for null data or errors (including null values for all keys in data)
-         if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
-            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
-        }
-        onSuccess(result.data.createObject.objectId);
+        if (!result.data?.createObject) throw new Error("Failed to create object or no data returned.");
+        if (onSuccess) onSuccess(result.data.createObject.objectId);
       }
     } catch (err) {
       console.error("Error saving object:", err);
-      let errorMessage = "An unexpected error occurred.";
-      let errorStack = err.stack || "No stack trace available.";
-      if (err.graphQLErrors && err.graphQLErrors.length > 0) {
-        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
-        errorStack = err.stack || err.graphQLErrors.map(e => e.extensions?.exception?.stacktrace || e.stack).filter(Boolean).join('\n\n') || "No stack trace available.";
-        console.error("GraphQL Errors:", err.graphQLErrors);
-      } else if (err.networkError) {
-        errorMessage = `Network Error: ${err.networkError.message}`;
-        errorStack = err.networkError.stack || "No network error stack trace available.";
-        console.error("Network Error:", err.networkError);
-      } else {
-          errorMessage = err.message;
-      }
-      setError({ message: errorMessage, stack: errorStack });
+      setError({ message: err.message || "An unexpected error occurred.", stack: err.stack });
     }
   };
 
@@ -179,101 +167,118 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
     if (onClose) {
       onClose();
     } else {
-      const currentPath = window.location.pathname;
-      if (currentPath.endsWith('/new')) {
-          const listPath = currentPath.replace('/new', '');
-          navigate(listPath);
-      } else {
-          navigate(-1);
-      }
+      navigate(isEditing && object ? `/objects/${object.objectId}` : "/objects");
     }
   };
 
   return (
     <div className="form-container">
-      <h2>{isEditing ? "Edit Object" : "Create Object"}</h2>
+      <h2>{isEditing ? "Edit Object" : "Create New Object"}</h2>
       <form onSubmit={handleSubmit}>
-        {/* Basic Fields */}
         <div className="form-group">
           <label htmlFor="name">Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name || ""}
-            onChange={handleChange}
-            required
-          />
+          <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required />
         </div>
 
-        {/* Type Dropdown */}
-         <div className="form-group">
-          <label htmlFor="type">Type</label>
-          <select
-            id="type"
-            name="type"
-            value={formData.type || ""}
-            onChange={handleChange}
-          >
-            {ObjectType.map(type => <option key={type} value={type}>{type}</option>)}
-          </select>
-        </div>
-
-        {/* Fit Dropdown */}
-         <div className="form-group">
-          <label htmlFor="fit">Fit</label>
-          <select
-            id="fit"
-            name="fit"
-            value={formData.fit || ""}
-            onChange={handleChange}
-          >
-            {FitType.map(fit => <option key={fit} value={fit}>{fit}</option>)}
-          </select>
-        </div>
-
-        {/* Numeric Fields based on schema */}
         <div className="form-group">
-          <label htmlFor="weight">Weight</label>
-          <input
-            type="number"
-            id="weight"
-            name="weight"
-            value={formData.weight ?? ''}
-            onChange={handleChange}
-            step="0.1"
-          />
+          <label htmlFor="objectCategory">Category</label>
+          <select id="objectCategory" name="objectCategory" value={formData.objectCategory} onChange={handleChange}>
+            {ObjectCategoryEnum.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+          </select>
         </div>
-         <div className="form-group">
+
+        <h3>Dimensions & Weight</h3>
+        <div className="form-group">
+          <label htmlFor="width">Width (m)</label>
+          <input type="number" id="width" name="width" value={formData.width} onChange={handleChange} step="0.01" placeholder="e.g. 0.5"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="length">Length (m)</label>
+          <input type="number" id="length" name="length" value={formData.length} onChange={handleChange} step="0.01" placeholder="e.g. 0.5"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="height">Height (m)</label>
+          <input type="number" id="height" name="height" value={formData.height} onChange={handleChange} step="0.01" placeholder="e.g. 0.5"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="weight">Weight (kg)</label>
+          <input type="number" id="weight" name="weight" value={formData.weight} onChange={handleChange} step="0.01" placeholder="e.g. 1.2"/>
+        </div>
+
+        <h3>Combat Properties</h3>
+        <div className="form-group">
+            <label htmlFor="hitPoints.max">Max Hit Points</label>
+            <input type="number" id="hitPoints.max" name="hitPoints.max" value={formData.hitPoints.max} onChange={handleChange} step="1" placeholder="e.g. 10"/>
+        </div>
+        <div className="form-group">
+            <label htmlFor="hitPoints.current">Current Hit Points</label>
+            <input type="number" id="hitPoints.current" name="hitPoints.current" value={formData.hitPoints.current} onChange={handleChange} step="1" placeholder="e.g. 10"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="damageMin">Min Damage</label>
+          <input type="number" id="damageMin" name="damageMin" value={formData.damageMin} onChange={handleChange} step="0.1" placeholder="e.g. 1"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="damageMax">Max Damage</label>
+          <input type="number" id="damageMax" name="damageMax" value={formData.damageMax} onChange={handleChange} step="0.1" placeholder="e.g. 5"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="damageType">Damage Type</label>
+          <select id="damageType" name="damageType" value={formData.damageType} onChange={handleChange}>
+            {DamageTypeEnum.map(type => <option key={type} value={type}>{type}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="penetration">Penetration</label>
+          <input type="number" id="penetration" name="penetration" value={formData.penetration} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="deflection">Deflection</label>
+          <input type="number" id="deflection" name="deflection" value={formData.deflection} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="impact">Impact</label>
+          <input type="number" id="impact" name="impact" value={formData.impact} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="absorption">Absorption</label>
+          <input type="number" id="absorption" name="absorption" value={formData.absorption} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
+        </div>
+
+        <h3>Other Properties</h3>
+        <div className="form-group form-group-checkbox">
+          <label htmlFor="isLimb">Is Limb?</label>
+          <input type="checkbox" id="isLimb" name="isLimb" checked={!!formData.isLimb} onChange={handleChange} />
+        </div>
+        <div className="form-group">
           <label htmlFor="noise">Noise</label>
-          <input
-            type="number"
-            id="noise"
-            name="noise"
-            value={formData.noise ?? ''}
-            onChange={handleChange}
-            step="1"
-          />
+          <input type="number" id="noise" name="noise" value={formData.noise} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
         </div>
-
-        {/* Hit Points (Nested Object) */}
-        <h3>Hit Points</h3>
-         <div className="form-group">
-             <label htmlFor="hitPoints.max">Max Hit Points</label>
-             <input type="number" id="hitPoints.max" name="hitPoints.max" value={formData.hitPoints?.max ?? ''} onChange={handleChange} step="1" />
-         </div>
-         <div className="form-group">
-             <label htmlFor="hitPoints.current">Current Hit Points</label>
-             <input type="number" id="hitPoints.current" name="hitPoints.current" value={formData.hitPoints?.current ?? ''} onChange={handleChange} step="1" />
-         </div>
-
-
-        {/* Removed Quantity and Value based on schema */}
+        <div className="form-group">
+          <label htmlFor="duration">Duration (s)</label>
+          <input type="number" id="duration" name="duration" value={formData.duration} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="handling">Handling</label>
+          <input type="number" id="handling" name="handling" value={formData.handling} onChange={handleChange} step="0.01" placeholder="e.g. 0"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="capacity">Capacity</label>
+          <input type="number" id="capacity" name="capacity" value={formData.capacity} onChange={handleChange} step="0.01" placeholder="e.g. 0"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="falloff">Falloff</label>
+          <input type="number" id="falloff" name="falloff" value={formData.falloff} onChange={handleChange} step="0.01" placeholder="e.g. 0"/>
+        </div>
+        <div className="form-group">
+          <label htmlFor="partsIds">Part IDs (comma-separated)</label>
+          <input type="text" id="partsIds" name="partsIds" value={formData.partsIds} onChange={handleChange} placeholder="e.g. id1,id2"/>
+        </div>
 
         <div className="form-actions">
-          <button type="button" onClick={handleCancel}>Cancel</button>
-          <button type="submit" disabled={loading}>
-            {loading ? (isEditing ? "Updating..." : "Creating...") : (isEditing ? "Update" : "Create")}
+          <button type="button" onClick={handleCancel} className="button-cancel">Cancel</button>
+          <button type="submit" disabled={loading} className="button-submit">
+            {loading ? (isEditing ? "Updating..." : "Creating...") : (isEditing ? "Update Object" : "Create Object")}
           </button>
         </div>
       </form>

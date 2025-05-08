@@ -1,153 +1,227 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
-Description: 'AppSync Object Resolvers'
+Transform: AWS::Serverless-2016-10-31 # Add Transform for Serverless Functions
+
+Description: 'AppSync Object Resolvers, Data Sources, and Functions'
 
 Parameters:
   ApiId:
     Type: String
     Description: 'AppSync GraphQL API ID'
-  ObjectsDataSourceName:
+  AppSyncLambdaServiceRoleArn:
     Type: String
-    Description: 'Name of objects data source'
+    Description: 'ARN of the IAM role for AppSync to invoke Lambda functions'
+  ObjectsTableName:
+    Type: String
+    Description: 'Name of the Objects table'
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+    Runtime: nodejs20.x # Or your preferred runtime
+    Architectures:
+      - x86_64
 
 Resources:
+  # Lambda functions for Object resolvers - Defined Here
+  GetObjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/getObject.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBReadPolicy: # Read is sufficient
+            TableName: !Ref ObjectsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
+
+  ListObjectsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/listObjects.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBReadPolicy: # Read is sufficient
+            TableName: !Ref ObjectsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
+
+  CreateObjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/createObject.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBCrudPolicy: # Changed from Write to Crud
+            TableName: !Ref ObjectsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
+
+  UpdateObjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/updateObject.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBCrudPolicy: # Changed from Write to Crud
+            TableName: !Ref ObjectsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
+
+  DeleteObjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/deleteObject.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBCrudPolicy: # Changed from Write to Crud
+            TableName: !Ref ObjectsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
+
+  # Lambda Data Sources for Object Resolvers - Defined Here
+  GetObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: GetObjectFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: GetObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt GetObjectFunction.Arn
+
+  ListObjectsLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: ListObjectsFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ListObjectsLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ListObjectsFunction.Arn
+
+  CreateObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: CreateObjectFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: CreateObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt CreateObjectFunction.Arn
+
+  UpdateObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: UpdateObjectFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: UpdateObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt UpdateObjectFunction.Arn
+
+  DeleteObjectLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: DeleteObjectFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: DeleteObjectLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DeleteObjectFunction.Arn
+
+  # Object Resolvers - Use Data Sources Defined Above
   GetObjectResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: GetObjectLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'getObject'
-      DataSourceName: !Ref ObjectsDataSourceName
+      DataSourceName: "GetObjectLambdaDataSource"
       RequestMappingTemplate: |
         {
-          "version": "2017-02-28",
-          "operation": "GetItem",
-          "key": {
-            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
-          }
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
 
   ListObjectsResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: ListObjectsLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'listObjects'
-      DataSourceName: !Ref ObjectsDataSourceName
+      DataSourceName: "ListObjectsLambdaDataSource"
       RequestMappingTemplate: |
         {
-          "version": "2017-02-28",
-          "operation": "Scan",
-          #if($ctx.args.filter)
-            "filter": #set($filters = {})
-              #if($ctx.args.filter.name)
-                #if($ctx.args.filter.name.eq)
-                  #set($filters.name = {"eq": $ctx.args.filter.name.eq})
-                #end
-                #if($ctx.args.filter.name.contains)
-                  #set($filters.name = {"contains": $ctx.args.filter.name.contains})
-                #end
-                #if($ctx.args.filter.name.beginsWith)
-                  #set($filters.name = {"beginsWith": $ctx.args.filter.name.beginsWith})
-                #end
-              #end
-              #if($ctx.args.filter.type)
-                #set($filters.type = {"eq": $ctx.args.filter.type})
-              #end
-              #if($ctx.args.filter.fit)
-                #set($filters.fit = {"eq": $ctx.args.filter.fit})
-              #end
-              #if($ctx.args.filter.maxWeight)
-                #set($filters.weight = {"lte": $ctx.args.filter.maxWeight})
-              #end
-              $util.toJson($filters)
-          #end
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
         }
-      ResponseMappingTemplate: '$util.toJson($context.result.items)'
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   CreateObjectResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: CreateObjectLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: createObject
-      DataSourceName: !Ref ObjectsDataSourceName
+      DataSourceName: "CreateObjectLambdaDataSource"
       RequestMappingTemplate: |
-        ## Automatically generate an ID if one is not provided
-        #set($objectId = $util.autoId())
-        
-        ## Set up the DynamoDB operation
         {
           "version": "2018-05-29",
-          "operation": "PutItem",
-          "key": {
-            "objectId": $util.dynamodb.toDynamoDBJson($objectId)
-          },
-          "attributeValues": {
-            "name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
-            "type": $util.dynamodb.toDynamoDBJson($ctx.args.input.type),
-            "fit": $util.dynamodb.toDynamoDBJson($ctx.args.input.fit),
-            "weight": $util.dynamodb.toDynamoDBJson($ctx.args.input.weight),
-            "noise": $util.dynamodb.toDynamoDBJson($ctx.args.input.noise),
-            "hitPoints": $util.dynamodb.toDynamoDBJson($ctx.args.input.hitPoints),
-            "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
-          }
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
         }
-      ResponseMappingTemplate: |
-        $util.toJson($ctx.result)
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   UpdateObjectResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: UpdateObjectLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: updateObject
-      DataSourceName: !Ref ObjectsDataSourceName
+      DataSourceName: "UpdateObjectLambdaDataSource"
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
-          "operation": "UpdateItem",
-          "key": {
-            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
-          },
-          "update": {
-            "expression": "SET #name = :name, #type = :type, #fit = :fit, #weight = :weight, #noise = :noise, #hitPoints = :hitPoints",
-            "expressionNames": {
-              "#name": "name",
-              "#type": "type",
-              "#fit": "fit",
-              "#weight": "weight",
-              "#noise": "noise",
-              "#hitPoints": "hitPoints"
-            },
-            "expressionValues": {
-              ":name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
-              ":type": $util.dynamodb.toDynamoDBJson($ctx.args.input.type),
-              ":fit": $util.dynamodb.toDynamoDBJson($ctx.args.input.fit),
-              ":weight": $util.dynamodb.toDynamoDBJson($ctx.args.input.weight),
-              ":noise": $util.dynamodb.toDynamoDBJson($ctx.args.input.noise),
-              ":hitPoints": $util.dynamodb.toDynamoDBJson($ctx.args.input.hitPoints)
-            }
-          }
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
         }
-      ResponseMappingTemplate: |
-        $util.toJson($ctx.result)
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   DeleteObjectResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: DeleteObjectLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: deleteObject
-      DataSourceName: !Ref ObjectsDataSourceName
+      DataSourceName: "DeleteObjectLambdaDataSource"
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
-          "operation": "DeleteItem",
-          "key": {
-            "objectId": $util.dynamodb.toDynamoDBJson($ctx.args.objectId)
-          }
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
         }
-      ResponseMappingTemplate: |
-        $util.toJson($ctx.result) 
+      ResponseMappingTemplate: '$util.toJson($context.result)'

@@ -104,11 +104,11 @@ Resources:
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         CharactersDataSourceName: !Ref CharactersDataSourceName
+        ObjectsTableName: !Ref ObjectsTableName
         ObjectsDataSourceName: !Ref ObjectsDataSourceName
         ActionsDataSourceName: !Ref ActionsDataSourceName
         EncountersDataSourceName: !Ref EncountersDataSourceName
         CharactersTableName: !Ref CharactersTableName
-        ObjectsTableName: !Ref ObjectsTableName
         ActionsTableName: !Ref ActionsTableName
         EncountersTableName: !Ref EncountersTableName
         SkillsTableName: !Ref SkillsTableName # Pass down
@@ -139,11 +139,12 @@ Resources:
       TemplateURL: ./object-resolvers.yaml
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
-        ObjectsDataSourceName: !Ref ObjectsDataSourceName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+        ObjectsTableName: !Ref ObjectsTableName
 
   ActionResolversStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: 
+    DependsOn:
       - DataSourcesStack
       - AppSyncLambdaServiceRole
     Properties:
@@ -163,7 +164,7 @@ Resources:
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         FormulasDataSourceName: !Ref FormulasDataSourceName
-  
+
   AppSyncLambdaServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -183,11 +184,11 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: lambda:InvokeFunction
-                Resource: '*'  
+                Resource: '*'
 
   ActionCharacterResolversStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: 
+    DependsOn:
       - DataSourcesStack
       - ApiStack
       - AppSyncLambdaServiceRole

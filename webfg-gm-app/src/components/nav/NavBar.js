@@ -397,7 +397,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
                       className={({ isActive }) => isActive ? 'active' : ''}
                     >
                       <div className="item-name">{obj.name}</div>
-                      {obj.type && <div className="item-meta">{obj.type}</div>}
+                      {obj.objectCategory && <div className="item-meta">{obj.objectCategory}</div>}
                     </NavLink>
                   </li>
                 )) : (

@@ -189,3 +189,25 @@ Outputs:
   AppSyncLambdaServiceRoleArn:
     Description: 'ARN of the IAM role for AppSync to invoke Lambda functions'
     Value: !GetAtt AppSyncLambdaServiceRole.Arn
+  # DynamoDB Data Source Names
+  CharactersDataSourceName:
+    Description: 'Name of the Characters DynamoDB Data Source'
+    Value: !Ref CharactersDataSource
+  ObjectsDataSourceName:
+    Description: 'Name of the Objects DynamoDB Data Source'
+    Value: !Ref ObjectsDataSource
+  ActionsDataSourceName:
+    Description: 'Name of the Actions DynamoDB Data Source'
+    Value: !Ref ActionsDataSource
+  EncountersDataSourceName:
+    Description: 'Name of the Encounters DynamoDB Data Source'
+    Value: !Ref EncountersDataSource
+  SkillsDataSourceName:
+    Description: 'Name of the Skills DynamoDB Data Source'
+    Value: !Ref SkillsDataSource
+  AttributesDataSourceName:
+    Description: 'Name of the Attributes DynamoDB Data Source'
+    Value: !Ref AttributesDataSource
+  FormulasDataSourceName:
+    Description: 'Name of the Formulas DynamoDB Data Source'
+    Value: !Ref FormulasDataSource
