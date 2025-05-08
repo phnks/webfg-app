@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS } from './graphql/operations';
@@ -22,7 +22,7 @@ import './App.css';
 function AppContent() {
   // Fetch the data for the navbar lists
   const { data: characterData } = useQuery(LIST_CHARACTERS);
-  const { data: objectData } = useQuery(LIST_OBJECTS);
+  const { data: objectData, error: objectError } = useQuery(LIST_OBJECTS); // Added error variable\n\n  // Log object data/error for NavBar\n  useEffect(() => {\n    if (objectData) {\n      console.log("App.js NavBar objectData:", JSON.stringify(objectData, null, 2));\n    }\n    if (objectError) {\n      console.error("App.js NavBar objectError:", JSON.stringify(objectError, null, 2));\n    }\n  }, [objectData, objectError]);
   const { data: actionData } = useQuery(LIST_ACTIONS);
   const { selectedCharacter } = useSelectedCharacter();
 

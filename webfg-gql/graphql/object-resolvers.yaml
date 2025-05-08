@@ -28,9 +28,11 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: functions/getObject.handler
+      CodeUri: ../
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref ObjectsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole # Keep policy for logging
       Environment:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
@@ -39,9 +41,11 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: functions/listObjects.handler
+      CodeUri: ../
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref ObjectsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole # Keep policy for logging
       Environment:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
@@ -50,9 +54,11 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: functions/createObject.handler
+      CodeUri: ../
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Ref ObjectsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole # Keep policy for logging
       Environment:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
@@ -61,9 +67,11 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: functions/updateObject.handler
+      CodeUri: ../
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Ref ObjectsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole # Keep policy for logging
       Environment:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
@@ -72,9 +80,11 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: functions/deleteObject.handler
+      CodeUri: ../
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Ref ObjectsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole # Keep policy for logging
       Environment:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
@@ -82,116 +92,136 @@ Resources:
   # Lambda Data Sources for Object Resolvers - Defined Here
   GetObjectLambdaDataSource:
     Type: AWS::AppSync::DataSource
-    DependsOn: GetObjectFunction # Depend on the local Lambda function
+    DependsOn: GetObjectFunction
     Properties:
       ApiId: !Ref ApiId
-      Name: GetObjectLambdaDataSource # Reference parameter
+      Name: GetObjectLambdaDataSource
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt GetObjectFunction.Arn # Reference local Lambda function ARN
+        LambdaFunctionArn: !GetAtt GetObjectFunction.Arn
 
   ListObjectsLambdaDataSource:
     Type: AWS::AppSync::DataSource
-    DependsOn: ListObjectsFunction # Depend on the local Lambda function
+    DependsOn: ListObjectsFunction
     Properties:
       ApiId: !Ref ApiId
-      Name: ListObjectsLambdaDataSource # Reference parameter
+      Name: ListObjectsLambdaDataSource
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt ListObjectsFunction.Arn # Reference local Lambda function ARN
+        LambdaFunctionArn: !GetAtt ListObjectsFunction.Arn
 
   CreateObjectLambdaDataSource:
     Type: AWS::AppSync::DataSource
-    DependsOn: CreateObjectFunction # Depend on the local Lambda function
+    DependsOn: CreateObjectFunction
     Properties:
       ApiId: !Ref ApiId
-      Name: CreateObjectLambdaDataSource # Reference parameter
+      Name: CreateObjectLambdaDataSource
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt CreateObjectFunction.Arn # Reference local Lambda function ARN
+        LambdaFunctionArn: !GetAtt CreateObjectFunction.Arn
 
   UpdateObjectLambdaDataSource:
     Type: AWS::AppSync::DataSource
-    DependsOn: UpdateObjectFunction # Depend on the local Lambda function
+    DependsOn: UpdateObjectFunction
     Properties:
       ApiId: !Ref ApiId
-      Name: UpdateObjectLambdaDataSource # Reference parameter
+      Name: UpdateObjectLambdaDataSource
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt UpdateObjectFunction.Arn # Reference local Lambda function ARN
+        LambdaFunctionArn: !GetAtt UpdateObjectFunction.Arn
 
   DeleteObjectLambdaDataSource:
     Type: AWS::AppSync::DataSource
-    DependsOn: DeleteObjectFunction # Depend on the local Lambda function
+    DependsOn: DeleteObjectFunction
     Properties:
       ApiId: !Ref ApiId
-      Name: DeleteObjectLambdaDataSource # Reference parameter
+      Name: DeleteObjectLambdaDataSource
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt DeleteObjectFunction.Arn # Reference local Lambda function ARN
+        LambdaFunctionArn: !GetAtt DeleteObjectFunction.Arn
 
   # Object Resolvers - Use Data Sources Defined Above
   GetObjectResolver:
     Type: AWS::AppSync::Resolver
-    DependsOn: GetObjectLambdaDataSource # Depend on the local data source
+    DependsOn: GetObjectLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'getObject'
-      DataSourceName: "GetObjectLambdaDataSource" # Use the local Data Source Logical ID
+      DataSourceName: "GetObjectLambdaDataSource"
       RequestMappingTemplate: |
-        $util.toJson($ctx) # Standard Lambda Request Template
-      ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   ListObjectsResolver:
     Type: AWS::AppSync::Resolver
-    DependsOn: ListObjectsLambdaDataSource # Depend on the local data source
+    DependsOn: ListObjectsLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'listObjects'
-      DataSourceName: "ListObjectsLambdaDataSource" # Use the local Data Source Logical ID
+      DataSourceName: "ListObjectsLambdaDataSource"
       RequestMappingTemplate: |
-        $util.toJson($ctx) # Standard Lambda Request Template
-      ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   CreateObjectResolver:
     Type: AWS::AppSync::Resolver
-    DependsOn: CreateObjectLambdaDataSource # Depend on the local data source
+    DependsOn: CreateObjectLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: createObject
-      DataSourceName: "CreateObjectLambdaDataSource" # Use the local Data Source Logical ID
+      DataSourceName: "CreateObjectLambdaDataSource"
       RequestMappingTemplate: |
-        $util.toJson($ctx) # Standard Lambda Request Template
-      ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   UpdateObjectResolver:
     Type: AWS::AppSync::Resolver
-    DependsOn: UpdateObjectLambdaDataSource # Depend on the local data source
+    DependsOn: UpdateObjectLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: updateObject
-      DataSourceName: "UpdateObjectLambdaDataSource" # Use the local Data Source Logical ID
+      DataSourceName: "UpdateObjectLambdaDataSource"
       RequestMappingTemplate: |
-        $util.toJson($ctx) # Standard Lambda Request Template
-      ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   DeleteObjectResolver:
     Type: AWS::AppSync::Resolver
-    DependsOn: DeleteObjectLambdaDataSource # Depend on the local data source
+    DependsOn: DeleteObjectLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: deleteObject
-      DataSourceName: "DeleteObjectLambdaDataSource" # Use the local Data Source Logical ID
+      DataSourceName: "DeleteObjectLambdaDataSource"
       RequestMappingTemplate: |
-        $util.toJson($ctx) # Standard Lambda Request Template
-      ResponseMappingTemplate: '$util.toJson($context.result)' # Standard Lambda Response Template
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'

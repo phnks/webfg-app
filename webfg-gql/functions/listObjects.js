@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const AWS = require('aws-sdk'); // Keep for now, though might not be needed if only using v3
 const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 
@@ -54,19 +54,42 @@ exports.handler = async (event) => {
 
         if (filterExpressions.length > 0) {
             params.FilterExpression = filterExpressions.join(' AND ');
-            params.ExpressionAttributeNames = expressionAttributeNames;
-            params.ExpressionAttributeValues = expressionAttributeValues;
+            if (Object.keys(expressionAttributeNames).length > 0) {
+               params.ExpressionAttributeNames = expressionAttributeNames;
+            }
+            if (Object.keys(expressionAttributeValues).length > 0) {
+               params.ExpressionAttributeValues = expressionAttributeValues;
+            }
         }
     }
 
     try {
+        console.log("Executing Scan with params:", JSON.stringify(params, null, 2));
         const command = new ScanCommand(params);
         const result = await ddbDocClient.send(command);
-        console.log('DynamoDB Scan result:', JSON.stringify(result, null, 2));
 
-        return result.Items;
+        // Detailed logging of items before returning
+        if (result.Items) {
+            console.log(`Found ${result.Items.length} items. Logging structure of first few items:`);
+            result.Items.slice(0, 3).forEach((item, index) => { // Log first 3 items
+                console.log(`Item ${index} (${item.objectId || 'NO ID'}):`, JSON.stringify(item, null, 2));
+            });
+            // Check specifically if any item HAS a version field
+             const itemsWithVersion = result.Items.filter(item => item.hasOwnProperty('version') || item.hasOwnProperty('_version'));
+             if (itemsWithVersion.length > 0) {
+                 console.warn(`WARNING: Found ${itemsWithVersion.length} items with a 'version' or '_version' field!`);
+             } else {
+                 console.log("Confirmed: No items returned by scan have 'version' or '_version' field.");
+             }
+        } else {
+            console.log('DynamoDB Scan returned no items.');
+        }
+
+        return result.Items || []; // Return empty array if Items is null/undefined
+
     } catch (error) {
         console.error('Error listing objects from DynamoDB:', error);
-        throw new Error('Error fetching objects.');
+        // Rethrow a formatted error potentially? For now, just rethrow.
+        throw new Error(`Error fetching objects: ${error.message}`);
     }
 };
