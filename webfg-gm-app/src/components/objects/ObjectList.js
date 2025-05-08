@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"; // Added useEffect
+import React from "react"; // Removed useEffect import
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import { LIST_OBJECTS } from "../../graphql/operations";
@@ -6,30 +6,10 @@ import "./ObjectList.css";
 
 const ObjectList = () => {
   const navigate = useNavigate();
-  // Added fetchPolicy and error handling
-  const { data, loading, error } = useQuery(LIST_OBJECTS);
+  // Removed fetchPolicy, using default cache behavior now
+  const { data, loading, error } = useQuery(LIST_OBJECTS); 
 
-  // Add logging for data/error changes
-  useEffect(() => {
-    if (data) {
-      // Using console.dir for better object inspection in browser dev tools
-      console.log("ObjectList data received:");
-      console.dir(data);
-    }
-    if (error) {
-      console.error("ObjectList error received:");
-      console.dir(error);
-      // Log specific parts if available
-      if (error.graphQLErrors) {
-         console.error("GraphQL Errors:");
-         console.dir(error.graphQLErrors);
-      }
-      if (error.networkError) {
-        console.error("Network Error:");
-        console.dir(error.networkError);
-      }
-    }
-  }, [data, error]); // Log whenever data or error changes
+  // Removed logging useEffect block
 
   const handleObjectClick = (objectId) => {
     navigate(`/objects/${objectId}`);
@@ -37,18 +17,14 @@ const ObjectList = () => {
 
   if (loading) return <div className="loading">Loading objects...</div>;
 
-  // Display the specific error causing the issue, if it exists
+  // Simplified error display
   if (error) {
-      // Log error just before rendering the error message
-      console.error("Rendering ObjectList with error state:", error.message);
-      console.dir(error);
-      return <div className="error">Error: {error.message}</div>;
+      console.error("Error loading objects:", error); // Keep simple error log
+      return <div className="error">Error loading objects: {error.message}</div>; 
   }
 
   const objects = data?.listObjects || [];
-  // Log objects just before rendering the list
-  console.log(`Rendering ObjectList with ${objects.length} objects.`);
-  // console.dir(objects); // Optional: log the full array if needed
+  // Removed logging before return
 
   return (
     <div className="object-page">
@@ -74,7 +50,6 @@ const ObjectList = () => {
                 onClick={() => handleObjectClick(object.objectId)}
               >
                 <h3>{object.name}</h3>
-                {/* Display objectCategory */}
                 {object.objectCategory && <div className="object-type">{object.objectCategory}</div>}
               </div>
             ))}

@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react'; // Keep useEffect import
+// Added useNavigate import
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'; 
 import { useQuery } from '@apollo/client';
 import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS } from './graphql/operations';
 import NavBar from './components/nav/NavBar';
@@ -20,59 +21,83 @@ import EncounterDetail from './components/encounters/EncounterDetail';
 import './App.css';
 
 function AppContent() {
+  const navigate = useNavigate(); // Use navigate hook
   // Fetch the data for the navbar lists
   const { data: characterData } = useQuery(LIST_CHARACTERS);
-  const { data: objectData, error: objectError } = useQuery(LIST_OBJECTS); // Added error variable\n\n  // Log object data/error for NavBar\n  useEffect(() => {\n    if (objectData) {\n      console.log("App.js NavBar objectData:", JSON.stringify(objectData, null, 2));\n    }\n    if (objectError) {\n      console.error("App.js NavBar objectError:", JSON.stringify(objectError, null, 2));\n    }\n  }, [objectData, objectError]);
+  // Corrected useQuery for objects: restore default fetchPolicy, keep error handling
+  const { data: objectData, error: objectError } = useQuery(LIST_OBJECTS); 
   const { data: actionData } = useQuery(LIST_ACTIONS);
   const { selectedCharacter } = useSelectedCharacter();
 
+  // Correctly formatted logging for NavBar object data/error
+  useEffect(() => {
+    // Keep logs commented out unless active debugging is needed
+    // if (objectData) {
+    //   console.log("App.js NavBar objectData:", JSON.stringify(objectData, null, 2));
+    // }
+    if (objectError) {
+      // Log errors encountered when fetching data for NavBar
+      console.error("App.js NavBar objectError fetching LIST_OBJECTS:");
+      console.dir(objectError);
+    }
+  }, [objectData, objectError]);
+
   return (
-    <Router>
+    // Removed Router from here, should wrap App in index.js if not already
+    // <Router> 
       <div className="app">
         <NavBar 
           characterList={characterData?.listCharacters || []}
-          objectList={objectData?.listObjects || []}
+          objectList={objectData?.listObjects || []} // Pass potentially null/error data; NavBar handles empty list
           actionList={actionData?.listActions || []}
         />
         <SelectedCharacterBanner />
         <div className={`content ${selectedCharacter ? 'with-banner' : ''}`}>
           <Routes>
             <Route path="/" element={<Home />} />
-            
+
             {/* Character routes */}
             <Route path="/characters" element={<CharacterList />} />
-            <Route path="/characters/new" element={<CharacterForm onSuccess={(id) => window.location.href = `/characters/${id}`} />} />
+            {/* Use navigate in onSuccess */}
+            <Route path="/characters/new" element={<CharacterForm onSuccess={(id) => navigate(`/characters/${id}`)} />} /> 
             <Route path="/characters/:characterId" element={<CharacterView />} />
-            <Route path="/characters/:characterId/edit" element={<CharacterForm />} />
-            
+            {/* Edit is usually triggered from CharacterView */}
+
             {/* Object routes */}
             <Route path="/objects" element={<ObjectList />} />
-            <Route path="/objects/new" element={<ObjectForm onSuccess={(id) => window.location.href = `/objects/${id}`} />} />
+             {/* Use navigate in onSuccess */}
+            <Route path="/objects/new" element={<ObjectForm onSuccess={(id) => navigate(`/objects/${id}`)} />} />
             <Route path="/objects/:objectId" element={<ObjectView />} />
-            <Route path="/objects/:objectId/edit" element={<ObjectForm />} />
-            
+             {/* Edit is usually triggered from ObjectView */}
+
             {/* Action routes */}
             <Route path="/actions" element={<ActionList />} />
-            <Route path="/actions/new" element={<ActionForm onSuccess={(id) => window.location.href = `/actions/${id}`} />} />
+             {/* Use navigate in onSuccess */}
+            <Route path="/actions/new" element={<ActionForm onSuccess={(id) => navigate(`/actions/${id}`)} />} />
             <Route path="/actions/:actionId" element={<ActionView />} />
-            <Route path="/actions/:actionId/edit" element={<ActionForm />} />
-            
+            {/* Edit is usually triggered from ActionView */}
+
             {/* Encounter routes */}
             <Route path="/encounters" element={<EncountersList />} />
             <Route path="/encounters/:encounterId" element={<EncounterDetail />} />
           </Routes>
         </div>
       </div>
+    // </Router>
+  );
+}
+
+
+function App() {
+  return (
+    // Router should wrap the Provider and AppContent
+    <Router> 
+      <SelectedCharacterProvider>
+        <AppContent /> 
+      </SelectedCharacterProvider>
     </Router>
   );
 }
 
-function App() {
-  return (
-    <SelectedCharacterProvider>
-      <AppContent />
-    </SelectedCharacterProvider>
-  );
-}
 
 export default App;
