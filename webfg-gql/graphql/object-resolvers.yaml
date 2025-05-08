@@ -30,9 +30,9 @@ Resources:
       Handler: functions/getObject.handler
       CodeUri: ../
       Policies:
-        - DynamoDBReadPolicy:
+        - DynamoDBReadPolicy: # Read is sufficient
             TableName: !Ref ObjectsTableName
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole # Keep policy for logging
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Environment:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
@@ -43,9 +43,9 @@ Resources:
       Handler: functions/listObjects.handler
       CodeUri: ../
       Policies:
-        - DynamoDBReadPolicy:
+        - DynamoDBReadPolicy: # Read is sufficient
             TableName: !Ref ObjectsTableName
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole # Keep policy for logging
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Environment:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
@@ -56,9 +56,9 @@ Resources:
       Handler: functions/createObject.handler
       CodeUri: ../
       Policies:
-        - DynamoDBWritePolicy:
+        - DynamoDBCrudPolicy: # Changed from Write to Crud
             TableName: !Ref ObjectsTableName
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole # Keep policy for logging
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Environment:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
@@ -69,9 +69,9 @@ Resources:
       Handler: functions/updateObject.handler
       CodeUri: ../
       Policies:
-        - DynamoDBWritePolicy:
+        - DynamoDBCrudPolicy: # Changed from Write to Crud
             TableName: !Ref ObjectsTableName
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole # Keep policy for logging
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Environment:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
@@ -82,9 +82,9 @@ Resources:
       Handler: functions/deleteObject.handler
       CodeUri: ../
       Policies:
-        - DynamoDBWritePolicy:
+        - DynamoDBCrudPolicy: # Changed from Write to Crud
             TableName: !Ref ObjectsTableName
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole # Keep policy for logging
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Environment:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
