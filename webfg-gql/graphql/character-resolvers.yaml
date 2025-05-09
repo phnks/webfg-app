@@ -27,6 +27,10 @@ Parameters:
   ValuesTableName: # Add parameter
     Type: String
     Description: 'Name of Values table'
+  CharactersTableName: # Added missing parameter
+    Type: String
+    Description: 'Name of Characters table'
+
 
 Resources:
   # --- Lambda Functions for Resolvers ---
@@ -75,6 +79,51 @@ Resources:
         - DynamoDBReadPolicy: # Needs read access to ValuesTable
             TableName: !Ref ValuesTableName
 
+  CreateCharacterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/createCharacter.handler # New handler file
+      Runtime: nodejs20.x # Use consistent runtime
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName # Reference Characters table
+      Policies:
+        - DynamoDBWritePolicy: # Needs write access to CharactersTable
+            TableName: !Ref CharactersTableName
+
+  UpdateCharacterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/updateCharacter.handler # New handler file
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBWritePolicy: # Needs write access to CharactersTable
+            TableName: !Ref CharactersTableName
+
+  DeleteCharacterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/deleteCharacter.handler # New handler file
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBWritePolicy: # Needs write access to CharactersTable
+            TableName: !Ref CharactersTableName
+
   # --- Data Sources for Lambda Resolvers ---
   ResolveCharacterSkillsLambdaDataSource:
     Type: AWS::AppSync::DataSource
@@ -106,6 +155,36 @@ Resources:
         LambdaFunctionArn: !GetAtt ResolveCharacterValuesFunction.Arn
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
 
+  CreateCharacterLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: CreateCharacterLambdaSource # Unique name
+      Type: AWS_LAMBDA
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt CreateCharacterFunction.Arn # Reference the new Lambda
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn # Use the shared Lambda role
+
+  UpdateCharacterLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: UpdateCharacterLambdaSource # Unique name
+      Type: AWS_LAMBDA
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt UpdateCharacterFunction.Arn # Reference the new Lambda
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  DeleteCharacterLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: DeleteCharacterLambdaSource # Unique name
+      Type: AWS_LAMBDA
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DeleteCharacterFunction.Arn # Reference the new Lambda
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
   # --- Existing Resolvers ---
   GetCharacterResolver:
     Type: AWS::AppSync::Resolver
@@ -124,167 +203,27 @@ Resources:
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
 
-  # Resolver for Character.skills field
-  CharacterSkillsResolver:
-    Type: AWS::AppSync::Resolver
-    Properties:
-      ApiId: !Ref ApiId
-      TypeName: Character # Parent type
-      FieldName: skills # Field being resolved
-      DataSourceName: !GetAtt ResolveCharacterSkillsLambdaDataSource.Name
-      # Simple pass-through request mapping for Lambda
-      RequestMappingTemplate: |
-        {
-          "version": "2018-05-29",
-          "operation": "Invoke",
-          "payload": {
-             "source": $util.toJson($ctx.source)
-          }
-        }
-      ResponseMappingTemplate: |
-        #if($ctx.error)
-          $util.error($ctx.error.message, $ctx.error.type)
-        #end
-        $util.toJson($ctx.result)
-
-  # Resolver for Character.attributes field
-  CharacterAttributesResolver:
-    Type: AWS::AppSync::Resolver
-    Properties:
-      ApiId: !Ref ApiId
-      TypeName: Character # Parent type
-      FieldName: attributes # Field being resolved
-      DataSourceName: !GetAtt ResolveCharacterAttributesLambdaDataSource.Name
-      RequestMappingTemplate: |
-        {
-          "version": "2018-05-29",
-          "operation": "Invoke",
-          "payload": {
-             "source": $util.toJson($ctx.source)
-          }
-        }
-      ResponseMappingTemplate: |
-        #if($ctx.error)
-          $util.error($ctx.error.message, $ctx.error.type)
-        #end
-        $util.toJson($ctx.result)
-
-  # Resolver for Character.values field
-  CharacterValuesResolver:
-    Type: AWS::AppSync::Resolver
-    Properties:
-      ApiId: !Ref ApiId
-      TypeName: Character # Parent type
-      FieldName: values # Field being resolved
-      DataSourceName: !GetAtt ResolveCharacterValuesLambdaDataSource.Name
-      # Simple pass-through request mapping for Lambda
-      RequestMappingTemplate: |
-        {
-          "version": "2018-05-29",
-          "operation": "Invoke",
-          "payload": {
-             "source": $util.toJson($ctx.source)
-          }
-        }
-      ResponseMappingTemplate: |
-        #if($ctx.error)
-          $util.error($ctx.error.message, $ctx.error.type)
-        #end
-        $util.toJson($ctx.result)
-
-  # --- Resolvers for Base Skills/Attributes ---
-  ListSkillsResolver:
-    Type: AWS::AppSync::Resolver
-    Properties:
-      ApiId: !Ref ApiId
-      TypeName: Query
-      FieldName: listSkills
-      DataSourceName: !Ref SkillsDataSourceName
-      RequestMappingTemplate: |
-        {
-          "version": "2017-02-28",
-          "operation": "Scan"
-        }
-      ResponseMappingTemplate: |
-        $util.toJson($ctx.result.items)
-
-  ListAttributesResolver:
-    Type: AWS::AppSync::Resolver
-    Properties:
-      ApiId: !Ref ApiId
-      TypeName: Query
-      FieldName: listAttributes
-      DataSourceName: !Ref AttributesDataSourceName
-      RequestMappingTemplate: |
-        {
-          "version": "2017-02-28",
-          "operation": "Scan"
-        }
-      ResponseMappingTemplate: |
-        $util.toJson($ctx.result.items)
-
-  # --- Existing Character Resolvers ---
-
-  ListCharactersResolver:
-    Type: AWS::AppSync::Resolver
-    Properties:
-      ApiId: !Ref ApiId
-      TypeName: 'Query'
-      FieldName: 'listCharacters'
-      DataSourceName: !Ref CharactersDataSourceName
-      RequestMappingTemplate: |
-        {
-          "version": "2017-02-28",
-          "operation": "Scan",
-          #if($ctx.args.filter)
-            "filter": #set($filters = {})
-              #if($ctx.args.filter.name)
-                #if($ctx.args.filter.name.eq)
-                  #set($filters.name = {"eq": $ctx.args.filter.name.eq})
-                #end
-                #if($ctx.args.filter.name.contains)
-                  #set($filters.name = {"contains": $ctx.args.filter.name.contains})
-                #end
-                #if($ctx.args.filter.name.beginsWith)
-                  #set($filters.name = {"beginsWith": $ctx.args.filter.name.beginsWith})
-                #end
-              #end
-              ## Race filter removed
-              #** #if($ctx.args.filter.race)
-                #set($filters.race = {"eq": $ctx.args.filter.race})
-              #end **#
-              $util.toJson($filters)
-          #end
-        }
-      ResponseMappingTemplate: '$util.toJson($context.result.items)'
-
   CreateCharacterResolver:
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Mutation'
       FieldName: 'createCharacter'
-      DataSourceName: !Ref CharactersDataSourceName
+      DataSourceName: !GetAtt CreateCharacterLambdaDataSource.Name # Use the new Lambda data source
       RequestMappingTemplate: |
         {
-          "version": "2017-02-28",
-          "operation": "PutItem",
-          "key": {
-            "characterId": $util.dynamodb.toDynamoDBJson($util.autoId())
-          },
-          "attributeValues": {
-            "characterId": $util.dynamodb.toDynamoDBJson($util.autoId()),
-            "name": $util.dynamodb.toDynamoDBJson($ctx.args.name),
-            ## race removed
-            "attributeData": $util.dynamodb.toDynamoDBJson($ctx.args.attributeData), ## Use attributeData
-            "skillData": $util.dynamodb.toDynamoDBJson($ctx.args.skillData), ## Use skillData
-            "stats": $util.dynamodb.toDynamoDBJson($ctx.args.stats),
-            "conditions": $util.dynamodb.toDynamoDBJson([]), ## Initialize conditions
-            "actionIds": $util.dynamodb.toDynamoDBJson([]),    ## Initialize actionIds
-            "traitIds": $util.dynamodb.toDynamoDBJson([])     ## Initialize traitIds
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+             "arguments": $util.toJson($ctx.args), ## Pass arguments to Lambda
+             "identity": $util.toJson($ctx.identity) ## Pass identity to Lambda
           }
         }
-      ResponseMappingTemplate: '$util.toJson($context.result)'
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $util.error.type)
+        #end
+        $util.toJson($ctx.result)
 
   UpdateCharacterResolver:
     Type: AWS::AppSync::Resolver
@@ -292,37 +231,21 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: 'Mutation'
       FieldName: 'updateCharacter'
-      DataSourceName: !Ref CharactersDataSourceName
+      DataSourceName: !GetAtt UpdateCharacterLambdaDataSource.Name # Use the new Lambda data source
       RequestMappingTemplate: |
         {
-          "version": "2018-05-29", ## Changed version
-          "operation": "UpdateItem",
-          "key": {
-            "characterId": $util.dynamodb.toDynamoDBJson($ctx.args.characterId)
-          },
-          "update": {
-            "expression": "SET #name = :name, #attributeData = :attributeData, #skillData = :skillData, #stats = :stats, #conditions = :conditions, #actionIds = :actionIds, #traitIds = :traitIds", ## Include all fields
-            "expressionNames": {
-              "#name": "name",
-              "#attributeData": "attributeData",
-              "#skillData": "skillData",
-              "#stats": "stats",
-              "#conditions": "conditions",
-              "#actionIds": "actionIds",
-              "#traitIds": "traitIds"
-            },
-            "expressionValues": {
-              ":name": $util.dynamodb.toDynamoDBJson($ctx.args.name),
-              ":attributeData": $util.dynamodb.toDynamoDBJson($ctx.args.attributeData),
-              ":skillData": $util.dynamodb.toDynamoDBJson($ctx.args.skillData),
-              ":stats": $util.dynamodb.toDynamoDBJson($ctx.args.stats),
-              ":conditions": $util.dynamodb.toDynamoDBJson($ctx.args.conditions),
-              ":actionIds": $util.dynamodb.toDynamoDBJson($ctx.args.actionIds),
-              ":traitIds": $util.dynamodb.toDynamoDBJson($ctx.args.traitIds)
-            }
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+             "arguments": $util.toJson($ctx.args), ## Pass arguments to Lambda
+             "identity": $util.toJson($ctx.identity) ## Pass identity to Lambda
           }
         }
-      ResponseMappingTemplate: '$util.toJson($context.result)'
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $util.error.type)
+        #end
+        $util.toJson($ctx.result)
 
   DeleteCharacterResolver:
     Type: AWS::AppSync::Resolver
@@ -330,13 +253,18 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: 'Mutation'
       FieldName: 'deleteCharacter'
-      DataSourceName: !Ref CharactersDataSourceName
+      DataSourceName: !GetAtt DeleteCharacterLambdaDataSource.Name # Use the new Lambda data source
       RequestMappingTemplate: |
         {
-          "version": "2017-02-28",
-          "operation": "DeleteItem",
-          "key": {
-            "characterId": $util.dynamodb.toDynamoDBJson($ctx.args.characterId)
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+             "arguments": $util.toJson($ctx.args), ## Pass arguments to Lambda
+             "identity": $util.toJson($ctx.identity) ## Pass identity to Lambda
           }
         }
-      ResponseMappingTemplate: '$util.toJson($context.result)'
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $util.error.type)
+        #end
+        $util.toJson($ctx.result)

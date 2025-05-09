@@ -135,6 +135,7 @@ Resources:
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         CharactersDataSourceName: !Ref CharactersDataSourceName
+        CharactersTableName: !Ref CharactersTableName # Added missing parameter
         SkillsTableName: !Ref SkillsTableName # Pass down
         AttributesTableName: !Ref AttributesTableName # Pass down
         SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down

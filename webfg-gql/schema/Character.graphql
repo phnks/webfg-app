@@ -38,7 +38,7 @@ type Character {
   conditionIds: [ID]
   conditions: [Trait]
   
-  bodyId: [ID]!
+  bodyId: ID
   body: [Object]
 
   actionIds: [ID]
