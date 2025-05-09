@@ -3,6 +3,11 @@ type StoredValueData {
   valueId: ID!
 }
 
+# Type representing the stored value data input
+input StoredValueDataInput {
+  valueId: ID!
+}
+
 # Type representing the stored attribute data
 type StoredAttributeData {
   attributeId: ID!
