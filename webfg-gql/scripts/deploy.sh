@@ -1,12 +1,13 @@
 #!/bin/bash
 set -e # Exit immediately if a command exits with a non-zero status.
 
+# Change to the webfg-gql directory
+cd /home/homonculus/webfg-app/webfg-gql
+
 # --- Configuration ---
 ENVIRONMENT=$1 # 'qa' or 'prod'
 DEPLOYMENT_ID=${2:-none} # Deployment ID (e.g., PR number) or 'none'
 STACK_NAME_CONFIG=$(node -p "require('./package.json').config.stack_name")
-QA_SCHEMA_VERSION=$(node -p "require('./package.json').config.qa_schema")
-PROD_SCHEMA_VERSION=$(node -p "require('./package.json').config.prod_schema")
 # SAM_DEPLOY_BUCKET removed, will use resolve_s3 from samconfig.toml
 
 # --- Determine Names ---
@@ -18,20 +19,18 @@ fi
 if [ "$ENVIRONMENT" == "qa" ]; then
   BUCKET_STACK_NAME="${STACK_NAME_CONFIG}-schema-qa${ID_SUFFIX}"
   MAIN_STACK_NAME="${STACK_NAME_CONFIG}-qa${ID_SUFFIX}"
-  SCHEMA_VERSION=$QA_SCHEMA_VERSION
 else # prod
   BUCKET_STACK_NAME="${STACK_NAME_CONFIG}-schema"
   MAIN_STACK_NAME="${STACK_NAME_CONFIG}"
-  SCHEMA_VERSION=$PROD_SCHEMA_VERSION
 fi
 
-SCHEMA_S3_KEY="schemas/schema_${SCHEMA_VERSION}.graphql"
+# Schema version and key will be defined after schema build
+
 
 echo "ENVIRONMENT: $ENVIRONMENT"
 echo "DEPLOYMENT_ID: $DEPLOYMENT_ID"
 echo "BUCKET_STACK_NAME: $BUCKET_STACK_NAME"
 echo "MAIN_STACK_NAME: $MAIN_STACK_NAME"
-echo "SCHEMA_S3_KEY: $SCHEMA_S3_KEY"
 echo "SAM_DEPLOY_BUCKET: Using resolved bucket from samconfig.toml"
 
 # --- Step 1: Deploy S3 Bucket Stack ---
@@ -47,7 +46,7 @@ sam deploy \
 
 # --- Step 2: Get Bucket Name ---
 echo "Retrieving Bucket Name from stack ${BUCKET_STACK_NAME}..."
-BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name "${BUCKET_STACK_NAME}" --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' --output text)
+BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name "${BUCKET_STACK_NAME}" --query 'Stacks[0].Outputs[?OutputKey=="BucketName"].Value' --output text)
 if [ -z "${BUCKET_NAME}" ]; then
   echo "Error: Failed to retrieve bucket name from stack ${BUCKET_STACK_NAME}"
   exit 1
@@ -60,13 +59,30 @@ SCHEMA_S3_BUCKET="${BUCKET_NAME}" \
 ENVIRONMENT="${ENVIRONMENT}" \
 DEPLOYMENT_ID="${DEPLOYMENT_ID}" \
 STACK_NAME="${MAIN_STACK_NAME}" \
-SCHEMA_S3_KEY="${SCHEMA_S3_KEY}" \
-STACK_NAME="${BUCKET_STACK_NAME}" \
 node schema/buildSchema.js || echo "Schema build/upload failed (might be expected on first deploy)."
+
+# Redefine schema version and key after buildSchema.js updates package.json
+QA_SCHEMA_VERSION=$(node -p "require('./package.json').config.qa_schema")
+PROD_SCHEMA_VERSION=$(node -p "require('./package.json').config.prod_schema")
+
+if [ "$ENVIRONMENT" == "qa" ]; then
+  SCHEMA_VERSION=$QA_SCHEMA_VERSION
+else # prod
+  SCHEMA_VERSION=$PROD_SCHEMA_VERSION
+fi
+
+SCHEMA_S3_KEY="schemas/schema_${SCHEMA_VERSION}.graphql"
+
+echo "SCHEMA_S3_KEY: ${SCHEMA_S3_KEY}" # Add logging for confirmation
+
 
 # --- Step 4: Build Main Stack ---
 echo "Building Main Stack: ${MAIN_STACK_NAME}..."
-sam build --cached --parallel
+sam build --parallel
+
+# Explicitly copy databases.yaml to ensure the latest version is in the build artifact
+echo "Copying databases.yaml to build directory..."
+cp ./databases.yaml .aws-sam/build/
 
 # --- Step 5: Deploy Main Stack ---
 echo "Deploying Main Stack: ${MAIN_STACK_NAME}..."
