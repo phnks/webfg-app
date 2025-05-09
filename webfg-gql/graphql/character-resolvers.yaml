@@ -274,21 +274,7 @@ Resources:
       RequestMappingTemplate: |
         { "version": "2017-02-28", "operation": "Scan" }
       ResponseMappingTemplate: |
-        #if($ctx.error)
-          $util.error($ctx.error.message, $ctx.error.type)
-        #end
-        ## Log the entire context result for debugging
-        $util.qr($ctx.stash.put("contextResultForListSkills", $ctx.result))
-        #if($ctx.result && $ctx.result.items)
-          $util.toJson($ctx.result.items)
-        #else
-          #if($ctx.result)
-            $util.log.info("ListSkillsResolver: ctx.result exists but ctx.result.items is missing. ctx.result: " + $ctx.result.toString())
-          #else
-            $util.log.info("ListSkillsResolver: ctx.result is null or undefined.")
-          #end
-          $util.toJson([])
-        #end
+        $util.toJson($ctx.result.items)
 
   ListAttributesResolver:
     Type: AWS::AppSync::Resolver
@@ -300,21 +286,7 @@ Resources:
       RequestMappingTemplate: |
         { "version": "2017-02-28", "operation": "Scan" }
       ResponseMappingTemplate: |
-        #if($ctx.error)
-          $util.error($ctx.error.message, $ctx.error.type)
-        #end
-        ## Log the entire context result for debugging
-        $util.qr($ctx.stash.put("contextResultForListAttributes", $ctx.result))
-        #if($ctx.result && $ctx.result.items)
-          $util.toJson($ctx.result.items)
-        #else
-          #if($ctx.result)
-            $util.log.info("ListAttributesResolver: ctx.result exists but ctx.result.items is missing. ctx.result: " + $ctx.result.toString())
-          #else
-            $util.log.info("ListAttributesResolver: ctx.result is null or undefined.")
-          #end
-          $util.toJson([])
-        #end
+        $util.toJson($ctx.result.items)
 
   CreateCharacterResolver:
     Type: AWS::AppSync::Resolver
