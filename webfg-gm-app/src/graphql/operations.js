@@ -77,64 +77,16 @@ export const GET_CHARACTER = gql`
       inventory {
         objectId
         name
-        objectCategory
-        width
-        length
-        height
+        type
+        fit
         weight
-        penetration
-        deflection
-        impact
-        absorption
-        hitPoints {
-          current
-          max
-        }
-        damageMin
-        damageMax
-        damageType
-        isLimb
-        noise
-        duration
-        handling
-        capacity
-        falloff
-        partsIds
-        usage {
-          actionId
-          usageType
-        }
       }
       equipment {
         objectId
         name
-        objectCategory
-        width
-        length
-        height
+        type
+        fit
         weight
-        penetration
-        deflection
-        impact
-        absorption
-        hitPoints {
-          current
-          max
-        }
-        damageMin
-        damageMax
-        damageType
-        isLimb
-        noise
-        duration
-        handling
-        capacity
-        falloff
-        partsIds
-        usage {
-          actionId
-          usageType
-        }
       }
       actions {
         actionId
@@ -151,33 +103,9 @@ export const LIST_OBJECTS = gql`
     listObjects {
       objectId
       name
-      objectCategory
-      width
-      length
-      height
+      type
+      fit
       weight
-      penetration
-      deflection
-      impact
-      absorption
-      hitPoints {
-        current
-        max
-      }
-      damageMin
-      damageMax
-      damageType
-      isLimb
-      noise
-      duration
-      handling
-      capacity
-      falloff
-      partsIds
-      usage {
-        actionId
-        usageType
-      }
     }
   }
 `;
@@ -187,36 +115,13 @@ export const GET_OBJECT = gql`
     getObject(objectId: $objectId) {
       objectId
       name
-      objectCategory
-      width
-      length
-      height
+      type
+      fit
       weight
-      penetration
-      deflection
-      impact
-      absorption
-      hitPoints {
-        current
-        max
-      }
-      damageMin
-      damageMax
-      damageType
-      isLimb
       noise
-      duration
-      handling
-      capacity
-      falloff
-      partsIds
-      parts {
-        objectId
-        name
-      }
-      usage {
-        actionId
-        usageType
+      hitPoints {
+        max
+        current
       }
     }
   }
@@ -315,256 +220,78 @@ export const GET_ACTION = gql`
   }
 `;
 
-// CHARACTER MUTATIONS
-export const CREATE_CHARACTER = gql`
-  mutation CreateCharacter(
-    $name: String!
-    $attributeData: [CharacterAttributeInput!]
-    $skillData: [CharacterSkillInput!]
-    $stats: StatsInput
-    $valueData: [StoredValueDataInput!] # Added valueData
-    $bodyId: ID # Changed bodyId to single ID
-    $conditions: [String]
-    $inventoryIds: [ID]
-    $equipmentIds: [ID]
-    $actionIds: [ID]
-  ) {
-    createCharacter(
-      name: $name
-      attributeData: $attributeData
-      skillData: $skillData
-      stats: $stats
-      valueData: $valueData # Pass valueData
-      bodyId: $bodyId # Pass bodyId
-      conditions: $conditions
-      inventoryIds: $inventoryIds
-      equipmentIds: $equipmentIds
-      actionIds: $actionIds
-    ) {
-      characterId
+// ENCOUNTER QUERIES (NEW)
+export const GET_ENCOUNTER = gql`
+  query GetEncounter($encounterId: ID!) {
+    getEncounter(encounterId: $encounterId) {
+      encounterId
       name
-      # race removed
+      description
+      # Add other relevant fields like characters, objects, state, etc.
     }
   }
 `;
 
-export const UPDATE_CHARACTER = gql`
-  mutation UpdateCharacter(
-    $characterId: ID!
-    $name: String
-    $attributeData: [CharacterAttributeInput!]
-    $skillData: [CharacterSkillInput!]
-    $stats: StatsInput
-    $valueData: [StoredValueDataInput!] # Added valueData
-    $bodyId: ID # Changed bodyId to single ID
-    $conditions: [String]
-    $inventoryIds: [ID]
-    $equipmentIds: [ID]
-    $actionIds: [ID]
-  ) {
-    updateCharacter(
-      characterId: $characterId
-      name: $name
-      attributeData: $attributeData
-      skillData: $skillData
-      stats: $stats
-      valueData: $valueData # Pass valueData
-      bodyId: $bodyId # Pass bodyId
-      conditions: $conditions
-      inventoryIds: $inventoryIds
-      equipmentIds: $equipmentIds
-      actionIds: $actionIds
-    ) {
-      characterId
+export const LIST_ENCOUNTERS = gql`
+  query ListEncounters {
+    listEncounters {
+      encounterId
       name
-      # race removed
+      description
+      # Include other fields like creation date, last updated, etc.
     }
   }
 `;
 
-export const DELETE_CHARACTER = gql`
-  mutation DeleteCharacter($characterId: ID!) {
-    deleteCharacter(characterId: $characterId) {
-      characterId
-      name
-    }
-  }
-`;
-
-// OBJECT MUTATIONS
-export const CREATE_OBJECT = gql`
-  mutation CreateObject($input: ObjectInput!) {
-    createObject(input: $input) {
-      objectId
-      name
-      objectCategory
-      width
-      length
-      height
-      weight
-      penetration
-      deflection
-      impact
-      absorption
-      hitPoints {
-        current
-        max
-      }
-      damageMin
-      damageMax
-      damageType
-      isLimb
-      noise
-      duration
-      handling
-      capacity
-      falloff
-      partsIds
-      parts {
-        objectId
-        name
-      }
-      usage {
-        actionId
-        usageType
-      }
-    }
-  }
-`;
-
-export const UPDATE_OBJECT = gql`
-  mutation UpdateObject($objectId: ID!, $input: ObjectInput!) {
-    updateObject(objectId: $objectId, input: $input) {
-      objectId
-      name
-      objectCategory
-      width
-      length
-      height
-      weight
-      penetration
-      deflection
-      impact
-      absorption
-      hitPoints {
-        current
-        max
-      }
-      damageMin
-      damageMax
-      damageType
-      isLimb
-      noise
-      duration
-      handling
-      capacity
-      falloff
-      partsIds
-      parts {
-        objectId
-        name
-      }
-      usage {
-        actionId
-        usageType
-      }
-    }
-  }
-`;
-
-export const DELETE_OBJECT = gql`
-  mutation DeleteObject($objectId: ID!) {
-    deleteObject(objectId: $objectId) {
-      objectId
-      name
-    }
-  }
-`;
-
-// FORMULA QUERIES
+// FORMULA QUERIES (NEW)
 export const LIST_FORMULAS = gql`
   query ListFormulas {
     listFormulas {
       formulaId
       formulaValue
+      # Include other fields like description, etc.
     }
   }
 `;
 
-export const GET_FORMULA = gql`
-  query GetFormula($formulaId: ID!) {
-    getFormula(formulaId: $formulaId) {
-      formulaId
-      formulaValue
-    }
-  }
-`;
 
-// ACTION MUTATIONS
-export const CREATE_ACTION = gql`
-  mutation CreateAction($input: ActionInput!) {
-    createAction(input: $input) {
+// MUTATIONS
+export const ON_UPDATE_ACTION = gql`
+  mutation UpdateAction($actionId: ID!) {
+    updateAction(actionId: $actionId) {
       actionId
       name
-      actionCategory
-      initDurationId
-      defaultInitDuration
-      durationId
-      defaultDuration
-      fatigueCost
-      difficultyClassId
-      guaranteedFormulaId
-      units
       description
-      actionTargets {
-        targetType
-        quantity
-        sequenceId
-      }
-      actionSources {
-        sourceType
-        quantity
-        sequenceId
-      }
-      actionEffects {
-        effectType
-        quantity
-        sequenceId
-      }
     }
   }
 `;
 
-export const UPDATE_ACTION = gql`
-  mutation UpdateAction($actionId: ID!, $input: ActionInput!) {
-    updateAction(actionId: $actionId, input: $input) {
-      actionId
+export const ON_UPDATE_CHARACTER = gql`
+  mutation UpdateCharacter($characterId: ID!, $input: UpdateCharacterInput!) {
+    updateCharacter(characterId: $characterId, input: $input) {
+      characterId
       name
-      actionCategory
-      initDurationId
-      defaultInitDuration
-      durationId
-      defaultDuration
-      fatigueCost
-      difficultyClassId
-      guaranteedFormulaId
-      units
-      description
-      actionTargets {
-        targetType
-        quantity
-        sequenceId
+      # Add other fields here as needed based on the new schema
+      attributeData {
+        attributeId
+        attributeValue
       }
-      actionSources {
-        sourceType
-        quantity
-        sequenceId
+      skillData {
+        skillId
+        skillValue
       }
-      actionEffects {
-        effectType
-        quantity
-        sequenceId
+      stats {
+        hitPoints { current max }
+        fatigue { current max }
+        exhaustion { current max }
+        surges { current max }
       }
+      valueData { valueId }
+      bodyId
+      conditions { traitId name }
+      inventoryIds
+      equipmentIds
+      actionIds
     }
   }
 `;
@@ -573,213 +300,187 @@ export const DELETE_ACTION = gql`
   mutation DeleteAction($actionId: ID!) {
     deleteAction(actionId: $actionId) {
       actionId
-      name
     }
   }
 `;
 
-// CHARACTER-OBJECT RELATIONSHIP MUTATIONS (Added based on schema)
-export const ADD_OBJECT_TO_INVENTORY = gql`
-  mutation AddObjectToInventory($characterId: ID!, $objectId: ID!) {
-    addObjectToInventory(characterId: $characterId, objectId: $objectId) {
-      characterId
-      name
-      inventoryIds
-      inventory {
-        objectId
-        name
-        type
-      }
-    }
-  }
-`;
-
-export const REMOVE_OBJECT_FROM_INVENTORY = gql`
-  mutation RemoveObjectFromInventory($characterId: ID!, $objectId: ID!) {
-    removeObjectFromInventory(characterId: $characterId, objectId: $objectId) {
-      characterId
-      name
-      inventoryIds
-      inventory {
-        objectId
-        name
-        type
-      }
-    }
-  }
-`;
-
-export const ADD_OBJECT_TO_EQUIPMENT = gql`
-  mutation AddObjectToEquipment($characterId: ID!, $objectId: ID!) {
-    addObjectToEquipment(characterId: $characterId, objectId: $objectId) {
-      characterId
-      name
-      equipmentIds
-      equipment {
-        objectId
-        name
-        type
-      }
-    }
-  }
-`;
-
-export const REMOVE_OBJECT_FROM_EQUIPMENT = gql`
-  mutation RemoveObjectFromEquipment($characterId: ID!, $objectId: ID!) {
-    removeObjectFromEquipment(characterId: $characterId, objectId: $objectId) {
-      characterId
-      name
-      equipmentIds
-      equipment {
-        objectId
-        name
-        type
-      }
-    }
-  }
-`;
-
-
-// CHARACTER-ACTION RELATIONSHIP MUTATIONS (Added based on schema)
 export const ADD_ACTION_TO_CHARACTER = gql`
   mutation AddActionToCharacter($characterId: ID!, $actionId: ID!) {
     addActionToCharacter(characterId: $characterId, actionId: $actionId) {
       characterId
-      name
-      actionIds
-      actions {
-        actionId
-        name
-        description
-      }
+      # Possibly return actionIds or the list of actions on the character
     }
   }
 `;
 
-export const REMOVE_ACTION_FROM_CHARACTER = gql`
-  mutation RemoveActionFromCharacter($characterId: ID!, $actionId: ID!) {
-    removeActionFromCharacter(characterId: $characterId, actionId: $actionId) { # Corrected variable name
+export const DELETE_CHARACTER = gql`
+  mutation DeleteCharacter($characterId: ID!) {
+    deleteCharacter(characterId: $characterId) {
+      characterId
+    }
+  }
+`;
+
+export const ON_CREATE_CHARACTER = gql`
+  mutation CreateCharacter($input: CreateCharacterInput!) {
+    createCharacter(input: $input) {
       characterId
       name
-      actionIds
-      actions {
-        actionId
-        name
-        description
-      }
+      # Include other fields you might need after creation
     }
   }
 `;
 
-
-// FORMULA MUTATIONS
-export const CREATE_FORMULA = gql`
-  mutation CreateFormula($input: FormulaInput!) {
-    createFormula(input: $input) {
-      formulaId
-      formulaValue
+export const ON_DELETE_CHARACTER = gql`
+  subscription OnDeleteCharacter($characterId: ID!) {
+    onDeleteCharacter(characterId: $characterId) {
+      characterId
     }
   }
 `;
 
-export const UPDATE_FORMULA = gql`
-  mutation UpdateFormula($formulaId: ID!, $input: FormulaInput!) {
-    updateFormula(formulaId: $formulaId, input: $input) {
-      formulaId
-      formulaValue
-    }
-  }
-`;
-
-export const DELETE_FORMULA = gql`
-  mutation DeleteFormula($formulaId: ID!) {
-    deleteFormula(formulaId: $formulaId) {
-      formulaId
-      formulaValue
-    }
-  }
-`;
-
-// ENCOUNTER QUERIES
-export const GET_ENCOUNTER = gql`
-  query GetEncounter($encounterId: ID!) {
-    getEncounter(encounterId: $encounterId) {
+export const ADVANCE_ENCOUNTER_TIME = gql`
+  mutation AdvanceEncounterTime($encounterId: ID!, $timeDelta: Int!) {
+    advanceEncounterTime(encounterId: $encounterId, timeDelta: $timeDelta) {
       encounterId
-      name
-      description
-      currentTime
-      gridRows
-      gridColumns
-      characterPositions {
-        characterId
-        x
-        y
-      }
-      objectPositions {
-        objectId
-	x
-        y
-      }
-      terrainElements { terrainId type startX startY length color }
-      gridElements {
-        id
-        type
-        coordinates { x y }
-        color
-      }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-      createdAt
+      # Include updated encounter fields like current time, etc.
     }
   }
 `;
 
-export const LIST_ENCOUNTERS = gql`
-  query ListEncounters($filter: EncounterFilterInput) {
-    listEncounters(filter: $filter) {
+export const ADD_CHARACTER_TO_ENCOUNTER = gql`
+  mutation AddCharacterToEncounter($encounterId: ID!, $characterId: ID!) {
+    addCharacterToEncounter(encounterId: $encounterId, characterId: $characterId) {
       encounterId
-      name
-      description
-      currentTime
-      createdAt
+      # Possibly return updated encounter details or character list
     }
   }
 `;
 
-// ENCOUNTER MUTATIONS
+export const ADD_ACTION_TO_TIMELINE = gql`
+  mutation AddActionToTimeline($encounterId: ID!, $actionId: ID!, $startTime: Int!) {
+    addActionToTimeline(encounterId: $encounterId, actionId: $actionId, startTime: $startTime) {
+      encounterId
+      # Possibly return updated timeline or action details
+    }
+  }
+`;
+
+export const UPDATE_CHARACTER_POSITION = gql`
+  mutation UpdateCharacterPosition($characterId: ID!, $position: PositionInput!) {
+    updateCharacterPosition(characterId: $characterId, position: $position) {
+      characterId
+      # Include updated position or other character fields
+    }
+  }
+`;
+
+export const UPDATE_GRID_SIZE = gql`
+  mutation UpdateGridSize($encounterId: ID!, $width: Int!, $height: Int!) {
+    updateGridSize(encounterId: $encounterId, width: $width, height: $height) {
+      encounterId
+      # Include updated grid size or other encounter fields
+    }
+  }
+`;
+
+export const ADD_OBJECT_TO_ENCOUNTER_VTT = gql`
+  mutation AddObjectToEncounterVTT($encounterId: ID!, $objectId: ID!, $position: PositionInput!) {
+    addObjectToEncounterVTT(encounterId: $encounterId, objectId: $objectId, position: $position) {
+      encounterId
+      # Possibly return updated VTT objects or encounter fields
+    }
+  }
+`;
+
+export const UPDATE_OBJECT_POSITION = gql`
+  mutation UpdateObjectPosition($objectId: ID!, $position: PositionInput!) {
+    updateObjectPosition(objectId: $objectId, position: $position) {
+      objectId
+      # Include updated position or other object fields
+    }
+  }
+`;
+
+export const REMOVE_OBJECT_FROM_ENCOUNTER_VTT = gql`
+  mutation RemoveObjectFromEncounterVTT($encounterId: ID!, $objectId: ID!) {
+    removeObjectFromEncounterVTT(encounterId: $encounterId, objectId: $objectId) {
+      encounterId
+      # Possibly return updated VTT objects or encounter fields
+    }
+  }
+`;
+
+export const ADD_TERRAIN_TO_ENCOUNTER = gql`
+  mutation AddTerrainToEncounter($encounterId: ID!, $terrainData: TerrainInput!) {
+    addTerrainToEncounter(encounterId: $encounterId, terrainData: $terrainData) {
+      encounterId
+      # Possibly return updated encounter terrain or encounter fields
+    }
+  }
+`;
+
+export const UPDATE_TERRAIN_POSITION = gql`
+  mutation UpdateTerrainPosition($encounterId: ID!, $terrainId: ID!, $position: PositionInput!) {
+    updateTerrainPosition(encounterId: $encounterId, terrainId: $terrainId, position: $position) {
+      encounterId
+      # Possibly return updated terrain position or encounter fields
+    }
+  }
+`;
+
+export const REMOVE_TERRAIN_FROM_ENCOUNTER = gql`
+  mutation RemoveTerrainFromEncounter($encounterId: ID!, $terrainId: ID!) {
+    removeTerrainFromEncounter(encounterId: $encounterId, terrainId: $terrainId) {
+      encounterId
+      # Possibly return updated encounter terrain or encounter fields
+    }
+  }
+`;
+
+export const ON_ENCOUNTER_TIMELINE_CHANGED = gql`
+  subscription OnEncounterTimelineChanged($encounterId: ID!) {
+    onEncounterTimelineChanged(encounterId: $encounterId) {
+      encounterId
+      # Include fields related to the timeline change, e.g., actions, current time
+    }
+  }
+`;
+
+export const ON_ENCOUNTER_VTT_CHANGED = gql`
+  subscription OnEncounterVTTChanged($encounterId: ID!) {
+    onEncounterVTTChanged(encounterId: $encounterId) {
+      encounterId
+      # Include fields related to VTT changes, e.g., objects, terrain
+    }
+  }
+`;
+
+export const ON_GRID_SIZE_CHANGED = gql`
+  subscription OnGridSizeChanged($encounterId: ID!) {
+    onGridSizeChanged(encounterId: $encounterId) {
+      encounterId
+      # Include fields related to grid size change, e.g., width, height
+    }
+  }
+`;
+
+export const ON_ENCOUNTER_CHARACTER_CHANGED = gql`
+  subscription OnEncounterCharacterChanged($encounterId: ID!) {
+    onEncounterCharacterChanged(encounterId: $encounterId) {
+      encounterId
+      # Include fields related to character changes within the encounter
+    }
+  }
+`;
+
 export const CREATE_ENCOUNTER = gql`
-  mutation CreateEncounter($input: EncounterInput!) {
+  mutation CreateEncounter($input: CreateEncounterInput!) {
     createEncounter(input: $input) {
       encounterId
       name
       description
-      currentTime
-      createdAt
-    }
-  }
-`;
-
-export const UPDATE_ENCOUNTER = gql`
-  mutation UpdateEncounter($encounterId: ID!, $input: EncounterInput!) {
-    updateEncounter(encounterId: $encounterId, input: $input) {
-      encounterId
-      name
-      description
+      # Include other fields you might need after creation
     }
   }
 `;
@@ -792,907 +493,67 @@ export const DELETE_ENCOUNTER = gql`
   }
 `;
 
-export const UPDATE_GRID_SIZE = gql`
-  mutation UpdateGridSize($input: UpdateGridSizeInput!) {
-    updateGridSize(input: $input) {
-      encounterId
-      name
-      description
-      currentTime
-      gridRows
-      gridColumns
-      characterPositions {
-        characterId
-        x
-        y
-      }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-// Character-Encounter relationship mutations
-export const ADD_CHARACTER_TO_ENCOUNTER = gql`
-  mutation AddCharacterToEncounter(
-    $encounterId: ID!,
-    $characterId: ID!,
-    $startTime: Float,
-    $x: Int,
-    $y: Int
-  ) {
-    addCharacterToEncounter(
-      encounterId: $encounterId,
-      characterId: $characterId,
-      startTime: $startTime,
-      x: $x,
-      y: $y
-    ) {
-      encounterId
-      name
-      description
-      currentTime
-      gridRows
-      gridColumns
-      characterPositions {
-        characterId
-        x
-        y
-      }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-export const REMOVE_CHARACTER_FROM_ENCOUNTER = gql`
-  mutation RemoveCharacterFromEncounter(
-    $encounterId: ID!,
-    $characterId: ID!
-  ) {
-    removeCharacterFromEncounter(
-      encounterId: $encounterId,
-      characterId: $characterId
-    ) {
-      encounterId
-      name
-      description
-      currentTime
-      gridRows
-      gridColumns
-      characterPositions {
-        characterId
-        x
-        y
-      }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-// Timeline and VTT mutations
-export const ADD_ACTION_TO_TIMELINE = gql`
-  mutation AddActionToTimeline(
-    $encounterId: ID!,
-    $characterId: ID!,
-    $actionId: ID!,
-    $startTime: Float!
-  ) {
-    addActionToTimeline(
-      encounterId: $encounterId,
-      characterId: $characterId,
-      actionId: $actionId,
-      startTime: $startTime
-    ) {
-      encounterId
-      name
-      description
-      currentTime
-      gridRows
-      gridColumns
-      characterPositions {
-        characterId
-        x
-        y
-      }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-export const ADVANCE_ENCOUNTER_TIME = gql`
-  mutation AdvanceEncounterTime($encounterId: ID!, $newTime: Float!) {
-    advanceEncounterTime(encounterId: $encounterId, newTime: $newTime) {
-      encounterId
-      name
-      description
-      currentTime
-      gridRows
-      gridColumns
-      characterPositions {
-        characterId
-        x
-        y
-      }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-export const UPDATE_CHARACTER_POSITION = gql`
-  mutation UpdateCharacterPosition(
-    $encounterId: ID!,
-    $characterId: ID!,
-    $x: Int!,
-    $y: Int!
-  ) {
-    updateCharacterPosition(
-      encounterId: $encounterId,
-      characterId: $characterId,
-      x: $x,
-      y: $y
-    ) {
-      encounterId
-      characterPositions {
-        characterId
-        x
-        y
-      }
-    }
-  }
-`;
-
-export const ADD_GRID_ELEMENT = gql`
-  mutation AddGridElement($encounterId: ID!, $element: GridElementInput!) {
-    addGridElement(encounterId: $encounterId, element: $element) {
-      encounterId
-      gridElements {
-        id
-        type
-        coordinates { x y }
-        color
-      }
-    }
-  }
-`;
-
-export const REMOVE_GRID_ELEMENT = gql`
-  mutation RemoveGridElement($encounterId: ID!, $elementId: ID!) {
-    removeGridElement(encounterId: $encounterId, elementId: $elementId) {
-      encounterId
-      gridElements {
-        id
-        type
-        coordinates { x y }
-        color
-      }
-    }
-  }
-`;
-
-
-// Object VTT Mutations
-export const ADD_OBJECT_TO_ENCOUNTER_VTT = gql`
-  mutation AddObjectToEncounterVTT($encounterId: ID!, $objectId: ID!, $x: Int!, $y: Int!) {
-    addObjectToEncounterVTT(encounterId: $encounterId, objectId: $objectId, x: $x, y: $y) {
-      encounterId
-      objectPositions { objectId x y }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-export const UPDATE_OBJECT_POSITION = gql`
-  mutation UpdateObjectPosition($encounterId: ID!, $objectId: ID!, $x: Int!, $y: Int!) {
-    updateObjectPosition(encounterId: $encounterId, objectId: $objectId, x: $x, y: $y) {
-      encounterId
-      objectPositions { objectId x y }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-export const REMOVE_OBJECT_FROM_ENCOUNTER_VTT = gql`
-  mutation RemoveObjectFromEncounterVTT($encounterId: ID!, $objectId: ID!) {
-    removeObjectFromEncounterVTT(encounterId: $encounterId, objectId: $objectId) {
-      encounterId
-      objectPositions { objectId x y }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-// Terrain VTT Mutations
-export const ADD_TERRAIN_TO_ENCOUNTER = gql`
-  mutation AddTerrainToEncounter($encounterId: ID!, $input: TerrainElementInput!) {
-    addTerrainToEncounter(encounterId: $encounterId, input: $input) {
-      encounterId
-      terrainElements { terrainId type startX startY length color }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-export const UPDATE_TERRAIN_POSITION = gql`
-  mutation UpdateTerrainPosition($encounterId: ID!, $input: UpdateTerrainPositionInput!) {
-    updateTerrainPosition(encounterId: $encounterId, input: $input) {
-      encounterId
-      terrainElements { terrainId type startX startY length color }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-export const REMOVE_TERRAIN_FROM_ENCOUNTER = gql`
-  mutation RemoveTerrainFromEncounter($encounterId: ID!, $terrainId: ID!) {
-    removeTerrainFromEncounter(encounterId: $encounterId, terrainId: $terrainId) {
-      encounterId
-      terrainElements { terrainId type startX startY length color }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-
-// SUBSCRIPTIONS
-export const ON_CREATE_CHARACTER = gql`
-  subscription OnCreateCharacter {
-    onCreateCharacter {
-      characterId
-      name
-      # race removed
-      valueData { # Get stored value data
-        valueId
-      }
-      bodyId # Get body ID
-    }
-  }
-`;
-
-export const ON_UPDATE_CHARACTER = gql`
-  subscription OnUpdateAction {
-    onUpdateAction {
-      actionId
-      name
-      actionCategory
-      initDurationId
-      initDuration {
-        formulaId
-        formulaValue
-      }
-      defaultInitDuration
-      durationId
-      duration {
-        formulaId
-        formulaValue
-      }
-      defaultDuration
-      fatigueCost
-      difficultyClassId
-      difficultyClass {
-        formulaId
-        formulaValue
-      }
-      guaranteedFormulaId
-      guaranteedFormula {
-        formulaId
-        formulaValue
-      }
-      units
-      description
-      actionTargets {
-        targetType
-        quantity
-        sequenceId
-      }
-      actionSources {
-        sourceType
-        quantity
-        sequenceId
-      }
-      actionEffects {
-        effectType
-        quantity
-        sequenceId
-      }
-    }
-  }
-`;
-
-export const ON_DELETE_CHARACTER = gql`
-  subscription OnDeleteCharacter {
-    onDeleteCharacter {
-      characterId
-      name
-    }
-  }
-`;
-
-export const ON_CREATE_OBJECT = gql`
-  subscription OnCreateObject {
-    onCreateObject {
-      objectId
-      name
-      objectCategory
-      width
-      length
-      height
-      weight
-      penetration
-      deflection
-      impact
-      absorption
-      hitPoints {
-        current
-        max
-      }
-      damageMin
-      damageMax
-      damageType
-      isLimb
-      noise
-      duration
-      handling
-      capacity
-      falloff
-      partsIds
-      usage {
-        actionId
-        usageType
-      }
-    }
-  }
-`;
-
-export const ON_UPDATE_OBJECT = gql`
-  subscription OnUpdateObject {
-    onUpdateObject {
-      objectId
-      name
-      objectCategory
-      width
-      length
-      height
-      weight
-      penetration
-      deflection
-      impact
-      absorption
-      hitPoints {
-        current
-        max
-      }
-      damageMin
-      damageMax
-      damageType
-      isLimb
-      noise
-      duration
-      handling
-      capacity
-      falloff
-      partsIds
-      usage {
-        actionId
-        usageType
-      }
-    }
-  }
-`;
-
-export const ON_DELETE_OBJECT = gql`
-  subscription OnDeleteObject {
-    onDeleteObject {
-      objectId
-      name
-    }
-  }
-`;
-
-export const ON_CREATE_ACTION = gql`
-  subscription OnCreateAction {
-    onCreateAction {
-      actionId
-      name
-    }
-  }
-`;
-
-export const ON_DELETE_ACTION = gql`
-  subscription OnDeleteAction {
-    onDeleteAction {
-      actionId
-      name
-    }
-  }
-`;
-
 export const ON_CREATE_ENCOUNTER = gql`
   subscription OnCreateEncounter {
     onCreateEncounter {
       encounterId
       name
       description
-      currentTime
-      createdAt
-    }
-  }
-`;
-
-export const ON_UPDATE_ENCOUNTER = gql`
-  subscription OnUpdateEncounter {
-    onUpdateEncounter {
-      encounterId
-      name
-      description
-      currentTime
-      gridRows
-      gridColumns
-      characterPositions {
-        characterId
-        x
-        y
-      }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
+      # Include other fields you might need
     }
   }
 `;
 
 export const ON_DELETE_ENCOUNTER = gql`
-  subscription OnDeleteEncounter {
-    onDeleteEncounter {
+  subscription OnDeleteEncounter($encounterId: ID!) {
+    onDeleteEncounter(encounterId: $encounterId) {
       encounterId
     }
   }
 `;
 
-export const ON_ENCOUNTER_TIMELINE_CHANGED = gql`
-  subscription OnEncounterTimelineChanged($encounterId: ID!) {
-    onEncounterTimelineChanged(encounterId: $encounterId) {
-      encounterId
-      name
-      description
-      currentTime
-      gridRows
-      gridColumns
-      characterPositions {
-        characterId
-        x
-        y
-      }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-export const ON_ENCOUNTER_VTT_CHANGED = gql`
-  subscription OnEncounterVttChanged($encounterId: ID!) {
-    onEncounterVttChanged(encounterId: $encounterId) {
-      encounterId
-      characterPositions {
-        characterId
-        x
-        y
-      }
-      gridElements {
-        id
-        type
-        coordinates { x y }
-        color
-      }
-      objectPositions {
-        objectId
-        x
-        y
-      }
-      terrainElements {
-        terrainId
-        type
-        startX
-        startY
-        length
-        color
-      }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
-    }
-  }
-`;
-
-export const ON_GRID_SIZE_CHANGED = gql`
-  subscription OnGridSizeChanged($encounterId: ID!) {
-    onGridSizeChanged(encounterId: $encounterId) {
-      encounterId
-      gridRows
-      gridColumns
-    }
-  }
-`;
-
-export const ON_ENCOUNTER_CHARACTER_CHANGED = gql`
-  subscription OnEncounterCharacterChanged($encounterId: ID!) {
-    onEncounterCharacterChanged(encounterId: $encounterId) {
+export const ON_UPDATE_ENCOUNTER = gql`
+  subscription OnUpdateEncounter($encounterId: ID!) {
+    onUpdateEncounter(encounterId: $encounterId) {
       encounterId
       name
       description
-      currentTime
-      gridRows
-      gridColumns
-      characterPositions {
-        characterId
-        x
-        y
-      }
-      history {
-        time
-        type
-        characterId
-        actionId
-        actionName
-        description
-        x
-        y
-        stats {
-          hitPoints
-          fatigue
-          surges
-          exhaustion
-        }
-        conditions
-      }
+      # Include other updated encounter fields
     }
   }
 `;
 
+// Non-GraphQL Exports
+export const defaultActionForm = {};
 
-// DEFAULT VALUES
-export const defaultAttributeValue = {
-  base: 10,
-  current: 10,
-  max: 10
-};
+export const CREATE_FORMULA = gql`
+  mutation CreateFormula($input: CreateFormulaInput!) {
+    createFormula(input: $input) {
+      formulaId
+      formulaValue
+      # Include other fields you might need after creation
+    }
+  }
+`;
 
-export const defaultAttributes = {
-  strength: {...defaultAttributeValue},
-  agility: {...defaultAttributeValue},
-  dexterity: {...defaultAttributeValue},
-  endurance: {...defaultAttributeValue},
-  intelligence: {...defaultAttributeValue},
-  charisma: {...defaultAttributeValue},
-  perception: {...defaultAttributeValue},
-  resolve: {...defaultAttributeValue}
-};
+export const CREATE_ACTION = gql`
+  mutation CreateAction($input: CreateActionInput!) {
+    createAction(input: $input) {
+      actionId
+      name
+      description
+      # Include other fields you might need after creation
+    }
+  }
+`;
 
-// Removed defaultAttributeData array - will be generated in form from fetched list
-
-export const defaultCombatSkills = {
-  striking: 0,
-  grappling: 0,
-  dodging: 0,
-  parrying: 0,
-  blocking: 0,
-  feinting: 0,
-  disarming: 0,
-  countering: 0
-};
-
-export const defaultWeaponSkills = {
-  swords: 0,
-  daggers: 0
-};
-
-export const defaultPhysicalSkills = {
-  weightlifting: 0,
-  sprinting: 0,
-  throwing: 0
-};
-
-export const defaultTechnicalSkills = {
-  ambits: 0,
-  spindling: 0,
-  spindleHandling: 0
-};
-
-export const defaultIntrapersonalSkills = {
-  emotionRegulation: 0
-};
-
-// Removed defaultSkillData array - will be generated in form from fetched list
-
-export const defaultStatValue = {
-  current: 10,
-  max: 10
-};
-
-export const defaultStats = {
-  hitPoints: {...defaultStatValue},
-  fatigue: {...defaultStatValue},
-  exhaustion: {...defaultStatValue},
-  surges: {...defaultStatValue}
-};
-
-export const defaultSize = {
-  width: 1.0,
-  length: 1.0,
-  height: 1.0
-};
-
-export const defaultPhysical = {
-  height: 180.0,
-  bodyFatPercentage: 20.0,
-  width: 1.0, // Added flattened width
-  length: 1.0, // Added flattened length
-  adjacency: 5.0
-};
-
-export const defaultEquipment = {
-  head: null,
-  torso: null,
-  legs: null,
-  arms: null,
-  leftHand: null,
-  rightHand: null
-};
-
-export const defaultObjectForm = {
-  name: "",
-  objectCategory: "ITEM",
-  width: 0.1,
-  length: 0.1,
-  height: 0.1,
-  weight: 0.1,
-  penetration: 0,
-  deflection: 0,
-  impact: 0,
-  absorption: 0,
-  hitPoints: { current: 1, max: 1 },
-  damageMin: 0,
-  damageMax: 0,
-  damageType: "KINETIC",
-  isLimb: false,
-  noise: 0,
-  duration: 0,
-  handling: 0,
-  capacity: 0,
-  falloff: 0,
-  partsIds: [],
-  usage: []
-};
-
-export const defaultActionForm = {
-  name: "",
-  actionCategory: "MOVE", // Default category
-  initDurationId: "", // Needs to be selected or created
-  defaultInitDuration: 0.0,
-  durationId: "", // Needs to be selected or created
-  defaultDuration: 0.0,
-  fatigueCost: 0,
-  difficultyClassId: "", // Needs to be selected or created
-  guaranteedFormulaId: "", // Needs to be selected or created
-  units: null, // Optional, use null or specific default like SECONDS if applicable
-  description: "",
-  actionTargets: [],
-  actionSources: [],
-  actionEffects: []
-};
+export const UPDATE_ACTION = gql`
+  mutation UpdateAction($actionId: ID!, $input: UpdateActionInput!) {
+    updateAction(actionId: $actionId, input: $input) {
+      actionId
+      name
+      description
+      # Include other updated action fields
+    }
+  }
+`;
