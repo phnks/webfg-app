@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: 'AppSync Action Character Resolvers'
+Description: 'AppSync Object Character Resolvers' # Updated Description
 
 Parameters:
   ApiId:
@@ -17,7 +17,7 @@ Parameters:
     Description: 'Shared lambda service role'
 
 Resources:
-  AddObjectToInventoryFunction:
+  AddObjectToInventoryFunction: # Keep for now
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
@@ -34,12 +34,12 @@ Resources:
         - DynamoDBWritePolicy:
             TableName: !Ref CharactersTableName
 
-  GetCharacterInventoryFunction:
+  ResolveCharacterBodyFunction: # Renamed from GetCharacterInventoryFunction
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
-      Handler: ./functions/getCharacterInventory.handler
-      Runtime: nodejs22.x
+      Handler: ./functions/resolveCharacterBody.handler # Updated handler
+      Runtime: nodejs22.x # Keep runtime consistent
       MemorySize: 1024
       Timeout: 30
       Environment:
@@ -49,22 +49,7 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Ref ObjectsTableName
 
-  GetCharacterEquipmentFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ../
-      Handler: ./functions/getCharacterEquipment.handler
-      Runtime: nodejs22.x
-      MemorySize: 1024
-      Timeout: 30
-      Environment:
-        Variables:
-          OBJECTS_TABLE: !Ref ObjectsTableName
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref ObjectsTableName
-
-  AddObjectToInventoryDataSource:
+  AddObjectToInventoryDataSource: # Keep for now
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !Ref ApiId
@@ -73,28 +58,18 @@ Resources:
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
         LambdaFunctionArn: !GetAtt AddObjectToInventoryFunction.Arn
-  
-  GetCharacterInventoryDataSource:
+
+  ResolveCharacterBodyDataSource: # Renamed from GetCharacterInventoryDataSource
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !Ref ApiId
-      Name: GetCharacterInventory
+      Name: ResolveCharacterBody # Updated Name
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt GetCharacterInventoryFunction.Arn
+        LambdaFunctionArn: !GetAtt ResolveCharacterBodyFunction.Arn # Updated reference
 
-  GetCharacterEquipmentDataSource:
-    Type: AWS::AppSync::DataSource
-    Properties:
-      ApiId: !Ref ApiId
-      Name: GetCharacterEquipment
-      Type: AWS_LAMBDA
-      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
-      LambdaConfig:
-        LambdaFunctionArn: !GetAtt GetCharacterEquipmentFunction.Arn
-
-  AddObjectToInventoryResolver:
+  AddObjectToInventoryResolver: # Keep for now
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
@@ -112,31 +87,13 @@ Resources:
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
 
-  GetCharacterInventoryResolver:
+  CharacterBodyResolver: # Renamed from GetCharacterInventoryResolver
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Character'
-      FieldName: 'inventory'
-      DataSourceName: !GetAtt GetCharacterInventoryDataSource.Name
-      RequestMappingTemplate: |
-        {
-          "version": "2018-05-29",
-          "operation": "Invoke",
-          "payload": {
-            "source": $util.toJson($context.source)
-          }
-        }
-      ResponseMappingTemplate: |
-        $util.toJson($context.result)
-
-  GetCharacterEquipmentResolver:
-    Type: AWS::AppSync::Resolver
-    Properties:
-      ApiId: !Ref ApiId
-      TypeName: 'Character'
-      FieldName: 'equipment'
-      DataSourceName: !GetAtt GetCharacterEquipmentDataSource.Name
+      FieldName: 'body' # Updated field name
+      DataSourceName: !GetAtt ResolveCharacterBodyDataSource.Name # Updated data source
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",

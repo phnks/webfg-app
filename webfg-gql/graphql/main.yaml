@@ -57,6 +57,13 @@ Parameters:
   FormulasTableName:
     Type: String
     Description: 'Name of Formulas table'
+  ValuesTableName: # Add parameter
+    Type: String
+    Description: 'Name of Values table'
+  ValuesDataSourceName: # Add parameter
+    Type: String
+    Description: 'Name of Values db data source'
+    Default: 'ValuesDataSource' # Add default
   PhnksCertArn:
     Type: String
     Description: 'ARN of the certificate for the custom domain'
@@ -117,6 +124,8 @@ Resources:
         AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down parameter reference
         FormulasDataSourceName: !Ref FormulasDataSourceName # Pass down parameter reference
         FormulasTableName: !Ref FormulasTableName # Pass down parameter reference
+        ValuesTableName: !Ref ValuesTableName # Pass down
+        ValuesDataSourceName: !Ref ValuesDataSourceName # Pass down parameter reference
 
   CharacterResolversStack:
     Type: AWS::CloudFormation::Stack
@@ -131,6 +140,7 @@ Resources:
         SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down
         AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Pass down
+        ValuesTableName: !Ref ValuesTableName # Pass down
 
   ObjectResolversStack:
     Type: AWS::CloudFormation::Stack

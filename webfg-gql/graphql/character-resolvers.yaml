@@ -24,6 +24,9 @@ Parameters:
   AppSyncLambdaServiceRoleArn: # Add parameter
     Type: String
     Description: 'Shared lambda service role'
+  ValuesTableName: # Add parameter
+    Type: String
+    Description: 'Name of Values table'
 
 Resources:
   # --- Lambda Functions for Resolvers ---
@@ -57,6 +60,21 @@ Resources:
         - DynamoDBReadPolicy: # Needs read access to AttributesTable
             TableName: !Ref AttributesTableName
 
+  ResolveCharacterValuesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/resolveCharacterValues.handler # Assuming a new handler file
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          VALUES_TABLE: !Ref ValuesTableName # Assuming a new parameter and table
+      Policies:
+        - DynamoDBReadPolicy: # Needs read access to ValuesTable
+            TableName: !Ref ValuesTableName
+
   # --- Data Sources for Lambda Resolvers ---
   ResolveCharacterSkillsLambdaDataSource:
     Type: AWS::AppSync::DataSource
@@ -76,6 +94,16 @@ Resources:
       Type: AWS_LAMBDA
       LambdaConfig:
         LambdaFunctionArn: !GetAtt ResolveCharacterAttributesFunction.Arn
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  ResolveCharacterValuesLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ResolveCharacterValuesLambdaSource
+      Type: AWS_LAMBDA
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ResolveCharacterValuesFunction.Arn
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
 
   # --- Existing Resolvers ---
@@ -127,6 +155,29 @@ Resources:
       TypeName: Character # Parent type
       FieldName: attributes # Field being resolved
       DataSourceName: !GetAtt ResolveCharacterAttributesLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+             "source": $util.toJson($ctx.source)
+          }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        $util.toJson($ctx.result)
+
+  # Resolver for Character.values field
+  CharacterValuesResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Character # Parent type
+      FieldName: values # Field being resolved
+      DataSourceName: !GetAtt ResolveCharacterValuesLambdaDataSource.Name
+      # Simple pass-through request mapping for Lambda
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -228,10 +279,7 @@ Resources:
             "attributeData": $util.dynamodb.toDynamoDBJson($ctx.args.attributeData), ## Use attributeData
             "skillData": $util.dynamodb.toDynamoDBJson($ctx.args.skillData), ## Use skillData
             "stats": $util.dynamodb.toDynamoDBJson($ctx.args.stats),
-            "physical": $util.dynamodb.toDynamoDBJson($ctx.args.physical),
             "conditions": $util.dynamodb.toDynamoDBJson([]), ## Initialize conditions
-            "inventoryIds": $util.dynamodb.toDynamoDBJson([]), ## Initialize inventoryIds
-            "equipmentIds": $util.dynamodb.toDynamoDBJson([]), ## Initialize equipmentIds
             "actionIds": $util.dynamodb.toDynamoDBJson([]),    ## Initialize actionIds
             "traitIds": $util.dynamodb.toDynamoDBJson([])     ## Initialize traitIds
           }
@@ -253,16 +301,13 @@ Resources:
             "characterId": $util.dynamodb.toDynamoDBJson($ctx.args.characterId)
           },
           "update": {
-            "expression": "SET #name = :name, #attributeData = :attributeData, #skillData = :skillData, #stats = :stats, #physical = :physical, #conditions = :conditions, #inventoryIds = :inventoryIds, #equipmentIds = :equipmentIds, #actionIds = :actionIds, #traitIds = :traitIds", ## Include all fields
+            "expression": "SET #name = :name, #attributeData = :attributeData, #skillData = :skillData, #stats = :stats, #conditions = :conditions, #actionIds = :actionIds, #traitIds = :traitIds", ## Include all fields
             "expressionNames": {
               "#name": "name",
               "#attributeData": "attributeData",
               "#skillData": "skillData",
               "#stats": "stats",
-              "#physical": "physical",
               "#conditions": "conditions",
-              "#inventoryIds": "inventoryIds",
-              "#equipmentIds": "equipmentIds",
               "#actionIds": "actionIds",
               "#traitIds": "traitIds"
             },
@@ -271,10 +316,7 @@ Resources:
               ":attributeData": $util.dynamodb.toDynamoDBJson($ctx.args.attributeData),
               ":skillData": $util.dynamodb.toDynamoDBJson($ctx.args.skillData),
               ":stats": $util.dynamodb.toDynamoDBJson($ctx.args.stats),
-              ":physical": $util.dynamodb.toDynamoDBJson($ctx.args.physical),
               ":conditions": $util.dynamodb.toDynamoDBJson($ctx.args.conditions),
-              ":inventoryIds": $util.dynamodb.toDynamoDBJson($ctx.args.inventoryIds),
-              ":equipmentIds": $util.dynamodb.toDynamoDBJson($ctx.args.equipmentIds),
               ":actionIds": $util.dynamodb.toDynamoDBJson($ctx.args.actionIds),
               ":traitIds": $util.dynamodb.toDynamoDBJson($ctx.args.traitIds)
             }
