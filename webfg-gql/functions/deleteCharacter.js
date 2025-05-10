@@ -13,8 +13,7 @@ exports.handler = async (event) => {
     throw new Error("Internal server error.");
   }
 
-  const args = event.arguments;
-  const characterId = args.characterId;
+  const characterId = event.characterId;
 
   if (!characterId) {
     console.error("characterId is required for deleteCharacter.");
