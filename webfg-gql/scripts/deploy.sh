@@ -66,7 +66,7 @@ node schema/buildSchema.js || echo "Schema build/upload failed (might be expecte
 
 # --- Step 4: Build Main Stack ---
 echo "Building Main Stack: ${MAIN_STACK_NAME}..."
-sam build --cached --parallel
+sam build --parallel
 
 # --- Step 5: Deploy Main Stack ---
 echo "Deploying Main Stack: ${MAIN_STACK_NAME}..."
@@ -77,6 +77,7 @@ sam deploy \
   --template-file .aws-sam/build/template.yaml \
   --stack-name "${MAIN_STACK_NAME}" \
   --resolve-s3 true \
+  --force-upload \
   --parameter-overrides Environment="${ENVIRONMENT}" DeploymentId="${DEPLOYMENT_ID}" SchemaS3Key="${SCHEMA_S3_KEY}" SchemaS3BucketName="${BUCKET_NAME}" \
   --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
