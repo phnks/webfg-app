@@ -280,8 +280,10 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           }
         });
         // Check for null data or errors
-        if (!result.data || (result.errors && result.errors.length > 0)) {
-            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+        if (!result.data || !result.data.updateCharacter || (result.errors && result.errors.length > 0)) {
+            const errorMessages = result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null for updateCharacter or no data.";
+            console.error("Error from updateCharacter mutation:", errorMessages, "Full result:", result); // Added more logging
+            throw new Error(errorMessages);
         }
         onSuccess(result.data.updateCharacter.characterId);
       } else {
@@ -300,8 +302,10 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           }
         });
         // Check for null data or errors
-         if (!result.data || (result.errors && result.errors.length > 0)) {
-            throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+         if (!result.data || !result.data.createCharacter || (result.errors && result.errors.length > 0)) {
+            const errorMessages = result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null for createCharacter or no data.";
+            console.error("Error from createCharacter mutation:", errorMessages, "Full result:", result); // Added more logging
+            throw new Error(errorMessages);
         }
         onSuccess(result.data.createCharacter.characterId);
       }

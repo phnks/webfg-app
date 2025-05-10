@@ -158,8 +158,32 @@ export const CREATE_CHARACTER = gql`
 `;
 
 export const UPDATE_CHARACTER = gql`
-  mutation UpdateCharacter($characterId: ID!, $input: UpdateCharacterInput!) {
-    updateCharacter(characterId: $characterId, input: $input) { 
+  mutation UpdateCharacter(
+    $characterId: ID!
+    $name: String
+    $attributeData: [CharacterAttributeInput!]
+    $skillData: [CharacterSkillInput!]
+    $stats: StatsInput
+    $valueData: [StoredValueDataInput!]
+    $conditions: [String]
+    $bodyId: ID
+    $inventoryIds: [ID]
+    $equipmentIds: [ID]
+    $actionIds: [ID]
+  ) {
+    updateCharacter(
+      characterId: $characterId
+      name: $name
+      attributeData: $attributeData
+      skillData: $skillData
+      stats: $stats
+      valueData: $valueData
+      conditions: $conditions
+      bodyId: $bodyId
+      inventoryIds: $inventoryIds
+      equipmentIds: $equipmentIds
+      actionIds: $actionIds
+    ) { 
       characterId
       name
       attributeData { attributeId attributeValue }
@@ -172,8 +196,8 @@ export const UPDATE_CHARACTER = gql`
       bodyId
       body { objectId name objectCategory }
       conditions { traitId name }
+      traits { traitId name } 
       actionIds
-      # inventory and equipment fields removed
     }
   }
 `;
