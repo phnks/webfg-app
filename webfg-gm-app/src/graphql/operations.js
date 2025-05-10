@@ -30,22 +30,10 @@ export const GET_CHARACTER = gql`
       bodyId
       body { objectId name objectCategory } 
       conditions { traitId name }
-      inventoryIds
-      equipmentIds
+      traits { traitId name }
       actionIds
-      inventory {
-        objectId name objectCategory width length height weight penetration deflection impact absorption
-        hitPoints { current max }
-        damageMin damageMax damageType isLimb noise duration handling capacity falloff partsIds
-        usage { actionId usageType }
-      }
-      equipment {
-        objectId name objectCategory width length height weight penetration deflection impact absorption
-        hitPoints { current max }
-        damageMin damageMax damageType isLimb noise duration handling capacity falloff partsIds
-        usage { actionId usageType }
-      }
       actions { actionId name description }
+      # inventory and equipment fields removed from Character type response
     }
   }
 `;
@@ -148,13 +136,13 @@ export const CREATE_CHARACTER = gql`
     $valueData: [StoredValueDataInput!]
     $bodyId: ID
     $conditions: [String]
-    $inventoryIds: [ID]
-    $equipmentIds: [ID]
+    $inventoryIds: [ID] 
+    $equipmentIds: [ID] 
     $actionIds: [ID]
   ) {
     createCharacter(
       name: $name, attributeData: $attributeData, skillData: $skillData, stats: $stats, valueData: $valueData, bodyId: $bodyId, conditions: $conditions, inventoryIds: $inventoryIds, equipmentIds: $equipmentIds, actionIds: $actionIds
-    ) {
+    ) { 
       characterId
       name
       attributeData { attributeId attributeValue }
@@ -163,16 +151,15 @@ export const CREATE_CHARACTER = gql`
       valueData { valueId }
       bodyId
       conditions { traitId name }
-      inventoryIds
-      equipmentIds
       actionIds
+      # inventory and equipment fields removed
     }
   }
 `;
 
 export const UPDATE_CHARACTER = gql`
   mutation UpdateCharacter($characterId: ID!, $input: UpdateCharacterInput!) {
-    updateCharacter(characterId: $characterId, input: $input) {
+    updateCharacter(characterId: $characterId, input: $input) { 
       characterId
       name
       attributeData { attributeId attributeValue }
@@ -185,9 +172,8 @@ export const UPDATE_CHARACTER = gql`
       bodyId
       body { objectId name objectCategory }
       conditions { traitId name }
-      inventoryIds
-      equipmentIds
       actionIds
+      # inventory and equipment fields removed
     }
   }
 `;
@@ -258,30 +244,34 @@ export const DELETE_ACTION = gql`
 export const ADD_OBJECT_TO_INVENTORY = gql`
   mutation AddObjectToInventory($characterId: ID!, $objectId: ID!) {
     addObjectToInventory(characterId: $characterId, objectId: $objectId) {
-      characterId name inventoryIds
-      inventory { objectId name objectCategory weight }
+      characterId 
+      name 
+      # inventory no longer on Character type directly
     }
   }
 `;
 export const REMOVE_OBJECT_FROM_INVENTORY = gql`
   mutation RemoveObjectFromInventory($characterId: ID!, $objectId: ID!) {
     removeObjectFromInventory(characterId: $characterId, objectId: $objectId) {
-      characterId name inventoryIds
+      characterId 
+      name 
     }
   }
 `;
 export const ADD_OBJECT_TO_EQUIPMENT = gql`
   mutation AddObjectToEquipment($characterId: ID!, $objectId: ID!) {
     addObjectToEquipment(characterId: $characterId, objectId: $objectId) {
-      characterId name equipmentIds
-      equipment { objectId name objectCategory weight }
+      characterId 
+      name 
+      # equipment no longer on Character type directly
     }
   }
 `;
 export const REMOVE_OBJECT_FROM_EQUIPMENT = gql`
   mutation RemoveObjectFromEquipment($characterId: ID!, $objectId: ID!) {
     removeObjectFromEquipment(characterId: $characterId, objectId: $objectId) {
-      characterId name equipmentIds
+      characterId 
+      name 
     }
   }
 `;
@@ -494,6 +484,8 @@ export const ON_CREATE_CHARACTER = gql`
       characterId name
       valueData { valueId }
       bodyId
+      # inventoryIds # Removed from response
+      # equipmentIds # Removed from response
     }
   }
 `;
@@ -507,9 +499,10 @@ export const ON_UPDATE_CHARACTER = gql`
       valueData { valueId }
       bodyId
       conditions { traitId name }
-      inventoryIds
-      equipmentIds
+      # inventoryIds # Removed from response
+      # equipmentIds # Removed from response
       actionIds
+      # inventory and equipment fields removed
     }
   }
 `;

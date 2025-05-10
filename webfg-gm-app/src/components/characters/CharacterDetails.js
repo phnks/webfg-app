@@ -15,10 +15,7 @@ const CharacterDetails = ({ character }) => {
             <td>Name:</td>
             <td>{character.name}</td>
           </tr>
-          <tr>
-            <td>Race:</td>
-            <td>{character.race}</td>
-          </tr>
+
         </tbody>
       </table>
     </div>

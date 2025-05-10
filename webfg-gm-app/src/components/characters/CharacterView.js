@@ -12,7 +12,7 @@ import CharacterAttributes from "./CharacterAttributes";
 import CharacterSkills from "./CharacterSkills";
 import CharacterStats from "./CharacterStats";
 
-import CharacterEquipment from "./CharacterEquipment";
+
 import CharacterDetails from "./CharacterDetails";
 import CharacterForm from "../forms/CharacterForm";
 import "./CharacterView.css";
@@ -124,17 +124,7 @@ const CharacterView = () => {
 
   const character = currentCharacter;
 
-  const addToInventory = (objectId) => {
-    // Implementation
-  };
 
-  const equipItem = (objectId, slot) => {
-    // Implementation
-  };
-
-  const removeItem = (objectId) => {
-    // Implementation
-  };
 
   const addAction = (actionId) => {
     // Implementation
@@ -178,52 +168,66 @@ const CharacterView = () => {
           <CharacterSkills skills={character.skills} />
         </div>
 
-        <div className="section-row">
 
-          <div className="section character-equipment">
-            <h3>Equipment</h3>
-            {character.equipment && character.equipment.length > 0 ? (
+
+
+
+        <div className="section-row">
+          <div className="section character-body">
+            <h3>Body / Worn Items</h3>
+            {character.body && character.body.length > 0 ? (
               <ul>
-                {character.equipment.map((item) => (
-                  <li key={item.objectId}>{item.name} ({item.type})</li>
+                {character.body.map((item) => (
+                  <li key={item.objectId}>{item.name} ({item.objectCategory})</li>
                 ))}
               </ul>
             ) : (
-              <p>No equipment</p>
+              <p>Nothing equipped on body.</p>
             )}
           </div>
         </div>
 
         <div className="section-row">
-          <div className="section inventory">
-            <h3>Inventory</h3>
-            {character.inventory && character.inventory.length > 0 ? (
-              <div>
-                {character.inventory.map(item => (
-                  <div key={item.objectId} className="inventory-item">
-                    <div className="item-name">{item.name}</div>
-                    <div className="item-actions">
-                      <button onClick={() => equipItem(item.objectId)}>Equip</button>
-                      <button onClick={() => removeItem(item.objectId)}>Remove</button>
-                    </div>
-                  </div>
+          <div className="section character-traits">
+            <h3>Traits</h3>
+            {character.traits && character.traits.length > 0 ? (
+              <ul>
+                {character.traits.map((trait) => (
+                  <li key={trait.traitId}>{trait.name}</li>
                 ))}
-              </div>
+              </ul>
             ) : (
-              <p>No items</p>
+              <p>No traits</p>
             )}
           </div>
+        </div>
 
-          <div className="section conditions">
+        <div className="section-row">
+          <div className="section character-conditions">
             <h3>Conditions</h3>
             {character.conditions && character.conditions.length > 0 ? (
               <ul>
-                {character.conditions.map((condition, index) => (
-                  <li key={index}>{condition}</li>
+                {character.conditions.map((condition) => (
+                  <li key={condition.traitId}>{condition.name}</li>
                 ))}
               </ul>
             ) : (
               <p>No conditions</p>
+            )}
+          </div>
+        </div>
+
+        <div className="section-row">
+          <div className="section character-values">
+            <h3>Values</h3>
+            {character.values && character.values.length > 0 ? (
+              <ul>
+                {character.values.map((value) => (
+                  <li key={value.valueId}>{value.valueName}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No values</p>
             )}
           </div>
         </div>
