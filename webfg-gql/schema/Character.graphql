@@ -24,31 +24,36 @@ type Character {
   characterId: ID!
   name: String!
 
-  attributeData: [StoredAttributeData!]! # Use output type for stored data
-  attributes: [CharacterAttribute]!      # Resolved data (Lambda)
-  
-  skillData: [StoredSkillData!]! # Use output type for stored data
-  skills: [CharacterSkill!]!     # Resolved data (Lambda)
+  attributeData: [StoredAttributeData!]! 
+  attributes: [CharacterAttribute]!      
+
+  skillData: [StoredSkillData!]! 
+  skills: [CharacterSkill!]!     
 
   stats: Stats!
 
-  valueData: [StoredValueData!]! # Use output type for stored data
-  values: [CharacterValue]!      # Resolved data (Lambda)
+  valueData: [StoredValueData!]! 
+  values: [CharacterValue]!      
 
-  conditionIds: [ID]
-  conditions: [Trait]
-  
+  conditionIds: [ID] 
+  conditions: [Trait] 
+
   bodyId: ID
-  body: [Object]
+  body: [Object] 
 
   actionIds: [ID]
   actions: [Action]
-  
-  traitIds: [ID]
-  traits: [Trait]
+
+  traitIds: [ID] 
+  traits: [Trait] 
+
+  # inventoryIds: [ID] # Removed
+  # inventory: [Object]  # Removed
+  # equipmentIds: [ID] # Removed
+  # equipment: [Object]  # Removed
 }
 
-input CharacterSkillInput { # Should already be input, but double-checking
+input CharacterSkillInput { 
   skillId: ID!
   skillValue: Int!
 }
@@ -60,7 +65,7 @@ type CharacterSkill {
   skillCategory: SkillCategory!
 }
 
-input CharacterAttributeInput { # Ensure this uses 'input' keyword
+input CharacterAttributeInput { 
   attributeId: ID!
   attributeValue: Int!
 }
