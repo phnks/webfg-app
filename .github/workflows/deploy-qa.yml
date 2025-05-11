@@ -14,6 +14,7 @@ jobs:
         working-directory: ./webfg-gql
     env:
       DEPLOYMENT_ID: ${{ github.event.number }} # Use PR number as Deployment ID
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -90,6 +91,42 @@ jobs:
       - name: Deploy GM App QA Stack (PR-${{ env.DEPLOYMENT_ID }})
         # Deploy script now uses the build artifacts created in the previous step
         run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script
+
+      - name: Construct GM App URL
+        id: construct_url
+        run: |
+          echo "app_url=https://webfg-gm-app-qa${{ env.DEPLOYMENT_ID }}.phnks.com" >> $GITHUB_OUTPUT
+        working-directory: . # Run at root to ensure GITHUB_OUTPUT path is correct relative to runner
+
+      - name: Check for existing URL comment
+        id: check_comment
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PR_NUMBER: ${{ env.DEPLOYMENT_ID }} 
+          APP_URL: ${{ steps.construct_url.outputs.app_url }}
+        run: |
+          echo "Checking for comment: $APP_URL on PR $PR_NUMBER"
+          # Fetch comments, allow empty result if no comments or PR not found initially (e.g. draft PRs)
+          existing_comments=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments.[].body' || echo "")
+          if echo "$existing_comments" | grep -Fxq "$APP_URL"; then
+            echo "INFO: Comment with URL '$APP_URL' already exists on PR #$PR_NUMBER."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "INFO: Comment with URL '$APP_URL' does not exist on PR #$PR_NUMBER. Will attempt to add."
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        working-directory: . # Run gh commands at repo root
+
+      - name: Add GM App URL comment to PR
+        if: steps.check_comment.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PR_NUMBER: ${{ env.DEPLOYMENT_ID }} 
+          APP_URL: ${{ steps.construct_url.outputs.app_url }}
+        run: |
+          echo "Adding comment: $APP_URL to PR $PR_NUMBER"
+          gh pr comment "$PR_NUMBER" --body "$APP_URL"
+        working-directory: . # Run gh commands at repo root
 
   run-cypress-tests:
     name: Run Cypress Tests on QA

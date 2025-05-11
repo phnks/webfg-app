@@ -221,6 +221,7 @@ Resources:
 
   CharacterSkillsResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: ResolveCharacterSkillsLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: Character 
@@ -236,6 +237,7 @@ Resources:
 
   CharacterAttributesResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: ResolveCharacterAttributesLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: Character 
@@ -251,6 +253,7 @@ Resources:
 
   CharacterValuesResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: ResolveCharacterValuesLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: Character 
@@ -290,6 +293,7 @@ Resources:
 
   CreateCharacterResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: CreateCharacterLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Mutation'
@@ -305,6 +309,7 @@ Resources:
 
   UpdateCharacterResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: UpdateCharacterLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Mutation'
@@ -320,6 +325,7 @@ Resources:
 
   DeleteCharacterResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: DeleteCharacterLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Mutation'
