@@ -101,6 +101,7 @@ jobs:
       - name: Check for existing URL comment
         id: check_comment
         env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           PR_NUMBER: ${{ env.DEPLOYMENT_ID }} 
           APP_URL: ${{ steps.construct_url.outputs.app_url }}
         run: |
@@ -119,6 +120,7 @@ jobs:
       - name: Add GM App URL comment to PR
         if: steps.check_comment.outputs.exists == 'false'
         env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           PR_NUMBER: ${{ env.DEPLOYMENT_ID }} 
           APP_URL: ${{ steps.construct_url.outputs.app_url }}
         run: |
