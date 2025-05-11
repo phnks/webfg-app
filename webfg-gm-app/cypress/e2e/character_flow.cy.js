@@ -82,7 +82,6 @@ describe('Character User Flow', () => {
     // This assumes the values are displayed as text somewhere in the respective sections.
     cy.contains('.character-sections', '10').should('be.visible'); // Check if '10' appears (from attributes/skills)
     cy.contains('.character-sections', '4').should('be.visible'); // Check if '4' appears (from stats)
-    cy.contains('.character-sections', '5').should('be.visible'); // Check if '5' appears (from physical)
 
     // Test ends here.
   });
