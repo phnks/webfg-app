@@ -14,7 +14,7 @@ jobs:
         working-directory: ./webfg-gql
     env:
       DEPLOYMENT_ID: ${{ github.event.number }} # Use PR number as Deployment ID
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
