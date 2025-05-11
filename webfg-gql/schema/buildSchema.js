@@ -76,13 +76,12 @@ function getSchemaS3BucketName() {
 function combineSchemas() {
   // Define schema files in the specific order you want them combined
   const schemaFiles = [
-    'Character.graphql',
     'Trait.graphql',
     'Attribute.graphql',
     'Skill.graphql',
     'Stats.graphql',
-    'Physical.graphql',
-    'Equipment.graphql',
+    'Value.graphql', // Added and moved up
+    'Character.graphql', // Moved down
     'Object.graphql',
     'Formula.graphql',
     'Action.graphql',

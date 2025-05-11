@@ -79,6 +79,10 @@ Parameters:
     Type: String
     Description: 'Name of table'
     Default: ''
+  ValuesTableName: # Add parameter
+    Type: String
+    Description: 'Name of Values table'
+    Default: '' # Added default value
   DeploymentId: # New parameter for PR ID
     Type: String
     Description: 'Unique ID for QA deployments (e.g., PR number)'
@@ -141,6 +145,7 @@ Resources:
         AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down
         FormulasDataSourceName: !Ref FormulasDataSourceName # Pass down
         FormulasTableName: !GetAtt DatabasesNestedStack.Outputs.FormulasTableName # Pass output
+        ValuesTableName: !GetAtt DatabasesNestedStack.Outputs.ValuesTableName # Pass output
         PhnksCertArn: !Ref PhnksCertArn
         PhnksHostedZoneId: !Ref PhnksHostedZoneId
         DomainName: !Ref DomainName

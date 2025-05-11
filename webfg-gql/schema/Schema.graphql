@@ -31,32 +31,28 @@ type Mutation {
   # Character mutations
   createCharacter(
     name: String!
-    # race: Race! # Removed
-    # attributes: AttributesInput # Replaced
-    # skills: SkillsInput # Replaced
-    attributeData: [CharacterAttributeInput!] # Added
-    skillData: [CharacterSkillInput!] # Added
+    attributeData: [CharacterAttributeInput!] 
+    skillData: [CharacterSkillInput!] 
     stats: StatsInput
-    physical: PhysicalInput
+    valueData: [StoredValueDataInput!] 
     conditions: [String]
-    inventoryIds: [ID]
-    equipmentIds: [ID]
+    bodyId: ID 
+    inventoryIds: [ID] 
+    equipmentIds: [ID] 
     actionIds: [ID]
   ): Character
 
   updateCharacter(
     characterId: ID!
     name: String
-    # race: Race # Removed
-    # attributes: AttributesInput # Replaced
-    # skills: SkillsInput # Replaced
-    attributeData: [CharacterAttributeInput!] # Added
-    skillData: [CharacterSkillInput!] # Added
+    attributeData: [CharacterAttributeInput!] 
+    skillData: [CharacterSkillInput!] 
     stats: StatsInput
-    physical: PhysicalInput
+    valueData: [StoredValueDataInput!] 
     conditions: [String]
-    inventoryIds: [ID]
-    equipmentIds: [ID]
+    bodyId: ID 
+    inventoryIds: [ID] 
+    equipmentIds: [ID] 
     actionIds: [ID]
   ): Character
 
