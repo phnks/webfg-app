@@ -63,7 +63,8 @@
 
 @media (max-width: 1023px) {
   .content.with-banner {
-    padding-top: 60px;
+    /* Increased padding to account for both NavBar (60px) and Banner (~40px) */
+    padding-top: 100px; 
   }
 }
 
