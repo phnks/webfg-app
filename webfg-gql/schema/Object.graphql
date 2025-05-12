@@ -44,6 +44,7 @@ enum ObjectCategory {
   COMPONENT
   DEBRIS
   ARTIFACT
+  BODY
 }
 
 enum DamageType {
