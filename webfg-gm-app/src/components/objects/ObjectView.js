@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ErrorPopup from '../common/ErrorPopup';
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useSubscription } from "@apollo/client";
 import {
   GET_OBJECT,
@@ -278,7 +278,15 @@ const ObjectView = () => {
               <h4>Parts</h4>
               <ul>
                 {currentObject.parts.map(part => (
-                  <li key={part.objectId}>{part.name} (ID: {part.objectId})</li>
+                  <li key={part.objectId} className="part-item" style={{ marginBottom: '5px' }}>
+                    <Link to={`/objects/${part.objectId}`} className="part-name-link">
+                      {part.name}
+                    </Link>
+                    <span className="part-info" style={{ marginLeft: '8px' }}>
+                       ({part.objectCategory || 'N/A'})
+                       {part.partIds && part.partIds.length > 0 ? ` - ${part.partIds.length} sub-part(s)` : ''}
+                    </span>
+                  </li>
                 ))}
               </ul>
             </>
