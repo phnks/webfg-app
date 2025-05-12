@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ErrorPopup from '../common/ErrorPopup';
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useSubscription } from "@apollo/client";
 import {
   GET_OBJECT,
@@ -21,6 +21,8 @@ const ObjectView = () => {
   const [currentObject, setCurrentObject] = useState(null);
   const [addObjectSuccess, setAddObjectSuccess] = useState(false);
   const [mutationError, setMutationError] = useState(null); // Added mutationError state
+  const location = useLocation();
+  const [breadcrumbs, setBreadcrumbs] = useState([]);
 
   // Initial query to get object data
   const { data, loading, error, refetch } = useQuery(GET_OBJECT, {
@@ -68,6 +70,22 @@ const ObjectView = () => {
       setCurrentObject(data.getObject);
     }
   }, [data]);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const crumbsParam = queryParams.get('breadcrumbs');
+    if (crumbsParam) {
+      try {
+        const parsedCrumbs = JSON.parse(crumbsParam);
+        setBreadcrumbs(Array.isArray(parsedCrumbs) ? parsedCrumbs : []);
+      } catch (e) {
+        console.error("Error parsing breadcrumbs from URL:", e);
+        setBreadcrumbs([]);
+      }
+    } else {
+      setBreadcrumbs([]); 
+    }
+  }, [location.search]);
 
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this object?")) {
@@ -184,7 +202,28 @@ const ObjectView = () => {
 
   return (
     <div className="object-view">
-      <div className="object-header">
+      {breadcrumbs.length > 0 && currentObject && (
+      <nav aria-label="breadcrumb" className="breadcrumb-nav" style={{ marginBottom: '15px', paddingBottom: '10px', borderBottom: '1px solid #eee' }}>
+        <ol className="breadcrumb" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+          {breadcrumbs.map((crumb, index) => {
+            const trailForLink = breadcrumbs.slice(0, index); 
+            const trailParam = encodeURIComponent(JSON.stringify(trailForLink));
+            return (
+              <li key={crumb.objectId} className="breadcrumb-item" style={{ display: 'flex', alignItems: 'center' }}>
+                <Link to={`/objects/${crumb.objectId}?breadcrumbs=${trailParam}`}>
+                  {crumb.name}
+                </Link>
+                <span aria-hidden="true" style={{ marginLeft: '5px', marginRight: '5px' }}>&gt;</span>
+              </li>
+            );
+          })}
+          <li className="breadcrumb-item active" aria-current="page" style={{ fontWeight: 'bold' }}>
+            {currentObject.name}
+          </li>
+        </ol>
+      </nav>
+    )}
+    <div className="object-header">
         <h1>{currentObject.name}</h1>
         <div className="object-actions">
           {selectedCharacter && (
@@ -277,17 +316,27 @@ const ObjectView = () => {
             <>
               <h4>Parts</h4>
               <ul>
-                {currentObject.parts.map(part => (
-                  <li key={part.objectId} className="part-item" style={{ marginBottom: '5px' }}>
-                    <Link to={`/objects/${part.objectId}`} className="part-name-link">
-                      {part.name}
-                    </Link>
-                    <span className="part-info" style={{ marginLeft: '8px' }}>
-                       ({part.objectCategory || 'N/A'})
-                       {part.partIds && part.partIds.length > 0 ? ` - ${part.partIds.length} sub-part(s)` : ''}
-                    </span>
-                  </li>
-                ))}
+                {currentObject.parts.map(part => {
+                    console.log("[ObjectView] Current breadcrumbs state:", JSON.stringify(breadcrumbs));
+                    console.log("[ObjectView] Current object for breadcrumb:", JSON.stringify({ objectId: currentObject?.objectId, name: currentObject?.name }));
+
+                    const nextBreadcrumbs = [...breadcrumbs, { objectId: currentObject.objectId, name: currentObject.name }];
+                    const nextBreadcrumbsParam = encodeURIComponent(JSON.stringify(nextBreadcrumbs));
+
+                    console.log(`[ObjectView] For part ${part.name} (ID: ${part.objectId}), nextBreadcrumbsParam: ${nextBreadcrumbsParam}`);
+
+                    return (
+                      <li key={part.objectId} className="part-item" style={{ marginBottom: '5px' }}>
+                        <Link to={`/objects/${part.objectId}?breadcrumbs=${nextBreadcrumbsParam}`} className="part-name-link">
+                          {part.name}
+                        </Link>
+                        <span className="part-info" style={{ marginLeft: '8px' }}>
+                          ({part.objectCategory || 'N/A'})
+                          {part.partIds && part.partIds.length > 0 ? ` - ${part.partIds.length} sub-part(s)` : ''}
+                        </span>
+                      </li>
+                    );
+                  })}
               </ul>
             </>
           )}
