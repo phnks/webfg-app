@@ -53,11 +53,35 @@ export const LIST_OBJECTS = gql`
 export const GET_OBJECT = gql`
   query GetObject($objectId: ID!) {
     getObject(objectId: $objectId) {
-      objectId name objectCategory width length height weight penetration deflection impact absorption
+      objectId
+      name
+      objectCategory
+      width
+      length
+      height
+      weight
+      penetration
+      deflection
+      impact
+      absorption
       hitPoints { current max }
-      damageMin damageMax damageType isLimb noise duration handling capacity falloff partsIds
-      parts { objectId name }
+      damageMin
+      damageMax
+      damageType
+      isLimb
+      noise
+      duration
+      handling
+      capacity
+      falloff
+      partsIds 
       usage { actionId usageType }
+      parts { 
+        objectId
+        name
+        objectCategory
+        partsIds 
+      }
     }
   }
 `;

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ErrorPopup from '../common/ErrorPopup';
-import { useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
   CREATE_OBJECT,
   UPDATE_OBJECT,
-  defaultObjectForm 
+  defaultObjectForm,
+  LIST_OBJECTS 
 } from "../../graphql/operations";
 import "./Form.css";
 
@@ -63,6 +64,9 @@ const prepareObjectInput = (data) => {
 
 
 const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
+  const [showAddPartModal, setShowAddPartModal] = useState(false);
+  const [selectedObjectForPart, setSelectedObjectForPart] = useState('');
+  const { data: allObjectsData, loading: allObjectsLoading, error: allObjectsError } = useQuery(LIST_OBJECTS);
   const getInitialFormData = useCallback(() => {
     const base = isEditing && object ? { ...defaultObjectForm, ...stripTypename(object) } : { ...defaultObjectForm };
 
@@ -91,7 +95,7 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
         handling: base.handling?.toString() ?? '',
         capacity: base.capacity?.toString() ?? '',
         falloff: base.falloff?.toString() ?? '',
-        partsIds: Array.isArray(base.partsIds) ? base.partsIds.join(', ') : (base.partsIds || ''),
+        partsIds: Array.isArray(base.partsIds) ? base.partsIds : [],
         usage: base.usage || [] // Not directly editable in UI for now
     };
   }, [isEditing, object]);
@@ -107,7 +111,7 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
 
   const [createObjectMutation, { loading: createLoading }] = useMutation(CREATE_OBJECT);
   const [updateObjectMutation, { loading: updateLoading }] = useMutation(UPDATE_OBJECT);
-  const loading = createLoading || updateLoading;
+  const loading = createLoading || updateLoading || allObjectsLoading;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -163,6 +167,28 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
     }
   };
 
+  const availableObjectsForParts = allObjectsData?.listObjects
+                                   ?.filter(obj => !(isEditing && object && obj.objectId === object.objectId)) // Prevent self-reference
+                                   .slice().sort((a, b) => a.name.localeCompare(b.name)) || [];
+
+  const handleAddSelectedPart = () => {
+    if (selectedObjectForPart && !formData.partsIds.includes(selectedObjectForPart)) {
+      setFormData(prev => ({
+        ...prev,
+        partsIds: [...prev.partsIds, selectedObjectForPart]
+      }));
+    }
+    setSelectedObjectForPart(''); 
+    setShowAddPartModal(false);
+  };
+
+  const handleRemovePart = (partIdToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      partsIds: prev.partsIds.filter(id => id !== partIdToRemove)
+    }));
+  };
+
   const handleCancel = () => {
     if (onClose) {
       onClose();
@@ -170,6 +196,9 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
       navigate(isEditing && object ? `/objects/${object.objectId}` : "/objects");
     }
   };
+
+  if (allObjectsLoading) return <p>Loading available objects...</p>;
+  if (allObjectsError) return <p>Error loading object list: {allObjectsError.message}</p>;
 
   return (
     <div className="form-container">
@@ -271,9 +300,51 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
           <input type="number" id="falloff" name="falloff" value={formData.falloff} onChange={handleChange} step="0.01" placeholder="e.g. 0"/>
         </div>
         <div className="form-group">
-          <label htmlFor="partsIds">Part IDs (comma-separated)</label>
-          <input type="text" id="partsIds" name="partsIds" value={formData.partsIds} onChange={handleChange} placeholder="e.g. id1,id2"/>
+          <label>Parts</label>
+          <div>
+            {formData.partsIds.length === 0 && <p>No parts added.</p>}
+            <ul className="parts-list">
+              {formData.partsIds.map(partId => {
+                const partObject = availableObjectsForParts.find(obj => obj.objectId === partId);
+                return (
+                  <li key={partId}>
+                    {partObject ? `${partObject.name} (ID: ${partId})` : `ID: ${partId}`}
+                    <button type="button" onClick={() => handleRemovePart(partId)} className="button-remove-part" style={{ marginLeft: "10px", fontSize: "0.8em", padding: "2px 5px" }}>Remove</button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <button type="button" onClick={() => setShowAddPartModal(true)} className="button-add-part" style={{ marginTop: "10px" }}>Add Part</button>
         </div>
+
+        {showAddPartModal && (
+          <div className="modal-overlay" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+            <div className="modal-content" style={{ background: "white", padding: "20px", borderRadius: "5px", minWidth: "300px", boxShadow: "0 4px 8px rgba(0,0,0,0.2)" }}>
+              <h3>Select Object to Add as Part</h3>
+              <div className="form-group">
+                <label htmlFor="select-part-dropdown" style={{ display: "block", marginBottom: "5px" }}>Available Objects:</label>
+                <select 
+                  id="select-part-dropdown"
+                  value={selectedObjectForPart} 
+                  onChange={(e) => setSelectedObjectForPart(e.target.value)}
+                  style={{ width: "100%", padding: "8px", marginBottom: "15px" }}
+                >
+                  <option value="">-- Select an Object --</option>
+                  {availableObjectsForParts.map(obj => (
+                    <option key={obj.objectId} value={obj.objectId}>
+                      {obj.name} ({obj.objectCategory})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="modal-actions" style={{ textAlign: "right" }}>
+                <button type="button" onClick={() => setShowAddPartModal(false)} className="button-cancel" style={{ marginRight: "10px" }}>Close</button>
+                <button type="button" onClick={handleAddSelectedPart} className="button-submit">Add Selected</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="form-actions">
           <button type="button" onClick={handleCancel} className="button-cancel">Cancel</button>

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31 # Add Transform for Serverless Functions
+Transform: AWS::Serverless-2016-10-31
 
 Description: 'AppSync Object Resolvers, Data Sources, and Functions'
 
@@ -17,20 +17,20 @@ Parameters:
 Globals:
   Function:
     Timeout: 30
-    MemorySize: 128
-    Runtime: nodejs20.x # Or your preferred runtime
+    MemorySize: 128 
+    Runtime: nodejs20.x 
     Architectures:
       - x86_64
 
 Resources:
-  # Lambda functions for Object resolvers - Defined Here
+  # Lambda functions for Object resolvers
   GetObjectFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: functions/getObject.handler
       CodeUri: ../
       Policies:
-        - DynamoDBReadPolicy: # Read is sufficient
+        - DynamoDBReadPolicy:
             TableName: !Ref ObjectsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Environment:
@@ -43,7 +43,7 @@ Resources:
       Handler: functions/listObjects.handler
       CodeUri: ../
       Policies:
-        - DynamoDBReadPolicy: # Read is sufficient
+        - DynamoDBReadPolicy:
             TableName: !Ref ObjectsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Environment:
@@ -56,7 +56,7 @@ Resources:
       Handler: functions/createObject.handler
       CodeUri: ../
       Policies:
-        - DynamoDBCrudPolicy: # Changed from Write to Crud
+        - DynamoDBCrudPolicy:
             TableName: !Ref ObjectsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Environment:
@@ -69,7 +69,7 @@ Resources:
       Handler: functions/updateObject.handler
       CodeUri: ../
       Policies:
-        - DynamoDBCrudPolicy: # Changed from Write to Crud
+        - DynamoDBCrudPolicy:
             TableName: !Ref ObjectsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Environment:
@@ -82,14 +82,28 @@ Resources:
       Handler: functions/deleteObject.handler
       CodeUri: ../
       Policies:
-        - DynamoDBCrudPolicy: # Changed from Write to Crud
+        - DynamoDBCrudPolicy:
             TableName: !Ref ObjectsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Environment:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
 
-  # Lambda Data Sources for Object Resolvers - Defined Here
+  ResolveObjectPartsFunction: # New Function
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/resolveObjectParts.handler
+      CodeUri: ../
+      MemorySize: 256 
+      Policies:
+        - DynamoDBReadPolicy: 
+            TableName: !Ref ObjectsTableName 
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName # Corrected Env Var Name
+
+  # Lambda Data Sources for Object Resolvers
   GetObjectLambdaDataSource:
     Type: AWS::AppSync::DataSource
     DependsOn: GetObjectFunction
@@ -145,7 +159,18 @@ Resources:
       LambdaConfig:
         LambdaFunctionArn: !GetAtt DeleteObjectFunction.Arn
 
-  # Object Resolvers - Use Data Sources Defined Above
+  ResolveObjectPartsLambdaDataSource: # New Data Source
+    Type: AWS::AppSync::DataSource
+    DependsOn: ResolveObjectPartsFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ResolveObjectPartsLambdaDataSource 
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ResolveObjectPartsFunction.Arn
+
+  # Object Resolvers
   GetObjectResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: GetObjectLambdaDataSource
@@ -223,5 +248,23 @@ Resources:
           "version": "2018-05-29",
           "operation": "Invoke",
           "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  ObjectPartsResolver: # New Resolver
+    Type: AWS::AppSync::Resolver
+    DependsOn: ResolveObjectPartsLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Object 
+      FieldName: parts
+      DataSourceName: "ResolveObjectPartsLambdaDataSource"
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "source": $util.toJson($context.source)
+          }
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
