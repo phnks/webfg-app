@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLazyQuery } from '@apollo/client';
-import { GET_OBJECT } from '../../graphql/operations'; // Assuming GET_OBJECT can fetch parts if needed, or we use a dedicated parts resolver
-import './CharacterBodyTreeView.css'; // We'll create this CSS file later
-
-// This is a simplified version of the resolveObjectParts query from ObjectView,
-// adapted for use here. Ideally, this would be a shared hook or a more generic query.
-// For now, we'll use GET_OBJECT and assume it can return 'parts' if they are resolved by the backend.
-// If Object.parts resolver isn't automatically fetching nested parts,
-// we'd need a dedicated query like RESOLVE_OBJECT_PARTS similar to ObjectView.
-// For this initial implementation, we will use GET_OBJECT and rely on its 'parts' field.
-// A more robust solution might involve a dedicated 'resolveCharacterBodyParts' query.
+import { GET_OBJECT } from '../../graphql/operations';
+import './CharacterBodyTreeView.css';
 
 const PartItem = ({ partId, level }) => {
   const [loadPart, { data, loading, error }] = useLazyQuery(GET_OBJECT);
@@ -34,7 +26,7 @@ const PartItem = ({ partId, level }) => {
 
   if (loading && !objectData) return <li style={{ marginLeft: `${level * 20}px` }} className="part-item loading">Loading part...</li>;
   if (error) return <li style={{ marginLeft: `${level * 20}px` }} className="part-item error">Error loading part: {error.message}</li>;
-  if (!objectData) return null; // Or some placeholder
+  if (!objectData) return null;
 
   return (
     <li style={{ marginLeft: `${level * 20}px` }} className="part-item">
@@ -51,12 +43,9 @@ const PartItem = ({ partId, level }) => {
           ))}
         </ul>
       )}
-      {/* If GET_OBJECT directly returns resolved 'parts' array */}
       {isExpanded && objectData.parts && objectData.parts.length > 0 && !objectData.partsIds && (
          <ul className="nested-parts-list">
           {objectData.parts.map(subPart => (
-            // If subPart itself has partsIds, it needs to be a PartItem to be expandable
-            // For now, assuming 'parts' are fully resolved objects but might not be further expandable in this simple model
              <PartItem key={subPart.objectId} partId={subPart.objectId} level={level + 1} />
           ))}
         </ul>
@@ -66,13 +55,12 @@ const PartItem = ({ partId, level }) => {
 };
 
 const CharacterBodyTreeView = ({ bodyObject }) => {
+  // Moved useState hook BEFORE the conditional return
+  const [isRootExpanded, setIsRootExpanded] = useState(true); 
+
   if (!bodyObject) {
     return <p>No body object assigned to this character.</p>;
   }
-
-  // The root object itself doesn't use PartItem to avoid an initial redundant fetch,
-  // as bodyObject is already provided.
-  const [isRootExpanded, setIsRootExpanded] = useState(true); // Start with root expanded
 
   const toggleRootExpand = () => {
     setIsRootExpanded(!isRootExpanded);
@@ -80,7 +68,7 @@ const CharacterBodyTreeView = ({ bodyObject }) => {
 
   return (
     <div className="character-body-tree-view">
-      <h4>Body: {bodyObject.name} ({bodyObject.objectCategory})</h4>
+      {/* Removed redundant H4 title, handled by CharacterView */}
       {bodyObject.partsIds && bodyObject.partsIds.length > 0 ? (
         <ul className="body-parts-list">
            <li className="part-item root-part">
@@ -100,7 +88,16 @@ const CharacterBodyTreeView = ({ bodyObject }) => {
           </li>
         </ul>
       ) : (
-        <p style={{ marginLeft: '20px' }}>This body has no defined parts.</p>
+         // Display root object even if it has no parts initially
+         <ul className="body-parts-list">
+           <li className="part-item root-part">
+            <div className="part-header"> 
+              <span className="arrow not-expandable"></span> {/* Indicate not expandable */}
+              {bodyObject.name} <span className="part-category">({bodyObject.objectCategory})</span>
+            </div>
+            <p style={{ marginLeft: '20px', fontStyle: 'italic', color: '#888' }}>This body has no defined parts.</p>
+          </li>
+        </ul>
       )}
     </div>
   );
