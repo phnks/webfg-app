@@ -91,7 +91,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const { data: skillsData, loading: skillsLoading, error: skillsError } = useQuery(LIST_SKILLS);
   // Fetch all objects to find body objects (assuming type 'BODY')
   const { data: objectsData, loading: objectsLoading, error: objectsError } = useQuery(LIST_OBJECTS);
-  const bodyObjects = objectsData?.listObjects?.filter(obj => obj.type === 'BODY') || [];
+  const bodyObjects = objectsData?.listObjects?.filter(obj => obj.objectCategory === 'BODY') || [];
 
 
   // State for form data, including dynamic attributes and skills

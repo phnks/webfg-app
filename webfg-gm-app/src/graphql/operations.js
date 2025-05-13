@@ -28,7 +28,7 @@ export const GET_CHARACTER = gql`
       valueData { valueId }
       values { valueId valueName }
       bodyId
-      body { objectId name objectCategory } 
+      body { objectId name objectCategory partsIds } 
       conditions { traitId name }
       traits { traitId name }
       actionIds
