@@ -169,8 +169,8 @@ const CharacterView = () => {
         <div className="section-row">
           <div className="section character-body">
             <h3>Body Structure</h3> 
-            {character.body ? (
-              <CharacterBodyTreeView bodyObject={character.body} />
+            {character.body && character.body.length > 0 ? (
+              <CharacterBodyTreeView bodyObject={character.body[0]} />
             ) : (
               <p>No body structure assigned.</p>
             )}
