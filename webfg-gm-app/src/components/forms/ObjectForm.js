@@ -11,7 +11,7 @@ import {
 import "./Form.css";
 
 // Enums from schema
-const ObjectCategoryEnum = ["ITEM", "TOOL", "WEAPON", "ARMOR", "CONTAINER", "STRUCTURE", "FURNITURE", "BARRIER", "DEVICE", "MATERIAL", "RESOURCE", "CLOTHING", "LIGHT_SOURCE", "DISPLAY", "DOCUMENT", "COMPONENT", "DEBRIS", "ARTIFACT"];
+const ObjectCategoryEnum = ["ITEM", "TOOL", "WEAPON", "ARMOR", "CONTAINER", "STRUCTURE", "FURNITURE", "BARRIER", "DEVICE", "MATERIAL", "RESOURCE", "CLOTHING", "LIGHT_SOURCE", "DISPLAY", "DOCUMENT", "COMPONENT", "DEBRIS", "ARTIFACT", "BODY"];
 const DamageTypeEnum = ["KINETIC", "HYPERTHERMAL", "HYPOTHERMAL", "ELECTRIC", "SONIC", "CHEMICAL", "BIOCHEMICAL", "RADIATION"];
 
 // Helper function to strip __typename fields recursively

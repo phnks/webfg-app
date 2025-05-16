@@ -11,12 +11,11 @@ import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import CharacterAttributes from "./CharacterAttributes";
 import CharacterSkills from "./CharacterSkills";
 import CharacterStats from "./CharacterStats";
-
-
 import CharacterDetails from "./CharacterDetails";
 import CharacterForm from "../forms/CharacterForm";
 import "./CharacterView.css";
 import ErrorPopup from '../common/ErrorPopup'; // Import ErrorPopup
+import CharacterBodyTreeView from './CharacterBodyTreeView'; // ADDED IMPORT
 
 const CharacterView = () => {
   const { characterId } = useParams();
@@ -124,8 +123,6 @@ const CharacterView = () => {
 
   const character = currentCharacter;
 
-
-
   const addAction = (actionId) => {
     // Implementation
   };
@@ -168,24 +165,18 @@ const CharacterView = () => {
           <CharacterSkills skills={character.skills} />
         </div>
 
-
-
-
-
+        {/* === MODIFIED SECTION START === */}
         <div className="section-row">
           <div className="section character-body">
-            <h3>Body / Worn Items</h3>
+            <h3>Body Structure</h3> 
             {character.body && character.body.length > 0 ? (
-              <ul>
-                {character.body.map((item) => (
-                  <li key={item.objectId}>{item.name} ({item.objectCategory})</li>
-                ))}
-              </ul>
+              <CharacterBodyTreeView bodyObject={character.body[0]} />
             ) : (
-              <p>Nothing equipped on body.</p>
+              <p>No body structure assigned.</p>
             )}
           </div>
         </div>
+        {/* === MODIFIED SECTION END === */}
 
         <div className="section-row">
           <div className="section character-traits">
