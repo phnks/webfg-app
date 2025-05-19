@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
 import ErrorPopup from '../common/ErrorPopup';
-import { useQuery, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
   CREATE_CHARACTER,
   UPDATE_CHARACTER,
-  LIST_CHARACTERS,
-  LIST_OBJECTS,
-  GET_CHARACTER
+  LIST_CHARACTERS
 } from "../../graphql/operations";
 import "./Form.css";
+import "./CharacterForm.css";
 
 // Helper function to strip __typename fields recursively
 const stripTypename = (obj) => {
@@ -42,13 +41,16 @@ const CHARACTER_CATEGORIES = [
 ];
 
 const ATTRIBUTE_TYPES = ['HELP', 'HINDER'];
-const VALUE_TYPES = ['GOOD', 'BAD'];
 
 const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => {
   const navigate = useNavigate();
 
   // State for form data matching the new schema
   const [error, setError] = useState(null);
+  const [showAddValueModal, setShowAddValueModal] = useState(false);
+  const [selectedValueName, setSelectedValueName] = useState("");
+  const [selectedValueType, setSelectedValueType] = useState("GOOD");
+  
   const [formData, setFormData] = useState({
     name: "",
     characterCategory: "HUMAN",
@@ -152,28 +154,23 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     }));
   };
 
-  const handleValueToggle = (valueName, valueType) => {
-    setFormData(prev => {
-      const existing = prev.values.find(v => v.valueName === valueName);
-      let newValues;
-      
-      if (existing) {
-        if (existing.valueType === valueType) {
-          // Remove if clicking the same type
-          newValues = prev.values.filter(v => v.valueName !== valueName);
-        } else {
-          // Update the type if different
-          newValues = prev.values.map(v => 
-            v.valueName === valueName ? { ...v, valueType } : v
-          );
-        }
-      } else {
-        // Add new value
-        newValues = [...prev.values, { valueName, valueType }];
-      }
-      
-      return { ...prev, values: newValues };
-    });
+  const handleAddValue = () => {
+    if (selectedValueName && !formData.values.find(v => v.valueName === selectedValueName)) {
+      setFormData(prev => ({
+        ...prev,
+        values: [...prev.values, { valueName: selectedValueName, valueType: selectedValueType }]
+      }));
+      setSelectedValueName("");
+      setSelectedValueType("GOOD");
+      setShowAddValueModal(false);
+    }
+  };
+
+  const handleRemoveValue = (valueName) => {
+    setFormData(prev => ({
+      ...prev,
+      values: prev.values.filter(v => v.valueName !== valueName)
+    }));
   };
 
   const handleSpecialAdd = () => {
@@ -321,135 +318,180 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   ];
 
   return (
-    <div className="character-form">
+    <div className="form-container">
       <form onSubmit={handleSubmit}>
         <h2>{isEditing ? "Edit Character" : "Create New Character"}</h2>
         
         <div className="form-section">
           <h3>Basic Information</h3>
-          <div className="form-field">
-            <label htmlFor="name">Name:</label>
-            <input
-              type="text"
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="category">Category:</label>
-            <select
-              id="category"
-              value={formData.characterCategory}
-              onChange={(e) => handleInputChange('characterCategory', e.target.value)}
-            >
-              {CHARACTER_CATEGORIES.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="will">Will:</label>
-            <input
-              type="number"
-              id="will"
-              value={formData.will}
-              onChange={(e) => handleInputChange('will', e.target.value)}
-            />
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Name</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Category</label>
+              <select
+                value={formData.characterCategory}
+                onChange={(e) => handleInputChange('characterCategory', e.target.value)}
+              >
+                {CHARACTER_CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Will</label>
+              <input
+                type="number"
+                value={formData.will}
+                onChange={(e) => handleInputChange('will', e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
         <div className="form-section">
           <h3>Attributes</h3>
-          {attributes.map(attr => (
-            <div key={attr} className="attribute-section">
-              <h4>{attr.charAt(0).toUpperCase() + attr.slice(1)}</h4>
-              <div className="attribute-fields">
-                <div className="form-field">
-                  <label>Value:</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={formData[attr]?.attribute?.attributeValue || 0}
-                    onChange={(e) => handleNestedAttributeChange(attr, 'attributeValue', e.target.value)}
-                  />
-                </div>
-                <div className="form-field">
-                  <label>Type:</label>
-                  <select
-                    value={formData[attr]?.attribute?.attributeType || 'HELP'}
-                    onChange={(e) => handleNestedAttributeChange(attr, 'attributeType', e.target.value)}
-                  >
-                    {ATTRIBUTE_TYPES.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-field">
-                  <label>Fatigue:</label>
-                  <input
-                    type="number"
-                    value={formData[attr]?.fatigue || 0}
-                    onChange={(e) => handleAttributeChange(attr, 'fatigue', e.target.value)}
-                  />
+          <div className="attributes-grid">
+            {attributes.map(attr => (
+              <div key={attr} className="attribute-group">
+                <h4>{attr.charAt(0).toUpperCase() + attr.slice(1)}</h4>
+                <div className="attribute-fields">
+                  <div className="form-field">
+                    <label>Value</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={formData[attr]?.attribute?.attributeValue || 0}
+                      onChange={(e) => handleNestedAttributeChange(attr, 'attributeValue', e.target.value)}
+                    />
+                  </div>
+                  <div className="form-field">
+                    <label>Type</label>
+                    <select
+                      value={formData[attr]?.attribute?.attributeType || 'HELP'}
+                      onChange={(e) => handleNestedAttributeChange(attr, 'attributeType', e.target.value)}
+                    >
+                      {ATTRIBUTE_TYPES.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-field">
+                    <label>Fatigue</label>
+                    <input
+                      type="number"
+                      value={formData[attr]?.fatigue || 0}
+                      onChange={(e) => handleAttributeChange(attr, 'fatigue', e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <div className="form-section">
           <h3>Values</h3>
-          <div className="values-grid">
-            {VALUE_NAMES.map(valueName => {
-              const currentValue = formData.values.find(v => v.valueName === valueName);
-              return (
-                <div key={valueName} className="value-item">
-                  <div className="value-name">{valueName}</div>
-                  <div className="value-types">
-                    <button
-                      type="button"
-                      className={`value-type ${currentValue?.valueType === 'GOOD' ? 'active' : ''}`}
-                      onClick={() => handleValueToggle(valueName, 'GOOD')}
-                    >
-                      GOOD
-                    </button>
-                    <button
-                      type="button"
-                      className={`value-type ${currentValue?.valueType === 'BAD' ? 'active' : ''}`}
-                      onClick={() => handleValueToggle(valueName, 'BAD')}
-                    >
-                      BAD
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="form-group">
+            {formData.values.length === 0 && <p className="empty-message">No values added.</p>}
+            <ul className="parts-list">
+              {formData.values.map((value) => (
+                <li key={value.valueName}>
+                  {value.valueName} ({value.valueType})
+                  <button 
+                    type="button" 
+                    onClick={() => handleRemoveValue(value.valueName)} 
+                    className="button-remove"
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button type="button" onClick={() => setShowAddValueModal(true)} className="button-add-part">
+              Add Value
+            </button>
           </div>
         </div>
+
+        {showAddValueModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h3>Add Value</h3>
+              <div className="form-group">
+                <label>Value Name</label>
+                <select 
+                  value={selectedValueName} 
+                  onChange={(e) => setSelectedValueName(e.target.value)}
+                >
+                  <option value="">-- Select a Value --</option>
+                  {VALUE_NAMES
+                    .filter(name => !formData.values.find(v => v.valueName === name))
+                    .map(name => (
+                      <option key={name} value={name}>{name}</option>
+                    ))
+                  }
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Value Type</label>
+                <select 
+                  value={selectedValueType} 
+                  onChange={(e) => setSelectedValueType(e.target.value)}
+                >
+                  <option value="GOOD">GOOD</option>
+                  <option value="BAD">BAD</option>
+                </select>
+              </div>
+              <div className="modal-actions">
+                <button type="button" onClick={() => setShowAddValueModal(false)} className="button-cancel">
+                  Cancel
+                </button>
+                <button type="button" onClick={handleAddValue} className="button-submit">
+                  Add Value
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="form-section">
           <h3>Special Abilities</h3>
-          <div className="special-list">
-            {formData.special.map((item, index) => (
-              <div key={index} className="special-item">
-                <span>{item}</span>
-                <button type="button" onClick={() => handleSpecialRemove(index)}>Remove</button>
-              </div>
-            ))}
+          <div className="form-group">
+            {formData.special.length === 0 && <p className="empty-message">No special abilities added.</p>}
+            <ul className="parts-list">
+              {formData.special.map((ability, index) => (
+                <li key={index}>
+                  {ability}
+                  <button 
+                    type="button" 
+                    onClick={() => handleSpecialRemove(index)} 
+                    className="button-remove"
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button type="button" onClick={handleSpecialAdd} className="button-add-part">
+              Add Special Ability
+            </button>
           </div>
-          <button type="button" onClick={handleSpecialAdd}>Add Special Ability</button>
         </div>
 
         <div className="form-actions">
-          <button type="submit" data-cy="save-button">
-            {isEditing ? "Update Character" : "Create Character"}
-          </button>
-          <button type="button" onClick={onClose} data-cy="cancel-button">
+          <button type="button" onClick={onClose} className="button-cancel">
             Cancel
+          </button>
+          <button type="submit" className="button-submit">
+            {isEditing ? "Update Character" : "Create Character"}
           </button>
         </div>
       </form>
