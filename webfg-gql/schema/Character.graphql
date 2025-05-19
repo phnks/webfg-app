@@ -6,17 +6,17 @@ type Character {
 
   values: [Value]      
 
-  lethality: Attribute!
-  armour: Attribute!
-  endurance: Attribute!
-  strength: Attribute!
-  dexterity: Attribute!
-  agility: Attribute!
-  perception: Attribute!
-  charisma: Attribute!
-  intelligence: Attribute!
-  resolve: Attribute!
-  morale: Attribute!
+  lethality: CharacterAttribute!
+  armour: CharacterAttribute!
+  endurance: CharacterAttribute!
+  strength: CharacterAttribute!
+  dexterity: CharacterAttribute!
+  agility: CharacterAttribute!
+  perception: CharacterAttribute!
+  charisma: CharacterAttribute!
+  intelligence: CharacterAttribute!
+  resolve: CharacterAttribute!
+  morale: CharacterAttribute!
 
   actionIds: [ID]
   actions: [Action]
@@ -39,4 +39,9 @@ enum CharacterCategory {
   DAXMC
   QRTIS
   TYVIR
+}
+
+type CharacterAttribute {
+  attribute: Attribute!
+  fatigue: Int!
 }
