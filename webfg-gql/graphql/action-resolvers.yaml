@@ -90,9 +90,8 @@ Resources:
             "actionCategory": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionCategory),
             "sourceAttribute": $util.dynamodb.toDynamoDBJson($ctx.args.input.sourceAttribute),
             "targetAttribute": $util.dynamodb.toDynamoDBJson($ctx.args.input.targetAttribute),
-            "actionTargets": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionTargets),
-            "actionSources": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionSources),
-            "actionEffects": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionEffects),
+            "targetType": $util.dynamodb.toDynamoDBJson($ctx.args.input.targetType),
+            "effectType": $util.dynamodb.toDynamoDBJson($ctx.args.input.effectType),
             "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
           }
         }
@@ -114,16 +113,15 @@ Resources:
             "actionId": $util.dynamodb.toDynamoDBJson($ctx.args.actionId)
           },
           "update": {
-            "expression": "SET #name = :name, #actionCategory = :actionCategory, #sourceAttribute = :sourceAttribute, #targetAttribute = :targetAttribute, #description = :description, #actionTargets = :actionTargets, #actionSources = :actionSources, #actionEffects = :actionEffects",
+            "expression": "SET #name = :name, #actionCategory = :actionCategory, #sourceAttribute = :sourceAttribute, #targetAttribute = :targetAttribute, #description = :description, #targetType = :targetType, #effectType = :effectType",
             "expressionNames": {
               "#name": "name",
               "#actionCategory": "actionCategory",
               "#sourceAttribute": "sourceAttribute",
               "#targetAttribute": "targetAttribute",
               "#description": "description",
-              "#actionTargets": "actionTargets",
-              "#actionSources": "actionSources",
-              "#actionEffects": "actionEffects"
+              "#targetType": "targetType",
+              "#effectType": "effectType"
             },
             "expressionValues": {
               ":name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
@@ -131,9 +129,8 @@ Resources:
               ":sourceAttribute": $util.dynamodb.toDynamoDBJson($ctx.args.input.sourceAttribute),
               ":targetAttribute": $util.dynamodb.toDynamoDBJson($ctx.args.input.targetAttribute),
               ":description": $util.dynamodb.toDynamoDBJson($ctx.args.input.description),
-              ":actionTargets": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionTargets),
-              ":actionSources": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionSources),
-              ":actionEffects": $util.dynamodb.toDynamoDBJson($ctx.args.input.actionEffects)
+              ":targetType": $util.dynamodb.toDynamoDBJson($ctx.args.input.targetType),
+              ":effectType": $util.dynamodb.toDynamoDBJson($ctx.args.input.effectType)
             }
           }
         }

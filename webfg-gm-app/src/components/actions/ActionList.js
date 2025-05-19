@@ -44,6 +44,10 @@ const ActionList = () => {
                 <div className="action-meta">
                   <span className="action-category">{action.actionCategory}</span>
                   <span className="action-attributes">{action.sourceAttribute} → {action.targetAttribute}</span>
+                  <div className="action-details-meta">
+                    <span className="action-target-type">{action.targetType}</span>
+                    <span className="action-effect-type">{action.effectType}</span>
+                  </div>
                 </div>
                 {action.description && (
                   <p className="action-description">

@@ -167,45 +167,16 @@ const ActionView = () => {
              <span>Description:</span>
              <p>{action.description || "No description available."}</p>
            </div>
-
-           <h3>Targets</h3>
-           {action.actionTargets && action.actionTargets.length > 0 ? (
-             <ul className="array-list">
-               {action.actionTargets.map((target, index) => (
-                 <li key={`target-${index}`}>
-                   {target.quantity} x {target.targetType} (Seq: {target.sequenceId})
-                 </li>
-               ))}
-             </ul>
-           ) : (
-             <p>No targets defined</p>
-           )}
-
-           <h3>Sources</h3>
-           {action.actionSources && action.actionSources.length > 0 ? (
-             <ul className="array-list">
-               {action.actionSources.map((source, index) => (
-                 <li key={`source-${index}`}>
-                   {source.quantity} x {source.sourceType} (Seq: {source.sequenceId})
-                 </li>
-               ))}
-             </ul>
-           ) : (
-             <p>No sources defined</p>
-           )}
-
-           <h3>Effects</h3>
-           {action.actionEffects && action.actionEffects.length > 0 ? (
-             <ul className="array-list">
-               {action.actionEffects.map((effect, index) => (
-                 <li key={`effect-${index}`}>
-                   {effect.effectType} (Qty: {effect.quantity}, Seq: {effect.sequenceId})
-                 </li>
-               ))}
-             </ul>
-           ) : (
-             <p>No effects defined</p>
-           )}
+           
+           <h3>Action Properties</h3>
+           <div className="detail-row">
+             <span>Target Type:</span>
+             <span>{action.targetType || "N/A"}</span>
+           </div>
+           <div className="detail-row">
+             <span>Effect Type:</span>
+             <span>{action.effectType || "N/A"}</span>
+           </div>
          </div>
       </div>
       <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} />

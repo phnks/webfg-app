@@ -107,9 +107,8 @@ export const LIST_ACTIONS = gql`
       sourceAttribute
       targetAttribute
       description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      targetType
+      effectType
     }
   }
 `;
@@ -123,9 +122,8 @@ export const GET_ACTION = gql`
       sourceAttribute
       targetAttribute
       description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      targetType
+      effectType
     }
   }
 `;
@@ -139,9 +137,8 @@ export const GET_ACTIONS = gql`
       sourceAttribute
       targetAttribute
       description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      targetType
+      effectType
     }
   }
 `;
@@ -292,9 +289,8 @@ export const CREATE_ACTION = gql`
   mutation CreateAction($input: ActionInput!) {
     createAction(input: $input) {
       actionId name actionCategory sourceAttribute targetAttribute description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      targetType
+      effectType
     }
   }
 `;
@@ -302,9 +298,8 @@ export const UPDATE_ACTION = gql`
   mutation UpdateAction($actionId: ID!, $input: ActionInput!) {
     updateAction(actionId: $actionId, input: $input) {
       actionId name actionCategory sourceAttribute targetAttribute description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      targetType
+      effectType
     }
   }
 `;
@@ -598,9 +593,8 @@ export const ON_UPDATE_ACTION = gql`
   subscription OnUpdateAction { 
     onUpdateAction { 
       actionId name actionCategory sourceAttribute targetAttribute description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      targetType
+      effectType
     } 
   }
 `;

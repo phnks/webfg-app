@@ -5,9 +5,8 @@ type Action {
   sourceAttribute: AttributeName!
   targetAttribute: AttributeName!
   description: String
-  actionTargets: [Target]!
-  actionSources: [Source]!
-  actionEffects: [Effect]!
+  targetType: TargetType!
+  effectType: EffectType!
 }
 
 enum ActionCategory {
@@ -20,48 +19,16 @@ enum ActionCategory {
   ASSIST
 }
 
-type Target {
-  targetType: TargetType!
-  quantity: Int!
-  sequenceId: Int!
-}
-
 enum TargetType {
-  ACTION
-  SELF
   OBJECT
   CHARACTER
-  LOCATION
-}
-
-type Source {
-  sourceType: SourceType!
-  quantity: Int!
-  sequenceId: Int!
-}
-
-enum SourceType {
   ACTION
-  SELF
-  OBJECT
-  CHARACTER
-  LOCATION
-}
-
-type Effect {
-  effectType: EffectType!
-  quantity: Int!
-  sequenceId: Int!
 }
 
 enum EffectType {
-  MODIFY_STAT
-  MODIFY_SKILL
-  MODIFY_ATTRIBUTE
-  CANCEL_MOVE
-  MOVE
-  HIT
-  CANCEL_HIT
+  HELP
+  HINDER
+  DESTROY
 }
 
 input ActionInput {
@@ -70,25 +37,6 @@ input ActionInput {
   sourceAttribute: AttributeName!
   targetAttribute: AttributeName!
   description: String
-  actionTargets: [TargetInput]!
-  actionSources: [SourceInput]!
-  actionEffects: [EffectInput]!
-}
-
-input TargetInput {
   targetType: TargetType!
-  quantity: Int!
-  sequenceId: Int!
-}
-
-input SourceInput {
-  sourceType: SourceType!
-  quantity: Int!
-  sequenceId: Int!
-}
-
-input EffectInput {
   effectType: EffectType!
-  quantity: Int!
-  sequenceId: Int!
 }

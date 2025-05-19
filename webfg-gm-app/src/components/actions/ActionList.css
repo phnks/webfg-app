@@ -95,6 +95,30 @@
 .action-attributes {
   color: #555;
   font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.action-details-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.action-target-type,
+.action-effect-type {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.action-target-type {
+  background-color: #f0f7ff;
+  color: #0366d6;
+}
+
+.action-effect-type {
+  background-color: #fff5e6;
+  color: #f76707;
 }
 
 .action-description {
