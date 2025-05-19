@@ -186,6 +186,11 @@ input StringFilterInput {
   beginsWith: String
 }
 
+input ObjectFilterInput {
+  name: StringFilterInput
+  objectCategory: ObjectCategory
+}
+
 input EncounterFilterInput {
   name: StringFilterInput
 }

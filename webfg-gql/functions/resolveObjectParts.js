@@ -20,21 +20,22 @@ exports.handler = async (event) => {
     return [];
   }
 
-  const partIds = parentObject.partsIds;
-  if (!partIds || partIds.length === 0) {
-    console.log("No partIds found on parent object or partIds array is empty.");
+  // Changed from partsIds to equipmentIds
+  const equipmentIds = parentObject.equipmentIds;
+  if (!equipmentIds || equipmentIds.length === 0) {
+    console.log("No equipmentIds found on parent object or equipmentIds array is empty.");
     return [];
   }
 
-  console.log(`Fetching details for partIds: ${partIds.join(", ")} from table ${OBJECTS_TABLE_NAME}`);
+  console.log(`Fetching details for equipmentIds: ${equipmentIds.join(", ")} from table ${OBJECTS_TABLE_NAME}`);
 
-  const keys = partIds.map(id => ({ objectId: id }));
+  const keys = equipmentIds.map(id => ({ objectId: id }));
 
   if (keys.length > 100) {
       console.error(`Attempting to fetch ${keys.length} items, which exceeds BatchGetCommand limit of 100. This requires chunking.`);
-      throw new Error(`Cannot fetch more than 100 parts at once due to BatchGetCommand limits. Received ${keys.length} partIds.`);
+      throw new Error(`Cannot fetch more than 100 equipment items at once due to BatchGetCommand limits. Received ${keys.length} equipmentIds.`);
   }
-  if (keys.length === 0) { // Should be caught by !partIds || partIds.length === 0, but as a safeguard
+  if (keys.length === 0) {
     return [];
   }
 
@@ -48,29 +49,27 @@ exports.handler = async (event) => {
 
   try {
     const data = await ddbDocClient.send(new BatchGetCommand(params));
-    const resolvedParts = data.Responses && data.Responses[OBJECTS_TABLE_NAME] ? data.Responses[OBJECTS_TABLE_NAME] : [];
+    const resolvedEquipment = data.Responses && data.Responses[OBJECTS_TABLE_NAME] ? data.Responses[OBJECTS_TABLE_NAME] : [];
 
-    console.log(`Successfully fetched ${resolvedParts.length} parts.`);
+    console.log(`Successfully fetched ${resolvedEquipment.length} equipment items.`);
 
-    // Ensure the returned parts are in the same order as parentObject.partIds
-    // This is important if the frontend relies on this order.
-    // BatchGetItem does not guarantee order.
-    const orderedParts = [];
-    if (resolvedParts.length > 0) {
-      const partsMap = new Map(resolvedParts.map(part => [part.objectId, part]));
-      partIds.forEach(id => {
-        if (partsMap.has(id)) {
-          orderedParts.push(partsMap.get(id));
+    // Ensure the returned equipment items are in the same order as parentObject.equipmentIds
+    const orderedEquipment = [];
+    if (resolvedEquipment.length > 0) {
+      const equipmentMap = new Map(resolvedEquipment.map(item => [item.objectId, item]));
+      equipmentIds.forEach(id => {
+        if (equipmentMap.has(id)) {
+          orderedEquipment.push(equipmentMap.get(id));
         } else {
-          console.warn(`PartId ${id} was requested but not found in BatchGetResponse.`);
+          console.warn(`EquipmentId ${id} was requested but not found in BatchGetResponse.`);
         }
       });
     }
-    return orderedParts;
+    return orderedEquipment;
 
   } catch (error) {
-    console.error("Error fetching parts with BatchGetCommand:", error);
+    console.error("Error fetching equipment with BatchGetCommand:", error);
     console.error("BatchGetCommand params:", JSON.stringify(params, null, 2));
-    throw new Error("Failed to resolve object parts due to an internal error.");
+    throw new Error("Failed to resolve object equipment due to an internal error.");
   }
 };

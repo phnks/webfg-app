@@ -1,4 +1,3 @@
-
 const { DynamoDBDocumentClient, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 
@@ -10,7 +9,7 @@ const OBJECTS_TABLE_NAME = process.env.OBJECTS_TABLE_NAME;
 exports.handler = async (event) => {
     console.log('Received event:', JSON.stringify(event, null, 2));
 
-    const { objectId, input } = event; // Corrected: Access arguments directly from event
+    const { objectId, input } = event;
     const updatedAt = new Date().toISOString();
 
     const updateExpressionParts = [];
@@ -22,7 +21,7 @@ exports.handler = async (event) => {
     updateExpressionParts.push('#updatedAt = :updatedAt');
 
     for (const key in input) {
-        if (input.hasOwnProperty(key) && key !== 'objectId') { // Exclude objectId from update
+        if (input.hasOwnProperty(key) && key !== 'objectId') {
             const value = input[key];
             const attributeName = `#${key}`;
             const attributeValue = `:${key}`;
@@ -41,7 +40,7 @@ exports.handler = async (event) => {
         UpdateExpression: `SET ${updateExpressionParts.join(', ')}`,
         ExpressionAttributeNames: expressionAttributeNames,
         ExpressionAttributeValues: expressionAttributeValues,
-        ReturnValues: 'ALL_NEW', // Return the updated item
+        ReturnValues: 'ALL_NEW',
     };
 
     try {
@@ -49,7 +48,7 @@ exports.handler = async (event) => {
         const result = await ddbDocClient.send(command);
         console.log('DynamoDB Update result:', JSON.stringify(result, null, 2));
 
-        return result.Attributes; // Return the updated item
+        return result.Attributes;
     } catch (error) {
         console.error('Error updating object in DynamoDB:', error);
         throw new Error('Error updating object.');

@@ -2,109 +2,52 @@ type Object {
   objectId: ID!
   name: String!
   objectCategory: ObjectCategory!
-  width: Float!
-  length: Float!
-  height: Float!
-  weight: Float!
-  penetration: Float!
-  deflection: Float!
-  impact: Float!
-  absorption: Float!
-  hitPoints: StatValue!
-  damageMin: Float!
-  damageMax: Float!
-  damageType: DamageType!
-  isLimb: Boolean!
-  noise: Float!
-  duration: Float!
-  handling: Float!
-  capacity: Float!
-  falloff: Float!
-  partsIds: [ID]
-  parts: [Object]
-  usage: [Usage]
+  lethality: Attribute!
+  armour: Attribute!
+  endurance: Attribute!
+  strength: Attribute!
+  dexterity: Attribute!
+  agility: Attribute!
+  perception: Attribute!
+  charisma: Attribute!
+  intelligence: Attribute!
+  resolve: Attribute!
+  morale: Attribute!
+  special: [String]
+  equipmentIds: [ID]
+  equipment: [Object]
 }
 
 enum ObjectCategory {
-  ITEM
   TOOL
   WEAPON
   ARMOR
   CONTAINER
   STRUCTURE
-  FURNITURE
-  BARRIER
+  JEWLERY
   DEVICE
   MATERIAL
-  RESOURCE
   CLOTHING
   LIGHT_SOURCE
-  DISPLAY
   DOCUMENT
   COMPONENT
-  DEBRIS
   ARTIFACT
-}
-
-enum DamageType {
-  KINETIC
-  HYPERTHERMAL
-  HYPOTHERMAL
-  ELECTRIC
-  SONIC
-  CHEMICAL
-  BIOCHEMICAL
-  RADIATION
-}
-
-type Usage {
-  actionId: ID!
-  usageType: [UsageType]!
-}
-
-enum UsageType {
-  SET_PENETRATION
-  MODIFY_PENETRATION
-  SET_DAMAGE
-  MODIFY_DAMAGE
-  SET_DURATION
-  MODIFY_DURATION
-  MODIFY_TARGET_DURATION
-  SET_NOISE
 }
 
 input ObjectInput {
   name: String
   objectCategory: ObjectCategory
-  width: Float
-  length: Float
-  height: Float
-  weight: Float
-  penetration: Float
-  deflection: Float
-  impact: Float
-  absorption: Float
-  hitPoints: StatValueInput
-  damageMin: Float
-  damageMax: Float
-  damageType: DamageType
-  isLimb: Boolean
-  noise: Float
-  duration: Float
-  handling: Float
-  capacity: Float
-  falloff: Float
-  partsIds: [ID]
-  usage: [UsageInput]
-}
-
-input ObjectFilterInput {
-  name: StringFilterInput
-  objectCategory: ObjectCategory
-  maxWeight: Float
-}
-
-input UsageInput {
-  actionId: ID!
-  usageType: [UsageType]!
+  lethality: AttributeInput
+  armour: AttributeInput
+  endurance: AttributeInput
+  strength: AttributeInput
+  dexterity: AttributeInput
+  agility: AttributeInput
+  perception: AttributeInput
+  charisma: AttributeInput
+  intelligence: AttributeInput
+  resolve: AttributeInput
+  morale: AttributeInput
+  special: [String]
+  equipmentIds: [ID]
 }
