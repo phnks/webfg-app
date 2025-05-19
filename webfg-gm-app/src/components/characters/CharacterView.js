@@ -298,8 +298,19 @@ const CharacterView = () => {
                       {item.name} ({item.objectCategory})
                     </div>
                     <button 
+                      type="button"
                       className="unequip-button" 
                       onClick={() => handleUnequipItem(item.objectId)}
+                      style={{
+                        backgroundColor: '#fd7e14',
+                        color: 'white',
+                        padding: '4px 10px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        fontSize: '0.9em',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
                     >
                       Unequip
                     </button>
@@ -323,8 +334,19 @@ const CharacterView = () => {
                       {item.name} ({item.objectCategory})
                     </div>
                     <button 
+                      type="button"
                       className="equip-button" 
                       onClick={() => handleEquipItem(item.objectId)}
+                      style={{
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        padding: '4px 10px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        fontSize: '0.9em',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
                     >
                       Equip
                     </button>
