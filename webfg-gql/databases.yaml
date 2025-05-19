@@ -59,53 +59,18 @@ Resources:
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
 
-  SkillsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub "${ServiceName}-Skills" # Follow naming convention
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: skillId # Assuming skillId is the primary key
-          AttributeType: S
-      KeySchema:
-        - AttributeName: skillId
-          KeyType: HASH
-
-  AttributesTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub "${ServiceName}-Attributes" # Follow naming convention
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: attributeId # Assuming attributeId is the primary key
-          AttributeType: S
-      KeySchema:
-        - AttributeName: attributeId
-          KeyType: HASH
-
   FormulasTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub "${ServiceName}-Formulas" # Follow naming convention
+      TableName: !Sub "${ServiceName}-Formulas"
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: formulaId # Assuming formulaId is the primary key
+        - AttributeName: formulaId
           AttributeType: S
       KeySchema:
         - AttributeName: formulaId
           KeyType: HASH
 
-  ValuesTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub "${ServiceName}-Values" # Follow naming convention
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: valueId # Assuming valueId is the primary key
-          AttributeType: S
-      KeySchema:
-        - AttributeName: valueId
-          KeyType: HASH
 
 Outputs:
   CharactersTableName:
@@ -120,15 +85,6 @@ Outputs:
   EncountersTableName:
     Description: 'Name of the Encounters table'
     Value: !Ref EncountersTable
-  SkillsTableName:
-    Description: 'Name of the Skills table'
-    Value: !Ref SkillsTable
-  AttributesTableName:
-    Description: 'Name of the Attributes table'
-    Value: !Ref AttributesTable
   FormulasTableName:
     Description: 'Name of the Formulas table'
     Value: !Ref FormulasTable
-  ValuesTableName:
-    Description: 'Name of the Values table'
-    Value: !Ref ValuesTable

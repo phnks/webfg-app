@@ -15,11 +15,18 @@ const CharacterDetails = ({ character }) => {
             <td>Name:</td>
             <td>{character.name}</td>
           </tr>
-
+          <tr>
+            <td>Category:</td>
+            <td>{character.characterCategory}</td>
+          </tr>
+          <tr>
+            <td>Will:</td>
+            <td>{character.will}</td>
+          </tr>
         </tbody>
       </table>
     </div>
   );
 };
 
-export default CharacterDetails; 
+export default CharacterDetails;

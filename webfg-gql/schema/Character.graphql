@@ -1,82 +1,79 @@
-# Type representing the stored value data
-type StoredValueData {
-  valueId: ID!
-}
-
-# Type representing the stored value data input
-input StoredValueDataInput {
-  valueId: ID!
-}
-
-# Type representing the stored attribute data
-type StoredAttributeData {
-  attributeId: ID!
-  attributeValue: Int!
-}
-
-# Type representing the stored skill data
-type StoredSkillData {
-  skillId: ID!
-  skillValue: Int!
-}
-
 type Character {
   characterId: ID!
   name: String!
+  characterCategory: CharacterCategory!
+  will: Int!
 
-  attributeData: [StoredAttributeData!]! 
-  attributes: [CharacterAttribute]!      
+  values: [Value]      
 
-  skillData: [StoredSkillData!]! 
-  skills: [CharacterSkill!]!     
-
-  stats: Stats!
-
-  valueData: [StoredValueData!]! 
-  values: [CharacterValue]!      
-
-  conditionIds: [ID] 
-  conditions: [Trait] 
-
-  bodyId: ID
-  body: [Object] 
+  lethality: CharacterAttribute!
+  armour: CharacterAttribute!
+  endurance: CharacterAttribute!
+  strength: CharacterAttribute!
+  dexterity: CharacterAttribute!
+  agility: CharacterAttribute!
+  perception: CharacterAttribute!
+  charisma: CharacterAttribute!
+  intelligence: CharacterAttribute!
+  resolve: CharacterAttribute!
+  morale: CharacterAttribute!
 
   actionIds: [ID]
   actions: [Action]
 
-  traitIds: [ID] 
-  traits: [Trait] 
+  special: [String]
 
-  # inventoryIds: [ID] # Removed
-  # inventory: [Object]  # Removed
-  # equipmentIds: [ID] # Removed
-  # equipment: [Object]  # Removed
+  inventoryIds: [ID]
+  inventory: [Object]
+  equipmentIds: [ID]
+  equipment: [Object]
 }
 
-input CharacterSkillInput { 
-  skillId: ID!
-  skillValue: Int!
-}
-
-type CharacterSkill {
-  skillId: ID!
-  skillValue: Int!
-  skillName: SkillName!
-  skillCategory: SkillCategory!
-}
-
-input CharacterAttributeInput { 
-  attributeId: ID!
-  attributeValue: Int!
+enum CharacterCategory {
+  HUMAN
+  TREPIDITE
+  MONSTER
+  CARVED
+  ANTHRO
+  ICER
+  DAXMC
+  QRTIS
+  TYVIR
 }
 
 type CharacterAttribute {
-  attributeId: ID!
-  attributeValue: Int!
-  attributeName: AttributeName!
+  attribute: Attribute!
+  fatigue: Int!
 }
 
-type CharacterValue {
-  valueId: ID!
+input CharacterAttributeInput {
+  attribute: AttributeInput!
+  fatigue: Int!
+}
+
+input ValueInput {
   valueName: ValueName!
+  valueType: ValueType!
+}
+
+input CharacterInput {
+  name: String!
+  characterCategory: CharacterCategory!
+  will: Int!
+  values: [ValueInput]
+  lethality: CharacterAttributeInput!
+  armour: CharacterAttributeInput!
+  endurance: CharacterAttributeInput!
+  strength: CharacterAttributeInput!
+  dexterity: CharacterAttributeInput!
+  agility: CharacterAttributeInput!
+  perception: CharacterAttributeInput!
+  charisma: CharacterAttributeInput!
+  intelligence: CharacterAttributeInput!
+  resolve: CharacterAttributeInput!
+  morale: CharacterAttributeInput!
+  actionIds: [ID]
+  special: [String]
+  inventoryIds: [ID]
+  equipmentIds: [ID]
 }

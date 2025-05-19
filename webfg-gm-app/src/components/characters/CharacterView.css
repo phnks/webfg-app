@@ -80,4 +80,38 @@
 
 .error {
   color: #dc3545;
-} 
+}
+
+/* Special abilities styling */
+.character-special ul.special-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.special-item {
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 10px 15px;
+  margin-bottom: 8px;
+  border-left: 3px solid #007bff;
+}
+
+/* Character action styling */
+.character-action {
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+}
+
+.action-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.action-description {
+  color: #666;
+  font-size: 14px;
+}

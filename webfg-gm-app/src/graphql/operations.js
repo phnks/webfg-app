@@ -15,25 +15,30 @@ export const GET_CHARACTER = gql`
     getCharacter(characterId: $characterId) {
       characterId
       name
-      attributeData { attributeId attributeValue }
-      attributes { attributeId attributeValue attributeName }
-      skillData { skillId skillValue }
-      skills { skillId skillValue skillName skillCategory }
-      stats {
-        hitPoints { current max }
-        fatigue { current max }
-        exhaustion { current max }
-        surges { current max }
-      }
-      valueData { valueId }
-      values { valueId valueName }
-      bodyId
-      body { objectId name objectCategory } 
-      conditions { traitId name }
-      traits { traitId name }
+      characterCategory
+      will
+      values { valueName valueType }
+      
+      # Character attributes with fatigue
+      lethality { attribute { attributeValue attributeType } fatigue }
+      armour { attribute { attributeValue attributeType } fatigue }
+      endurance { attribute { attributeValue attributeType } fatigue }
+      strength { attribute { attributeValue attributeType } fatigue }
+      dexterity { attribute { attributeValue attributeType } fatigue }
+      agility { attribute { attributeValue attributeType } fatigue }
+      perception { attribute { attributeValue attributeType } fatigue }
+      charisma { attribute { attributeValue attributeType } fatigue }
+      intelligence { attribute { attributeValue attributeType } fatigue }
+      resolve { attribute { attributeValue attributeType } fatigue }
+      morale { attribute { attributeValue attributeType } fatigue }
+      
+      special
       actionIds
-      actions { actionId name description }
-      # inventory and equipment fields removed from Character type response
+      actions { actionId name actionCategory description }
+      inventoryIds
+      inventory { objectId name objectCategory }
+      equipmentIds
+      equipment { objectId name objectCategory }
     }
   }
 `;
@@ -91,19 +96,6 @@ export const GET_OBJECT = gql`
   }
 `;
 
-// SKILL QUERIES
-export const LIST_SKILLS = gql`
-  query ListSkills {
-    listSkills { skillId skillName skillCategory }
-  }
-`;
-
-// ATTRIBUTE QUERIES
-export const LIST_ATTRIBUTES = gql`
-  query ListAttributes {
-    listAttributes { attributeId attributeName }
-  }
-`;
 
 // ACTION QUERIES
 export const LIST_ACTIONS = gql`
@@ -204,36 +196,61 @@ export const GET_ENCOUNTER = gql`
 
 // CHARACTER MUTATIONS
 export const CREATE_CHARACTER = gql`
-  mutation CreateCharacter($name: String!, $attributeData: [CharacterAttributeInput!], $skillData: [CharacterSkillInput!], $stats: StatsInput, $valueData: [StoredValueDataInput!], $conditions: [String], $bodyId: ID, $inventoryIds: [ID], $equipmentIds: [ID], $actionIds: [ID]) {
-    createCharacter(name: $name, attributeData: $attributeData, skillData: $skillData, stats: $stats, valueData: $valueData, conditions: $conditions, bodyId: $bodyId, inventoryIds: $inventoryIds, equipmentIds: $equipmentIds, actionIds: $actionIds) {
+  mutation CreateCharacter($input: CharacterInput!) {
+    createCharacter(input: $input) {
       characterId
       name
-      attributeData { attributeId attributeValue }
-      skillData { skillId skillValue }
-      stats { hitPoints { current max } fatigue { current max } exhaustion { current max } surges { current max } }
-      valueData { valueId }
-      bodyId
+      characterCategory
+      will
+      values { valueName valueType }
+      
+      # Character attributes with fatigue
+      lethality { attribute { attributeValue attributeType } fatigue }
+      armour { attribute { attributeValue attributeType } fatigue }
+      endurance { attribute { attributeValue attributeType } fatigue }
+      strength { attribute { attributeValue attributeType } fatigue }
+      dexterity { attribute { attributeValue attributeType } fatigue }
+      agility { attribute { attributeValue attributeType } fatigue }
+      perception { attribute { attributeValue attributeType } fatigue }
+      charisma { attribute { attributeValue attributeType } fatigue }
+      intelligence { attribute { attributeValue attributeType } fatigue }
+      resolve { attribute { attributeValue attributeType } fatigue }
+      morale { attribute { attributeValue attributeType } fatigue }
+      
+      special
       actionIds
-      conditions { traitId name }
+      inventoryIds
+      equipmentIds
     }
   }
 `;
 
 export const UPDATE_CHARACTER = gql`
-  mutation UpdateCharacter($characterId: ID!, $name: String, $attributeData: [CharacterAttributeInput!], $skillData: [CharacterSkillInput!], $stats: StatsInput, $valueData: [StoredValueDataInput!], $conditions: [String], $bodyId: ID, $inventoryIds: [ID], $equipmentIds: [ID], $actionIds: [ID]) {
-    updateCharacter(characterId: $characterId, name: $name, attributeData: $attributeData, skillData: $skillData, stats: $stats, valueData: $valueData, conditions: $conditions, bodyId: $bodyId, inventoryIds: $inventoryIds, equipmentIds: $equipmentIds, actionIds: $actionIds) {
+  mutation UpdateCharacter($characterId: ID!, $input: CharacterInput!) {
+    updateCharacter(characterId: $characterId, input: $input) {
       characterId
       name
-      attributeData { attributeId attributeValue }
-      skillData { skillId skillValue }
-      stats { hitPoints { current max } fatigue { current max } exhaustion { current max } surges { current max } }
-      valueData { valueId }
-      conditions { traitId name }
-      bodyId
-      body { objectId name objectCategory }
-      conditions { traitId name }
-      traits { traitId name } 
+      characterCategory
+      will
+      values { valueName valueType }
+      
+      # Character attributes with fatigue
+      lethality { attribute { attributeValue attributeType } fatigue }
+      armour { attribute { attributeValue attributeType } fatigue }
+      endurance { attribute { attributeValue attributeType } fatigue }
+      strength { attribute { attributeValue attributeType } fatigue }
+      dexterity { attribute { attributeValue attributeType } fatigue }
+      agility { attribute { attributeValue attributeType } fatigue }
+      perception { attribute { attributeValue attributeType } fatigue }
+      charisma { attribute { attributeValue attributeType } fatigue }
+      intelligence { attribute { attributeValue attributeType } fatigue }
+      resolve { attribute { attributeValue attributeType } fatigue }
+      morale { attribute { attributeValue attributeType } fatigue }
+      
+      special
       actionIds
+      inventoryIds
+      equipmentIds
     }
   }
 `;
@@ -330,7 +347,12 @@ export const ADD_OBJECT_TO_INVENTORY = gql`
     addObjectToInventory(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
-      # inventory no longer on Character type directly
+      inventoryIds
+      inventory {
+        objectId
+        name
+        objectCategory
+      }
     }
   }
 `;
@@ -339,6 +361,12 @@ export const REMOVE_OBJECT_FROM_INVENTORY = gql`
     removeObjectFromInventory(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
+      inventoryIds
+      inventory {
+        objectId
+        name
+        objectCategory
+      } 
     }
   }
 `;
@@ -347,7 +375,12 @@ export const ADD_OBJECT_TO_EQUIPMENT = gql`
     addObjectToEquipment(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
-      # equipment no longer on Character type directly
+      equipmentIds
+      equipment {
+        objectId
+        name
+        objectCategory
+      }
     }
   }
 `;
@@ -356,6 +389,12 @@ export const REMOVE_OBJECT_FROM_EQUIPMENT = gql`
     removeObjectFromEquipment(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
+      equipmentIds
+      equipment {
+        objectId
+        name
+        objectCategory
+      }
     }
   }
 `;
@@ -499,28 +538,42 @@ export const REMOVE_TERRAIN_FROM_ENCOUNTER = gql`
 export const ON_CREATE_CHARACTER = gql`
   subscription OnCreateCharacter {
     onCreateCharacter {
-      characterId name
-      valueData { valueId }
-      bodyId
-      # inventoryIds # Removed from response
-      # equipmentIds # Removed from response
+      characterId
+      name
+      characterCategory
+      will
+      values { valueName valueType }
+      inventoryIds
+      equipmentIds
     }
   }
 `;
 export const ON_UPDATE_CHARACTER = gql`
   subscription OnUpdateCharacter {
     onUpdateCharacter {
-      characterId name
-      attributeData { attributeId attributeValue }
-      skillData { skillId skillValue }
-      stats { hitPoints { current max } fatigue { current max } exhaustion { current max } surges { current max } }
-      valueData { valueId }
-      bodyId
-      conditions { traitId name }
-      # inventoryIds # Removed from response
-      # equipmentIds # Removed from response
+      characterId
+      name
+      characterCategory
+      will
+      values { valueName valueType }
+      
+      # Character attributes with fatigue
+      lethality { attribute { attributeValue attributeType } fatigue }
+      armour { attribute { attributeValue attributeType } fatigue }
+      endurance { attribute { attributeValue attributeType } fatigue }
+      strength { attribute { attributeValue attributeType } fatigue }
+      dexterity { attribute { attributeValue attributeType } fatigue }
+      agility { attribute { attributeValue attributeType } fatigue }
+      perception { attribute { attributeValue attributeType } fatigue }
+      charisma { attribute { attributeValue attributeType } fatigue }
+      intelligence { attribute { attributeValue attributeType } fatigue }
+      resolve { attribute { attributeValue attributeType } fatigue }
+      morale { attribute { attributeValue attributeType } fatigue }
+      
+      special
       actionIds
-      # inventory and equipment fields removed
+      inventoryIds
+      equipmentIds
     }
   }
 `;

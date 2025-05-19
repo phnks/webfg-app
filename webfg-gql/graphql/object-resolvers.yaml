@@ -89,7 +89,7 @@ Resources:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
 
-  ResolveObjectEquipmentFunction: # New Function
+  ResolveObjectEquipmentFunction: # Function for equipment resolver
     Type: AWS::Serverless::Function
     Properties:
       Handler: functions/resolveObjectParts.handler
@@ -101,7 +101,7 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Environment:
         Variables:
-          OBJECTS_TABLE_NAME: !Ref ObjectsTableName # Corrected Env Var Name
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
 
   # Lambda Data Sources for Object Resolvers
   GetObjectLambdaDataSource:
@@ -159,12 +159,12 @@ Resources:
       LambdaConfig:
         LambdaFunctionArn: !GetAtt DeleteObjectFunction.Arn
 
-  ResolveObjectPartsLambdaDataSource: # New Data Source
+  ResolveObjectEquipmentLambdaDataSource: # Data Source for equipment
     Type: AWS::AppSync::DataSource
     DependsOn: ResolveObjectEquipmentFunction
     Properties:
       ApiId: !Ref ApiId
-      Name: ResolveObjectPartsLambdaDataSource 
+      Name: ResolveObjectEquipmentLambdaDataSource 
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
@@ -251,14 +251,14 @@ Resources:
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
 
-  ObjectEquipmentResolver: # New Resolver
+  ObjectEquipmentResolver: # Resolver for equipment field
     Type: AWS::AppSync::Resolver
-    DependsOn: ResolveObjectPartsLambdaDataSource
+    DependsOn: ResolveObjectEquipmentLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: Object 
       FieldName: equipment
-      DataSourceName: "ResolveObjectPartsLambdaDataSource"
+      DataSourceName: "ResolveObjectEquipmentLambdaDataSource"
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",

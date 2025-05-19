@@ -9,8 +9,6 @@ import {
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import CharacterAttributes from "./CharacterAttributes";
-import CharacterSkills from "./CharacterSkills";
-import CharacterStats from "./CharacterStats";
 
 
 import CharacterDetails from "./CharacterDetails";
@@ -157,64 +155,22 @@ const CharacterView = () => {
       <div className="character-sections">
         <div className="section-row">
           <CharacterDetails character={character} />
-          <CharacterStats stats={character.stats} />
         </div>
 
         <div className="section-row">
-          <CharacterAttributes attributes={character.attributes} />
-        </div>
-
-        <div className="section-row">
-          <CharacterSkills skills={character.skills} />
-        </div>
-
-
-
-
-
-        <div className="section-row">
-          <div className="section character-body">
-            <h3>Body / Worn Items</h3>
-            {character.body && character.body.length > 0 ? (
-              <ul>
-                {character.body.map((item) => (
-                  <li key={item.objectId}>{item.name} ({item.objectCategory})</li>
-                ))}
-              </ul>
-            ) : (
-              <p>Nothing equipped on body.</p>
-            )}
-          </div>
-        </div>
-
-        <div className="section-row">
-          <div className="section character-traits">
-            <h3>Traits</h3>
-            {character.traits && character.traits.length > 0 ? (
-              <ul>
-                {character.traits.map((trait) => (
-                  <li key={trait.traitId}>{trait.name}</li>
-                ))}
-              </ul>
-            ) : (
-              <p>No traits</p>
-            )}
-          </div>
-        </div>
-
-        <div className="section-row">
-          <div className="section character-conditions">
-            <h3>Conditions</h3>
-            {character.conditions && character.conditions.length > 0 ? (
-              <ul>
-                {character.conditions.map((condition) => (
-                  <li key={condition.traitId}>{condition.name}</li>
-                ))}
-              </ul>
-            ) : (
-              <p>No conditions</p>
-            )}
-          </div>
+          <CharacterAttributes 
+            lethality={character.lethality}
+            armour={character.armour}
+            endurance={character.endurance}
+            strength={character.strength}
+            dexterity={character.dexterity}
+            agility={character.agility}
+            perception={character.perception}
+            charisma={character.charisma}
+            intelligence={character.intelligence}
+            resolve={character.resolve}
+            morale={character.morale}
+          />
         </div>
 
         <div className="section-row">
@@ -222,15 +178,52 @@ const CharacterView = () => {
             <h3>Values</h3>
             {character.values && character.values.length > 0 ? (
               <ul>
-                {character.values.map((value) => (
-                  <li key={value.valueId}>{value.valueName}</li>
+                {character.values.map((value, index) => (
+                  <li key={index}>
+                    {value.valueName} ({value.valueType})
+                  </li>
                 ))}
               </ul>
             ) : (
-              <p>No values</p>
+              <p>No values.</p>
             )}
           </div>
         </div>
+
+
+
+
+
+        <div className="section-row">
+          <div className="section character-equipment">
+            <h3>Equipment</h3>
+            {character.equipment && character.equipment.length > 0 ? (
+              <ul>
+                {character.equipment.map((item) => (
+                  <li key={item.objectId}>{item.name} ({item.objectCategory})</li>
+                ))}
+              </ul>
+            ) : (
+              <p>Nothing equipped.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="section-row">
+          <div className="section character-inventory">
+            <h3>Inventory</h3>
+            {character.inventory && character.inventory.length > 0 ? (
+              <ul>
+                {character.inventory.map((item) => (
+                  <li key={item.objectId}>{item.name} ({item.objectCategory})</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No items in inventory.</p>
+            )}
+          </div>
+        </div>
+
 
         <div className="section-row">
           <div className="section actions">
@@ -246,6 +239,21 @@ const CharacterView = () => {
               </div>
             ) : (
               <p>No actions</p>
+            )}
+          </div>
+        </div>
+
+        <div className="section-row">
+          <div className="section character-special">
+            <h3>Special Abilities</h3>
+            {character.special && character.special.length > 0 ? (
+              <ul className="special-list">
+                {character.special.map((ability, index) => (
+                  <li key={index} className="special-item">{ability}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No special abilities</p>
             )}
           </div>
         </div>
