@@ -101,8 +101,9 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const [createCharacter] = useMutation(CREATE_CHARACTER, {
     refetchQueries: [{ query: LIST_CHARACTERS }],
     onCompleted: (data) => {
+      console.log('Create character response:', data);
       if (onSuccess) {
-        onSuccess(data.createCharacter);
+        onSuccess(data.createCharacter.characterId);
       } else {
         navigate(`/characters/${data.createCharacter.characterId}`);
       }
@@ -112,7 +113,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const [updateCharacter] = useMutation(UPDATE_CHARACTER, {
     onCompleted: (data) => {
       if (onSuccess) {
-        onSuccess(data.updateCharacter);
+        onSuccess(data.updateCharacter.characterId);
       }
     }
   });
