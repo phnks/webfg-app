@@ -6,8 +6,17 @@ type Character {
 
   values: [Value]      
 
-  bodyId: ID!
-  body: [Object]! 
+  lethality: Attribute!
+  armour: Attribute!
+  endurance: Attribute!
+  strength: Attribute!
+  dexterity: Attribute!
+  agility: Attribute!
+  perception: Attribute!
+  charisma: Attribute!
+  intelligence: Attribute!
+  resolve: Attribute!
+  morale: Attribute!
 
   actionIds: [ID]
   actions: [Action]
