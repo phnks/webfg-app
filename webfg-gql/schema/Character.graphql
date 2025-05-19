@@ -1,82 +1,33 @@
-# Type representing the stored value data
-type StoredValueData {
-  valueId: ID!
-}
-
-# Type representing the stored value data input
-input StoredValueDataInput {
-  valueId: ID!
-}
-
-# Type representing the stored attribute data
-type StoredAttributeData {
-  attributeId: ID!
-  attributeValue: Int!
-}
-
-# Type representing the stored skill data
-type StoredSkillData {
-  skillId: ID!
-  skillValue: Int!
-}
-
 type Character {
   characterId: ID!
   name: String!
+  characterCategory: CharacterCategory!
+  will: Int!
 
-  attributeData: [StoredAttributeData!]! 
-  attributes: [CharacterAttribute]!      
+  values: [Value]      
 
-  skillData: [StoredSkillData!]! 
-  skills: [CharacterSkill!]!     
-
-  stats: Stats!
-
-  valueData: [StoredValueData!]! 
-  values: [CharacterValue]!      
-
-  conditionIds: [ID] 
-  conditions: [Trait] 
-
-  bodyId: ID
-  body: [Object] 
+  bodyId: ID!
+  body: [Object]! 
 
   actionIds: [ID]
   actions: [Action]
 
-  traitIds: [ID] 
-  traits: [Trait] 
+  special: [String]
 
-  # inventoryIds: [ID] # Removed
-  # inventory: [Object]  # Removed
-  # equipmentIds: [ID] # Removed
-  # equipment: [Object]  # Removed
+  inventoryIds: [ID]
+  inventory: [Object]
+  equipmentIds: [ID]
+  equipment: [Object]
 }
 
-input CharacterSkillInput { 
-  skillId: ID!
-  skillValue: Int!
-}
-
-type CharacterSkill {
-  skillId: ID!
-  skillValue: Int!
-  skillName: SkillName!
-  skillCategory: SkillCategory!
-}
-
-input CharacterAttributeInput { 
-  attributeId: ID!
-  attributeValue: Int!
-}
-
-type CharacterAttribute {
-  attributeId: ID!
-  attributeValue: Int!
-  attributeName: AttributeName!
-}
-
-type CharacterValue {
-  valueId: ID!
-  valueName: ValueName!
+enum CharacterCategory {
+  HUMAN
+  TREPIDITE
+  MONSTER
+  CARVED
+  ANTHRO
+  ICER
+  DAXMC
+  QRTIS
+  TYVIR
 }
