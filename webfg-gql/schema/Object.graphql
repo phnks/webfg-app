@@ -6,7 +6,7 @@ type Object {
   armour: Attribute!
   endurance: Attribute!
   strength: Attribute!
-  Dexterity: Attribute!
+  dexterity: Attribute!
   agility: Attribute!
   perception: Attribute!
   charisma: Attribute!
