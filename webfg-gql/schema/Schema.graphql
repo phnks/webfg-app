@@ -29,32 +29,8 @@ type Query {
 
 type Mutation {
   # Character mutations
-  createCharacter(
-    name: String!
-    attributeData: [CharacterAttributeInput!] 
-    skillData: [CharacterSkillInput!] 
-    stats: StatsInput
-    valueData: [StoredValueDataInput!] 
-    conditions: [String]
-    bodyId: ID 
-    inventoryIds: [ID] 
-    equipmentIds: [ID] 
-    actionIds: [ID]
-  ): Character
-
-  updateCharacter(
-    characterId: ID!
-    name: String
-    attributeData: [CharacterAttributeInput!] 
-    skillData: [CharacterSkillInput!] 
-    stats: StatsInput
-    valueData: [StoredValueDataInput!] 
-    conditions: [String]
-    bodyId: ID 
-    inventoryIds: [ID] 
-    equipmentIds: [ID] 
-    actionIds: [ID]
-  ): Character
+  createCharacter(input: CharacterInput!): Character
+  updateCharacter(characterId: ID!, input: CharacterInput!): Character
 
   deleteCharacter(characterId: ID!): Character
 

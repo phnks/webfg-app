@@ -13,7 +13,7 @@ exports.handler = async (event) => {
     throw new Error("Internal server error: CHARACTERS_TABLE not set.");
   }
 
-  const characterId = event.characterId;
+  const { characterId, input } = event;
 
   if (!characterId) {
     console.error("characterId is required for updateCharacter.");
@@ -24,60 +24,39 @@ exports.handler = async (event) => {
   const expressionAttributeNames = {};
   const expressionAttributeValues = {};
 
-  if (event.name !== undefined) {
-    updateExpressionParts.push("#name = :name");
-    expressionAttributeNames["#name"] = "name";
-    expressionAttributeValues[":name"] = event.name;
-  }
-  if (event.attributeData !== undefined) {
-    updateExpressionParts.push("#attributeData = :attributeData");
-    expressionAttributeNames["#attributeData"] = "attributeData";
-    expressionAttributeValues[":attributeData"] = event.attributeData;
-  }
-  if (event.skillData !== undefined) {
-    updateExpressionParts.push("#skillData = :skillData");
-    expressionAttributeNames["#skillData"] = "skillData";
-    expressionAttributeValues[":skillData"] = event.skillData;
-  }
-  if (event.stats !== undefined) {
-    updateExpressionParts.push("#stats = :stats");
-    expressionAttributeNames["#stats"] = "stats";
-    expressionAttributeValues[":stats"] = event.stats;
-  }
-  if (event.conditions !== undefined) {
-    updateExpressionParts.push("#conditions = :conditions");
-    expressionAttributeNames["#conditions"] = "conditions";
-    expressionAttributeValues[":conditions"] = event.conditions;
-  }
-  if (event.valueData !== undefined) {
-    updateExpressionParts.push("#valueData = :valueData");
-    expressionAttributeNames["#valueData"] = "valueData";
-    expressionAttributeValues[":valueData"] = event.valueData;
-  }
-  if (event.bodyId !== undefined) {
-    updateExpressionParts.push("#bodyId = :bodyId");
-    expressionAttributeNames["#bodyId"] = "bodyId";
-    expressionAttributeValues[":bodyId"] = event.bodyId;
-  }
-  if (event.inventoryIds !== undefined) {
-    updateExpressionParts.push("#inventoryIds = :inventoryIds");
-    expressionAttributeNames["#inventoryIds"] = "inventoryIds";
-    expressionAttributeValues[":inventoryIds"] = event.inventoryIds;
-  }
-  if (event.equipmentIds !== undefined) {
-    updateExpressionParts.push("#equipmentIds = :equipmentIds");
-    expressionAttributeNames["#equipmentIds"] = "equipmentIds";
-    expressionAttributeValues[":equipmentIds"] = event.equipmentIds;
-  }
-  if (event.actionIds !== undefined) {
-    updateExpressionParts.push("#actionIds = :actionIds");
-    expressionAttributeNames["#actionIds"] = "actionIds";
-    expressionAttributeValues[":actionIds"] = event.actionIds;
-  }
+  // Helper function to add update expression parts
+  const addUpdateField = (fieldName, fieldValue, attributeName = fieldName) => {
+    if (fieldValue !== undefined) {
+      updateExpressionParts.push(`#${attributeName} = :${attributeName}`);
+      expressionAttributeNames[`#${attributeName}`] = fieldName;
+      expressionAttributeValues[`:${attributeName}`] = fieldValue;
+    }
+  };
+
+  // Update fields from input
+  addUpdateField("name", input.name);
+  addUpdateField("characterCategory", input.characterCategory);
+  addUpdateField("will", input.will);
+  addUpdateField("values", input.values);
+  addUpdateField("lethality", input.lethality);
+  addUpdateField("armour", input.armour);
+  addUpdateField("endurance", input.endurance);
+  addUpdateField("strength", input.strength);
+  addUpdateField("dexterity", input.dexterity);
+  addUpdateField("agility", input.agility);
+  addUpdateField("perception", input.perception);
+  addUpdateField("charisma", input.charisma);
+  addUpdateField("intelligence", input.intelligence);
+  addUpdateField("resolve", input.resolve);
+  addUpdateField("morale", input.morale);
+  addUpdateField("actionIds", input.actionIds);
+  addUpdateField("special", input.special);
+  addUpdateField("inventoryIds", input.inventoryIds);
+  addUpdateField("equipmentIds", input.equipmentIds);
 
   if (updateExpressionParts.length === 0) {
-    console.warn("UpdateCharacter called with only characterId and no actual fields to update. This is not a valid update operation.");
-    throw new Error("No fields specified for update. At least one field (e.g., name) must be provided to update a character.");
+    console.warn("UpdateCharacter called with only characterId and no actual fields to update.");
+    throw new Error("No fields specified for update.");
   }
 
   const updateExpression = "SET " + updateExpressionParts.join(", ");
@@ -99,7 +78,7 @@ exports.handler = async (event) => {
       console.log("Successfully updated character:", result.Attributes);
       return result.Attributes;
     } else {
-      console.error(`UpdateCharacter Lambda: Character with ID ${characterId} not found, or UpdateCommand returned no/empty attributes. Explicitly returning null.`);
+      console.error(`UpdateCharacter Lambda: Character with ID ${characterId} not found`);
       return null; 
     }
   } catch (error) {

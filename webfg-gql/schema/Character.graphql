@@ -45,3 +45,35 @@ type CharacterAttribute {
   attribute: Attribute!
   fatigue: Int!
 }
+
+input CharacterAttributeInput {
+  attribute: AttributeInput!
+  fatigue: Int!
+}
+
+input ValueInput {
+  valueName: ValueName!
+  valueType: ValueType!
+}
+
+input CharacterInput {
+  name: String!
+  characterCategory: CharacterCategory!
+  will: Int!
+  values: [ValueInput]
+  lethality: CharacterAttributeInput!
+  armour: CharacterAttributeInput!
+  endurance: CharacterAttributeInput!
+  strength: CharacterAttributeInput!
+  dexterity: CharacterAttributeInput!
+  agility: CharacterAttributeInput!
+  perception: CharacterAttributeInput!
+  charisma: CharacterAttributeInput!
+  intelligence: CharacterAttributeInput!
+  resolve: CharacterAttributeInput!
+  morale: CharacterAttributeInput!
+  actionIds: [ID]
+  special: [String]
+  inventoryIds: [ID]
+  equipmentIds: [ID]
+}

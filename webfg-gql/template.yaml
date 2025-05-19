@@ -47,18 +47,22 @@ Parameters:
     Type: String
     Description: 'Name of db data source'
     Default: 'EncountersDataSource'
-  SkillsDataSourceName: # Add new parameter
-    Type: String
-    Description: 'Name of Skills db data source'
-    Default: 'SkillsDataSource'
-  AttributesDataSourceName: # Add new parameter
-    Type: String
-    Description: 'Name of Attributes db data source'
-    Default: 'AttributesDataSource'
-  FormulasDataSourceName: # Add new parameter
+  FormulasDataSourceName:
     Type: String
     Description: 'Name of Formulas db data source'
     Default: 'FormulasDataSource'
+  SkillsDataSourceName:
+    Type: String
+    Description: 'Name of Skills db data source'
+    Default: 'SkillsDataSource'
+  AttributesDataSourceName:
+    Type: String
+    Description: 'Name of Attributes db data source'
+    Default: 'AttributesDataSource'
+  ValuesDataSourceName:
+    Type: String
+    Description: 'Name of Values db data source'
+    Default: 'ValuesDataSource'
   CharactersTableName:
     Type: String
     Description: 'Name of table'
@@ -71,32 +75,40 @@ Parameters:
     Type: String
     Description: 'Name of table'
     Default: ''
-  FormulasTableName: # Add new parameter
+  FormulasTableName:
     Type: String
     Description: 'Name of Formulas table'
+    Default: ''
+  SkillsTableName:
+    Type: String
+    Description: 'Name of Skills table'
+    Default: ''
+  AttributesTableName:
+    Type: String
+    Description: 'Name of Attributes table'
+    Default: ''
+  ValuesTableName:
+    Type: String
+    Description: 'Name of Values table'
     Default: ''
   EncountersTableName:
     Type: String
     Description: 'Name of table'
     Default: ''
-  ValuesTableName: # Add parameter
-    Type: String
-    Description: 'Name of Values table'
-    Default: '' # Added default value
-  DeploymentId: # New parameter for PR ID
+  DeploymentId:
     Type: String
     Description: 'Unique ID for QA deployments (e.g., PR number)'
     Default: 'none'
   SchemaS3Key:
     Type: String
     Description: S3 key for the GraphQL schema file
-  SchemaS3BucketName: # Add parameter to receive bucket name
+  SchemaS3BucketName:
     Type: String
     Description: Name of the S3 bucket for GraphQL schemas
 
 Conditions:
   IsQA: !Equals [!Ref Environment, 'qa']
-  IsQADeployment: !And # New condition for PR-specific QA
+  IsQADeployment: !And
     - Condition: IsQA
     - !Not [!Equals [!Ref DeploymentId, 'none']]
 
@@ -135,22 +147,23 @@ Resources:
         ObjectsTableName: !GetAtt DatabasesNestedStack.Outputs.ObjectsTableName
         ActionsTableName: !GetAtt DatabasesNestedStack.Outputs.ActionsTableName
         EncountersTableName: !GetAtt DatabasesNestedStack.Outputs.EncountersTableName
-        SkillsTableName: !GetAtt DatabasesNestedStack.Outputs.SkillsTableName # Pass output
-        AttributesTableName: !GetAtt DatabasesNestedStack.Outputs.AttributesTableName # Pass output
+        FormulasTableName: !GetAtt DatabasesNestedStack.Outputs.FormulasTableName
+        SkillsTableName: !GetAtt DatabasesNestedStack.Outputs.SkillsTableName
+        AttributesTableName: !GetAtt DatabasesNestedStack.Outputs.AttributesTableName
+        ValuesTableName: !GetAtt DatabasesNestedStack.Outputs.ValuesTableName
         CharactersDataSourceName: !Ref CharactersDataSourceName
         ObjectsDataSourceName: !Ref ObjectsDataSourceName
         ActionsDataSourceName: !Ref ActionsDataSourceName
         EncountersDataSourceName: !Ref EncountersDataSourceName
-        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down
-        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down
-        FormulasDataSourceName: !Ref FormulasDataSourceName # Pass down
-        FormulasTableName: !GetAtt DatabasesNestedStack.Outputs.FormulasTableName # Pass output
-        ValuesTableName: !GetAtt DatabasesNestedStack.Outputs.ValuesTableName # Pass output
+        FormulasDataSourceName: !Ref FormulasDataSourceName
+        SkillsDataSourceName: !Ref SkillsDataSourceName
+        AttributesDataSourceName: !Ref AttributesDataSourceName
+        ValuesDataSourceName: !Ref ValuesDataSourceName
         PhnksCertArn: !Ref PhnksCertArn
         PhnksHostedZoneId: !Ref PhnksHostedZoneId
         DomainName: !Ref DomainName
         SchemaS3Key: !Ref SchemaS3Key
-        SchemaS3BucketName: !Ref SchemaS3BucketName # Pass this parameter down
+        SchemaS3BucketName: !Ref SchemaS3BucketName
 
 Outputs:
   GraphQLApiEndpoint:

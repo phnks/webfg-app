@@ -14,19 +14,30 @@ exports.handler = async (event) => {
     throw new Error("Internal server error.");
   }
 
+  const { input } = event;
   const characterId = uuidv4();
 
   const item = {
     characterId: characterId,
-    name: event.name,
-    attributeData: event.attributeData || [],
-    skillData: event.skillData || [],
-    stats: event.stats || {},
-    conditions: event.conditions || [],
-    actionIds: event.actionIds || [],
-    traitIds: event.traitIds || [],
-    valueData: event.valueData || [],
-    bodyId: event.bodyId || null, // bodyId is a single ID now
+    name: input.name,
+    characterCategory: input.characterCategory,
+    will: input.will || 0,
+    values: input.values || [],
+    lethality: input.lethality,
+    armour: input.armour,
+    endurance: input.endurance,
+    strength: input.strength,
+    dexterity: input.dexterity,
+    agility: input.agility,
+    perception: input.perception,
+    charisma: input.charisma,
+    intelligence: input.intelligence,
+    resolve: input.resolve,
+    morale: input.morale,
+    actionIds: input.actionIds || [],
+    special: input.special || [],
+    inventoryIds: input.inventoryIds || [],
+    equipmentIds: input.equipmentIds || []
   };
 
   const params = {
