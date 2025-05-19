@@ -29,12 +29,10 @@ npm run restart:bg   # Restart background server
 npm run build
 
 # Testing
-npm test                   # Run all tests
-npm run cypress:open       # Open Cypress test runner UI
-npm run cypress:run        # Run Cypress tests in headless mode
-npm run cypress:run dev    # Run against local dev environment 
-npm run cypress:run qa ID  # Run against QA environment (needs deployment ID)
-npm run cypress:run prod   # Run against production environment
+npm test                              # Run all tests
+npm run cypress:open                  # Open Cypress test runner UI
+npm run cypress:run                   # Run Cypress tests in headless mode
+npm run cypress:run ${DEPLOYMENT_ID}  # Run against QA environment (needs deployment ID)
 
 # Deployment
 npm run deploy:qa ${DEPLOYMENT_ID}   # Deploy to QA (requires DEPLOYMENT_ID)
@@ -106,8 +104,8 @@ The application revolves around these primary entities:
 3. If a PR does not exist for your feature branch create one using the same `gh` cli command.
 4. Once you have a PR for your feature branch, ensure you remember the PR number. The PR number serves as your DEPLOYMENT_ID when testing any of your code changes.
 5. This project has CICD using github actions which you can find under the .github folder. Each time you push a change to a remote branch that has a PR (and all feature branches should always have 1 PR), the github action will trigger and automatically deploy all your changes to a new environment tagged with your DEPLOYMENT_ID which is the same as your PR number. For example if your PR number is 69 it will automatically deploy webfg-gm-app-qa69 and webfg-gql-qa69.
-6. You should ALWAYS still deploy manually using the commands in the package.json. For example: `DEPLOYMENT_ID=69 npm run deploy:qa`. You should ALWAYS do this manual deployment since if your code changes cause it to fail you'll want to know the failure reason. The github action will not tell you if it failed.
-7. You can use the `check-deploy:qa` comcommand as well to check the root cause of any deployment failure. For example: `DEPLOYMENT_ID=69 npm run check-deploy:qa` would tell you the status of the deployment for DEPLOYMENT_ID 69 which is for PR number 69. For example, if you run `DEPLOYMENT_ID=69 npm run deploy:qa` and are told that it failed, often the error will be from AWS CloudFormation and look something like ROLLBACK_COMPLETE or ROLLBACK_UPDATE_COMPLETE which means it failed and was rolled back by AWS.
+6. You should ALWAYS still deploy manually using the commands in the package.json. For example: `npm run deploy:qa 69`. You should ALWAYS do this manual deployment since if your code changes cause it to fail you'll want to know the failure reason. The github action will not tell you if it failed.
+7. You can use the `check-deploy:qa` comcommand as well to check the root cause of any deployment failure. For example: `npm run check-deploy:qa 69` would tell you the status of the deployment for DEPLOYMENT_ID 69 which is for PR number 69. For example, if you run `npm run deploy:qa 69` and are told that it failed, often the error will be from AWS CloudFormation and look something like ROLLBACK_COMPLETE or ROLLBACK_UPDATE_COMPLETE which means it failed and was rolled back by AWS.
 8. webfg-gm-app is only for the react web frontend, and webfg-gql is only for the graphql backend. 
 9. If your changes only affect the frontend you only need to deploy webfg-gm-app to test your changes
 10. If your changes only affect the backend graphql or databases then you only need to deploy webfg-gql to test your changes.
