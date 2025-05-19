@@ -12,3 +12,17 @@ enum AttributeType {
   HELP
   HINDER
 }
+
+enum AttributeNames {
+  LETHALITY,
+  ARMOUR,
+  ENDURANCE,
+  STRENGTH,
+  DEXTERITY,
+  AGILITY,
+  PERCEPTION,
+  CHARISMA,
+  INTELLIGENCE,
+  RESOLVE,
+  MORALE
+}
