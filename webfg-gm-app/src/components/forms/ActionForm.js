@@ -7,8 +7,7 @@ import {
   UPDATE_ACTION,
   LIST_ACTIONS,
   LIST_FORMULAS,
-  CREATE_FORMULA, // Import CREATE_FORMULA
-  defaultActionForm
+  CREATE_FORMULA
 } from "../../graphql/operations";
 import "./Form.css";
 
@@ -17,6 +16,23 @@ const Units = ["POUNDS", "FEET", "SECONDS"];
 const TargetType = ["ACTION", "SELF", "OBJECT", "CHARACTER", "LOCATION"];
 const SourceType = ["ACTION", "SELF", "OBJECT", "CHARACTER", "LOCATION"];
 const EffectType = ["MODIFY_STAT", "MODIFY_SKILL", "MODIFY_ATTRIBUTE", "CANCEL_MOVE", "MOVE", "HIT", "CANCEL_HIT"];
+
+const defaultActionForm = {
+  name: '',
+  actionCategory: ActionCategory[0],
+  initDurationId: '',
+  defaultInitDuration: '',
+  durationId: '',
+  defaultDuration: '',
+  fatigueCost: '',
+  difficultyClassId: '',
+  guaranteedFormulaId: '',
+  units: Units[0],
+  description: '',
+  actionTargets: [],
+  actionSources: [],
+  actionEffects: []
+};
 
 const stripTypename = (obj) => {
   if (obj === null || typeof obj !== 'object') {

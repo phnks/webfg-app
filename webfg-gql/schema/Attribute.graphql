@@ -3,7 +3,26 @@ type Attribute {
   attributeType: AttributeType!
 }
 
+input AttributeInput {
+  attributeValue: Float!
+  attributeType: AttributeType!
+}
+
 enum AttributeType {
   HELP
   HINDER
+}
+
+enum AttributeName {
+  LETHALITY
+  ARMOUR
+  ENDURANCE
+  STRENGTH
+  DEXTERITY
+  AGILITY
+  PERCEPTION
+  CHARISMA
+  INTELLIGENCE
+  RESOLVE
+  MORALE
 }

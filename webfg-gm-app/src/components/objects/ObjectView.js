@@ -20,7 +20,7 @@ const ObjectView = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentObject, setCurrentObject] = useState(null);
   const [addObjectSuccess, setAddObjectSuccess] = useState(false);
-  const [mutationError, setMutationError] = useState(null); // Added mutationError state
+  const [mutationError, setMutationError] = useState(null);
   const location = useLocation();
   const [breadcrumbs, setBreadcrumbs] = useState([]);
 
@@ -43,7 +43,6 @@ const ObjectView = () => {
       const updatedObject = data.data.onUpdateObject;
       if (updatedObject && updatedObject.objectId === objectId) {
         console.log("Object update received via subscription:", updatedObject);
-        // Refresh the object data
         setCurrentObject(prev => ({
           ...prev,
           ...updatedObject
@@ -58,7 +57,6 @@ const ObjectView = () => {
       const deletedObject = data.data.onDeleteObject;
       if (deletedObject && deletedObject.objectId === objectId) {
         console.log("Object was deleted");
-        // Redirect to the object list since this object no longer exists
         navigate("/objects");
       }
     }
@@ -120,7 +118,7 @@ const ObjectView = () => {
 
   const handleEditSuccess = () => {
     setIsEditing(false);
-    refetch(); // Refetch to ensure we have the latest data
+    refetch();
   };
 
   const handleEditCancel = () => {
@@ -130,7 +128,6 @@ const ObjectView = () => {
   // Handle adding object to selected character's inventory
   const handleAddToInventory = async () => {
     if (!selectedCharacter) {
-      // Optionally display an error or message if no character is selected
       setMutationError({ message: "Please select a character first.", stack: null });
       return;
     }
@@ -142,7 +139,6 @@ const ObjectView = () => {
           objectId
         }
       });
-      // Check for null data or errors (including null values for all keys in data)
       if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
       }
@@ -166,23 +162,6 @@ const ObjectView = () => {
       }
       setMutationError({ message: errorMessage, stack: errorStack });
     }
-  };
-
-
-  const addToInventory = (objectId) => {
-    // Implementation
-  };
-
-  const equipItem = (objectId, slot) => {
-    // Implementation
-  };
-
-  const removeItem = (objectId) => {
-    // Implementation
-  };
-
-  const addAction = (actionId) => {
-    // Implementation
   };
 
   if (loading) return <div className="loading">Loading object details...</div>;
@@ -247,92 +226,102 @@ const ObjectView = () => {
             <span>Category:</span>
             <span>{currentObject.objectCategory || "N/A"}</span>
           </div>
-          <div className="detail-row">
-            <span>Weight:</span>
-            <span>{currentObject.weight?.toFixed(2) || "0.00"} kg</span>
-          </div>
-          <div className="detail-row">
-            <span>Dimensions (W×L×H):</span>
-            <span>
-              {currentObject.width?.toFixed(2) || "N/A"} × {currentObject.length?.toFixed(2) || "N/A"} × {currentObject.height?.toFixed(2) || "N/A"} m
-            </span>
-          </div>
-          {currentObject.hitPoints && (
+
+          <h4>Attributes</h4>
+          {currentObject.lethality && (
             <div className="detail-row">
-              <span>Hit Points:</span>
-              <span>{currentObject.hitPoints.current} / {currentObject.hitPoints.max}</span>
+              <span>Lethality:</span>
+              <span>{currentObject.lethality.attributeValue} ({currentObject.lethality.attributeType})</span>
             </div>
           )}
-          <div className="detail-row">
-            <span>Noise:</span>
-            <span>{currentObject.noise?.toFixed(1) || "0.0"}</span>
-          </div>
-          <div className="detail-row">
-            <span>Capacity:</span>
-            <span>{currentObject.capacity?.toFixed(2) || "0.00"}</span>
-          </div>
+          {currentObject.armour && (
+            <div className="detail-row">
+              <span>Armour:</span>
+              <span>{currentObject.armour.attributeValue} ({currentObject.armour.attributeType})</span>
+            </div>
+          )}
+          {currentObject.endurance && (
+            <div className="detail-row">
+              <span>Endurance:</span>
+              <span>{currentObject.endurance.attributeValue} ({currentObject.endurance.attributeType})</span>
+            </div>
+          )}
+          {currentObject.strength && (
+            <div className="detail-row">
+              <span>Strength:</span>
+              <span>{currentObject.strength.attributeValue} ({currentObject.strength.attributeType})</span>
+            </div>
+          )}
+          {currentObject.dexterity && (
+            <div className="detail-row">
+              <span>Dexterity:</span>
+              <span>{currentObject.dexterity.attributeValue} ({currentObject.dexterity.attributeType})</span>
+            </div>
+          )}
+          {currentObject.agility && (
+            <div className="detail-row">
+              <span>Agility:</span>
+              <span>{currentObject.agility.attributeValue} ({currentObject.agility.attributeType})</span>
+            </div>
+          )}
+          {currentObject.perception && (
+            <div className="detail-row">
+              <span>Perception:</span>
+              <span>{currentObject.perception.attributeValue} ({currentObject.perception.attributeType})</span>
+            </div>
+          )}
+          {currentObject.charisma && (
+            <div className="detail-row">
+              <span>Charisma:</span>
+              <span>{currentObject.charisma.attributeValue} ({currentObject.charisma.attributeType})</span>
+            </div>
+          )}
+          {currentObject.intelligence && (
+            <div className="detail-row">
+              <span>Intelligence:</span>
+              <span>{currentObject.intelligence.attributeValue} ({currentObject.intelligence.attributeType})</span>
+            </div>
+          )}
+          {currentObject.resolve && (
+            <div className="detail-row">
+              <span>Resolve:</span>
+              <span>{currentObject.resolve.attributeValue} ({currentObject.resolve.attributeType})</span>
+            </div>
+          )}
+          {currentObject.morale && (
+            <div className="detail-row">
+              <span>Morale:</span>
+              <span>{currentObject.morale.attributeValue} ({currentObject.morale.attributeType})</span>
+            </div>
+          )}
 
-          <h4>Combat Stats</h4>
-          <div className="detail-row">
-            <span>Damage:</span>
-            <span>{currentObject.damageMin}-{currentObject.damageMax} ({currentObject.damageType})</span>
-          </div>
-          <div className="detail-row">
-            <span>Penetration:</span>
-            <span>{currentObject.penetration?.toFixed(1) || "0.0"}</span>
-          </div>
-          <div className="detail-row">
-            <span>Deflection:</span>
-            <span>{currentObject.deflection?.toFixed(1) || "0.0"}</span>
-          </div>
-          <div className="detail-row">
-            <span>Impact:</span>
-            <span>{currentObject.impact?.toFixed(1) || "0.0"}</span>
-          </div>
-          <div className="detail-row">
-            <span>Absorption:</span>
-            <span>{currentObject.absorption?.toFixed(1) || "0.0"}</span>
-          </div>
-
-          <h4>Properties</h4>
-          <div className="detail-row">
-            <span>Is Limb:</span>
-            <span>{currentObject.isLimb ? "Yes" : "No"}</span>
-          </div>
-          <div className="detail-row">
-            <span>Handling:</span>
-            <span>{currentObject.handling?.toFixed(2) || "0.00"}</span>
-          </div>
-          <div className="detail-row">
-            <span>Duration:</span>
-            <span>{currentObject.duration?.toFixed(2) || "0.00"} s</span>
-          </div>
-          <div className="detail-row">
-            <span>Falloff:</span>
-            <span>{currentObject.falloff?.toFixed(2) || "0.00"}</span>
-          </div>
-
-          {currentObject.parts && currentObject.parts.length > 0 && (
+          {currentObject.special && currentObject.special.length > 0 && (
             <>
-              <h4>Parts</h4>
+              <h4>Special Properties</h4>
               <ul>
-                {currentObject.parts.map(part => {
-                    console.log("[ObjectView] Current breadcrumbs state:", JSON.stringify(breadcrumbs));
-                    console.log("[ObjectView] Current object for breadcrumb:", JSON.stringify({ objectId: currentObject?.objectId, name: currentObject?.name }));
+                {currentObject.special.map((prop, index) => (
+                  <li key={index}>{prop}</li>
+                ))}
+              </ul>
+            </>
+          )}
 
+          {currentObject.equipment && currentObject.equipment.length > 0 && (
+            <>
+              <h4>Equipment</h4>
+              <ul>
+                {currentObject.equipment.map(equip => {
                     const nextBreadcrumbs = [...breadcrumbs, { objectId: currentObject.objectId, name: currentObject.name }];
                     const nextBreadcrumbsParam = encodeURIComponent(JSON.stringify(nextBreadcrumbs));
 
-                    console.log(`[ObjectView] For part ${part.name} (ID: ${part.objectId}), nextBreadcrumbsParam: ${nextBreadcrumbsParam}`);
-
                     return (
-                      <li key={part.objectId} className="part-item" style={{ marginBottom: '5px' }}>
-                        <Link to={`/objects/${part.objectId}?breadcrumbs=${nextBreadcrumbsParam}`} className="part-name-link">
-                          {part.name}
+                      <li key={equip.objectId} className="part-item" style={{ marginBottom: '5px' }}>
+                        <Link to={`/objects/${equip.objectId}?breadcrumbs=${nextBreadcrumbsParam}`} className="part-name-link">
+                          {equip.name}
                         </Link>
                         <span className="part-info" style={{ marginLeft: '8px' }}>
-                          ({part.objectCategory || 'N/A'})
-                          {part.partIds && part.partIds.length > 0 ? ` - ${part.partIds.length} sub-part(s)` : ''}
+                          ({equip.objectCategory || 'N/A'})
+                          {equip.equipmentIds && equip.equipmentIds.length > 0 ? ` - ${equip.equipmentIds.length} sub-equipment(s)` : ''}
                         </span>
                       </li>
                     );
@@ -340,28 +329,15 @@ const ObjectView = () => {
               </ul>
             </>
           )}
-          {(!currentObject.parts || currentObject.parts.length === 0) && currentObject.partsIds && currentObject.partsIds.length > 0 && (
+          {(!currentObject.equipment || currentObject.equipment.length === 0) && currentObject.equipmentIds && currentObject.equipmentIds.length > 0 && (
              <>
-              <h4>Part IDs</h4>
-              <span>{currentObject.partsIds.join(", ")}</span>
+              <h4>Equipment IDs</h4>
+              <span>{currentObject.equipmentIds.join(", ")}</span>
              </>
-          )}
-
-          {currentObject.usage && currentObject.usage.length > 0 && (
-            <>
-              <h4>Usage</h4>
-              <ul>
-                {currentObject.usage.map((use, index) => (
-                  <li key={index}>
-                    Action ID: {use.actionId}, Types: {use.usageType.join(", ")}
-                  </li>
-                ))}
-              </ul>
-            </>
           )}
         </div>
       </div>
-      <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} /> {/* Added ErrorPopup */}
+      <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} />
     </div>
   );
 };

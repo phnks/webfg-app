@@ -37,17 +37,17 @@ enum ObjectCategory {
 input ObjectInput {
   name: String
   objectCategory: ObjectCategory
-  lethality: Attribute
-  armour: Attribute
-  endurance: Attribute
-  strength: Attribute
-  Dexterity: Attribute
-  agility: Attribute
-  perception: Attribute
-  charisma: Attribute
-  intelligence: Attribute
-  resolve: Attribute
-  morale: Attribute
+  lethality: AttributeInput
+  armour: AttributeInput
+  endurance: AttributeInput
+  strength: AttributeInput
+  dexterity: AttributeInput
+  agility: AttributeInput
+  perception: AttributeInput
+  charisma: AttributeInput
+  intelligence: AttributeInput
+  resolve: AttributeInput
+  morale: AttributeInput
   special: [String]
   equipmentIds: [ID]
 }

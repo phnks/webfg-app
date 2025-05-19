@@ -5,14 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import {
   CREATE_OBJECT,
   UPDATE_OBJECT,
-  defaultObjectForm,
   LIST_OBJECTS 
 } from "../../graphql/operations";
 import "./Form.css";
 
 // Enums from schema
-const ObjectCategoryEnum = ["ITEM", "TOOL", "WEAPON", "ARMOR", "CONTAINER", "STRUCTURE", "FURNITURE", "BARRIER", "DEVICE", "MATERIAL", "RESOURCE", "CLOTHING", "LIGHT_SOURCE", "DISPLAY", "DOCUMENT", "COMPONENT", "DEBRIS", "ARTIFACT"];
-const DamageTypeEnum = ["KINETIC", "HYPERTHERMAL", "HYPOTHERMAL", "ELECTRIC", "SONIC", "CHEMICAL", "BIOCHEMICAL", "RADIATION"];
+const ObjectCategoryEnum = ["TOOL", "WEAPON", "ARMOR", "CONTAINER", "STRUCTURE", "JEWLERY", "DEVICE", "MATERIAL", "CLOTHING", "LIGHT_SOURCE", "DOCUMENT", "COMPONENT", "ARTIFACT"];
+const AttributeTypeEnum = ["HELP", "HINDER"];
 
 // Helper function to strip __typename fields recursively
 const stripTypename = (obj) => {
@@ -31,73 +30,111 @@ const stripTypename = (obj) => {
   return newObj;
 };
 
+const defaultAttribute = {
+  attributeValue: 0,
+  attributeType: "HELP"
+};
+
+const defaultObjectForm = {
+  name: "",
+  objectCategory: ObjectCategoryEnum[0],
+  lethality: defaultAttribute,
+  armour: defaultAttribute,
+  endurance: defaultAttribute,
+  strength: defaultAttribute,
+  dexterity: defaultAttribute,
+  agility: defaultAttribute,
+  perception: defaultAttribute,
+  charisma: defaultAttribute,
+  intelligence: defaultAttribute,
+  resolve: defaultAttribute,
+  morale: defaultAttribute,
+  special: [],
+  equipmentIds: []
+};
+
 const prepareObjectInput = (data) => {
   const input = {
     name: data.name,
     objectCategory: data.objectCategory || ObjectCategoryEnum[0],
-    width: parseFloat(data.width) || 0.0,
-    length: parseFloat(data.length) || 0.0,
-    height: parseFloat(data.height) || 0.0,
-    weight: parseFloat(data.weight) || 0.0,
-    penetration: parseFloat(data.penetration) || 0.0,
-    deflection: parseFloat(data.deflection) || 0.0,
-    impact: parseFloat(data.impact) || 0.0,
-    absorption: parseFloat(data.absorption) || 0.0,
-    hitPoints: {
-        max: parseInt(data.hitPoints.max, 10) || 0,
-        current: parseInt(data.hitPoints.current, 10) || 0,
+    lethality: {
+      attributeValue: parseFloat(data.lethality.attributeValue) || 0,
+      attributeType: data.lethality.attributeType || "HELP"
     },
-    damageMin: parseFloat(data.damageMin) || 0.0,
-    damageMax: parseFloat(data.damageMax) || 0.0,
-    damageType: data.damageType || DamageTypeEnum[0],
-    isLimb: Boolean(data.isLimb),
-    noise: parseFloat(data.noise) || 0.0,
-    duration: parseFloat(data.duration) || 0.0,
-    handling: parseFloat(data.handling) || 0.0,
-    capacity: parseFloat(data.capacity) || 0.0,
-    falloff: parseFloat(data.falloff) || 0.0,
-    partsIds: typeof data.partsIds === 'string' ? data.partsIds.split(',').map(id => id.trim()).filter(id => id) : (Array.isArray(data.partsIds) ? data.partsIds : []),
-    usage: Array.isArray(data.usage) ? data.usage : [] 
+    armour: {
+      attributeValue: parseFloat(data.armour.attributeValue) || 0,
+      attributeType: data.armour.attributeType || "HELP"
+    },
+    endurance: {
+      attributeValue: parseFloat(data.endurance.attributeValue) || 0,
+      attributeType: data.endurance.attributeType || "HELP"
+    },
+    strength: {
+      attributeValue: parseFloat(data.strength.attributeValue) || 0,
+      attributeType: data.strength.attributeType || "HELP"
+    },
+    dexterity: {
+      attributeValue: parseFloat(data.dexterity.attributeValue) || 0,
+      attributeType: data.dexterity.attributeType || "HELP"
+    },
+    agility: {
+      attributeValue: parseFloat(data.agility.attributeValue) || 0,
+      attributeType: data.agility.attributeType || "HELP"
+    },
+    perception: {
+      attributeValue: parseFloat(data.perception.attributeValue) || 0,
+      attributeType: data.perception.attributeType || "HELP"
+    },
+    charisma: {
+      attributeValue: parseFloat(data.charisma.attributeValue) || 0,
+      attributeType: data.charisma.attributeType || "HELP"
+    },
+    intelligence: {
+      attributeValue: parseFloat(data.intelligence.attributeValue) || 0,
+      attributeType: data.intelligence.attributeType || "HELP"
+    },
+    resolve: {
+      attributeValue: parseFloat(data.resolve.attributeValue) || 0,
+      attributeType: data.resolve.attributeType || "HELP"
+    },
+    morale: {
+      attributeValue: parseFloat(data.morale.attributeValue) || 0,
+      attributeType: data.morale.attributeType || "HELP"
+    },
+    special: data.special || [],
+    equipmentIds: data.equipmentIds || []
   };
   return input;
 };
 
-
 const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
-  const [showAddPartModal, setShowAddPartModal] = useState(false);
-  const [selectedObjectForPart, setSelectedObjectForPart] = useState('');
+  const [showAddEquipmentModal, setShowAddEquipmentModal] = useState(false);
+  const [selectedObjectForEquipment, setSelectedObjectForEquipment] = useState('');
+  const [newSpecialProperty, setNewSpecialProperty] = useState('');
   const { data: allObjectsData, loading: allObjectsLoading, error: allObjectsError } = useQuery(LIST_OBJECTS);
+  
   const getInitialFormData = useCallback(() => {
-    const base = isEditing && object ? { ...defaultObjectForm, ...stripTypename(object) } : { ...defaultObjectForm };
-
-    // Ensure all fields are strings for form inputs, or boolean for checkbox
-    return {
+    if (isEditing && object) {
+      const base = stripTypename(object);
+      return {
         name: base.name || "",
         objectCategory: base.objectCategory || ObjectCategoryEnum[0],
-        width: base.width?.toString() ?? '',
-        length: base.length?.toString() ?? '',
-        height: base.height?.toString() ?? '',
-        weight: base.weight?.toString() ?? '',
-        penetration: base.penetration?.toString() ?? '',
-        deflection: base.deflection?.toString() ?? '',
-        impact: base.impact?.toString() ?? '',
-        absorption: base.absorption?.toString() ?? '',
-        hitPoints: {
-            max: base.hitPoints?.max?.toString() ?? '',
-            current: base.hitPoints?.current?.toString() ?? '',
-        },
-        damageMin: base.damageMin?.toString() ?? '',
-        damageMax: base.damageMax?.toString() ?? '',
-        damageType: base.damageType || DamageTypeEnum[0],
-        isLimb: base.isLimb || false, // Boolean for checkbox
-        noise: base.noise?.toString() ?? '',
-        duration: base.duration?.toString() ?? '',
-        handling: base.handling?.toString() ?? '',
-        capacity: base.capacity?.toString() ?? '',
-        falloff: base.falloff?.toString() ?? '',
-        partsIds: Array.isArray(base.partsIds) ? base.partsIds : [],
-        usage: base.usage || [] // Not directly editable in UI for now
-    };
+        lethality: base.lethality || defaultAttribute,
+        armour: base.armour || defaultAttribute,
+        endurance: base.endurance || defaultAttribute,
+        strength: base.strength || defaultAttribute,
+        dexterity: base.dexterity || defaultAttribute,
+        agility: base.agility || defaultAttribute,
+        perception: base.perception || defaultAttribute,
+        charisma: base.charisma || defaultAttribute,
+        intelligence: base.intelligence || defaultAttribute,
+        resolve: base.resolve || defaultAttribute,
+        morale: base.morale || defaultAttribute,
+        special: base.special || [],
+        equipmentIds: base.equipmentIds || []
+      };
+    }
+    return { ...defaultObjectForm };
   }, [isEditing, object]);
 
   const [formData, setFormData] = useState(getInitialFormData());
@@ -108,42 +145,61 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
     setFormData(getInitialFormData());
   }, [getInitialFormData]);
 
-
   const [createObjectMutation, { loading: createLoading }] = useMutation(CREATE_OBJECT);
   const [updateObjectMutation, { loading: updateLoading }] = useMutation(UPDATE_OBJECT);
   const loading = createLoading || updateLoading || allObjectsLoading;
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const [field, nestedField] = name.split('.');
+    const { name, value, type } = e.target;
+    const [field, nestedField, subNestedField] = name.split('.');
 
     setFormData(prev => {
-        let updatedValue = type === 'checkbox' ? checked : value;
-
-        if (type === 'number' && value === '') {
-            updatedValue = ''; 
-        }
-
-        if (nestedField) {
-            return {
-                ...prev,
-                [field]: {
-                    ...prev[field],
-                    [nestedField]: updatedValue,
-                },
-            };
-        } else {
-            return {
-                ...prev,
-                [name]: updatedValue,
-            };
-        }
+      if (subNestedField) {
+        // For nested attributes like lethality.attributeValue
+        return {
+          ...prev,
+          [field]: {
+            ...prev[field],
+            [nestedField]: value
+          }
+        };
+      } else if (nestedField) {
+        return {
+          ...prev,
+          [field]: {
+            ...prev[field],
+            [nestedField]: value
+          }
+        };
+      } else {
+        return {
+          ...prev,
+          [name]: value
+        };
+      }
     });
+  };
+
+  const handleAddSpecialProperty = () => {
+    if (newSpecialProperty.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        special: [...prev.special, newSpecialProperty.trim()]
+      }));
+      setNewSpecialProperty('');
+    }
+  };
+
+  const handleRemoveSpecialProperty = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      special: prev.special.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Clear previous errors
+    setError(null);
     try {
       const inputData = prepareObjectInput(formData);
 
@@ -167,25 +223,25 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
     }
   };
 
-  const availableObjectsForParts = allObjectsData?.listObjects
-                                   ?.filter(obj => !(isEditing && object && obj.objectId === object.objectId)) // Prevent self-reference
-                                   .slice().sort((a, b) => a.name.localeCompare(b.name)) || [];
+  const availableObjectsForEquipment = allObjectsData?.listObjects
+                                      ?.filter(obj => !(isEditing && object && obj.objectId === object.objectId))
+                                      .slice().sort((a, b) => a.name.localeCompare(b.name)) || [];
 
-  const handleAddSelectedPart = () => {
-    if (selectedObjectForPart && !formData.partsIds.includes(selectedObjectForPart)) {
+  const handleAddSelectedEquipment = () => {
+    if (selectedObjectForEquipment && !formData.equipmentIds.includes(selectedObjectForEquipment)) {
       setFormData(prev => ({
         ...prev,
-        partsIds: [...prev.partsIds, selectedObjectForPart]
+        equipmentIds: [...prev.equipmentIds, selectedObjectForEquipment]
       }));
     }
-    setSelectedObjectForPart(''); 
-    setShowAddPartModal(false);
+    setSelectedObjectForEquipment(''); 
+    setShowAddEquipmentModal(false);
   };
 
-  const handleRemovePart = (partIdToRemove) => {
+  const handleRemoveEquipment = (equipmentIdToRemove) => {
     setFormData(prev => ({
       ...prev,
-      partsIds: prev.partsIds.filter(id => id !== partIdToRemove)
+      equipmentIds: prev.equipmentIds.filter(id => id !== equipmentIdToRemove)
     }));
   };
 
@@ -199,6 +255,8 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
 
   if (allObjectsLoading) return <p>Loading available objects...</p>;
   if (allObjectsError) return <p>Error loading object list: {allObjectsError.message}</p>;
+
+  const attributeFields = ['lethality', 'armour', 'endurance', 'strength', 'dexterity', 'agility', 'perception', 'charisma', 'intelligence', 'resolve', 'morale'];
 
   return (
     <div className="form-container">
@@ -216,122 +274,110 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
           </select>
         </div>
 
-        <h3>Dimensions & Weight</h3>
-        <div className="form-group">
-          <label htmlFor="width">Width (m)</label>
-          <input type="number" id="width" name="width" value={formData.width} onChange={handleChange} step="0.01" placeholder="e.g. 0.5"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="length">Length (m)</label>
-          <input type="number" id="length" name="length" value={formData.length} onChange={handleChange} step="0.01" placeholder="e.g. 0.5"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="height">Height (m)</label>
-          <input type="number" id="height" name="height" value={formData.height} onChange={handleChange} step="0.01" placeholder="e.g. 0.5"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="weight">Weight (kg)</label>
-          <input type="number" id="weight" name="weight" value={formData.weight} onChange={handleChange} step="0.01" placeholder="e.g. 1.2"/>
-        </div>
+        <h3>Attributes</h3>
+        {attributeFields.map(attr => (
+          <div key={attr} className="attribute-group" style={{ marginBottom: '15px', border: '1px solid #ddd', padding: '10px', borderRadius: '5px' }}>
+            <h4 style={{ marginTop: 0, textTransform: 'capitalize' }}>{attr}</h4>
+            <div style={{ display: 'flex', gap: '15px' }}>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label htmlFor={`${attr}.attributeValue`}>Value</label>
+                <input 
+                  type="number" 
+                  id={`${attr}.attributeValue`} 
+                  name={`${attr}.attributeValue`} 
+                  value={formData[attr].attributeValue} 
+                  onChange={handleChange} 
+                  step="0.1" 
+                  placeholder="0.0"
+                />
+              </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label htmlFor={`${attr}.attributeType`}>Type</label>
+                <select 
+                  id={`${attr}.attributeType`} 
+                  name={`${attr}.attributeType`} 
+                  value={formData[attr].attributeType} 
+                  onChange={handleChange}
+                >
+                  {AttributeTypeEnum.map(type => <option key={type} value={type}>{type}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+        ))}
 
-        <h3>Combat Properties</h3>
+        <h3>Special Properties</h3>
         <div className="form-group">
-            <label htmlFor="hitPoints.max">Max Hit Points</label>
-            <input type="number" id="hitPoints.max" name="hitPoints.max" value={formData.hitPoints.max} onChange={handleChange} step="1" placeholder="e.g. 10"/>
-        </div>
-        <div className="form-group">
-            <label htmlFor="hitPoints.current">Current Hit Points</label>
-            <input type="number" id="hitPoints.current" name="hitPoints.current" value={formData.hitPoints.current} onChange={handleChange} step="1" placeholder="e.g. 10"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="damageMin">Min Damage</label>
-          <input type="number" id="damageMin" name="damageMin" value={formData.damageMin} onChange={handleChange} step="0.1" placeholder="e.g. 1"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="damageMax">Max Damage</label>
-          <input type="number" id="damageMax" name="damageMax" value={formData.damageMax} onChange={handleChange} step="0.1" placeholder="e.g. 5"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="damageType">Damage Type</label>
-          <select id="damageType" name="damageType" value={formData.damageType} onChange={handleChange}>
-            {DamageTypeEnum.map(type => <option key={type} value={type}>{type}</option>)}
-          </select>
-        </div>
-        <div className="form-group">
-          <label htmlFor="penetration">Penetration</label>
-          <input type="number" id="penetration" name="penetration" value={formData.penetration} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="deflection">Deflection</label>
-          <input type="number" id="deflection" name="deflection" value={formData.deflection} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="impact">Impact</label>
-          <input type="number" id="impact" name="impact" value={formData.impact} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="absorption">Absorption</label>
-          <input type="number" id="absorption" name="absorption" value={formData.absorption} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
-        </div>
-
-        <h3>Other Properties</h3>
-        <div className="form-group form-group-checkbox">
-          <label htmlFor="isLimb">Is Limb?</label>
-          <input type="checkbox" id="isLimb" name="isLimb" checked={!!formData.isLimb} onChange={handleChange} />
-        </div>
-        <div className="form-group">
-          <label htmlFor="noise">Noise</label>
-          <input type="number" id="noise" name="noise" value={formData.noise} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="duration">Duration (s)</label>
-          <input type="number" id="duration" name="duration" value={formData.duration} onChange={handleChange} step="0.1" placeholder="e.g. 0"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="handling">Handling</label>
-          <input type="number" id="handling" name="handling" value={formData.handling} onChange={handleChange} step="0.01" placeholder="e.g. 0"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="capacity">Capacity</label>
-          <input type="number" id="capacity" name="capacity" value={formData.capacity} onChange={handleChange} step="0.01" placeholder="e.g. 0"/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="falloff">Falloff</label>
-          <input type="number" id="falloff" name="falloff" value={formData.falloff} onChange={handleChange} step="0.01" placeholder="e.g. 0"/>
-        </div>
-        <div className="form-group">
-          <label>Parts</label>
           <div>
-            {formData.partsIds.length === 0 && <p>No parts added.</p>}
+            {formData.special.length === 0 && <p>No special properties added.</p>}
             <ul className="parts-list">
-              {formData.partsIds.map(partId => {
-                const partObject = availableObjectsForParts.find(obj => obj.objectId === partId);
+              {formData.special.map((prop, index) => (
+                <li key={index}>
+                  {prop}
+                  <button 
+                    type="button" 
+                    onClick={() => handleRemoveSpecialProperty(index)} 
+                    className="button-remove-part" 
+                    style={{ marginLeft: "10px", fontSize: "0.8em", padding: "2px 5px" }}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+            <input
+              type="text"
+              value={newSpecialProperty}
+              onChange={(e) => setNewSpecialProperty(e.target.value)}
+              placeholder="Enter special property"
+              style={{ flex: 1 }}
+            />
+            <button type="button" onClick={handleAddSpecialProperty} className="button-add-part">Add Property</button>
+          </div>
+        </div>
+
+        <h3>Equipment</h3>
+        <div className="form-group">
+          <div>
+            {formData.equipmentIds.length === 0 && <p>No equipment added.</p>}
+            <ul className="parts-list">
+              {formData.equipmentIds.map(equipId => {
+                const equipObject = availableObjectsForEquipment.find(obj => obj.objectId === equipId);
                 return (
-                  <li key={partId}>
-                    {partObject ? `${partObject.name} (ID: ${partId})` : `ID: ${partId}`}
-                    <button type="button" onClick={() => handleRemovePart(partId)} className="button-remove-part" style={{ marginLeft: "10px", fontSize: "0.8em", padding: "2px 5px" }}>Remove</button>
+                  <li key={equipId}>
+                    {equipObject ? `${equipObject.name} (ID: ${equipId})` : `ID: ${equipId}`}
+                    <button 
+                      type="button" 
+                      onClick={() => handleRemoveEquipment(equipId)} 
+                      className="button-remove-part" 
+                      style={{ marginLeft: "10px", fontSize: "0.8em", padding: "2px 5px" }}
+                    >
+                      Remove
+                    </button>
                   </li>
                 );
               })}
             </ul>
           </div>
-          <button type="button" onClick={() => setShowAddPartModal(true)} className="button-add-part" style={{ marginTop: "10px" }}>Add Part</button>
+          <button type="button" onClick={() => setShowAddEquipmentModal(true)} className="button-add-part" style={{ marginTop: "10px" }}>Add Equipment</button>
         </div>
 
-        {showAddPartModal && (
+        {showAddEquipmentModal && (
           <div className="modal-overlay" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
             <div className="modal-content" style={{ background: "white", padding: "20px", borderRadius: "5px", minWidth: "300px", boxShadow: "0 4px 8px rgba(0,0,0,0.2)" }}>
-              <h3>Select Object to Add as Part</h3>
+              <h3>Select Object to Add as Equipment</h3>
               <div className="form-group">
-                <label htmlFor="select-part-dropdown" style={{ display: "block", marginBottom: "5px" }}>Available Objects:</label>
+                <label htmlFor="select-equipment-dropdown" style={{ display: "block", marginBottom: "5px" }}>Available Objects:</label>
                 <select 
-                  id="select-part-dropdown"
-                  value={selectedObjectForPart} 
-                  onChange={(e) => setSelectedObjectForPart(e.target.value)}
+                  id="select-equipment-dropdown"
+                  value={selectedObjectForEquipment} 
+                  onChange={(e) => setSelectedObjectForEquipment(e.target.value)}
                   style={{ width: "100%", padding: "8px", marginBottom: "15px" }}
                 >
                   <option value="">-- Select an Object --</option>
-                  {availableObjectsForParts.map(obj => (
+                  {availableObjectsForEquipment.map(obj => (
                     <option key={obj.objectId} value={obj.objectId}>
                       {obj.name} ({obj.objectCategory})
                     </option>
@@ -339,8 +385,8 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
                 </select>
               </div>
               <div className="modal-actions" style={{ textAlign: "right" }}>
-                <button type="button" onClick={() => setShowAddPartModal(false)} className="button-cancel" style={{ marginRight: "10px" }}>Close</button>
-                <button type="button" onClick={handleAddSelectedPart} className="button-submit">Add Selected</button>
+                <button type="button" onClick={() => setShowAddEquipmentModal(false)} className="button-cancel" style={{ marginRight: "10px" }}>Close</button>
+                <button type="button" onClick={handleAddSelectedEquipment} className="button-submit">Add Selected</button>
               </div>
             </div>
           </div>
