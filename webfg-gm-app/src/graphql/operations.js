@@ -347,7 +347,12 @@ export const ADD_OBJECT_TO_INVENTORY = gql`
     addObjectToInventory(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
-      # inventory no longer on Character type directly
+      inventoryIds
+      inventory {
+        objectId
+        name
+        objectCategory
+      }
     }
   }
 `;
@@ -356,6 +361,12 @@ export const REMOVE_OBJECT_FROM_INVENTORY = gql`
     removeObjectFromInventory(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
+      inventoryIds
+      inventory {
+        objectId
+        name
+        objectCategory
+      } 
     }
   }
 `;
@@ -364,7 +375,12 @@ export const ADD_OBJECT_TO_EQUIPMENT = gql`
     addObjectToEquipment(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
-      # equipment no longer on Character type directly
+      equipmentIds
+      equipment {
+        objectId
+        name
+        objectCategory
+      }
     }
   }
 `;
@@ -373,6 +389,12 @@ export const REMOVE_OBJECT_FROM_EQUIPMENT = gql`
     removeObjectFromEquipment(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
+      equipmentIds
+      equipment {
+        objectId
+        name
+        objectCategory
+      }
     }
   }
 `;
