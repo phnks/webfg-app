@@ -2,21 +2,11 @@ type Action {
   actionId: ID!
   name: String!
   actionCategory: ActionCategory!
-  initDurationId: ID!
-  initDuration: Formula!
-  defaultInitDuration: Float!
-  durationId: ID!
-  duration: Formula!
-  defaultDuration: Float!
-  fatigueCost: Int
-  difficultyClass: Formula!
-  difficultyClassId: ID!
-  guaranteedFormulaId: ID!
-  guaranteedFormula: Formula!
-  units: Units
+  sourceAttribute: AttributeName!
+  targetAttribute: AttributeName!
   description: String
-  actionTargets: [Target]
-  actionSources: [Source]
+  actionTargets: [Target]!
+  actionSources: [Source]!
   actionEffects: [Effect]!
 }
 
@@ -28,12 +18,6 @@ enum ActionCategory {
   INTERACT
   MANIPULATE
   ASSIST
-}
-
-enum Units {
-  POUNDS
-  FEET
-  SECONDS
 }
 
 type Target {
@@ -83,33 +67,27 @@ enum EffectType {
 input ActionInput {
   name: String!
   actionCategory: ActionCategory!
-  initDurationId: ID!
-  defaultInitDuration: Float!
-  durationId: ID!
-  defaultDuration: Float!
-  fatigueCost: Int
-  difficultyClassId: ID!
-  guaranteedFormulaId: ID!
-  units: Units
+  sourceAttribute: AttributeName!
+  targetAttribute: AttributeName!
   description: String
-  actionTargets: [TargetInput]
-  actionSources: [SourceInput]
-   actionEffects: [EffectInput]!
- }
- 
- input TargetInput { # Changed from type to input
+  actionTargets: [TargetInput]!
+  actionSources: [SourceInput]!
+  actionEffects: [EffectInput]!
+}
+
+input TargetInput {
   targetType: TargetType!
   quantity: Int!
-   sequenceId: Int!
- }
- 
- input SourceInput { # Changed from type to input
+  sequenceId: Int!
+}
+
+input SourceInput {
   sourceType: SourceType!
   quantity: Int!
-   sequenceId: Int!
- }
- 
- input EffectInput { # Changed from type to input
+  sequenceId: Int!
+}
+
+input EffectInput {
   effectType: EffectType!
   quantity: Int!
   sequenceId: Int!
