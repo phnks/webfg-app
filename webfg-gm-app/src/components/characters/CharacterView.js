@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useSubscription } from "@apollo/client";
 import {
   GET_CHARACTER,
@@ -295,7 +295,9 @@ const CharacterView = () => {
                 {character.equipment.map((item) => (
                   <li key={item.objectId} className="equipment-item">
                     <div className="item-info">
-                      {item.name} ({item.objectCategory})
+                      <Link to={`/objects/${item.objectId}`} className="object-link">
+                        {item.name} ({item.objectCategory})
+                      </Link>
                     </div>
                     <button 
                       type="button"
@@ -331,7 +333,9 @@ const CharacterView = () => {
                 {character.inventory.map((item) => (
                   <li key={item.objectId} className="inventory-item">
                     <div className="item-info">
-                      {item.name} ({item.objectCategory})
+                      <Link to={`/objects/${item.objectId}`} className="object-link">
+                        {item.name} ({item.objectCategory})
+                      </Link>
                     </div>
                     <button 
                       type="button"
