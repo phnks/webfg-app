@@ -1,17 +1,9 @@
 type Attribute {
-  attributeId: ID!
-  attributeName: AttributeName!
+  attributeValue: Float!
+  attributeType: AttributeType!
 }
 
-# Removed unused AttributeInput type
-
-enum AttributeName {
-  STRENGTH
-  AGILITY
-  DEXTERITY
-  ENDURANCE
-  INTELLIGENCE
-  CHARISMA
-  PERCEPTION
-  RESOLVE
+enum AttributeType {
+  HELP
+  HINDER
 }
