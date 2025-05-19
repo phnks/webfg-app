@@ -28,12 +28,12 @@
     "restart:bg": "npm run stop:bg && sleep 1 && npm run start:bg",
     "eject": "react-scripts eject",
     "deploy:prod": "bash scripts/deploy.sh prod none",
-    "deploy:qa": "bash scripts/deploy.sh qa ${DEPLOYMENT_ID:?DEPLOYMENT_ID is required}",
-    "check-deploy:qa": "bash scripts/check-deploy.sh qa ${DEPLOYMENT_ID:?DEPLOYMENT_ID is required}",
-    "delete:qa": "bash scripts/delete.sh qa ${DEPLOYMENT_ID:?DEPLOYMENT_ID is required}",
+    "deploy:qa": "bash scripts/deploy.sh qa ${DEPLOYMENT_ID:-$1}",
+    "check-deploy:qa": "bash scripts/check-deploy.sh qa ${DEPLOYMENT_ID:-$1}",
+    "delete:qa": "bash scripts/delete.sh qa ${DEPLOYMENT_ID:-$1}",
     "delete:prod": "bash scripts/delete.sh prod none",
     "cypress:open": "npx cypress open",
-    "cypress:run": "bash scripts/run-cypress.sh"
+    "cypress:run": "bash scripts/run-cypress.sh qa"
   },
   "eslintConfig": {
     "extends": [

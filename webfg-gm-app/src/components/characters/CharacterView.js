@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useSubscription } from "@apollo/client";
 import {
   GET_CHARACTER,
   DELETE_CHARACTER,
   ON_UPDATE_CHARACTER, // Corrected import name
-  ON_DELETE_CHARACTER
+  ON_DELETE_CHARACTER,
+  ADD_OBJECT_TO_EQUIPMENT,
+  REMOVE_OBJECT_FROM_INVENTORY,
+  ADD_OBJECT_TO_INVENTORY,
+  REMOVE_OBJECT_FROM_EQUIPMENT
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import CharacterAttributes from "./CharacterAttributes";
@@ -40,6 +44,47 @@ const CharacterView = () => {
   });
 
   const [deleteCharacter] = useMutation(DELETE_CHARACTER);
+  
+  // Equipment mutations
+  const [addObjectToEquipment] = useMutation(ADD_OBJECT_TO_EQUIPMENT, {
+    onError: (err) => {
+      console.error("Error equipping item:", err);
+      setMutationError({ 
+        message: err.message || "Error equipping item", 
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  });
+  
+  const [removeObjectFromInventory] = useMutation(REMOVE_OBJECT_FROM_INVENTORY, {
+    onError: (err) => {
+      console.error("Error removing item from inventory:", err);
+      setMutationError({ 
+        message: err.message || "Error removing item from inventory", 
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  });
+  
+  const [addObjectToInventory] = useMutation(ADD_OBJECT_TO_INVENTORY, {
+    onError: (err) => {
+      console.error("Error adding item to inventory:", err);
+      setMutationError({ 
+        message: err.message || "Error adding item to inventory", 
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  });
+  
+  const [removeObjectFromEquipment] = useMutation(REMOVE_OBJECT_FROM_EQUIPMENT, {
+    onError: (err) => {
+      console.error("Error unequipping item:", err);
+      setMutationError({ 
+        message: err.message || "Error unequipping item", 
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  });
 
   // Subscribe to character updates
   useSubscription(ON_UPDATE_CHARACTER, {
@@ -114,6 +159,54 @@ const CharacterView = () => {
 
   const handleEditCancel = () => {
     setIsEditing(false);
+  };
+
+  // Handler for equipping an item
+  const handleEquipItem = async (objectId) => {
+    try {
+      // First add the object to equipment
+      await addObjectToEquipment({
+        variables: { characterId, objectId }
+      });
+      
+      // Then remove it from inventory
+      await removeObjectFromInventory({
+        variables: { characterId, objectId }
+      });
+      
+      // Refetch to update the UI
+      refetch();
+    } catch (err) {
+      console.error("Error in equip item flow:", err);
+      setMutationError({ 
+        message: "Failed to equip item. " + (err.message || ""),
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  };
+  
+  // Handler for unequipping an item
+  const handleUnequipItem = async (objectId) => {
+    try {
+      // First add the object back to inventory
+      await addObjectToInventory({
+        variables: { characterId, objectId }
+      });
+      
+      // Then remove it from equipment
+      await removeObjectFromEquipment({
+        variables: { characterId, objectId }
+      });
+      
+      // Refetch to update the UI
+      refetch();
+    } catch (err) {
+      console.error("Error in unequip item flow:", err);
+      setMutationError({ 
+        message: "Failed to unequip item. " + (err.message || ""),
+        stack: err.stack || "No stack trace available."
+      });
+    }
   };
 
   if (loading) return <div className="loading">Loading character details...</div>;
@@ -198,9 +291,32 @@ const CharacterView = () => {
           <div className="section character-equipment">
             <h3>Equipment</h3>
             {character.equipment && character.equipment.length > 0 ? (
-              <ul>
+              <ul className="equipment-list">
                 {character.equipment.map((item) => (
-                  <li key={item.objectId}>{item.name} ({item.objectCategory})</li>
+                  <li key={item.objectId} className="equipment-item">
+                    <div className="item-info">
+                      <Link to={`/objects/${item.objectId}`} className="object-link">
+                        {item.name} ({item.objectCategory})
+                      </Link>
+                    </div>
+                    <button 
+                      type="button"
+                      className="unequip-button" 
+                      onClick={() => handleUnequipItem(item.objectId)}
+                      style={{
+                        backgroundColor: '#fd7e14',
+                        color: 'white',
+                        padding: '4px 10px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        fontSize: '0.9em',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Unequip
+                    </button>
+                  </li>
                 ))}
               </ul>
             ) : (
@@ -213,9 +329,32 @@ const CharacterView = () => {
           <div className="section character-inventory">
             <h3>Inventory</h3>
             {character.inventory && character.inventory.length > 0 ? (
-              <ul>
+              <ul className="inventory-list">
                 {character.inventory.map((item) => (
-                  <li key={item.objectId}>{item.name} ({item.objectCategory})</li>
+                  <li key={item.objectId} className="inventory-item">
+                    <div className="item-info">
+                      <Link to={`/objects/${item.objectId}`} className="object-link">
+                        {item.name} ({item.objectCategory})
+                      </Link>
+                    </div>
+                    <button 
+                      type="button"
+                      className="equip-button" 
+                      onClick={() => handleEquipItem(item.objectId)}
+                      style={{
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        padding: '4px 10px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        fontSize: '0.9em',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Equip
+                    </button>
+                  </li>
                 ))}
               </ul>
             ) : (
