@@ -13,7 +13,7 @@ enum AttributeType {
   HINDER
 }
 
-enum AttributeNames {
+enum AttributeName {
   LETHALITY,
   ARMOUR,
   ENDURANCE,
