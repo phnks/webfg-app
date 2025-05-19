@@ -242,6 +242,21 @@ const CharacterView = () => {
             )}
           </div>
         </div>
+
+        <div className="section-row">
+          <div className="section character-special">
+            <h3>Special Abilities</h3>
+            {character.special && character.special.length > 0 ? (
+              <ul className="special-list">
+                {character.special.map((ability, index) => (
+                  <li key={index} className="special-item">{ability}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No special abilities</p>
+            )}
+          </div>
+        </div>
       </div>
       <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} /> {/* Added ErrorPopup */}
     </div>

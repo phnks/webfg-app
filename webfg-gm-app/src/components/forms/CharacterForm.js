@@ -173,13 +173,15 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     }));
   };
 
+  const [newSpecialAbility, setNewSpecialAbility] = useState('');
+
   const handleSpecialAdd = () => {
-    const newSpecial = prompt("Enter special ability:");
-    if (newSpecial) {
+    if (newSpecialAbility.trim()) {
       setFormData(prev => ({
         ...prev,
-        special: [...prev.special, newSpecial]
+        special: [...prev.special, newSpecialAbility.trim()]
       }));
+      setNewSpecialAbility('');
     }
   };
 
@@ -480,9 +482,22 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                 </li>
               ))}
             </ul>
-            <button type="button" onClick={handleSpecialAdd} className="button-add-part">
-              Add Special Ability
-            </button>
+            <div className="special-input-group">
+              <input
+                type="text"
+                value={newSpecialAbility}
+                onChange={(e) => setNewSpecialAbility(e.target.value)}
+                placeholder="Enter special ability"
+                className="special-input"
+              />
+              <button 
+                type="button" 
+                onClick={handleSpecialAdd} 
+                className="button-add-part"
+              >
+                Add Ability
+              </button>
+            </div>
           </div>
         </div>
 
