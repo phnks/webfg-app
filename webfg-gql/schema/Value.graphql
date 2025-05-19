@@ -1,6 +1,6 @@
 type Value {
-  valueId: ID!
   valueName: ValueName!
+  valueType: ValueType!
 }
 
 enum ValueName {
@@ -24,4 +24,9 @@ enum ValueName {
   VIOLENCE
   RESTRAINT
   OBSESSION
+}
+
+enum ValueType {
+  GOOD
+  BAD
 }
