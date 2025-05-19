@@ -23,12 +23,6 @@ const CharacterDetails = ({ character }) => {
             <td>Will:</td>
             <td>{character.will}</td>
           </tr>
-          {character.special && character.special.length > 0 && (
-            <tr>
-              <td>Special:</td>
-              <td>{character.special.join(", ")}</td>
-            </tr>
-          )}
         </tbody>
       </table>
     </div>
