@@ -89,7 +89,7 @@ Resources:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
 
-  ResolveObjectPartsFunction: # Updated Function Name
+  ResolveObjectEquipmentFunction: # Function for equipment resolver
     Type: AWS::Serverless::Function
     Properties:
       Handler: functions/resolveObjectParts.handler
@@ -159,16 +159,16 @@ Resources:
       LambdaConfig:
         LambdaFunctionArn: !GetAtt DeleteObjectFunction.Arn
 
-  ResolveObjectPartsLambdaDataSource: # Updated Data Source
+  ResolveObjectEquipmentLambdaDataSource: # Data Source for equipment
     Type: AWS::AppSync::DataSource
-    DependsOn: ResolveObjectPartsFunction
+    DependsOn: ResolveObjectEquipmentFunction
     Properties:
       ApiId: !Ref ApiId
-      Name: ResolveObjectPartsLambdaDataSource 
+      Name: ResolveObjectEquipmentLambdaDataSource 
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt ResolveObjectPartsFunction.Arn
+        LambdaFunctionArn: !GetAtt ResolveObjectEquipmentFunction.Arn
 
   # Object Resolvers
   GetObjectResolver:
@@ -251,14 +251,14 @@ Resources:
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
 
-  ObjectPartsResolver: # Updated Resolver for parts field
+  ObjectEquipmentResolver: # Resolver for equipment field
     Type: AWS::AppSync::Resolver
-    DependsOn: ResolveObjectPartsLambdaDataSource
+    DependsOn: ResolveObjectEquipmentLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: Object 
-      FieldName: parts
-      DataSourceName: "ResolveObjectPartsLambdaDataSource"
+      FieldName: equipment
+      DataSourceName: "ResolveObjectEquipmentLambdaDataSource"
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",

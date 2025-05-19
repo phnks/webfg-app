@@ -35,24 +35,6 @@ Parameters:
   FormulasTableName:
     Type: String
     Description: 'Name of Formulas table'
-  SkillsDataSourceName:
-    Type: String
-    Description: 'Name for Skills DynamoDB data source'
-  SkillsTableName:
-    Type: String
-    Description: 'Name of Skills table'
-  AttributesDataSourceName:
-    Type: String
-    Description: 'Name for Attributes DynamoDB data source'
-  AttributesTableName:
-    Type: String
-    Description: 'Name of Attributes table'
-  ValuesDataSourceName:
-    Type: String
-    Description: 'Name for Values DynamoDB data source'
-  ValuesTableName:
-    Type: String
-    Description: 'Name of Values table'
 
 Resources:
   AppSyncDynamoDBRole:
@@ -85,9 +67,6 @@ Resources:
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ActionsTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EncountersTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${FormulasTableName}
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SkillsTableName}
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AttributesTableName}
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ValuesTableName}
 
   AppSyncLambdaServiceRole:
     Type: AWS::IAM::Role
@@ -166,38 +145,6 @@ Resources:
         TableName: !Ref FormulasTableName
         AwsRegion: !Sub ${AWS::Region}
 
-  SkillsDataSource:
-    Type: AWS::AppSync::DataSource
-    Properties:
-      ApiId: !Ref ApiId
-      Name: !Ref SkillsDataSourceName
-      Type: AMAZON_DYNAMODB
-      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
-      DynamoDBConfig:
-        TableName: !Ref SkillsTableName
-        AwsRegion: !Sub ${AWS::Region}
-
-  AttributesDataSource:
-    Type: AWS::AppSync::DataSource
-    Properties:
-      ApiId: !Ref ApiId
-      Name: !Ref AttributesDataSourceName
-      Type: AMAZON_DYNAMODB
-      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
-      DynamoDBConfig:
-        TableName: !Ref AttributesTableName
-        AwsRegion: !Sub ${AWS::Region}
-
-  ValuesDataSource:
-    Type: AWS::AppSync::DataSource
-    Properties:
-      ApiId: !Ref ApiId
-      Name: !Ref ValuesDataSourceName
-      Type: AMAZON_DYNAMODB
-      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
-      DynamoDBConfig:
-        TableName: !Ref ValuesTableName
-        AwsRegion: !Sub ${AWS::Region}
 
 Outputs:
   AppSyncDynamoDBRoleArn:
@@ -222,12 +169,3 @@ Outputs:
   FormulasDataSourceName:
     Description: 'Name of the Formulas DynamoDB Data Source'
     Value: !Ref FormulasDataSource
-  SkillsDataSourceName:
-    Description: 'Name of the Skills DynamoDB Data Source'
-    Value: !Ref SkillsDataSource
-  AttributesDataSourceName:
-    Description: 'Name of the Attributes DynamoDB Data Source'
-    Value: !Ref AttributesDataSource
-  ValuesDataSourceName:
-    Description: 'Name of the Values DynamoDB Data Source'
-    Value: !Ref ValuesDataSource

@@ -51,18 +51,6 @@ Parameters:
     Type: String
     Description: 'Name of Formulas db data source'
     Default: 'FormulasDataSource'
-  SkillsDataSourceName:
-    Type: String
-    Description: 'Name of Skills db data source'
-    Default: 'SkillsDataSource'
-  AttributesDataSourceName:
-    Type: String
-    Description: 'Name of Attributes db data source'
-    Default: 'AttributesDataSource'
-  ValuesDataSourceName:
-    Type: String
-    Description: 'Name of Values db data source'
-    Default: 'ValuesDataSource'
   CharactersTableName:
     Type: String
     Description: 'Name of table'
@@ -78,18 +66,6 @@ Parameters:
   FormulasTableName:
     Type: String
     Description: 'Name of Formulas table'
-    Default: ''
-  SkillsTableName:
-    Type: String
-    Description: 'Name of Skills table'
-    Default: ''
-  AttributesTableName:
-    Type: String
-    Description: 'Name of Attributes table'
-    Default: ''
-  ValuesTableName:
-    Type: String
-    Description: 'Name of Values table'
     Default: ''
   EncountersTableName:
     Type: String
@@ -148,17 +124,11 @@ Resources:
         ActionsTableName: !GetAtt DatabasesNestedStack.Outputs.ActionsTableName
         EncountersTableName: !GetAtt DatabasesNestedStack.Outputs.EncountersTableName
         FormulasTableName: !GetAtt DatabasesNestedStack.Outputs.FormulasTableName
-        SkillsTableName: !GetAtt DatabasesNestedStack.Outputs.SkillsTableName
-        AttributesTableName: !GetAtt DatabasesNestedStack.Outputs.AttributesTableName
-        ValuesTableName: !GetAtt DatabasesNestedStack.Outputs.ValuesTableName
         CharactersDataSourceName: !Ref CharactersDataSourceName
         ObjectsDataSourceName: !Ref ObjectsDataSourceName
         ActionsDataSourceName: !Ref ActionsDataSourceName
         EncountersDataSourceName: !Ref EncountersDataSourceName
         FormulasDataSourceName: !Ref FormulasDataSourceName
-        SkillsDataSourceName: !Ref SkillsDataSourceName
-        AttributesDataSourceName: !Ref AttributesDataSourceName
-        ValuesDataSourceName: !Ref ValuesDataSourceName
         PhnksCertArn: !Ref PhnksCertArn
         PhnksHostedZoneId: !Ref PhnksHostedZoneId
         DomainName: !Ref DomainName

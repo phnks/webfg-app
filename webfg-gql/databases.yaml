@@ -71,41 +71,6 @@ Resources:
         - AttributeName: formulaId
           KeyType: HASH
 
-  SkillsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub "${ServiceName}-Skills"
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: skillId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: skillId
-          KeyType: HASH
-
-  AttributesTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub "${ServiceName}-Attributes"
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: attributeId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: attributeId
-          KeyType: HASH
-
-  ValuesTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub "${ServiceName}-Values"
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: valueId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: valueId
-          KeyType: HASH
 
 Outputs:
   CharactersTableName:
@@ -123,12 +88,3 @@ Outputs:
   FormulasTableName:
     Description: 'Name of the Formulas table'
     Value: !Ref FormulasTable
-  SkillsTableName:
-    Description: 'Name of the Skills table'
-    Value: !Ref SkillsTable
-  AttributesTableName:
-    Description: 'Name of the Attributes table'
-    Value: !Ref AttributesTable
-  ValuesTableName:
-    Description: 'Name of the Values table'
-    Value: !Ref ValuesTable

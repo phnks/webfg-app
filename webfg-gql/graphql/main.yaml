@@ -27,14 +27,6 @@ Parameters:
   EncountersDataSourceName:
     Type: String
     Description: 'Name of db data source'
-  SkillsDataSourceName: # Re-add parameter
-    Type: String
-    Description: 'Name of Skills db data source'
-    Default: 'SkillsDataSource' # Add default consistent with template.yaml
-  AttributesDataSourceName: # Re-add parameter
-    Type: String
-    Description: 'Name of Attributes db data source'
-    Default: 'AttributesDataSource' # Add default consistent with template.yaml
   CharactersTableName:
     Type: String
     Description: 'Name of table'
@@ -44,12 +36,6 @@ Parameters:
   ActionsTableName:
     Type: String
     Description: 'Name of table'
-  SkillsTableName: # Re-add parameter
-    Type: String
-    Description: 'Name of Skills table'
-  AttributesTableName: # Re-add parameter
-    Type: String
-    Description: 'Name of Attributes table'
   FormulasDataSourceName:
     Type: String
     Description: 'Name of Formulas db data source'
@@ -57,13 +43,6 @@ Parameters:
   FormulasTableName:
     Type: String
     Description: 'Name of Formulas table'
-  ValuesTableName: # Add parameter
-    Type: String
-    Description: 'Name of Values table'
-  ValuesDataSourceName: # Add parameter
-    Type: String
-    Description: 'Name of Values db data source'
-    Default: 'ValuesDataSource' # Add default
   PhnksCertArn:
     Type: String
     Description: 'ARN of the certificate for the custom domain'
@@ -118,14 +97,8 @@ Resources:
         CharactersTableName: !Ref CharactersTableName
         ActionsTableName: !Ref ActionsTableName
         EncountersTableName: !Ref EncountersTableName
-        SkillsTableName: !Ref SkillsTableName # Pass down
-        AttributesTableName: !Ref AttributesTableName # Pass down
-        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down parameter reference
-        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down parameter reference
         FormulasDataSourceName: !Ref FormulasDataSourceName # Pass down parameter reference
         FormulasTableName: !Ref FormulasTableName # Pass down parameter reference
-        ValuesTableName: !Ref ValuesTableName # Pass down
-        ValuesDataSourceName: !Ref ValuesDataSourceName # Pass down parameter reference
 
   CharacterResolversStack:
     Type: AWS::CloudFormation::Stack
@@ -136,12 +109,7 @@ Resources:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         CharactersDataSourceName: !Ref CharactersDataSourceName
         CharactersTableName: !Ref CharactersTableName # Added missing parameter
-        SkillsTableName: !Ref SkillsTableName # Pass down
-        AttributesTableName: !Ref AttributesTableName # Pass down
-        SkillsDataSourceName: !Ref SkillsDataSourceName # Pass down
-        AttributesDataSourceName: !Ref AttributesDataSourceName # Pass down
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Pass down
-        ValuesTableName: !Ref ValuesTableName # Pass down
 
   ObjectResolversStack:
     Type: AWS::CloudFormation::Stack

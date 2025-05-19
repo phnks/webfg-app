@@ -7,11 +7,6 @@ type Query {
   getObject(objectId: ID!): Object
   listObjects(filter: ObjectFilterInput): [Object]
 
-  # Skill queries
-  listSkills: [Skill] # Added
-
-  # Attribute queries
-  listAttributes: [Attribute] # Added
 
   # Action queries
   getAction(actionId: ID!): Action
