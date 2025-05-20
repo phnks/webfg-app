@@ -103,6 +103,13 @@
   border-radius: 6px;
   padding: 12px 15px;
   margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.action-info {
+  flex: 1;
 }
 
 .action-name {
@@ -111,9 +118,44 @@
   margin-bottom: 5px;
 }
 
+.action-name a {
+  color: #1a73e8;
+  text-decoration: none;
+}
+
+.action-name a:hover {
+  color: #0d47a1;
+  text-decoration: underline;
+}
+
 .action-description {
   color: #666;
   font-size: 14px;
+}
+
+.test-action-button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.test-action-button:hover {
+  background-color: #0069d9;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
 }
 
 /* Equipment and Inventory list styling */

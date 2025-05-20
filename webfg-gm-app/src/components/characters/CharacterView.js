@@ -13,8 +13,7 @@ import {
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import CharacterAttributes from "./CharacterAttributes";
-
-
+import ActionTest from "../actions/test/ActionTest";
 import CharacterDetails from "./CharacterDetails";
 import CharacterForm from "../forms/CharacterForm";
 import "./CharacterView.css";
@@ -26,6 +25,7 @@ const CharacterView = () => {
   const { selectCharacter } = useSelectedCharacter();
   const [isEditing, setIsEditing] = useState(false);
   const [currentCharacter, setCurrentCharacter] = useState(null);
+  const [testAction, setTestAction] = useState(null); // State to store action being tested
   const [mutationError, setMutationError] = useState(null); // Added mutationError state
 
   // Initial query to get character data
@@ -161,6 +161,14 @@ const CharacterView = () => {
     setIsEditing(false);
   };
 
+  const handleTestAction = (action) => {
+    setTestAction(action);
+  };
+
+  const handleTestClose = () => {
+    setTestAction(null);
+  };
+
   // Handler for equipping an item
   const handleEquipItem = async (objectId) => {
     try {
@@ -215,11 +223,18 @@ const CharacterView = () => {
 
   const character = currentCharacter;
 
-
-
-  const addAction = (actionId) => {
-    // Implementation
-  };
+  if (testAction) {
+    return (
+      <>
+        <div className="overlay" onClick={handleTestClose}></div>
+        <ActionTest 
+          action={testAction} 
+          character={character} 
+          onClose={handleTestClose} 
+        />
+      </>
+    );
+  }
 
   if (isEditing) {
     return (
@@ -371,8 +386,18 @@ const CharacterView = () => {
               <div>
                 {character.actions.map(action => (
                   <div key={action.actionId} className="character-action">
-                    <div className="action-name">{action.name}</div>
-                    <div className="action-description">{action.description}</div>
+                    <div className="action-info">
+                      <div className="action-name">
+                        <Link to={`/actions/${action.actionId}`}>{action.name}</Link>
+                      </div>
+                      <div className="action-description">{action.description}</div>
+                    </div>
+                    <button 
+                      onClick={() => handleTestAction(action)} 
+                      className="test-action-button"
+                    >
+                      Test
+                    </button>
                   </div>
                 ))}
               </div>

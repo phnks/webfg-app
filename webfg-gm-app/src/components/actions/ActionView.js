@@ -4,10 +4,12 @@ import { useQuery, useMutation } from "@apollo/client";
 import {
   GET_ACTION,
   DELETE_ACTION,
-  ADD_ACTION_TO_CHARACTER
+  ADD_ACTION_TO_CHARACTER,
+  GET_CHARACTER
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import ActionForm from "../forms/ActionForm";
+import ActionTest from "./test/ActionTest";
 import "./ActionView.css";
 import ErrorPopup from '../common/ErrorPopup';
 
@@ -16,16 +18,30 @@ const ActionView = () => {
   const navigate = useNavigate();
   const { selectedCharacter } = useSelectedCharacter();
   const [isEditing, setIsEditing] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
   const [currentAction, setCurrentAction] = useState(null);
   const [addActionSuccess, setAddActionSuccess] = useState(false);
   const [mutationError, setMutationError] = useState(null);
+  const [fullCharacterData, setFullCharacterData] = useState(null);
 
   // Initial query to get action data
+  // Get action data
   const { data, loading, error, refetch } = useQuery(GET_ACTION, {
     variables: { actionId },
     onCompleted: (data) => {
       if (data && data.getAction) {
         setCurrentAction(data.getAction);
+      }
+    }
+  });
+
+  // Get full character data when a character is selected
+  const { data: characterData } = useQuery(GET_CHARACTER, {
+    variables: { characterId: selectedCharacter?.characterId },
+    skip: !selectedCharacter,
+    onCompleted: (data) => {
+      if (data && data.getCharacter) {
+        setFullCharacterData(data.getCharacter);
       }
     }
   });
@@ -112,6 +128,18 @@ const ActionView = () => {
     setIsEditing(false);
   };
 
+  const handleTestAction = () => {
+    if (!selectedCharacter) {
+      setMutationError({ message: "Please select a character first to test this action.", stack: null });
+      return;
+    }
+    setIsTesting(true);
+  };
+
+  const handleTestClose = () => {
+    setIsTesting(false);
+  };
+
   if (loading) return <div className="loading">Loading action details...</div>;
   if (error) return <div className="error">Error: {error.message}</div>;
   if (!currentAction) return <div className="error">Action not found</div>;
@@ -128,6 +156,19 @@ const ActionView = () => {
       />
     );
   }
+  
+  if (isTesting && fullCharacterData) {
+    return (
+      <>
+        <div className="overlay" onClick={handleTestClose}></div>
+        <ActionTest 
+          action={action} 
+          character={fullCharacterData} 
+          onClose={handleTestClose} 
+        />
+      </>
+    );
+  }
 
   return (
     <div className="action-view">
@@ -135,13 +176,21 @@ const ActionView = () => {
         <h1>{action.name}</h1>
         <div className="action-actions">
           {selectedCharacter && (
-            <button
-              onClick={handleAddToCharacter}
-              className={`add-to-character-btn ${addActionSuccess ? 'success' : ''}`}
-              disabled={addActionSuccess}
-            >
-              {addActionSuccess ? 'Added!' : selectedCharacter ? `Add to ${selectedCharacter.name}'s Actions` : 'Add to Character'}
-            </button>
+            <>
+              <button
+                onClick={handleAddToCharacter}
+                className={`add-to-character-btn ${addActionSuccess ? 'success' : ''}`}
+                disabled={addActionSuccess}
+              >
+                {addActionSuccess ? 'Added!' : selectedCharacter ? `Add to ${selectedCharacter.name}'s Actions` : 'Add to Character'}
+              </button>
+              <button 
+                onClick={handleTestAction}
+                className="test-action-btn"
+              >
+                Test Action
+              </button>
+            </>
           )}
           <button onClick={handleEdit}>Edit</button>
           <button onClick={handleDelete} className="delete-button">Delete</button>
