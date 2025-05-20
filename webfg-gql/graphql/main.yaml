@@ -36,13 +36,6 @@ Parameters:
   ActionsTableName:
     Type: String
     Description: 'Name of table'
-  FormulasDataSourceName:
-    Type: String
-    Description: 'Name of Formulas db data source'
-    Default: 'FormulasDataSource'
-  FormulasTableName:
-    Type: String
-    Description: 'Name of Formulas table'
   PhnksCertArn:
     Type: String
     Description: 'ARN of the certificate for the custom domain'
@@ -97,8 +90,6 @@ Resources:
         CharactersTableName: !Ref CharactersTableName
         ActionsTableName: !Ref ActionsTableName
         EncountersTableName: !Ref EncountersTableName
-        FormulasDataSourceName: !Ref FormulasDataSourceName # Pass down parameter reference
-        FormulasTableName: !Ref FormulasTableName # Pass down parameter reference
 
   CharacterResolversStack:
     Type: AWS::CloudFormation::Stack
@@ -133,16 +124,7 @@ Resources:
          ActionsDataSourceName: !Ref ActionsDataSourceName # Corrected Indent
          ActionsTableName: !Ref ActionsTableName # Corrected Indent
          AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Corrected Indent
-         FormulasDataSourceName: !Ref FormulasDataSourceName # Corrected Indent
 
-  FormulaResolversStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn: DataSourcesStack
-    Properties:
-      TemplateURL: ./formula-resolvers.yaml # Assuming this file will be created
-      Parameters:
-        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
-        FormulasDataSourceName: !Ref FormulasDataSourceName
 
   AppSyncLambdaServiceRole:
     Type: AWS::IAM::Role

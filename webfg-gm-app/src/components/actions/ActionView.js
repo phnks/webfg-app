@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useSubscription } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import {
   GET_ACTION,
   DELETE_ACTION,
-  ADD_ACTION_TO_CHARACTER,
-  ON_UPDATE_ACTION,
-  ON_DELETE_ACTION
+  ADD_ACTION_TO_CHARACTER
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import ActionForm from "../forms/ActionForm";
 import "./ActionView.css";
-import ErrorPopup from '../common/ErrorPopup'; // Import ErrorPopup
+import ErrorPopup from '../common/ErrorPopup';
 
 const ActionView = () => {
   const { actionId } = useParams();
@@ -20,7 +18,7 @@ const ActionView = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentAction, setCurrentAction] = useState(null);
   const [addActionSuccess, setAddActionSuccess] = useState(false);
-  const [mutationError, setMutationError] = useState(null); // Added mutationError state
+  const [mutationError, setMutationError] = useState(null);
 
   // Initial query to get action data
   const { data, loading, error, refetch } = useQuery(GET_ACTION, {
@@ -38,7 +36,6 @@ const ActionView = () => {
   // Handle adding action to selected character
   const handleAddToCharacter = async () => {
     if (!selectedCharacter) {
-      // Optionally display an error or message if no character is selected
       setMutationError({ message: "Please select a character first.", stack: null });
       return;
     }
@@ -50,7 +47,6 @@ const ActionView = () => {
           actionId
         }
       });
-      // Check for null data or errors (including null values for all keys in data)
       if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
           throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
       }
@@ -75,7 +71,6 @@ const ActionView = () => {
       setMutationError({ message: errorMessage, stack: errorStack });
     }
   };
-
 
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this action?")) {
@@ -110,7 +105,7 @@ const ActionView = () => {
 
   const handleEditSuccess = () => {
     setIsEditing(false);
-    refetch(); // Refetch to ensure we have the latest data
+    refetch();
   };
 
   const handleEditCancel = () => {
@@ -123,15 +118,18 @@ const ActionView = () => {
 
   const action = currentAction;
 
-   // Helper to display formula or default value
-   const displayFormula = (formula, defaultValue) => {
-     if (formula && formula.formulaValue) {
-       return <span className="formula-value" title={formula.formulaId}>{formula.formulaValue}</span>;
-     }
-     return defaultValue !== undefined ? defaultValue : 'N/A';
-   };
+  if (isEditing) {
+    return (
+      <ActionForm
+        action={action}
+        isEditing={true}
+        onClose={handleEditCancel}
+        onSuccess={handleEditSuccess}
+      />
+    );
+  }
 
-   return (
+  return (
     <div className="action-view">
       <div className="action-header">
         <h1>{action.name}</h1>
@@ -157,76 +155,31 @@ const ActionView = () => {
              <span>Category:</span>
              <span>{action.actionCategory || "N/A"}</span>
            </div>
-            <div className="detail-row">
+           <div className="detail-row">
+             <span>Source Attribute:</span>
+             <span>{action.sourceAttribute || "N/A"}</span>
+           </div>
+           <div className="detail-row">
+             <span>Target Attribute:</span>
+             <span>{action.targetAttribute || "N/A"}</span>
+           </div>
+           <div className="detail-row">
              <span>Description:</span>
              <p>{action.description || "No description available."}</p>
            </div>
+           
+           <h3>Action Properties</h3>
            <div className="detail-row">
-             <span>Units:</span>
-             <span>{action.units || "N/A"}</span>
+             <span>Target Type:</span>
+             <span>{action.targetType || "N/A"}</span>
            </div>
            <div className="detail-row">
-             <span>Fatigue Cost:</span>
-             <span>{action.fatigueCost !== null ? action.fatigueCost : "N/A"}</span>
+             <span>Effect Type:</span>
+             <span>{action.effectType || "N/A"}</span>
            </div>
-
-           <h3>Formulas & Defaults</h3>
-           <div className="detail-row">
-             <span>Initial Duration:</span>
-             <span>{action.defaultInitDuration !== null && action.defaultInitDuration !== undefined ? action.defaultInitDuration : "N/A"}{action.initDuration ? " (" + displayFormula(action.initDuration) + ")" : ""}</span>
-           </div>
-           <div className="detail-row">
-             <span>Duration:</span>
-             <span>{action.defaultDuration !== null && action.defaultDuration !== undefined ? action.defaultDuration : "N/A"}{action.duration ? " (" + displayFormula(action.duration) + ")" : ""}</span>
-           </div>
-           <div className="detail-row">
-             <span>Difficulty Class:</span>
-             <span>{displayFormula(action.difficultyClass)}</span>
-           </div>
-           <div className="detail-row">
-             <span>Guaranteed Formula:</span>
-             <span>{displayFormula(action.guaranteedFormula)}</span>
-           </div>
-           {action.actionTargets && action.actionTargets.length > 0 ? (
-             <ul className="array-list">
-               {action.actionTargets.map((target, index) => (
-                 <li key={`target-${index}`}>
-                   {target.quantity} x {target.targetType} (Seq: {target.sequenceId})
-                 </li>
-               ))}
-             </ul>
-           ) : (
-             <p>No targets defined</p>
-           )}
-
-           <h3>Sources</h3>
-           {action.actionSources && action.actionSources.length > 0 ? (
-             <ul className="array-list">
-               {action.actionSources.map((source, index) => (
-                 <li key={`source-${index}`}>
-                   {source.quantity} x {source.sourceType} (Seq: {source.sequenceId})
-                 </li>
-               ))}
-             </ul>
-           ) : (
-             <p>No sources defined</p>
-           )}
-
-           <h3>Effects</h3>
-           {action.actionEffects && action.actionEffects.length > 0 ? (
-             <ul className="array-list">
-               {action.actionEffects.map((effect, index) => (
-                 <li key={`effect-${index}`}>
-                   {effect.effectType} (Qty: {effect.quantity}, Seq: {effect.sequenceId})
-                 </li>
-               ))}
-             </ul>
-           ) : (
-             <p>No effects defined</p>
-           )}
          </div>
       </div>
-      <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} /> {/* Added ErrorPopup */}
+      <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} />
     </div>
   );
 };

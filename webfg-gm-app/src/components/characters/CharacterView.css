@@ -115,3 +115,73 @@
   color: #666;
   font-size: 14px;
 }
+
+/* Equipment and Inventory list styling */
+.equipment-list,
+.inventory-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.equipment-item,
+.inventory-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  border-left: 3px solid #007bff;
+}
+
+.equipment-item:hover,
+.inventory-item:hover {
+  background-color: #e9e9e9;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.equip-button,
+.unequip-button {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.equip-button {
+  background-color: #28a745;
+}
+
+.equip-button:hover {
+  background-color: #218838;
+}
+
+.unequip-button {
+  background-color: #fd7e14;
+}
+
+.unequip-button:hover {
+  background-color: #e67000;
+}
+
+.object-link {
+  color: #1a73e8;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.object-link:hover {
+  color: #0d47a1;
+  text-decoration: underline;
+}

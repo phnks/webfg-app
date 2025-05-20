@@ -17,9 +17,6 @@ type Query {
   getEncounter(encounterId: ID!): Encounter
   listEncounters(filter: EncounterFilterInput): [Encounter]
 
-  # Formula queries
-  getFormula(formulaId: ID!): Formula
-  listFormulas: [Formula]
 }
 
 type Mutation {
@@ -76,15 +73,8 @@ type Mutation {
   updateTerrainPosition(encounterId: ID!, input: UpdateTerrainPositionInput!): Encounter
   removeTerrainFromEncounter(encounterId: ID!, terrainId: ID!): Encounter
 
-  # Formula mutations
-  createFormula(input: FormulaInput!): Formula
-  updateFormula(formulaId: ID!, input: FormulaInput!): Formula
-  deleteFormula(formulaId: ID!): Formula
 }
 
-input FormulaInput {
-  formulaValue: String!
-}
 
 type Subscription {
   # Character subscriptions

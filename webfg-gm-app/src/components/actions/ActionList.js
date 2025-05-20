@@ -41,7 +41,21 @@ const ActionList = () => {
                 onClick={() => handleActionClick(action.actionId)}
               >
                 <h3>{action.name}</h3>
-                {action.type && <div className="action-type">{action.type}</div>}
+                <div className="action-meta">
+                  <span className="action-category">{action.actionCategory}</span>
+                  <span className="action-attributes">{action.sourceAttribute} → {action.targetAttribute}</span>
+                  <div className="action-details-meta">
+                    <span className="action-target-type">{action.targetType}</span>
+                    <span className="action-effect-type">{action.effectType}</span>
+                  </div>
+                </div>
+                {action.description && (
+                  <p className="action-description">
+                    {action.description.length > 100
+                      ? `${action.description.substring(0, 100)}...`
+                      : action.description}
+                  </p>
+                )}
               </div>
             ))}
             
@@ -59,4 +73,4 @@ const ActionList = () => {
   );
 };
 
-export default ActionList; 
+export default ActionList;

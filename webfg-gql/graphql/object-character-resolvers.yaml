@@ -33,7 +33,57 @@ Resources:
             TableName: !Ref CharactersTableName
         - DynamoDBWritePolicy:
             TableName: !Ref CharactersTableName
-
+  
+  RemoveObjectFromInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/removeObjectFromInventory.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
+  
+  AddObjectToEquipmentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/addObjectToEquipment.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
+  
+  RemoveObjectFromEquipmentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/removeObjectFromEquipment.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
 
   AddObjectToInventoryDataSource: # Keep for now
     Type: AWS::AppSync::DataSource
@@ -45,6 +95,36 @@ Resources:
       LambdaConfig:
         LambdaFunctionArn: !GetAtt AddObjectToInventoryFunction.Arn
 
+  RemoveObjectFromInventoryDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: RemoveObjectFromInventory
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt RemoveObjectFromInventoryFunction.Arn
+  
+  AddObjectToEquipmentDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: AddObjectToEquipment
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt AddObjectToEquipmentFunction.Arn
+  
+  RemoveObjectFromEquipmentDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: RemoveObjectFromEquipment
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt RemoveObjectFromEquipmentFunction.Arn
+
 
   AddObjectToInventoryResolver: # Keep for now
     Type: AWS::AppSync::Resolver
@@ -53,6 +133,60 @@ Resources:
       TypeName: Mutation
       FieldName: addObjectToInventory
       DataSourceName: !GetAtt AddObjectToInventoryDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+  
+  RemoveObjectFromInventoryResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: removeObjectFromInventory
+      DataSourceName: !GetAtt RemoveObjectFromInventoryDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+  
+  AddObjectToEquipmentResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: addObjectToEquipment
+      DataSourceName: !GetAtt AddObjectToEquipmentDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+  
+  RemoveObjectFromEquipmentResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: removeObjectFromEquipment
+      DataSourceName: !GetAtt RemoveObjectFromEquipmentDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
