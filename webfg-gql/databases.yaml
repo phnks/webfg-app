@@ -59,17 +59,6 @@ Resources:
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
 
-  FormulasTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub "${ServiceName}-Formulas"
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: formulaId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: formulaId
-          KeyType: HASH
 
 
 Outputs:
@@ -85,6 +74,3 @@ Outputs:
   EncountersTableName:
     Description: 'Name of the Encounters table'
     Value: !Ref EncountersTable
-  FormulasTableName:
-    Description: 'Name of the Formulas table'
-    Value: !Ref FormulasTable

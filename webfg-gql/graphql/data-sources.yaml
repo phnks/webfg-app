@@ -29,12 +29,6 @@ Parameters:
   EncountersTableName:
     Type: String
     Description: 'Name of table'
-  FormulasDataSourceName:
-    Type: String
-    Description: 'Name for Formulas DynamoDB data source'
-  FormulasTableName:
-    Type: String
-    Description: 'Name of Formulas table'
 
 Resources:
   AppSyncDynamoDBRole:
@@ -66,7 +60,6 @@ Resources:
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ObjectsTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ActionsTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EncountersTableName}
-                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${FormulasTableName}
 
   AppSyncLambdaServiceRole:
     Type: AWS::IAM::Role
@@ -134,16 +127,6 @@ Resources:
         TableName: !Ref EncountersTableName
         AwsRegion: !Sub ${AWS::Region}
 
-  FormulasDataSource:
-    Type: AWS::AppSync::DataSource
-    Properties:
-      ApiId: !Ref ApiId
-      Name: !Ref FormulasDataSourceName
-      Type: AMAZON_DYNAMODB
-      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
-      DynamoDBConfig:
-        TableName: !Ref FormulasTableName
-        AwsRegion: !Sub ${AWS::Region}
 
 
 Outputs:
@@ -166,6 +149,3 @@ Outputs:
   EncountersDataSourceName:
     Description: 'Name of the Encounters DynamoDB Data Source'
     Value: !Ref EncountersDataSource
-  FormulasDataSourceName:
-    Description: 'Name of the Formulas DynamoDB Data Source'
-    Value: !Ref FormulasDataSource

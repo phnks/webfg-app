@@ -1,4 +1,0 @@
-type Formula {
-    formulaId: ID!
-    formulaValue: String!
-}

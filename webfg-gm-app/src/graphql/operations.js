@@ -104,18 +104,11 @@ export const LIST_ACTIONS = gql`
       actionId
       name
       actionCategory
-      initDurationId
-      defaultInitDuration
-      durationId
-      defaultDuration
-      fatigueCost
-      difficultyClassId
-      guaranteedFormulaId
-      units 
+      sourceAttribute
+      targetAttribute
       description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      targetType
+      effectType
     }
   }
 `;
@@ -126,18 +119,11 @@ export const GET_ACTION = gql`
       actionId
       name
       actionCategory
-      initDurationId
-      defaultInitDuration
-      durationId
-      defaultDuration
-      fatigueCost
-      difficultyClassId
-      guaranteedFormulaId
-      units
+      sourceAttribute
+      targetAttribute
       description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      targetType
+      effectType
     }
   }
 `;
@@ -148,31 +134,15 @@ export const GET_ACTIONS = gql`
       actionId
       name
       actionCategory
-      initDurationId
-      defaultInitDuration
-      durationId
-      defaultDuration
-      fatigueCost
-      difficultyClassId
-      guaranteedFormulaId
-      units
+      sourceAttribute
+      targetAttribute
       description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      targetType
+      effectType
     }
   }
 `;
 
-// FORMULA QUERIES
-export const LIST_FORMULAS = gql`
-  query ListFormulas {
-    listFormulas {
-      formulaId
-      formulaValue
-    }
-  }
-`;
 
 // ENCOUNTER QUERIES
 export const LIST_ENCOUNTERS = gql`
@@ -318,20 +288,18 @@ export const DELETE_OBJECT = gql`
 export const CREATE_ACTION = gql`
   mutation CreateAction($input: ActionInput!) {
     createAction(input: $input) {
-      actionId name actionCategory initDurationId defaultInitDuration durationId defaultDuration fatigueCost difficultyClassId guaranteedFormulaId units description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      actionId name actionCategory sourceAttribute targetAttribute description
+      targetType
+      effectType
     }
   }
 `;
 export const UPDATE_ACTION = gql`
   mutation UpdateAction($actionId: ID!, $input: ActionInput!) {
     updateAction(actionId: $actionId, input: $input) {
-      actionId name actionCategory initDurationId defaultInitDuration durationId defaultDuration fatigueCost difficultyClassId guaranteedFormulaId units description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      actionId name actionCategory sourceAttribute targetAttribute description
+      targetType
+      effectType
     }
   }
 `;
@@ -415,15 +383,6 @@ export const REMOVE_ACTION_FROM_CHARACTER = gql`
   }
 `;
 
-// FORMULA MUTATIONS
-export const CREATE_FORMULA = gql`
-  mutation CreateFormula($input: FormulaInput!) {
-    createFormula(input: $input) {
-      formulaId
-      formulaValue
-    }
-  }
-`;
 
 // ENCOUNTER MUTATIONS
 export const CREATE_ENCOUNTER = gql`
@@ -633,10 +592,9 @@ export const ON_CREATE_ACTION = gql`
 export const ON_UPDATE_ACTION = gql`
   subscription OnUpdateAction { 
     onUpdateAction { 
-      actionId name actionCategory initDurationId defaultInitDuration durationId defaultDuration fatigueCost difficultyClassId guaranteedFormulaId units description
-      actionTargets { targetType quantity sequenceId }
-      actionSources { sourceType quantity sequenceId }
-      actionEffects { effectType quantity sequenceId }
+      actionId name actionCategory sourceAttribute targetAttribute description
+      targetType
+      effectType
     } 
   }
 `;

@@ -47,10 +47,6 @@ Parameters:
     Type: String
     Description: 'Name of db data source'
     Default: 'EncountersDataSource'
-  FormulasDataSourceName:
-    Type: String
-    Description: 'Name of Formulas db data source'
-    Default: 'FormulasDataSource'
   CharactersTableName:
     Type: String
     Description: 'Name of table'
@@ -62,10 +58,6 @@ Parameters:
   ActionsTableName:
     Type: String
     Description: 'Name of table'
-    Default: ''
-  FormulasTableName:
-    Type: String
-    Description: 'Name of Formulas table'
     Default: ''
   EncountersTableName:
     Type: String
@@ -123,12 +115,10 @@ Resources:
         ObjectsTableName: !GetAtt DatabasesNestedStack.Outputs.ObjectsTableName
         ActionsTableName: !GetAtt DatabasesNestedStack.Outputs.ActionsTableName
         EncountersTableName: !GetAtt DatabasesNestedStack.Outputs.EncountersTableName
-        FormulasTableName: !GetAtt DatabasesNestedStack.Outputs.FormulasTableName
         CharactersDataSourceName: !Ref CharactersDataSourceName
         ObjectsDataSourceName: !Ref ObjectsDataSourceName
         ActionsDataSourceName: !Ref ActionsDataSourceName
         EncountersDataSourceName: !Ref EncountersDataSourceName
-        FormulasDataSourceName: !Ref FormulasDataSourceName
         PhnksCertArn: !Ref PhnksCertArn
         PhnksHostedZoneId: !Ref PhnksHostedZoneId
         DomainName: !Ref DomainName
