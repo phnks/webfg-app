@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
-import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS } from '../../../graphql/operations';
+import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, GET_CHARACTER, GET_OBJECT } from '../../../graphql/operations';
 import './ActionTest.css';
 
 const ActionTest = ({ action, character, onClose }) => {
   const [targetType, setTargetType] = useState(action.targetType);
   const [selectedTarget, setSelectedTarget] = useState(null);
+  const [selectedTargetId, setSelectedTargetId] = useState('');
   const [override, setOverride] = useState(false);
   const [overrideValue, setOverrideValue] = useState('');
   const [actionDifficulty, setActionDifficulty] = useState(null);
@@ -14,6 +15,27 @@ const ActionTest = ({ action, character, onClose }) => {
   const { data: charactersData } = useQuery(LIST_CHARACTERS, { skip: targetType !== 'CHARACTER' });
   const { data: objectsData } = useQuery(LIST_OBJECTS, { skip: targetType !== 'OBJECT' });
   const { data: actionsData } = useQuery(LIST_ACTIONS, { skip: targetType !== 'ACTION' });
+  
+  // Fetch detailed data for the selected target
+  const { data: characterDetailData } = useQuery(GET_CHARACTER, {
+    variables: { characterId: selectedTargetId },
+    skip: targetType !== 'CHARACTER' || !selectedTargetId,
+    onCompleted: (data) => {
+      if (data && data.getCharacter) {
+        setSelectedTarget(data.getCharacter);
+      }
+    }
+  });
+  
+  const { data: objectDetailData } = useQuery(GET_OBJECT, {
+    variables: { objectId: selectedTargetId },
+    skip: targetType !== 'OBJECT' || !selectedTargetId,
+    onCompleted: (data) => {
+      if (data && data.getObject) {
+        setSelectedTarget(data.getObject);
+      }
+    }
+  });
 
   // Initial setup
   useEffect(() => {
@@ -83,12 +105,9 @@ const ActionTest = ({ action, character, onClose }) => {
       case 'CHARACTER':
         return (
           <select
-            value={selectedTarget?.characterId || ''}
+            value={selectedTargetId || ''}
             onChange={(e) => {
-              const target = charactersData.listCharacters.find(
-                (char) => char.characterId === e.target.value
-              );
-              setSelectedTarget(target);
+              setSelectedTargetId(e.target.value);
             }}
           >
             <option value="">Select a character</option>
@@ -102,12 +121,9 @@ const ActionTest = ({ action, character, onClose }) => {
       case 'OBJECT':
         return (
           <select
-            value={selectedTarget?.objectId || ''}
+            value={selectedTargetId || ''}
             onChange={(e) => {
-              const target = objectsData.listObjects.find(
-                (obj) => obj.objectId === e.target.value
-              );
-              setSelectedTarget(target);
+              setSelectedTargetId(e.target.value);
             }}
           >
             <option value="">Select an object</option>
@@ -121,12 +137,13 @@ const ActionTest = ({ action, character, onClose }) => {
       case 'ACTION':
         return (
           <select
-            value={selectedTarget?.actionId || ''}
+            value={selectedTargetId || ''}
             onChange={(e) => {
               const target = actionsData.listActions.find(
                 (act) => act.actionId === e.target.value
               );
               setSelectedTarget(target);
+              setSelectedTargetId(e.target.value);
             }}
           >
             <option value="">Select an action</option>
@@ -182,7 +199,7 @@ const ActionTest = ({ action, character, onClose }) => {
           <button
             className="submit-button"
             onClick={handleSubmit}
-            disabled={(!selectedTarget && !override) || (override && !overrideValue)}
+            disabled={(!selectedTargetId && !override) || (override && !overrideValue)}
           >
             Submit
           </button>
@@ -198,12 +215,12 @@ const ActionTest = ({ action, character, onClose }) => {
               {(actionDifficulty * 100).toFixed(2)}%
             </div>
             <p>
-              Source Value: {character[action.sourceAttribute.toLowerCase()]?.attribute.attributeValue || 0}
+              Source Value: {character && character[action.sourceAttribute.toLowerCase()]?.attribute.attributeValue || 0}
               <br />
               Target Value: {override ? overrideValue : (selectedTarget ? 
-                (targetType === 'CHARACTER' ? 
+                (targetType === 'CHARACTER' && selectedTarget[action.targetAttribute.toLowerCase()]?.attribute ? 
                   selectedTarget[action.targetAttribute.toLowerCase()]?.attribute.attributeValue : 
-                  (targetType === 'OBJECT' ? 
+                  (targetType === 'OBJECT' && selectedTarget[action.targetAttribute.toLowerCase()] ? 
                     selectedTarget[action.targetAttribute.toLowerCase()]?.attributeValue : 
                     'N/A'
                   )
