@@ -34,7 +34,7 @@ export const GET_CHARACTER = gql`
       
       special
       actionIds
-      actions { actionId name actionCategory description }
+      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType }
       inventoryIds
       inventory { objectId name objectCategory }
       equipmentIds

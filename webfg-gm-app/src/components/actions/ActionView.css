@@ -2,6 +2,33 @@
   padding: 20px;
 }
 
+.action-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.action-header h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.action-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
 .view-header {
   display: flex;
   justify-content: space-between;
@@ -19,7 +46,7 @@
   gap: 10px;
 }
 
-.edit-button, .delete-button {
+.add-to-character-btn, .test-action-btn, .edit-button, .delete-button {
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
@@ -30,6 +57,20 @@
 .edit-button {
   background-color: #f8f9fa;
   border: 1px solid #ddd;
+}
+
+.test-action-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.add-to-character-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.add-to-character-btn.success {
+  background-color: #20c997;
 }
 
 .delete-button {
@@ -56,6 +97,39 @@
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 20px;
+}
+
+.action-content {
+  margin-top: 20px;
+}
+
+.action-details {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.action-details h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.detail-row span:first-child {
+  font-weight: bold;
+  width: 150px;
+  min-width: 150px;
+}
+
+.detail-row p {
+  margin: 0;
 }
 
 .detail-card h3 {
