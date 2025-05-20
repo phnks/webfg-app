@@ -1,0 +1,492 @@
+type Attribute {
+  attributeValue: Float!
+  attributeType: AttributeType!
+}
+
+input AttributeInput {
+  attributeValue: Float!
+  attributeType: AttributeType!
+}
+
+enum AttributeType {
+  HELP
+  HINDER
+}
+
+enum AttributeName {
+  LETHALITY
+  ARMOUR
+  ENDURANCE
+  STRENGTH
+  DEXTERITY
+  AGILITY
+  PERCEPTION
+  CHARISMA
+  INTELLIGENCE
+  RESOLVE
+  MORALE
+}
+
+type Value {
+  valueName: ValueName!
+  valueType: ValueType!
+}
+
+enum ValueName {
+  IDEALISM
+  PRAGMATISM
+  DISCIPLINE
+  DEFIANCE
+  CURIOSITY
+  DETACHMENT
+  CONTROL
+  COMPASSION
+  AMBITION
+  DOUBT
+  LOYALTY
+  INDEPENDENCE
+  FAITH
+  CYNICISM
+  GLORY
+  SURVIVAL
+  UNITY
+  VIOLENCE
+  RESTRAINT
+  OBSESSION
+}
+
+enum ValueType {
+  GOOD
+  BAD
+}
+
+
+type Character {
+  characterId: ID!
+  name: String!
+  characterCategory: CharacterCategory!
+  will: Int!
+
+  values: [Value]      
+
+  lethality: CharacterAttribute!
+  armour: CharacterAttribute!
+  endurance: CharacterAttribute!
+  strength: CharacterAttribute!
+  dexterity: CharacterAttribute!
+  agility: CharacterAttribute!
+  perception: CharacterAttribute!
+  charisma: CharacterAttribute!
+  intelligence: CharacterAttribute!
+  resolve: CharacterAttribute!
+  morale: CharacterAttribute!
+
+  actionIds: [ID]
+  actions: [Action]
+
+  special: [String]
+
+  inventoryIds: [ID]
+  inventory: [Object]
+  equipmentIds: [ID]
+  equipment: [Object]
+}
+
+enum CharacterCategory {
+  HUMAN
+  TREPIDITE
+  MONSTER
+  CARVED
+  ANTHRO
+  ICER
+  DAXMC
+  QRTIS
+  TYVIR
+}
+
+type CharacterAttribute {
+  attribute: Attribute!
+  fatigue: Int!
+}
+
+input CharacterAttributeInput {
+  attribute: AttributeInput!
+  fatigue: Int!
+}
+
+input ValueInput {
+  valueName: ValueName!
+  valueType: ValueType!
+}
+
+input CharacterInput {
+  name: String!
+  characterCategory: CharacterCategory!
+  will: Int!
+  values: [ValueInput]
+  lethality: CharacterAttributeInput!
+  armour: CharacterAttributeInput!
+  endurance: CharacterAttributeInput!
+  strength: CharacterAttributeInput!
+  dexterity: CharacterAttributeInput!
+  agility: CharacterAttributeInput!
+  perception: CharacterAttributeInput!
+  charisma: CharacterAttributeInput!
+  intelligence: CharacterAttributeInput!
+  resolve: CharacterAttributeInput!
+  morale: CharacterAttributeInput!
+  actionIds: [ID]
+  special: [String]
+  inventoryIds: [ID]
+  equipmentIds: [ID]
+}
+
+
+type Object {
+  objectId: ID!
+  name: String!
+  objectCategory: ObjectCategory!
+  lethality: Attribute!
+  armour: Attribute!
+  endurance: Attribute!
+  strength: Attribute!
+  dexterity: Attribute!
+  agility: Attribute!
+  perception: Attribute!
+  charisma: Attribute!
+  intelligence: Attribute!
+  resolve: Attribute!
+  morale: Attribute!
+  special: [String]
+  equipmentIds: [ID]
+  equipment: [Object]
+}
+
+enum ObjectCategory {
+  TOOL
+  WEAPON
+  ARMOR
+  CONTAINER
+  STRUCTURE
+  JEWLERY
+  DEVICE
+  MATERIAL
+  CLOTHING
+  LIGHT_SOURCE
+  DOCUMENT
+  COMPONENT
+  ARTIFACT
+}
+
+input ObjectInput {
+  name: String
+  objectCategory: ObjectCategory
+  lethality: AttributeInput
+  armour: AttributeInput
+  endurance: AttributeInput
+  strength: AttributeInput
+  dexterity: AttributeInput
+  agility: AttributeInput
+  perception: AttributeInput
+  charisma: AttributeInput
+  intelligence: AttributeInput
+  resolve: AttributeInput
+  morale: AttributeInput
+  special: [String]
+  equipmentIds: [ID]
+}
+
+
+type Action {
+  actionId: ID!
+  name: String!
+  actionCategory: ActionCategory!
+  sourceAttribute: AttributeName!
+  targetAttribute: AttributeName!
+  description: String
+  targetType: TargetType!
+  effectType: EffectType!
+}
+
+enum ActionCategory {
+  MOVE
+  ATTACK
+  DEFEND
+  RECOVER
+  INTERACT
+  MANIPULATE
+  ASSIST
+}
+
+enum TargetType {
+  OBJECT
+  CHARACTER
+  ACTION
+}
+
+enum EffectType {
+  HELP
+  HINDER
+  DESTROY
+}
+
+input ActionInput {
+  name: String!
+  actionCategory: ActionCategory!
+  sourceAttribute: AttributeName!
+  targetAttribute: AttributeName!
+  description: String
+  targetType: TargetType!
+  effectType: EffectType!
+}
+
+type Query {
+  # Character queries
+  getCharacter(characterId: ID!): Character
+  listCharacters(filter: CharacterFilterInput): [Character]
+
+  # Object queries
+  getObject(objectId: ID!): Object
+  listObjects(filter: ObjectFilterInput): [Object]
+
+
+  # Action queries
+  getAction(actionId: ID!): Action
+  getActions(actionIds: [ID!]!): [Action]
+  listActions(filter: ActionFilterInput): [Action]
+
+  # Encounter queries
+  getEncounter(encounterId: ID!): Encounter
+  listEncounters(filter: EncounterFilterInput): [Encounter]
+
+}
+
+type Mutation {
+  # Character mutations
+  createCharacter(input: CharacterInput!): Character
+  updateCharacter(characterId: ID!, input: CharacterInput!): Character
+
+  deleteCharacter(characterId: ID!): Character
+
+  # Object mutations
+  createObject(input: ObjectInput!): Object
+  updateObject(objectId: ID!, input: ObjectInput!): Object
+  deleteObject(objectId: ID!): Object
+
+  # Action mutations
+  createAction(input: ActionInput!): Action
+  updateAction(actionId: ID!, input: ActionInput!): Action
+  deleteAction(actionId: ID!): Action
+
+  # Character-Object relationship mutations
+  addObjectToInventory(characterId: ID!, objectId: ID!): Character
+  removeObjectFromInventory(characterId: ID!, objectId: ID!): Character
+  addObjectToEquipment(characterId: ID!, objectId: ID!): Character
+  removeObjectFromEquipment(characterId: ID!, objectId: ID!): Character
+
+  # Character-Action relationship mutations
+  addActionToCharacter(characterId: ID!, actionId: ID!): Character
+  removeActionFromCharacter(characterId: ID!, actionId: ID!): Character
+
+  # Encounter mutations
+  createEncounter(input: EncounterInput!): Encounter
+  updateEncounter(encounterId: ID!, input: EncounterInput!): Encounter
+  deleteEncounter(encounterId: ID!): Encounter
+  updateGridSize(input: UpdateGridSizeInput!): Encounter!
+
+  # Character-Encounter relationship mutations
+  addCharacterToEncounter(encounterId: ID!, characterId: ID!, startTime: Float, x: Int, y: Int): Encounter
+  removeCharacterFromEncounter(encounterId: ID!, characterId: ID!): Encounter
+  
+  # Encounter round and initiative mutations
+  advanceRound(encounterId: ID!): Encounter
+  advanceInitiative(encounterId: ID!): Encounter
+  addEventToEncounter(encounterId: ID!, input: EncounterEventInput!): Encounter
+  archiveCurrentEvents(encounterId: ID!, round: Int!, events: [EncounterEventInput]!): Encounter
+
+  # Timeline and VTT mutations
+  addActionToTimeline(encounterId: ID!, characterId: ID!, actionId: ID!, startTime: Float!): Encounter
+  advanceEncounterTime(encounterId: ID!, newTime: Float!): Encounter
+  updateCharacterPosition(encounterId: ID!, characterId: ID!, x: Int!, y: Int!): Encounter
+  addGridElement(encounterId: ID!, element: GridElementInput!): Encounter
+  removeGridElement(encounterId: ID!, elementId: ID!): Encounter
+
+  # Object VTT Mutations
+  addObjectToEncounterVTT(encounterId: ID!, objectId: ID!, x: Int!, y: Int!): Encounter
+  updateObjectPosition(encounterId: ID!, objectId: ID!, x: Int!, y: Int!): Encounter
+  removeObjectFromEncounterVTT(encounterId: ID!, objectId: ID!): Encounter
+
+  # Terrain VTT Mutations
+  addTerrainToEncounter(encounterId: ID!, input: TerrainElementInput!): Encounter
+  updateTerrainPosition(encounterId: ID!, input: UpdateTerrainPositionInput!): Encounter
+  removeTerrainFromEncounter(encounterId: ID!, terrainId: ID!): Encounter
+
+}
+
+
+type Subscription {
+  # Character subscriptions
+  onCreateCharacter: Character
+      @aws_subscribe(mutations: ["createCharacter"])
+  onUpdateCharacter: Character
+      @aws_subscribe(mutations: ["updateCharacter"])
+  onDeleteCharacter: Character
+      @aws_subscribe(mutations: ["deleteCharacter"])
+
+  # Object subscriptions
+  onCreateObject: Object
+      @aws_subscribe(mutations: ["createObject"])
+  onUpdateObject: Object
+      @aws_subscribe(mutations: ["updateObject"])
+  onDeleteObject: Object
+      @aws_subscribe(mutations: ["deleteObject"])
+
+  # Action subscriptions
+  onCreateAction: Action
+      @aws_subscribe(mutations: ["createAction"])
+  onUpdateAction: Action
+      @aws_subscribe(mutations: ["updateAction"])
+  onDeleteAction: Action
+      @aws_subscribe(mutations: ["deleteAction"])
+
+  # Encounter subscriptions
+  onCreateEncounter: Encounter
+      @aws_subscribe(mutations: ["createEncounter"])
+  onUpdateEncounter: Encounter
+      @aws_subscribe(mutations: ["updateEncounter"])
+  onDeleteEncounter: Encounter
+      @aws_subscribe(mutations: ["deleteEncounter"])
+  onEncounterTimelineChanged(encounterId: ID!): Encounter
+      @aws_subscribe(mutations: ["addActionToTimeline", "advanceEncounterTime"])
+  onEncounterEventChanged(encounterId: ID!): Encounter
+      @aws_subscribe(mutations: ["addEventToEncounter", "archiveCurrentEvents"])
+  onEncounterRoundChanged(encounterId: ID!): Encounter
+      @aws_subscribe(mutations: ["advanceRound", "advanceInitiative"])
+  onEncounterVttChanged(encounterId: ID!): Encounter
+      @aws_subscribe(mutations: [
+        "updateCharacterPosition",
+        "addGridElement",
+        "removeGridElement",
+        "addObjectToEncounterVTT",
+        "updateObjectPosition",
+        "removeObjectFromEncounterVTT",
+        "addTerrainToEncounter",
+        "updateTerrainPosition",
+        "removeTerrainFromEncounter"
+      ])
+  onGridSizeChanged(encounterId: ID!): Encounter
+      @aws_subscribe(mutations: ["updateGridSize"])
+  onEncounterCharacterChanged(encounterId: ID!): Encounter
+      @aws_subscribe(mutations: ["addCharacterToEncounter", "removeCharacterFromEncounter"])
+}
+
+# Filter inputs for queries
+input CharacterFilterInput {
+  name: StringFilterInput
+  # race: Race # Removed
+  hasObjectWithName: StringFilterInput
+  hasActionWithName: StringFilterInput
+}
+
+ input ActionFilterInput {
+   name: StringFilterInput
+   actionCategory: ActionCategory # Changed from 'type: ActionType'
+ }
+
+input StringFilterInput {
+  eq: String
+  contains: String
+  beginsWith: String
+}
+
+input ObjectFilterInput {
+  name: StringFilterInput
+  objectCategory: ObjectCategory
+}
+
+input EncounterFilterInput {
+  name: StringFilterInput
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+
+type Encounter {
+  encounterId: ID!
+  name: String!
+  description: String
+  round: Int!
+  initiative: Int!
+  eventsCurrent: [EncounterEventLog]
+  eventsHistory: [EncounterEventLog]
+  createdAt: String
+}
+
+type EncounterEventLog {
+  round: Int!
+  events: [EncounterEvent]
+}
+
+type EncounterEvent {
+  initiative: Int!
+  type: TimelineEventType!
+  character: Character
+  action: Action
+  description: String
+}
+
+enum TimelineEventType {
+  CHARACTER_ADDED
+  CHARACTER_REMOVED
+  ACTION
+  OBJECT_ADDED
+  OBJECT_REMOVED
+  ENCOUNTER_STARTED
+  ENCOUNTER_ENDED
+  ROUND_ADVANCED
+  INITIATIVE_ADVANCED
+}
+
+input EncounterInput {
+  name: String!
+  description: String
+}
+
+input EncounterEventInput {
+  initiative: Int!
+  type: TimelineEventType!
+  characterId: ID!
+  actionId: ID
+  description: String
+}
+
+input UpdateGridSizeInput {
+  encounterId: ID!
+  width: Int!
+  height: Int!
+}
+
+input GridElementInput {
+  x: Int!
+  y: Int!
+  type: String!
+  properties: String
+}
+
+input TerrainElementInput {
+  encounterId: ID!
+  gridElement: GridElementInput!
+}
+
+input UpdateTerrainPositionInput {
+  encounterId: ID!
+  terrainId: ID!
+  x: Int!
+  y: Int!
+}
+
+
