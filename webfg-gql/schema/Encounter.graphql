@@ -17,8 +17,8 @@ type EncounterEventLog {
 type EncounterEvent {
   initiative: Int!
   type: TimelineEventType!
-  character: Character!
-  action: Action!
+  character: Character
+  action: Action
   description: String
 }
 
@@ -42,7 +42,32 @@ input EncounterInput {
 input EncounterEventInput {
   initiative: Int!
   type: TimelineEventType!
-  character: Character!
-  action: Action!
+  characterId: ID!
+  actionId: ID
   description: String
+}
+
+input UpdateGridSizeInput {
+  encounterId: ID!
+  width: Int!
+  height: Int!
+}
+
+input GridElementInput {
+  x: Int!
+  y: Int!
+  type: String!
+  properties: String
+}
+
+input TerrainElementInput {
+  encounterId: ID!
+  gridElement: GridElementInput!
+}
+
+input UpdateTerrainPositionInput {
+  encounterId: ID!
+  terrainId: ID!
+  x: Int!
+  y: Int!
 }

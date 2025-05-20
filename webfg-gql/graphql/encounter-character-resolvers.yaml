@@ -40,11 +40,31 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Ref CharactersTableName
 
-  AddActionToTimelineFunction:
+  RemoveCharacterFromEncounterFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
-      Handler: ./functions/addActionToTimeline.handler
+      Handler: ./functions/removeCharacterFromEncounter.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          ENCOUNTERS_TABLE: !Ref EncountersTableName
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EncountersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref EncountersTableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+
+  AddEventToEncounterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/addEventToEncounter.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 30
@@ -59,15 +79,15 @@ Resources:
         - DynamoDBWritePolicy:
             TableName: !Ref EncountersTableName
         - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBReadPolicy:
             TableName: !Ref ActionsTableName
-        - DynamoDBReadPolicy:
-            TableName: !Ref CharactersTableName
 
-  AdvanceEncounterTimeFunction:
+  ArchiveCurrentEventsFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
-      Handler: ./functions/advanceEncounterTime.handler
+      Handler: ./functions/archiveCurrentEvents.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 30
@@ -80,25 +100,39 @@ Resources:
         - DynamoDBWritePolicy:
             TableName: !Ref EncountersTableName
 
-  UpdateCharacterPositionFunction:
+  AdvanceRoundFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
-      Handler: ./functions/updateCharacterPosition.handler
+      Handler: ./functions/advanceRound.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 30
       Environment:
         Variables:
           ENCOUNTERS_TABLE: !Ref EncountersTableName
-          CHARACTERS_TABLE: !Ref CharactersTableName
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref EncountersTableName
         - DynamoDBWritePolicy:
             TableName: !Ref EncountersTableName
+
+  AdvanceInitiativeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/advanceInitiative.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          ENCOUNTERS_TABLE: !Ref EncountersTableName
+      Policies:
         - DynamoDBReadPolicy:
-            TableName: !Ref CharactersTableName
+            TableName: !Ref EncountersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref EncountersTableName
 
   # Data sources for Lambda functions
   AddCharacterToEncounterDataSource:
@@ -111,35 +145,55 @@ Resources:
       LambdaConfig:
         LambdaFunctionArn: !GetAtt AddCharacterToEncounterFunction.Arn
   
-  AddActionToTimelineDataSource:
+  RemoveCharacterFromEncounterDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !Ref ApiId
-      Name: AddActionToTimeline
+      Name: RemoveCharacterFromEncounter
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt AddActionToTimelineFunction.Arn
+        LambdaFunctionArn: !GetAtt RemoveCharacterFromEncounterFunction.Arn
 
-  AdvanceEncounterTimeDataSource:
+  AddEventToEncounterDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !Ref ApiId
-      Name: AdvanceEncounterTime
+      Name: AddEventToEncounter
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt AdvanceEncounterTimeFunction.Arn
+        LambdaFunctionArn: !GetAtt AddEventToEncounterFunction.Arn
+
+  ArchiveCurrentEventsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ArchiveCurrentEvents
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ArchiveCurrentEventsFunction.Arn
+
+  AdvanceRoundDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: AdvanceRound
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt AdvanceRoundFunction.Arn
   
-  UpdateCharacterPositionDataSource:
+  AdvanceInitiativeDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !Ref ApiId
-      Name: UpdateCharacterPosition
+      Name: AdvanceInitiative
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt UpdateCharacterPositionFunction.Arn
+        LambdaFunctionArn: !GetAtt AdvanceInitiativeFunction.Arn
 
   # Resolvers
   AddCharacterToEncounterResolver:
@@ -160,13 +214,13 @@ Resources:
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
 
-  AddActionToTimelineResolver:
+  RemoveCharacterFromEncounterResolver:
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
-      FieldName: addActionToTimeline
-      DataSourceName: !GetAtt AddActionToTimelineDataSource.Name
+      FieldName: removeCharacterFromEncounter
+      DataSourceName: !GetAtt RemoveCharacterFromEncounterDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -178,13 +232,13 @@ Resources:
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
 
-  AdvanceEncounterTimeResolver:
+  AddEventToEncounterResolver:
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
-      FieldName: advanceEncounterTime
-      DataSourceName: !GetAtt AdvanceEncounterTimeDataSource.Name
+      FieldName: addEventToEncounter
+      DataSourceName: !GetAtt AddEventToEncounterDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -196,13 +250,13 @@ Resources:
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
 
-  UpdateCharacterPositionResolver:
+  ArchiveCurrentEventsResolver:
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
-      FieldName: updateCharacterPosition
-      DataSourceName: !GetAtt UpdateCharacterPositionDataSource.Name
+      FieldName: archiveCurrentEvents
+      DataSourceName: !GetAtt ArchiveCurrentEventsDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -212,4 +266,40 @@ Resources:
           }
         }
       ResponseMappingTemplate: |
-        $util.toJson($ctx.result) 
+        $util.toJson($ctx.result)
+
+  AdvanceRoundResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: advanceRound
+      DataSourceName: !GetAtt AdvanceRoundDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  AdvanceInitiativeResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: advanceInitiative
+      DataSourceName: !GetAtt AdvanceInitiativeDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
