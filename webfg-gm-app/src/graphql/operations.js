@@ -147,19 +147,58 @@ export const GET_ACTIONS = gql`
 // ENCOUNTER QUERIES
 export const LIST_ENCOUNTERS = gql`
   query ListEncounters {
-    listEncounters { encounterId name characters { characterId name } }
+    listEncounters { 
+      encounterId 
+      name 
+      description
+      round
+      initiative
+      createdAt 
+    }
   }
 `;
 
 export const GET_ENCOUNTER = gql`
   query GetEncounter($encounterId: ID!) {
     getEncounter(encounterId: $encounterId) {
-      encounterId name time height width 
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
-      initiativeOrder { characterId readyAt }
-      characters { characterId name stats { hitPoints { current max } fatigue { current max } exhaustion { current max } surges { current max } } x y }
-      objects { objectId name x y }
-      terrainElements { terrainId type startX startY length color }
+      encounterId 
+      name 
+      description
+      round
+      initiative
+      eventsCurrent {
+        round
+        events {
+          initiative
+          type
+          character {
+            characterId
+            name
+          }
+          action {
+            actionId
+            name
+          }
+          description
+        }
+      }
+      eventsHistory {
+        round
+        events {
+          initiative
+          type
+          character {
+            characterId
+            name
+          }
+          action {
+            actionId
+            name
+          }
+          description
+        }
+      }
+      createdAt
     }
   }
 `;
@@ -387,12 +426,25 @@ export const REMOVE_ACTION_FROM_CHARACTER = gql`
 // ENCOUNTER MUTATIONS
 export const CREATE_ENCOUNTER = gql`
   mutation CreateEncounter($input: EncounterInput!) {
-    createEncounter(input: $input) { encounterId name time height width characters { characterId name } }
+    createEncounter(input: $input) { 
+      encounterId 
+      name 
+      description
+      round
+      initiative
+      createdAt
+    }
   }
 `;
 export const UPDATE_ENCOUNTER = gql`
   mutation UpdateEncounter($encounterId: ID!, $input: EncounterInput!) {
-    updateEncounter(encounterId: $encounterId, input: $input) { encounterId name time height width characters { characterId name } }
+    updateEncounter(encounterId: $encounterId, input: $input) { 
+      encounterId 
+      name 
+      description
+      round
+      initiative
+    }
   }
 `;
 export const DELETE_ENCOUNTER = gql`
@@ -403,97 +455,164 @@ export const DELETE_ENCOUNTER = gql`
 
 // CHARACTER-ENCOUNTER RELATIONSHIP MUTATIONS
 export const ADD_CHARACTER_TO_ENCOUNTER = gql`
-  mutation AddCharacterToEncounter($encounterId: ID!, $characterId: ID!, $startTime: Float, $x: Int, $y: Int) {
-    addCharacterToEncounter(encounterId: $encounterId, characterId: $characterId, startTime: $startTime, x: $x, y: $y) {
-      encounterId name time characters { characterId name x y }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
+  mutation AddCharacterToEncounter($encounterId: ID!, $characterId: ID!, $initiative: Int!) {
+    addCharacterToEncounter(encounterId: $encounterId, characterId: $characterId, initiative: $initiative) {
+      encounterId 
+      name 
+      round
+      initiative
+      eventsCurrent {
+        round
+        events {
+          initiative
+          type
+          character {
+            characterId
+            name
+          }
+          description
+        }
+      }
     }
   }
 `;
 export const REMOVE_CHARACTER_FROM_ENCOUNTER = gql`
-  mutation RemoveCharacterFromEncounter($encounterId: ID!, $characterId: ID!) {
-    removeCharacterFromEncounter(encounterId: $encounterId, characterId: $characterId) {
-      encounterId name time characters { characterId name } }
-  }
-`;
-
-// TIMELINE AND VTT MUTATIONS
-export const ADD_ACTION_TO_TIMELINE = gql`
-  mutation AddActionToTimeline($encounterId: ID!, $characterId: ID!, $actionId: ID!, $startTime: Float!) {
-    addActionToTimeline(encounterId: $encounterId, characterId: $characterId, actionId: $actionId, startTime: $startTime) {
-      encounterId time initiativeOrder { characterId readyAt }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
-    }
-  }
-`;
-export const ADVANCE_ENCOUNTER_TIME = gql`
-  mutation AdvanceEncounterTime($encounterId: ID!, $newTime: Float!) {
-    advanceEncounterTime(encounterId: $encounterId, newTime: $newTime) {
-      encounterId time
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
-    }
-  }
-`;
-export const UPDATE_CHARACTER_POSITION = gql`
-  mutation UpdateCharacterPosition($encounterId: ID!, $characterId: ID!, $x: Int!, $y: Int!) {
-    updateCharacterPosition(encounterId: $encounterId, characterId: $characterId, x: $x, y: $y) {
-      encounterId characters { characterId x y }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
+  mutation RemoveCharacterFromEncounter($encounterId: ID!, $characterId: ID!, $initiative: Int!) {
+    removeCharacterFromEncounter(encounterId: $encounterId, characterId: $characterId, initiative: $initiative) {
+      encounterId 
+      name 
+      round
+      initiative 
+      eventsCurrent {
+        round
+        events {
+          initiative
+          type
+          character {
+            characterId
+            name
+          }
+          description
+        }
+      }
     }
   }
 `;
 
-// OBJECT VTT MUTATIONS
-export const ADD_OBJECT_TO_ENCOUNTER_VTT = gql`
-  mutation AddObjectToEncounterVTT($encounterId: ID!, $objectId: ID!, $x: Int!, $y: Int!) {
-    addObjectToEncounterVTT(encounterId: $encounterId, objectId: $objectId, x: $x, y: $y) {
-      encounterId objects { objectId name x y }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
+// New Encounter Mutations
+export const ADD_EVENT_TO_ENCOUNTER = gql`
+  mutation AddEventToEncounter($encounterId: ID!, $input: EncounterEventInput!) {
+    addEventToEncounter(encounterId: $encounterId, input: $input) {
+      encounterId
+      name
+      round
+      initiative
+      eventsCurrent {
+        round
+        events {
+          initiative
+          type
+          character {
+            characterId
+            name
+          }
+          action {
+            actionId
+            name
+          }
+          description
+        }
+      }
     }
   }
 `;
-export const UPDATE_OBJECT_POSITION = gql`
-  mutation UpdateObjectPosition($encounterId: ID!, $objectId: ID!, $x: Int!, $y: Int!) {
-    updateObjectPosition(encounterId: $encounterId, objectId: $objectId, x: $x, y: $y) {
-      encounterId objects { objectId x y }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
-    }
-  }
-`;
-export const REMOVE_OBJECT_FROM_ENCOUNTER_VTT = gql`
-  mutation RemoveObjectFromEncounterVTT($encounterId: ID!, $objectId: ID!) {
-    removeObjectFromEncounterVTT(encounterId: $encounterId, objectId: $objectId) {
-      encounterId objects { objectId name x y }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
-    }
-  }
-`;
-export const ADD_TERRAIN_TO_ENCOUNTER = gql`
-  mutation AddTerrainToEncounter($encounterId: ID!, $input: TerrainElementInput!) {
-    addTerrainToEncounter(encounterId: $encounterId, input: $input) {
-      encounterId terrainElements { terrainId type startX startY length color }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
-    }
-  }
-`;
-export const UPDATE_TERRAIN_POSITION = gql`
-  mutation UpdateTerrainPosition($encounterId: ID!, $input: UpdateTerrainPositionInput!) {
-    updateTerrainPosition(encounterId: $encounterId, input: $input) {
-      encounterId terrainElements { terrainId type startX startY length color }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
-    }
-  }
-`;
-export const REMOVE_TERRAIN_FROM_ENCOUNTER = gql`
-  mutation RemoveTerrainFromEncounter($encounterId: ID!, $terrainId: ID!) {
-    removeTerrainFromEncounter(encounterId: $encounterId, terrainId: $terrainId) {
-      encounterId terrainElements { terrainId type startX startY length color }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
+export const ADVANCE_ROUND = gql`
+  mutation AdvanceRound($encounterId: ID!) {
+    advanceRound(encounterId: $encounterId) {
+      encounterId
+      round
+      initiative
+      eventsCurrent
     }
   }
 `;
 
-// SUBSCRIPTIONS
+export const ADVANCE_INITIATIVE = gql`
+  mutation AdvanceInitiative($encounterId: ID!) {
+    advanceInitiative(encounterId: $encounterId) {
+      encounterId
+      round
+      initiative
+    }
+  }
+`;
+
+export const ARCHIVE_CURRENT_EVENTS = gql`
+  mutation ArchiveCurrentEvents($encounterId: ID!, $round: Int!, $events: [EncounterEventInput]!) {
+    archiveCurrentEvents(encounterId: $encounterId, round: $round, events: $events) {
+      encounterId
+      round
+      initiative
+      eventsCurrent
+      eventsHistory {
+        round
+        events {
+          initiative
+          type
+          character {
+            characterId
+            name
+          }
+          action {
+            actionId
+            name
+          }
+          description
+        }
+      }
+    }
+  }
+`;
+
+
+// ENCOUNTER SUBSCRIPTIONS
+export const ON_ENCOUNTER_EVENTS_CHANGED = gql`
+  subscription OnEncounterEventsChanged($encounterId: ID!) {
+    onEncounterEventsChanged(encounterId: $encounterId) {
+      encounterId
+      round
+      initiative
+      eventsCurrent {
+        round
+        events {
+          initiative
+          type
+          character {
+            characterId
+            name
+          }
+          action {
+            actionId
+            name
+          }
+          description
+        }
+      }
+    }
+  }
+`;
+
+export const ON_ENCOUNTER_ROUND_CHANGED = gql`
+  subscription OnEncounterRoundChanged($encounterId: ID!) {
+    onEncounterRoundChanged(encounterId: $encounterId) {
+      encounterId
+      round
+      initiative
+    }
+  }
+`;
+
+// CHARACTER SUBSCRIPTIONS
 export const ON_CREATE_CHARACTER = gql`
   subscription OnCreateCharacter {
     onCreateCharacter {
@@ -610,49 +729,4 @@ export const ON_UPDATE_ENCOUNTER = gql`
 export const ON_DELETE_ENCOUNTER = gql`
   subscription OnDeleteEncounter { onDeleteEncounter { encounterId name } }
 `;
-export const ON_ENCOUNTER_TIMELINE_CHANGED = gql`
-  subscription OnEncounterTimelineChanged($encounterId: ID!) {
-    onEncounterTimelineChanged(encounterId: $encounterId) {
-      encounterId time initiativeOrder { characterId readyAt }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
-    }
-  }
-`;
-export const ON_ENCOUNTER_VTT_CHANGED = gql`
-  subscription OnEncounterVttChanged($encounterId: ID!) {
-    onEncounterVttChanged(encounterId: $encounterId) {
-      encounterId height width characters { characterId x y } objects { objectId x y }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
-    }
-  }
-`;
-export const ON_ENCOUNTER_CHARACTER_CHANGED = gql`
-  subscription OnEncounterCharacterChanged($encounterId: ID!) {
-    onEncounterCharacterChanged(encounterId: $encounterId) {
-      encounterId time characters { characterId name }
-      history { time type characterId actionId actionName description x y stats { hitPoints fatigue surges exhaustion } conditions }
-    }
-  }
-`;
 
-// GRID MUTATIONS
-export const UPDATE_GRID_SIZE = gql`
-  mutation UpdateGridSize($input: UpdateGridSizeInput!) {
-    updateGridSize(input: $input) {
-      encounterId
-      width
-      height
-    }
-  }
-`;
-
-// GRID SUBSCRIPTIONS
-export const ON_GRID_SIZE_CHANGED = gql`
-  subscription OnGridSizeChanged($encounterId: ID!) {
-    onGridSizeChanged(encounterId: $encounterId) {
-      encounterId
-      width
-      height
-    }
-  }
-`;

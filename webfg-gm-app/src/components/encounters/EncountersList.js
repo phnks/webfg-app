@@ -157,8 +157,8 @@ const EncountersList = () => {
                 {encounter.description || 'No description provided'}
               </p>
               <div className="encounter-meta">
-                <span>Current Time: {encounter.currentTime}s</span>
-                <span>Created: {new Date(encounter.createdAt).toLocaleDateString()}</span>
+                <span>Round: {encounter.round}, Initiative: {encounter.initiative}</span>
+                <span>Created: {encounter.createdAt ? new Date(encounter.createdAt).toLocaleDateString() : 'Unknown'}</span>
               </div>
               <button 
                 className="view-encounter-btn"
