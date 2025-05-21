@@ -74,13 +74,10 @@ Resources:
           "attributeValues": {
             "name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
             "description": $util.dynamodb.toDynamoDBJson($ctx.args.input.description),
-            "currentTime": $util.dynamodb.toDynamoDBJson(0),
-            "characterPositions": $util.dynamodb.toDynamoDBJson([]),
-            "characterTimelines": $util.dynamodb.toDynamoDBJson([]),
-            "gridElements": $util.dynamodb.toDynamoDBJson([]),
-            "history": $util.dynamodb.toDynamoDBJson([]),
-            "gridRows": $util.dynamodb.toDynamoDBJson(20),
-            "gridColumns": $util.dynamodb.toDynamoDBJson(20),
+            "round": $util.dynamodb.toDynamoDBJson(1),
+            "initiative": $util.dynamodb.toDynamoDBJson(1),
+            "eventsCurrent": $util.dynamodb.toDynamoDBJson([]),
+            "eventsHistory": $util.dynamodb.toDynamoDBJson([]),
             "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
           }
         }
@@ -131,34 +128,3 @@ Resources:
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
 
-  UpdateGridSizeResolver:
-    Type: AWS::AppSync::Resolver
-    Properties:
-      ApiId: !Ref ApiId
-      TypeName: 'Mutation'
-      FieldName: 'updateGridSize'
-      DataSourceName: !Ref EncountersDataSourceName
-      RequestMappingTemplate: |
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key": {
-            "encounterId": $util.dynamodb.toDynamoDBJson($ctx.args.input.encounterId)
-          },
-          "update": {
-            "expression": "SET gridRows = :rows, gridColumns = :columns",
-            "expressionValues": {
-              ":rows": $util.dynamodb.toDynamoDBJson($ctx.args.input.rows),
-              ":columns": $util.dynamodb.toDynamoDBJson($ctx.args.input.columns)
-            }
-          },
-          "condition": {
-            "expression": "attribute_exists(encounterId)"
-          }
-        }
-      ResponseMappingTemplate: |
-        #if($ctx.error)
-          $util.error($ctx.error.message, $ctx.error.type)
-        #else
-          $util.toJson($ctx.result)
-        #end

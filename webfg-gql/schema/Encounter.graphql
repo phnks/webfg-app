@@ -2,103 +2,36 @@ type Encounter {
   encounterId: ID!
   name: String!
   description: String
-  currentTime: Float!
-  characterPositions: [CharacterPosition]
-  objectPositions: [ObjectPosition]
-  gridElements: [GridElement]
-  terrainElements: [TerrainElement]
-  history: [TimelineEvent]
+  round: Int!
+  initiative: Int!
+  eventsCurrent: [EncounterEventLog]
+  eventsHistory: [EncounterEventLog]
   createdAt: String
-  gridRows: Int!
-  gridColumns: Int!
 }
 
-type CharacterPosition {
-  characterId: ID!
-  x: Int!
-  y: Int!
+type EncounterEventLog {
+  round: Int!
+  events: [EncounterEvent]
 }
 
-type ScheduledAction {
-  actionId: ID!
-  startTime: Float!
-  endTime: Float!
-}
-
-type TimelineEvent {
-  time: Float!
+type EncounterEvent {
+  initiative: Int!
   type: TimelineEventType!
-  characterId: ID
-  actionId: ID
+  character: Character
+  action: Action
   description: String
-  x: Int
-  y: Int
-  actionName: String
-  stats: TimelineStats
-  conditions: [String]
-}
-
-type TimelineStats {
-  hitPoints: Int
-  fatigue: Int
-  exhaustion: Int
-  surges: Int
 }
 
 enum TimelineEventType {
-	CHARACTER_ADDED
-	CHARACTER_MOVED
-	CHARACTER_REMOVED
-	ACTION_STARTED
-	ACTION_COMPLETED
-	OBJECT_ADDED
-	OBJECT_MOVED
-	OBJECT_REMOVED
-	GRID_RESIZED
-	ENCOUNTER_STARTED
-	ENCOUNTER_ENDED
-	ROUND_ADVANCED
-}
-
-type GridElement {
-  id: ID!
-  type: GridElementType!
-  coordinates: [Coordinate]
-  color: String
-}
-
-type Coordinate {
-  x: Int!
-  y: Int!
-}
-
-enum GridElementType {
-  LINE
-  SQUARE
-  CIRCLE
-  X_MARK
-  V_MARK
-}
-
-type ObjectPosition {
-  objectId: ID!
-  x: Int!
-  y: Int!
-}
-
-enum TerrainType {
-  VERTICAL_LINE
-  HORIZONTAL_LINE
-  DIAGONAL_LINE
-}
-
-type TerrainElement {
-  terrainId: ID!
-  type: TerrainType!
-  startX: Int!
-  startY: Int!
-  length: Int!
-  color: String
+  CHARACTER_ADDED
+  CHARACTER_REMOVED
+  ACTION
+  OBJECT_ADDED
+  OBJECT_REMOVED
+  ENCOUNTER_STARTED
+  ENCOUNTER_ENDED
+  ROUND_ADVANCED
+  INITIATIVE_ADVANCED
 }
 
 input EncounterInput {
@@ -106,49 +39,35 @@ input EncounterInput {
   description: String
 }
 
-input CharacterPositionInput {
-  characterId: ID!
-  x: Int!
-  y: Int!
-}
-
-input GridElementInput {
-  type: GridElementType!
-  coordinates: [CoordinateInput]!
-  color: String
-}
-
-input CoordinateInput {
-  x: Int!
-  y: Int!
-}
-
-input TimelineEventInput {
-  time: Float!
+input EncounterEventInput {
+  initiative: Int!
   type: TimelineEventType!
-  characterId: ID
+  characterId: ID!
   actionId: ID
   description: String
-  x: Int
-  y: Int
 }
 
 input UpdateGridSizeInput {
   encounterId: ID!
-  rows: Int!
-  columns: Int!
+  width: Int!
+  height: Int!
+}
+
+input GridElementInput {
+  x: Int!
+  y: Int!
+  type: String!
+  properties: String
 }
 
 input TerrainElementInput {
-  type: TerrainType!
-  startX: Int!
-  startY: Int!
-  length: Int!
-  color: String
+  encounterId: ID!
+  gridElement: GridElementInput!
 }
 
 input UpdateTerrainPositionInput {
+  encounterId: ID!
   terrainId: ID!
-  startX: Int!
-  startY: Int!
+  x: Int!
+  y: Int!
 }

@@ -1,6 +1,6 @@
-.encounter-detail-container {
+.encounter-detail {
   padding: 20px;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -9,112 +9,211 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  flex-wrap: wrap;
 }
 
-.back-btn {
-  background: none;
-  border: none;
-  color: #2196F3;
-  cursor: pointer;
+.header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 16px;
+  gap: 15px;
 }
 
-.time-controls {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.current-time {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.time-input-group {
-  display: flex;
-  gap: 8px;
-}
-
-.time-input-group input {
-  width: 80px;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.time-input-group button {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.encounter-name {
-  font-size: 24px;
+.header-left h1 {
   margin: 0;
+  font-size: 28px;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #e9ecef;
+}
+
+.delete-button {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
 }
 
 .encounter-description {
-  color: #666;
-  margin-top: 5px;
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  color: #495057;
+  border-left: 4px solid #6c757d;
 }
 
 .encounter-controls {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
-.add-character-btn {
+.round-info, .character-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.round-display {
+  display: flex;
+  gap: 20px;
+}
+
+.round-display h3 {
+  margin: 0;
+  font-size: 18px;
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+}
+
+.round-controls, .character-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.control-button {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #4CAF50;
+  padding: 10px 15px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 14px;
+}
+
+.control-button:hover {
+  background-color: #5a6268;
 }
 
 .encounter-content {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
-.vtt-section {
+.encounter-section {
+  flex: 1;
+  min-width: 300px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 20px;
 }
 
-.timeline-section {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-}
-
-.character-action-panel {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  width: 400px;
-  background-color: white;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  border-top-left-radius: 8px;
-  z-index: 100;
-}
-
-.character-action-panel h3 {
+.encounter-section h2 {
   margin-top: 0;
-  border-bottom: 1px solid #eee;
+  margin-bottom: 15px;
   padding-bottom: 10px;
+  border-bottom: 1px solid #dee2e6;
+  color: #343a40;
+  font-size: 20px;
 }
 
-.modal-overlay {
+.event-log {
+  margin-bottom: 20px;
+}
+
+.event-log h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #495057;
+  background-color: #e9ecef;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.events-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.event-item {
+  display: flex;
+  gap: 15px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #007bff;
+}
+
+.event-initiative {
+  background-color: #007bff;
+  color: white;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.event-content {
+  flex: 1;
+}
+
+.event-type {
+  font-weight: bold;
+  color: #495057;
+  margin-bottom: 5px;
+}
+
+.event-character, .event-action {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.event-description {
+  font-style: italic;
+  color: #6c757d;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.event-log.history .event-item {
+  opacity: 0.8;
+  border-left-color: #6c757d;
+}
+
+.event-log.history .event-initiative {
+  background-color: #6c757d;
+}
+
+/* Modal styling */
+.modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -127,244 +226,110 @@
   z-index: 1000;
 }
 
-.add-character-modal {
+.modal-content {
   background-color: white;
+  padding: 25px;
   border-radius: 8px;
-  padding: 20px;
-  width: 500px;
-  max-width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
-.add-character-modal h2 {
+.modal-content h2 {
   margin-top: 0;
-  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+  color: #343a40;
   padding-bottom: 10px;
+  border-bottom: 1px solid #dee2e6;
 }
 
-.available-characters-list {
-  margin-top: 20px;
+.form-group {
+  margin-bottom: 15px;
 }
 
-.character-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #495057;
 }
 
-.character-add-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.start-time-input {
-  width: 80px;
-  padding: 6px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.close-modal-btn {
-  margin-top: 20px;
+.form-group select, .form-group input, .form-group textarea {
   width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 16px;
 }
 
-.encounter-layout {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 20px;
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
   margin-top: 20px;
-  height: calc(100vh - 180px);
 }
 
-.vtt-container {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 600px;
+.modal-actions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
 }
 
-.vtt-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
+.modal-actions button:first-child {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #495057;
 }
 
-.vtt-header h2 {
-  margin: 0;
+.modal-actions button:first-child:hover {
+  background-color: #e9ecef;
 }
 
-.vtt-controls {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.add-object-btn,
-.add-terrain-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #9C27B0;
+.modal-actions button:last-child {
+  background-color: #007bff;
   color: white;
 }
 
-.add-terrain-btn {
-  background-color: #8B4513;
+.modal-actions button:last-child:hover {
+  background-color: #0069d9;
 }
 
-.timeline-container {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+.modal-actions button:disabled {
+  background-color: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
 }
 
-/* Media query for screens smaller than 1200px */
-@media (max-width: 1200px) {
-  .encounter-layout {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
-
-  .vtt-container {
-    min-height: 500px;
-  }
-
-  .timeline-container {
-    height: 400px;
-    margin-top: 20px;
-  }
-}
-
-/* Adjust padding for mobile screens */
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .encounter-detail-container {
-    padding: 10px;
-  }
-
-  .vtt-container {
-    padding: 10px;
-    min-height: 400px;
-  }
-
   .encounter-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 15px;
   }
-
-  .time-controls {
-    width: 100%;
+  
+  .header-right {
+    align-self: flex-end;
+  }
+  
+  .encounter-controls {
     flex-direction: column;
-    align-items: flex-start;
   }
-
-  .time-input-group {
-    width: 100%;
+  
+  .round-display {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .round-controls, .character-controls {
+    flex-wrap: wrap;
   }
 }
-
-/* Styles for Add Object Modal */
-.add-object-modal {
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  width: 450px;
-  max-width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.add-object-modal h2 {
-  margin-top: 0;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-}
-
-.available-objects-list {
-  margin-top: 15px;
-  margin-bottom: 15px;
-  flex-grow: 1;
-  overflow-y: auto;
-  border: 1px solid #eee;
-  border-radius: 4px;
-}
-
-.object-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
-  border-bottom: 1px solid #eee;
-}
-
-.object-item:last-child {
-  border-bottom: none;
-}
-
-.object-item button {
-  padding: 5px 10px;
-  font-size: 12px;
-}
-
-/* Styles for Add Terrain Panel */
-.add-terrain-panel {
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  width: 350px;
-  max-width: 90%;
-}
-
-.add-terrain-panel h2 {
-  margin-top: 0;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-  margin-bottom: 15px;
-}
-
-.terrain-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.terrain-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-weight: bold;
-}
-
-.terrain-form select,
-.terrain-form input[type="number"] {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.terrain-form span {
-  font-weight: normal;
-  font-size: 0.9em;
-  color: #555;
-}
-
-.terrain-form button {
-  align-self: flex-start;
-} 

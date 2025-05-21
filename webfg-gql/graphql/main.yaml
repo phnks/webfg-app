@@ -199,32 +199,17 @@ Resources:
         ActionsTableName: !Ref ActionsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
-  EncounterObjectResolversStack:
+  EncounterEventResolversStack:
     Type: AWS::CloudFormation::Stack
     DependsOn:
       - DataSourcesStack
       - ApiStack
       - AppSyncLambdaServiceRole
     Properties:
-      TemplateURL: ./encounter-object-resolvers.yaml
+      TemplateURL: ./encounter-event-resolvers.yaml
       Parameters:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
-        EncountersTableName: !Ref EncountersTableName
-        ObjectsTableName: !Ref ObjectsTableName # Pass ObjectsTableName down
-        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
-
-  EncounterTerrainResolversStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn:
-      - DataSourcesStack
-      - ApiStack
-      - AppSyncLambdaServiceRole
-    Properties:
-      TemplateURL: ./encounter-terrain-resolvers.yaml
-      Parameters:
-        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
-        EncountersTableName: !Ref EncountersTableName
-        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+        EncountersDataSourceName: !Ref EncountersDataSourceName
 
 Outputs:
   AppSyncAPIEndpoint:

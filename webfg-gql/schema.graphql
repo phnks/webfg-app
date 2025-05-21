@@ -1,3 +1,245 @@
+type Attribute {
+  attributeValue: Float!
+  attributeType: AttributeType!
+}
+
+input AttributeInput {
+  attributeValue: Float!
+  attributeType: AttributeType!
+}
+
+enum AttributeType {
+  HELP
+  HINDER
+}
+
+enum AttributeName {
+  LETHALITY
+  ARMOUR
+  ENDURANCE
+  STRENGTH
+  DEXTERITY
+  AGILITY
+  PERCEPTION
+  CHARISMA
+  INTELLIGENCE
+  RESOLVE
+  MORALE
+}
+
+type Value {
+  valueName: ValueName!
+  valueType: ValueType!
+}
+
+enum ValueName {
+  IDEALISM
+  PRAGMATISM
+  DISCIPLINE
+  DEFIANCE
+  CURIOSITY
+  DETACHMENT
+  CONTROL
+  COMPASSION
+  AMBITION
+  DOUBT
+  LOYALTY
+  INDEPENDENCE
+  FAITH
+  CYNICISM
+  GLORY
+  SURVIVAL
+  UNITY
+  VIOLENCE
+  RESTRAINT
+  OBSESSION
+}
+
+enum ValueType {
+  GOOD
+  BAD
+}
+
+
+type Character {
+  characterId: ID!
+  name: String!
+  characterCategory: CharacterCategory!
+  will: Int!
+
+  values: [Value]      
+
+  lethality: CharacterAttribute!
+  armour: CharacterAttribute!
+  endurance: CharacterAttribute!
+  strength: CharacterAttribute!
+  dexterity: CharacterAttribute!
+  agility: CharacterAttribute!
+  perception: CharacterAttribute!
+  charisma: CharacterAttribute!
+  intelligence: CharacterAttribute!
+  resolve: CharacterAttribute!
+  morale: CharacterAttribute!
+
+  actionIds: [ID]
+  actions: [Action]
+
+  special: [String]
+
+  inventoryIds: [ID]
+  inventory: [Object]
+  equipmentIds: [ID]
+  equipment: [Object]
+}
+
+enum CharacterCategory {
+  HUMAN
+  TREPIDITE
+  MONSTER
+  CARVED
+  ANTHRO
+  ICER
+  DAXMC
+  QRTIS
+  TYVIR
+}
+
+type CharacterAttribute {
+  attribute: Attribute!
+  fatigue: Int!
+}
+
+input CharacterAttributeInput {
+  attribute: AttributeInput!
+  fatigue: Int!
+}
+
+input ValueInput {
+  valueName: ValueName!
+  valueType: ValueType!
+}
+
+input CharacterInput {
+  name: String!
+  characterCategory: CharacterCategory!
+  will: Int!
+  values: [ValueInput]
+  lethality: CharacterAttributeInput!
+  armour: CharacterAttributeInput!
+  endurance: CharacterAttributeInput!
+  strength: CharacterAttributeInput!
+  dexterity: CharacterAttributeInput!
+  agility: CharacterAttributeInput!
+  perception: CharacterAttributeInput!
+  charisma: CharacterAttributeInput!
+  intelligence: CharacterAttributeInput!
+  resolve: CharacterAttributeInput!
+  morale: CharacterAttributeInput!
+  actionIds: [ID]
+  special: [String]
+  inventoryIds: [ID]
+  equipmentIds: [ID]
+}
+
+
+type Object {
+  objectId: ID!
+  name: String!
+  objectCategory: ObjectCategory!
+  lethality: Attribute!
+  armour: Attribute!
+  endurance: Attribute!
+  strength: Attribute!
+  dexterity: Attribute!
+  agility: Attribute!
+  perception: Attribute!
+  charisma: Attribute!
+  intelligence: Attribute!
+  resolve: Attribute!
+  morale: Attribute!
+  special: [String]
+  equipmentIds: [ID]
+  equipment: [Object]
+}
+
+enum ObjectCategory {
+  TOOL
+  WEAPON
+  ARMOR
+  CONTAINER
+  STRUCTURE
+  JEWLERY
+  DEVICE
+  MATERIAL
+  CLOTHING
+  LIGHT_SOURCE
+  DOCUMENT
+  COMPONENT
+  ARTIFACT
+}
+
+input ObjectInput {
+  name: String
+  objectCategory: ObjectCategory
+  lethality: AttributeInput
+  armour: AttributeInput
+  endurance: AttributeInput
+  strength: AttributeInput
+  dexterity: AttributeInput
+  agility: AttributeInput
+  perception: AttributeInput
+  charisma: AttributeInput
+  intelligence: AttributeInput
+  resolve: AttributeInput
+  morale: AttributeInput
+  special: [String]
+  equipmentIds: [ID]
+}
+
+
+type Action {
+  actionId: ID!
+  name: String!
+  actionCategory: ActionCategory!
+  sourceAttribute: AttributeName!
+  targetAttribute: AttributeName!
+  description: String
+  targetType: TargetType!
+  effectType: EffectType!
+}
+
+enum ActionCategory {
+  MOVE
+  ATTACK
+  DEFEND
+  RECOVER
+  INTERACT
+  MANIPULATE
+  ASSIST
+}
+
+enum TargetType {
+  OBJECT
+  CHARACTER
+  ACTION
+}
+
+enum EffectType {
+  HELP
+  HINDER
+  DESTROY
+}
+
+input ActionInput {
+  name: String!
+  actionCategory: ActionCategory!
+  sourceAttribute: AttributeName!
+  targetAttribute: AttributeName!
+  description: String
+  targetType: TargetType!
+  effectType: EffectType!
+}
+
 type Query {
   # Character queries
   getCharacter(characterId: ID!): Character
@@ -171,3 +413,80 @@ schema {
   mutation: Mutation
   subscription: Subscription
 }
+
+
+type Encounter {
+  encounterId: ID!
+  name: String!
+  description: String
+  round: Int!
+  initiative: Int!
+  eventsCurrent: [EncounterEventLog]
+  eventsHistory: [EncounterEventLog]
+  createdAt: String
+}
+
+type EncounterEventLog {
+  round: Int!
+  events: [EncounterEvent]
+}
+
+type EncounterEvent {
+  initiative: Int!
+  type: TimelineEventType!
+  character: Character
+  action: Action
+  description: String
+}
+
+enum TimelineEventType {
+  CHARACTER_ADDED
+  CHARACTER_REMOVED
+  ACTION
+  OBJECT_ADDED
+  OBJECT_REMOVED
+  ENCOUNTER_STARTED
+  ENCOUNTER_ENDED
+  ROUND_ADVANCED
+  INITIATIVE_ADVANCED
+}
+
+input EncounterInput {
+  name: String!
+  description: String
+}
+
+input EncounterEventInput {
+  initiative: Int!
+  type: TimelineEventType!
+  characterId: ID!
+  actionId: ID
+  description: String
+}
+
+input UpdateGridSizeInput {
+  encounterId: ID!
+  width: Int!
+  height: Int!
+}
+
+input GridElementInput {
+  x: Int!
+  y: Int!
+  type: String!
+  properties: String
+}
+
+input TerrainElementInput {
+  encounterId: ID!
+  gridElement: GridElementInput!
+}
+
+input UpdateTerrainPositionInput {
+  encounterId: ID!
+  terrainId: ID!
+  x: Int!
+  y: Int!
+}
+
+
