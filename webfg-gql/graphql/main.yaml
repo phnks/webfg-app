@@ -190,6 +190,7 @@ Resources:
       - DataSourcesStack
       - ApiStack
       - AppSyncLambdaServiceRole
+      - EncounterEventResolversStack # Make sure this stack is created after the event resolvers
     Properties:
       TemplateURL: ./encounter-character-resolvers.yaml
       Parameters:

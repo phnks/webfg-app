@@ -10,6 +10,7 @@
     "deploy:qa": "bash scripts/deploy.sh qa ${DEPLOYMENT_ID:-$1}",
     "deploy:prod": "bash scripts/deploy.sh prod none",
     "check-deploy:qa": "bash scripts/check-deploy.sh qa ${DEPLOYMENT_ID:-$1}",
+    "check-deploy:prod": "bash scripts/check-deploy.sh prod none",
     "delete:qa": "bash scripts/delete.sh qa ${DEPLOYMENT_ID:-$1}",
     "delete:prod": "bash scripts/delete.sh prod none"
   },
@@ -30,7 +31,7 @@
   },
   "config": {
     "qa_schema": "v52",
-    "prod_schema": "v35",
+    "prod_schema": "v36",
     "stack_name": "webfg-gql"
   },
   "devDependencies": {
