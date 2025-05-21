@@ -11,6 +11,7 @@ import {
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import ObjectForm from "../forms/ObjectForm";
+import ObjectAttributes from "./ObjectAttributes";
 import "./ObjectView.css";
 
 const ObjectView = () => {
@@ -227,73 +228,7 @@ const ObjectView = () => {
             <span>{currentObject.objectCategory || "N/A"}</span>
           </div>
 
-          <h4>Attributes</h4>
-          {currentObject.lethality && (
-            <div className="detail-row">
-              <span>Lethality:</span>
-              <span>{currentObject.lethality.attributeValue} ({currentObject.lethality.attributeType})</span>
-            </div>
-          )}
-          {currentObject.armour && (
-            <div className="detail-row">
-              <span>Armour:</span>
-              <span>{currentObject.armour.attributeValue} ({currentObject.armour.attributeType})</span>
-            </div>
-          )}
-          {currentObject.endurance && (
-            <div className="detail-row">
-              <span>Endurance:</span>
-              <span>{currentObject.endurance.attributeValue} ({currentObject.endurance.attributeType})</span>
-            </div>
-          )}
-          {currentObject.strength && (
-            <div className="detail-row">
-              <span>Strength:</span>
-              <span>{currentObject.strength.attributeValue} ({currentObject.strength.attributeType})</span>
-            </div>
-          )}
-          {currentObject.dexterity && (
-            <div className="detail-row">
-              <span>Dexterity:</span>
-              <span>{currentObject.dexterity.attributeValue} ({currentObject.dexterity.attributeType})</span>
-            </div>
-          )}
-          {currentObject.agility && (
-            <div className="detail-row">
-              <span>Agility:</span>
-              <span>{currentObject.agility.attributeValue} ({currentObject.agility.attributeType})</span>
-            </div>
-          )}
-          {currentObject.perception && (
-            <div className="detail-row">
-              <span>Perception:</span>
-              <span>{currentObject.perception.attributeValue} ({currentObject.perception.attributeType})</span>
-            </div>
-          )}
-          {currentObject.charisma && (
-            <div className="detail-row">
-              <span>Charisma:</span>
-              <span>{currentObject.charisma.attributeValue} ({currentObject.charisma.attributeType})</span>
-            </div>
-          )}
-          {currentObject.intelligence && (
-            <div className="detail-row">
-              <span>Intelligence:</span>
-              <span>{currentObject.intelligence.attributeValue} ({currentObject.intelligence.attributeType})</span>
-            </div>
-          )}
-          {currentObject.resolve && (
-            <div className="detail-row">
-              <span>Resolve:</span>
-              <span>{currentObject.resolve.attributeValue} ({currentObject.resolve.attributeType})</span>
-            </div>
-          )}
-          {currentObject.morale && (
-            <div className="detail-row">
-              <span>Morale:</span>
-              <span>{currentObject.morale.attributeValue} ({currentObject.morale.attributeType})</span>
-            </div>
-          )}
+          <ObjectAttributes object={currentObject} />
 
           {currentObject.special && currentObject.special.length > 0 && (
             <>

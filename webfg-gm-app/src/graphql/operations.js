@@ -38,7 +38,20 @@ export const GET_CHARACTER = gql`
       inventoryIds
       inventory { objectId name objectCategory }
       equipmentIds
-      equipment { objectId name objectCategory }
+      equipment { 
+        objectId name objectCategory
+        lethality { attributeValue attributeType }
+        armour { attributeValue attributeType }
+        endurance { attributeValue attributeType }
+        strength { attributeValue attributeType }
+        dexterity { attributeValue attributeType }
+        agility { attributeValue attributeType }
+        perception { attributeValue attributeType }
+        charisma { attributeValue attributeType }
+        intelligence { attributeValue attributeType }
+        resolve { attributeValue attributeType }
+        morale { attributeValue attributeType }
+      }
     }
   }
 `;
@@ -91,6 +104,17 @@ export const GET_OBJECT = gql`
         name
         objectCategory
         equipmentIds
+        lethality { attributeValue attributeType }
+        armour { attributeValue attributeType }
+        endurance { attributeValue attributeType }
+        strength { attributeValue attributeType }
+        dexterity { attributeValue attributeType }
+        agility { attributeValue attributeType }
+        perception { attributeValue attributeType }
+        charisma { attributeValue attributeType }
+        intelligence { attributeValue attributeType }
+        resolve { attributeValue attributeType }
+        morale { attributeValue attributeType }
       }
     }
   }

@@ -1,0 +1,38 @@
+.object-attributes {
+  margin-bottom: 20px;
+}
+
+.object-attributes h4 {
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.attributes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grouped-value {
+  margin-left: 8px;
+  font-size: 0.9em;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row span:first-child {
+  font-weight: 500;
+}
+
+.detail-row span:last-child {
+  color: #666;
+}
