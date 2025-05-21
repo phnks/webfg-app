@@ -91,7 +91,7 @@ Resources:
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
 
-  AddCharacterToEncounterResolver:
+  EventsAddCharacterToEncounterResolver:
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
@@ -123,7 +123,7 @@ Resources:
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
 
-  RemoveCharacterFromEncounterResolver:
+  EventsRemoveCharacterFromEncounterResolver:
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
