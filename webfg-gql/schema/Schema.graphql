@@ -55,6 +55,12 @@ type Mutation {
   # Character-Encounter relationship mutations
   addCharacterToEncounter(encounterId: ID!, characterId: ID!, startTime: Float, x: Int, y: Int): Encounter
   removeCharacterFromEncounter(encounterId: ID!, characterId: ID!): Encounter
+  
+  # Encounter round and initiative mutations
+  advanceRound(encounterId: ID!): Encounter
+  advanceInitiative(encounterId: ID!): Encounter
+  addEventToEncounter(encounterId: ID!, input: EncounterEventInput!): Encounter
+  archiveCurrentEvents(encounterId: ID!, round: Int!, events: [EncounterEventInput]!): Encounter
 
   # Timeline and VTT mutations
   addActionToTimeline(encounterId: ID!, characterId: ID!, actionId: ID!, startTime: Float!): Encounter
@@ -110,6 +116,10 @@ type Subscription {
       @aws_subscribe(mutations: ["deleteEncounter"])
   onEncounterTimelineChanged(encounterId: ID!): Encounter
       @aws_subscribe(mutations: ["addActionToTimeline", "advanceEncounterTime"])
+  onEncounterEventChanged(encounterId: ID!): Encounter
+      @aws_subscribe(mutations: ["addEventToEncounter", "archiveCurrentEvents"])
+  onEncounterRoundChanged(encounterId: ID!): Encounter
+      @aws_subscribe(mutations: ["advanceRound", "advanceInitiative"])
   onEncounterVttChanged(encounterId: ID!): Encounter
       @aws_subscribe(mutations: [
         "updateCharacterPosition",
