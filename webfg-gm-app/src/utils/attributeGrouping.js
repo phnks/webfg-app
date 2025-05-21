@@ -13,7 +13,7 @@ export const ATTRIBUTE_NAMES = [
  * Calculates the grouped value for a single attribute using the grouping formula
  * @param {number} highestValue - The highest attribute value (A1)
  * @param {number} otherValue - The other attribute value (A2) 
- * @param {string} attributeType - Either 'HELP' or 'HINDER'
+ * @param {string} attributeType - Either 'HELP', 'HINDER', or 'NONE'
  * @returns {number} The calculated grouped value
  */
 export const calculateGroupingFormula = (highestValue, otherValue, attributeType) => {
@@ -21,6 +21,9 @@ export const calculateGroupingFormula = (highestValue, otherValue, attributeType
     return (highestValue + highestValue * (1 + (otherValue / highestValue))) / 2;
   } else if (attributeType === 'HINDER') {
     return (highestValue + highestValue * (1 - (otherValue / highestValue))) / 2;
+  } else if (attributeType === 'NONE') {
+    // NONE attributes don't participate in grouping, return the highest value unchanged
+    return highestValue;
   }
   return highestValue; // Default fallback
 };
@@ -70,19 +73,25 @@ export const calculateGroupedAttributes = (character) => {
       return;
     }
     
-    // Collect all relevant attributes from equipment
+    // Collect all relevant attributes from equipment, excluding NONE types
     const equipmentAttributes = [];
     
     if (character.equipment && character.equipment.length > 0) {
       character.equipment.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-        if (itemAttrInfo) {
+        if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
           equipmentAttributes.push(itemAttrInfo);
         }
       });
     }
     
-    // If no equipment has this attribute, grouped value equals character value
+    // If character attribute is NONE, grouped value equals character value (no grouping)
+    if (charAttrInfo.type === 'NONE') {
+      groupedAttributes[attributeName] = charAttrInfo.value;
+      return;
+    }
+    
+    // If no equipment has this attribute (or all equipment attributes are NONE), grouped value equals character value
     if (equipmentAttributes.length === 0) {
       groupedAttributes[attributeName] = charAttrInfo.value;
       return;
@@ -95,7 +104,7 @@ export const calculateGroupedAttributes = (character) => {
     let highestValue = Math.max(...allAttributes.map(attr => attr.value));
     let currentGroupedValue = highestValue;
     
-    // Apply grouping formula for all other attributes
+    // Apply grouping formula for all other attributes (NONE attributes are already filtered out)
     allAttributes.forEach(attr => {
       if (attr.value !== highestValue) {
         currentGroupedValue = calculateGroupingFormula(
@@ -130,19 +139,25 @@ export const calculateObjectGroupedAttributes = (object) => {
       return;
     }
     
-    // Collect all relevant attributes from equipment
+    // Collect all relevant attributes from equipment, excluding NONE types
     const equipmentAttributes = [];
     
     if (object.equipment && object.equipment.length > 0) {
       object.equipment.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-        if (itemAttrInfo) {
+        if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
           equipmentAttributes.push(itemAttrInfo);
         }
       });
     }
     
-    // If no equipment has this attribute, grouped value equals object value
+    // If object attribute is NONE, grouped value equals object value (no grouping)
+    if (objAttrInfo.type === 'NONE') {
+      groupedAttributes[attributeName] = objAttrInfo.value;
+      return;
+    }
+    
+    // If no equipment has this attribute (or all equipment attributes are NONE), grouped value equals object value
     if (equipmentAttributes.length === 0) {
       groupedAttributes[attributeName] = objAttrInfo.value;
       return;
@@ -155,7 +170,7 @@ export const calculateObjectGroupedAttributes = (object) => {
     let highestValue = Math.max(...allAttributes.map(attr => attr.value));
     let currentGroupedValue = highestValue;
     
-    // Apply grouping formula for all other attributes
+    // Apply grouping formula for all other attributes (NONE attributes are already filtered out)
     allAttributes.forEach(attr => {
       if (attr.value !== highestValue) {
         currentGroupedValue = calculateGroupingFormula(
