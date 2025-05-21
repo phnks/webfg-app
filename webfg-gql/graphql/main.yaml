@@ -184,6 +184,20 @@ Resources:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         EncountersDataSourceName: !Ref EncountersDataSourceName
 
+  # Create this stack first
+  EncounterEventResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./encounter-event-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        EncountersDataSourceName: !Ref EncountersDataSourceName
+        
+  # Then create this stack that depends on it
   EncounterCharacterResolversStack:
     Type: AWS::CloudFormation::Stack
     DependsOn:
@@ -199,18 +213,6 @@ Resources:
         CharactersTableName: !Ref CharactersTableName
         ActionsTableName: !Ref ActionsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
-
-  EncounterEventResolversStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn:
-      - DataSourcesStack
-      - ApiStack
-      - AppSyncLambdaServiceRole
-    Properties:
-      TemplateURL: ./encounter-event-resolvers.yaml
-      Parameters:
-        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
-        EncountersDataSourceName: !Ref EncountersDataSourceName
 
 Outputs:
   AppSyncAPIEndpoint:
