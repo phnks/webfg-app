@@ -91,37 +91,6 @@ Resources:
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
 
-  EventsAddCharacterToEncounterResolver:
-    Type: AWS::AppSync::Resolver
-    Properties:
-      ApiId: !Ref ApiId
-      TypeName: 'Mutation'
-      FieldName: 'addCharacterToEncounter'
-      DataSourceName: !Ref EncountersDataSourceName
-      RequestMappingTemplate: |
-        #set($event = {
-          "initiative": $ctx.args.initiative,
-          "type": "CHARACTER_ADDED",
-          "characterId": $ctx.args.characterId,
-          "actionId": null,
-          "description": "Character added to encounter"
-        })
-        
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key": {
-            "encounterId": $util.dynamodb.toDynamoDBJson($ctx.args.encounterId)
-          },
-          "update": {
-            "expression": "SET eventsCurrent = list_append(if_not_exists(eventsCurrent, :emptyList), :newEvent)",
-            "expressionValues": {
-              ":emptyList": $util.dynamodb.toDynamoDBJson([]),
-              ":newEvent": $util.dynamodb.toDynamoDBJson([$event])
-            }
-          }
-        }
-      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   EventsRemoveCharacterFromEncounterResolver:
     Type: AWS::AppSync::Resolver
