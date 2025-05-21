@@ -40,7 +40,7 @@ const CHARACTER_CATEGORIES = [
   'ICER', 'DAXMC', 'QRTIS', 'TYVIR'
 ];
 
-const ATTRIBUTE_TYPES = ['HELP', 'HINDER'];
+const ATTRIBUTE_TYPES = ['HELP', 'HINDER', 'NONE'];
 
 const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => {
   const navigate = useNavigate();
