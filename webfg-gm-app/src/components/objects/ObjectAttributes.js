@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { calculateObjectGroupedAttributes } from "../../utils/attributeGrouping";
+import { calculateObjectAttributeBreakdown } from "../../utils/attributeBreakdown";
+import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
 import "./ObjectAttributes.css";
 
 const ObjectAttributes = ({ object }) => {
@@ -21,6 +23,21 @@ const ObjectAttributes = ({ object }) => {
 
   // Calculate grouped attributes if object and equipment data is available
   const groupedAttributes = calculateObjectGroupedAttributes(object);
+  
+  // State for breakdown popup
+  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [breakdownData, setBreakdownData] = useState([]);
+  const [breakdownAttributeName, setBreakdownAttributeName] = useState('');
+  
+  // Handler for showing breakdown
+  const handleShowBreakdown = (attributeKey, attributeName) => {
+    if (object && object.equipment && object.equipment.length > 0) {
+      const breakdown = calculateObjectAttributeBreakdown(object, attributeKey);
+      setBreakdownData(breakdown);
+      setBreakdownAttributeName(attributeName);
+      setShowBreakdown(true);
+    }
+  };
 
   if (attributes.length === 0) {
     return null; // Don't render anything if no attributes
@@ -37,34 +54,54 @@ const ObjectAttributes = ({ object }) => {
   };
 
   return (
-    <div className="object-attributes">
-      <h4>Attributes</h4>
-      <div className="attributes-list">
-        {attributes.map(attr => {
-          const originalValue = attr.data.attributeValue;
-          const groupedValue = groupedAttributes[attr.key];
-          const hasGroupedValue = groupedValue !== undefined && groupedValue !== originalValue;
-          
-          return (
-            <div key={attr.name} className="detail-row">
-              <span>{attr.name}:</span>
-              <span>
-                {originalValue} ({attr.data.attributeType})
-                {hasGroupedValue && (
-                  <span 
-                    className="grouped-value" 
-                    style={getGroupedValueStyle(originalValue, groupedValue)}
-                    title="Grouped value with equipment"
-                  >
-                    {' → '}{groupedValue}
-                  </span>
-                )}
-              </span>
-            </div>
-          );
-        })}
+    <>
+      <div className="object-attributes">
+        <h4>Attributes</h4>
+        <div className="attributes-list">
+          {attributes.map(attr => {
+            const originalValue = attr.data.attributeValue;
+            const groupedValue = groupedAttributes[attr.key];
+            const hasGroupedValue = groupedValue !== undefined && groupedValue !== originalValue;
+            const hasEquipment = object && object.equipment && object.equipment.length > 0;
+            
+            return (
+              <div key={attr.name} className="detail-row">
+                <span>{attr.name}:</span>
+                <span>
+                  {originalValue} ({attr.data.attributeType})
+                  {hasGroupedValue && (
+                    <span 
+                      className="grouped-value" 
+                      style={getGroupedValueStyle(originalValue, groupedValue)}
+                      title="Grouped value with equipment"
+                    >
+                      {' → '}{groupedValue}
+                      {hasEquipment && (
+                        <button
+                          className="info-icon"
+                          onClick={() => handleShowBreakdown(attr.key, attr.name)}
+                          title="Show detailed breakdown"
+                        >
+                          ℹ️
+                        </button>
+                      )}
+                    </span>
+                  )}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+      
+      {showBreakdown && (
+        <AttributeBreakdownPopup
+          breakdown={breakdownData}
+          attributeName={breakdownAttributeName}
+          onClose={() => setShowBreakdown(false)}
+        />
+      )}
+    </>
   );
 };
 
