@@ -53,21 +53,11 @@ const ActionTest = ({ action, character, onClose }) => {
       const sourceAttribute = action.sourceAttribute.toLowerCase();
       const groupedAttributes = calculateGroupedAttributes(character);
       
-      // Debug logging
-      console.log('ActionTest Debug - Source:');
-      console.log('- sourceAttribute:', sourceAttribute);
-      console.log('- action.sourceAttribute:', action.sourceAttribute);
-      console.log('- groupedAttributes:', groupedAttributes);
-      console.log('- groupedAttributes[sourceAttribute]:', groupedAttributes[sourceAttribute]);
-      console.log('- character has equipment:', character.equipment?.length || 0);
-      
       // Use grouped value if available, otherwise fall back to default value
       if (groupedAttributes[sourceAttribute] !== undefined) {
         sourceActionDifficulty = groupedAttributes[sourceAttribute];
-        console.log('- Using grouped value:', sourceActionDifficulty);
       } else if (character[sourceAttribute] && character[sourceAttribute].attribute) {
         sourceActionDifficulty = character[sourceAttribute].attribute.attributeValue;
-        console.log('- Using fallback value:', sourceActionDifficulty);
       }
     }
     
@@ -81,36 +71,18 @@ const ActionTest = ({ action, character, onClose }) => {
         if (targetType === 'CHARACTER') {
           // Use grouped attributes for character targets
           const groupedAttributes = calculateGroupedAttributes(selectedTarget);
-          console.log('ActionTest Debug - Character Target:');
-          console.log('- targetAttribute:', targetAttribute);
-          console.log('- action.targetAttribute:', action.targetAttribute);
-          console.log('- groupedAttributes:', groupedAttributes);
-          console.log('- groupedAttributes[targetAttribute]:', groupedAttributes[targetAttribute]);
-          console.log('- target has equipment:', selectedTarget.equipment?.length || 0);
-          
           if (groupedAttributes[targetAttribute] !== undefined) {
             targetActionDifficulty = groupedAttributes[targetAttribute];
-            console.log('- Using grouped target value:', targetActionDifficulty);
           } else if (selectedTarget[targetAttribute] && selectedTarget[targetAttribute].attribute) {
             targetActionDifficulty = selectedTarget[targetAttribute].attribute.attributeValue;
-            console.log('- Using fallback target value:', targetActionDifficulty);
           }
         } else if (targetType === 'OBJECT') {
           // Use grouped attributes for object targets
           const groupedAttributes = calculateObjectGroupedAttributes(selectedTarget);
-          console.log('ActionTest Debug - Object Target:');
-          console.log('- targetAttribute:', targetAttribute);
-          console.log('- action.targetAttribute:', action.targetAttribute);
-          console.log('- groupedAttributes:', groupedAttributes);
-          console.log('- groupedAttributes[targetAttribute]:', groupedAttributes[targetAttribute]);
-          console.log('- target has equipment:', selectedTarget.equipment?.length || 0);
-          
           if (groupedAttributes[targetAttribute] !== undefined) {
             targetActionDifficulty = groupedAttributes[targetAttribute];
-            console.log('- Using grouped target value:', targetActionDifficulty);
           } else if (selectedTarget[targetAttribute]) {
             targetActionDifficulty = selectedTarget[targetAttribute].attributeValue;
-            console.log('- Using fallback target value:', targetActionDifficulty);
           }
         }
       } else if (targetType === 'ACTION') {
@@ -127,6 +99,49 @@ const ActionTest = ({ action, character, onClose }) => {
     return sourceActionDifficulty / (sourceActionDifficulty + targetActionDifficulty);
   };
   
+  // Helper function to get the actual source value used in calculation
+  const getDisplaySourceValue = () => {
+    if (character) {
+      const sourceAttribute = action.sourceAttribute.toLowerCase();
+      const groupedAttributes = calculateGroupedAttributes(character);
+      
+      if (groupedAttributes[sourceAttribute] !== undefined) {
+        return groupedAttributes[sourceAttribute];
+      } else if (character[sourceAttribute] && character[sourceAttribute].attribute) {
+        return character[sourceAttribute].attribute.attributeValue;
+      }
+    }
+    return 0;
+  };
+
+  // Helper function to get the actual target value used in calculation
+  const getDisplayTargetValue = () => {
+    if (override) {
+      return parseFloat(overrideValue) || 0;
+    } else if (selectedTarget) {
+      if (targetType === 'CHARACTER' || targetType === 'OBJECT') {
+        const targetAttribute = action.targetAttribute.toLowerCase();
+        
+        if (targetType === 'CHARACTER') {
+          const groupedAttributes = calculateGroupedAttributes(selectedTarget);
+          if (groupedAttributes[targetAttribute] !== undefined) {
+            return groupedAttributes[targetAttribute];
+          } else if (selectedTarget[targetAttribute] && selectedTarget[targetAttribute].attribute) {
+            return selectedTarget[targetAttribute].attribute.attributeValue;
+          }
+        } else if (targetType === 'OBJECT') {
+          const groupedAttributes = calculateObjectGroupedAttributes(selectedTarget);
+          if (groupedAttributes[targetAttribute] !== undefined) {
+            return groupedAttributes[targetAttribute];
+          } else if (selectedTarget[targetAttribute]) {
+            return selectedTarget[targetAttribute].attributeValue;
+          }
+        }
+      }
+    }
+    return 'N/A';
+  };
+
   const handleSubmit = () => {
     const difficulty = calculateActionDifficulty();
     setActionDifficulty(difficulty);
@@ -260,17 +275,9 @@ const ActionTest = ({ action, character, onClose }) => {
               {(actionDifficulty * 100).toFixed(2)}%
             </div>
             <p>
-              Source Value: {character && character[action.sourceAttribute.toLowerCase()]?.attribute.attributeValue || 0}
+              Source Value: {getDisplaySourceValue()} (grouped)
               <br />
-              Target Value: {override ? overrideValue : (selectedTarget ? 
-                (targetType === 'CHARACTER' && selectedTarget[action.targetAttribute.toLowerCase()]?.attribute ? 
-                  selectedTarget[action.targetAttribute.toLowerCase()]?.attribute.attributeValue : 
-                  (targetType === 'OBJECT' && selectedTarget[action.targetAttribute.toLowerCase()] ? 
-                    selectedTarget[action.targetAttribute.toLowerCase()]?.attributeValue : 
-                    'N/A'
-                  )
-                ) : 'None'
-              )}
+              Target Value: {getDisplayTargetValue()} {!override && selectedTarget ? '(grouped)' : ''}
             </p>
           </div>
         )}
