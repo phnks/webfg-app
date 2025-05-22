@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, GET_CHARACTER, GET_OBJECT } from '../../../graphql/operations';
-import { calculateGroupedAttributes, calculateObjectGroupedAttributes } from '../../../utils/attributeGrouping';
+import { calculateGroupedAttributes, calculateObjectGroupedAttributes, extractAttributeInfo, calculateGroupingFormula } from '../../../utils/attributeGrouping';
 import './ActionTest.css';
 
 const ActionTest = ({ action, character, onClose }) => {
   const [targetType, setTargetType] = useState(action.targetType);
-  const [selectedTarget, setSelectedTarget] = useState(null);
-  const [selectedTargetId, setSelectedTargetId] = useState('');
+  const [selectedTargets, setSelectedTargets] = useState([]); // Changed to array for multi-selection
+  const [selectedTargetIds, setSelectedTargetIds] = useState([]); // Changed to array
   const [override, setOverride] = useState(false);
   const [overrideValue, setOverrideValue] = useState('');
   const [actionDifficulty, setActionDifficulty] = useState(null);
@@ -17,34 +17,15 @@ const ActionTest = ({ action, character, onClose }) => {
   const { data: objectsData } = useQuery(LIST_OBJECTS, { skip: targetType !== 'OBJECT' });
   const { data: actionsData } = useQuery(LIST_ACTIONS, { skip: targetType !== 'ACTION' });
   
-  // Fetch detailed data for the selected target
-  const { data: characterDetailData } = useQuery(GET_CHARACTER, {
-    variables: { characterId: selectedTargetId },
-    skip: targetType !== 'CHARACTER' || !selectedTargetId,
-    onCompleted: (data) => {
-      if (data && data.getCharacter) {
-        setSelectedTarget(data.getCharacter);
-      }
-    }
-  });
-  
-  const { data: objectDetailData } = useQuery(GET_OBJECT, {
-    variables: { objectId: selectedTargetId },
-    skip: targetType !== 'OBJECT' || !selectedTargetId,
-    onCompleted: (data) => {
-      if (data && data.getObject) {
-        setSelectedTarget(data.getObject);
-      }
-    }
-  });
+  // We'll fetch detailed data dynamically when needed instead of using static queries
 
   // Initial setup
   useEffect(() => {
     setTargetType(action.targetType);
   }, [action]);
   
-  // Calculate action difficulty
-  const calculateActionDifficulty = () => {
+  // Calculate action difficulty (async version for multi-target support)
+  const calculateActionDifficultyAsync = async () => {
     let sourceActionDifficulty = 0;
     let targetActionDifficulty = 0;
     
@@ -64,27 +45,11 @@ const ActionTest = ({ action, character, onClose }) => {
     // Get target attribute value based on selection or override
     if (override) {
       targetActionDifficulty = parseFloat(overrideValue) || 0;
-    } else if (selectedTarget) {
+    } else if (selectedTargetIds.length > 0) {
       if (targetType === 'CHARACTER' || targetType === 'OBJECT') {
         const targetAttribute = action.targetAttribute.toLowerCase();
-        
-        if (targetType === 'CHARACTER') {
-          // Use grouped attributes for character targets
-          const groupedAttributes = calculateGroupedAttributes(selectedTarget);
-          if (groupedAttributes[targetAttribute] !== undefined) {
-            targetActionDifficulty = groupedAttributes[targetAttribute];
-          } else if (selectedTarget[targetAttribute] && selectedTarget[targetAttribute].attribute) {
-            targetActionDifficulty = selectedTarget[targetAttribute].attribute.attributeValue;
-          }
-        } else if (targetType === 'OBJECT') {
-          // Use grouped attributes for object targets
-          const groupedAttributes = calculateObjectGroupedAttributes(selectedTarget);
-          if (groupedAttributes[targetAttribute] !== undefined) {
-            targetActionDifficulty = groupedAttributes[targetAttribute];
-          } else if (selectedTarget[targetAttribute]) {
-            targetActionDifficulty = selectedTarget[targetAttribute].attributeValue;
-          }
-        }
+        // Use new grouping function for multiple targets
+        targetActionDifficulty = await groupTargetAttributes(selectedTargetIds, targetAttribute);
       } else if (targetType === 'ACTION') {
         // Action logic will be implemented in future feature
         targetActionDifficulty = 0;
@@ -114,39 +79,132 @@ const ActionTest = ({ action, character, onClose }) => {
     return 0;
   };
 
-  // Helper function to get the actual target value used in calculation
+  // Helper function to get the actual target value used in calculation (now supports multiple targets)
   const getDisplayTargetValue = () => {
     if (override) {
       return parseFloat(overrideValue) || 0;
-    } else if (selectedTarget) {
-      if (targetType === 'CHARACTER' || targetType === 'OBJECT') {
-        const targetAttribute = action.targetAttribute.toLowerCase();
-        
-        if (targetType === 'CHARACTER') {
-          const groupedAttributes = calculateGroupedAttributes(selectedTarget);
-          if (groupedAttributes[targetAttribute] !== undefined) {
-            return groupedAttributes[targetAttribute];
-          } else if (selectedTarget[targetAttribute] && selectedTarget[targetAttribute].attribute) {
-            return selectedTarget[targetAttribute].attribute.attributeValue;
-          }
-        } else if (targetType === 'OBJECT') {
-          const groupedAttributes = calculateObjectGroupedAttributes(selectedTarget);
-          if (groupedAttributes[targetAttribute] !== undefined) {
-            return groupedAttributes[targetAttribute];
-          } else if (selectedTarget[targetAttribute]) {
-            return selectedTarget[targetAttribute].attributeValue;
-          }
-        }
+    } else if (selectedTargetIds.length > 0) {
+      // For display purposes, we'll show a placeholder since the actual calculation is async
+      // The real value will be calculated during submission
+      if (selectedTargetIds.length === 1) {
+        return `Target (${selectedTargetIds.length} selected)`;
+      } else {
+        return `Grouped Targets (${selectedTargetIds.length} selected)`;
       }
     }
     return 'N/A';
   };
 
-  const handleSubmit = () => {
-    const difficulty = calculateActionDifficulty();
+  // Function to group multiple targets into a single attribute value
+  const groupTargetAttributes = async (targetIds, targetAttribute) => {
+    if (targetIds.length === 0) return 0;
+    if (targetIds.length === 1) {
+      // Single target - get grouped value as before
+      return await getSingleTargetAttributeValue(targetIds[0], targetAttribute);
+    }
+    
+    // Multiple targets - need to group them
+    const targetEntities = [];
+    
+    for (const targetId of targetIds) {
+      try {
+        const entity = await fetchTargetEntity(targetId);
+        if (entity) {
+          targetEntities.push(entity);
+        }
+      } catch (error) {
+        console.error(`Error fetching target ${targetId}:`, error);
+      }
+    }
+    
+    if (targetEntities.length === 0) return 0;
+    if (targetEntities.length === 1) {
+      return getSingleEntityAttributeValue(targetEntities[0], targetAttribute);
+    }
+    
+    // Apply grouping logic to multiple targets
+    const attributeInfos = [];
+    targetEntities.forEach(entity => {
+      const attrInfo = extractAttributeInfo(entity[targetAttribute]);
+      if (attrInfo && attrInfo.type !== 'NONE') {
+        attributeInfos.push({
+          name: entity.name || 'Unknown',
+          ...attrInfo
+        });
+      }
+    });
+    
+    if (attributeInfos.length === 0) return 0;
+    if (attributeInfos.length === 1) return attributeInfos[0].value;
+    
+    // Find highest value and apply grouping formula
+    const highestValue = Math.max(...attributeInfos.map(attr => attr.value));
+    let currentValue = highestValue;
+    
+    attributeInfos.forEach(attr => {
+      if (attr.value !== highestValue) {
+        currentValue = calculateGroupingFormula(currentValue, attr.value, attr.type);
+      }
+    });
+    
+    return Math.round(currentValue * 100) / 100;
+  };
+  
+  // Helper function to fetch a single target entity
+  const fetchTargetEntity = async (targetId) => {
+    // For now, we'll use the list data which should have the basic attribute information
+    // The LIST_CHARACTERS and LIST_OBJECTS queries include the attributes we need
+    if (targetType === 'CHARACTER') {
+      return charactersData?.listCharacters.find(char => char.characterId === targetId);
+    } else if (targetType === 'OBJECT') {
+      return objectsData?.listObjects.find(obj => obj.objectId === targetId);
+    }
+    return null;
+  };
+  
+  // Helper function to get single entity attribute value with grouping
+  const getSingleEntityAttributeValue = (entity, targetAttribute) => {
+    if (targetType === 'CHARACTER') {
+      const groupedAttributes = calculateGroupedAttributes(entity);
+      if (groupedAttributes[targetAttribute] !== undefined) {
+        return groupedAttributes[targetAttribute];
+      } else if (entity[targetAttribute] && entity[targetAttribute].attribute) {
+        return entity[targetAttribute].attribute.attributeValue;
+      }
+    } else if (targetType === 'OBJECT') {
+      const groupedAttributes = calculateObjectGroupedAttributes(entity);
+      if (groupedAttributes[targetAttribute] !== undefined) {
+        return groupedAttributes[targetAttribute];
+      } else if (entity[targetAttribute]) {
+        return entity[targetAttribute].attributeValue;
+      }
+    }
+    return 0;
+  };
+  
+  // Updated helper to get single target value (for backward compatibility)
+  const getSingleTargetAttributeValue = async (targetId, targetAttribute) => {
+    const entity = await fetchTargetEntity(targetId);
+    if (!entity) return 0;
+    return getSingleEntityAttributeValue(entity, targetAttribute);
+  };
+
+  const handleSubmit = async () => {
+    const difficulty = await calculateActionDifficultyAsync();
     setActionDifficulty(difficulty);
   };
   
+  // Handler for checkbox target selection
+  const handleTargetSelection = (targetId, isChecked) => {
+    if (isChecked) {
+      setSelectedTargetIds(prev => [...prev, targetId]);
+    } else {
+      setSelectedTargetIds(prev => prev.filter(id => id !== targetId));
+    }
+    // Clear previous results when selection changes
+    setActionDifficulty(null);
+  };
+
   const getTargetOptions = () => {
     if (override) {
       return (
@@ -164,55 +222,66 @@ const ActionTest = ({ action, character, onClose }) => {
     switch (targetType) {
       case 'CHARACTER':
         return (
-          <select
-            value={selectedTargetId || ''}
-            onChange={(e) => {
-              setSelectedTargetId(e.target.value);
-            }}
-          >
-            <option value="">Select a character</option>
+          <div className="target-selection-list">
+            <div className="selection-header">
+              <span>Select Characters (multiple allowed):</span>
+              {selectedTargetIds.length > 0 && (
+                <span className="selection-count">{selectedTargetIds.length} selected</span>
+              )}
+            </div>
             {charactersData?.listCharacters.map((char) => (
-              <option key={char.characterId} value={char.characterId}>
-                {char.name}
-              </option>
+              <label key={char.characterId} className="target-option">
+                <input
+                  type="checkbox"
+                  checked={selectedTargetIds.includes(char.characterId)}
+                  onChange={(e) => handleTargetSelection(char.characterId, e.target.checked)}
+                />
+                <span className="target-name">{char.name}</span>
+              </label>
             ))}
-          </select>
+          </div>
         );
       case 'OBJECT':
         return (
-          <select
-            value={selectedTargetId || ''}
-            onChange={(e) => {
-              setSelectedTargetId(e.target.value);
-            }}
-          >
-            <option value="">Select an object</option>
+          <div className="target-selection-list">
+            <div className="selection-header">
+              <span>Select Objects (multiple allowed):</span>
+              {selectedTargetIds.length > 0 && (
+                <span className="selection-count">{selectedTargetIds.length} selected</span>
+              )}
+            </div>
             {objectsData?.listObjects.map((obj) => (
-              <option key={obj.objectId} value={obj.objectId}>
-                {obj.name}
-              </option>
+              <label key={obj.objectId} className="target-option">
+                <input
+                  type="checkbox"
+                  checked={selectedTargetIds.includes(obj.objectId)}
+                  onChange={(e) => handleTargetSelection(obj.objectId, e.target.checked)}
+                />
+                <span className="target-name">{obj.name}</span>
+              </label>
             ))}
-          </select>
+          </div>
         );
       case 'ACTION':
         return (
-          <select
-            value={selectedTargetId || ''}
-            onChange={(e) => {
-              const target = actionsData.listActions.find(
-                (act) => act.actionId === e.target.value
-              );
-              setSelectedTarget(target);
-              setSelectedTargetId(e.target.value);
-            }}
-          >
-            <option value="">Select an action</option>
-            {actionsData?.listActions.map((act) => (
-              <option key={act.actionId} value={act.actionId}>
-                {act.name}
-              </option>
+          <div className="target-selection-list">
+            <div className="selection-header">
+              <span>Select Actions (multiple allowed):</span>
+              {selectedTargetIds.length > 0 && (
+                <span className="selection-count">{selectedTargetIds.length} selected</span>
+              )}
+            </div>
+            {actionsData?.listActions.map((action) => (
+              <label key={action.actionId} className="target-option">
+                <input
+                  type="checkbox"
+                  checked={selectedTargetIds.includes(action.actionId)}
+                  onChange={(e) => handleTargetSelection(action.actionId, e.target.checked)}
+                />
+                <span className="target-name">{action.name}</span>
+              </label>
             ))}
-          </select>
+          </div>
         );
       default:
         return <div>Invalid target type</div>;
@@ -243,7 +312,8 @@ const ActionTest = ({ action, character, onClose }) => {
                 checked={override}
                 onChange={() => {
                   setOverride(!override);
-                  setSelectedTarget(null);
+                  setSelectedTargets([]);
+                  setSelectedTargetIds([]);
                   setActionDifficulty(null);
                 }}
               />
@@ -259,7 +329,7 @@ const ActionTest = ({ action, character, onClose }) => {
           <button
             className="submit-button"
             onClick={handleSubmit}
-            disabled={(!selectedTargetId && !override) || (override && !overrideValue)}
+            disabled={(selectedTargetIds.length === 0 && !override) || (override && !overrideValue)}
           >
             Submit
           </button>
@@ -277,7 +347,7 @@ const ActionTest = ({ action, character, onClose }) => {
             <p>
               Source Value: {getDisplaySourceValue()} (grouped)
               <br />
-              Target Value: {getDisplayTargetValue()} {!override && selectedTarget ? '(grouped)' : ''}
+              Target Value: {getDisplayTargetValue()} {!override && selectedTargetIds.length > 0 ? '(grouped)' : ''}
             </p>
           </div>
         )}

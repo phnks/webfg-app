@@ -6,6 +6,31 @@ export const LIST_CHARACTERS = gql`
     listCharacters {
       characterId
       name
+      lethality { attribute { attributeValue attributeType } fatigue }
+      armour { attribute { attributeValue attributeType } fatigue }
+      endurance { attribute { attributeValue attributeType } fatigue }
+      strength { attribute { attributeValue attributeType } fatigue }
+      dexterity { attribute { attributeValue attributeType } fatigue }
+      agility { attribute { attributeValue attributeType } fatigue }
+      perception { attribute { attributeValue attributeType } fatigue }
+      charisma { attribute { attributeValue attributeType } fatigue }
+      intelligence { attribute { attributeValue attributeType } fatigue }
+      resolve { attribute { attributeValue attributeType } fatigue }
+      morale { attribute { attributeValue attributeType } fatigue }
+      equipment { 
+        objectId name objectCategory
+        lethality { attributeValue attributeType }
+        armour { attributeValue attributeType }
+        endurance { attributeValue attributeType }
+        strength { attributeValue attributeType }
+        dexterity { attributeValue attributeType }
+        agility { attributeValue attributeType }
+        perception { attributeValue attributeType }
+        charisma { attributeValue attributeType }
+        intelligence { attributeValue attributeType }
+        resolve { attributeValue attributeType }
+        morale { attributeValue attributeType }
+      }
     }
   }
 `;
@@ -76,6 +101,20 @@ export const LIST_OBJECTS = gql`
       morale { attributeValue attributeType }
       special
       equipmentIds
+      equipment { 
+        objectId name objectCategory
+        lethality { attributeValue attributeType }
+        armour { attributeValue attributeType }
+        endurance { attributeValue attributeType }
+        strength { attributeValue attributeType }
+        dexterity { attributeValue attributeType }
+        agility { attributeValue attributeType }
+        perception { attributeValue attributeType }
+        charisma { attributeValue attributeType }
+        intelligence { attributeValue attributeType }
+        resolve { attributeValue attributeType }
+        morale { attributeValue attributeType }
+      }
     }
   }
 `;
