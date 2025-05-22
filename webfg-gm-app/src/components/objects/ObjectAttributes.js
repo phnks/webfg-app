@@ -5,6 +5,11 @@ import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
 import "./ObjectAttributes.css";
 
 const ObjectAttributes = ({ object }) => {
+  // State for breakdown popup (must be at top level)
+  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [breakdownData, setBreakdownData] = useState([]);
+  const [breakdownAttributeName, setBreakdownAttributeName] = useState('');
+  
   if (!object) return null;
   
   const attributes = [
@@ -23,11 +28,6 @@ const ObjectAttributes = ({ object }) => {
 
   // Calculate grouped attributes if object and equipment data is available
   const groupedAttributes = calculateObjectGroupedAttributes(object);
-  
-  // State for breakdown popup
-  const [showBreakdown, setShowBreakdown] = useState(false);
-  const [breakdownData, setBreakdownData] = useState([]);
-  const [breakdownAttributeName, setBreakdownAttributeName] = useState('');
   
   // Handler for showing breakdown
   const handleShowBreakdown = (attributeKey, attributeName) => {
