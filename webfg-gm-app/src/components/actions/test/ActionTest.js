@@ -53,11 +53,21 @@ const ActionTest = ({ action, character, onClose }) => {
       const sourceAttribute = action.sourceAttribute.toLowerCase();
       const groupedAttributes = calculateGroupedAttributes(character);
       
+      // Debug logging
+      console.log('ActionTest Debug - Source:');
+      console.log('- sourceAttribute:', sourceAttribute);
+      console.log('- action.sourceAttribute:', action.sourceAttribute);
+      console.log('- groupedAttributes:', groupedAttributes);
+      console.log('- groupedAttributes[sourceAttribute]:', groupedAttributes[sourceAttribute]);
+      console.log('- character has equipment:', character.equipment?.length || 0);
+      
       // Use grouped value if available, otherwise fall back to default value
       if (groupedAttributes[sourceAttribute] !== undefined) {
         sourceActionDifficulty = groupedAttributes[sourceAttribute];
+        console.log('- Using grouped value:', sourceActionDifficulty);
       } else if (character[sourceAttribute] && character[sourceAttribute].attribute) {
         sourceActionDifficulty = character[sourceAttribute].attribute.attributeValue;
+        console.log('- Using fallback value:', sourceActionDifficulty);
       }
     }
     
@@ -71,18 +81,36 @@ const ActionTest = ({ action, character, onClose }) => {
         if (targetType === 'CHARACTER') {
           // Use grouped attributes for character targets
           const groupedAttributes = calculateGroupedAttributes(selectedTarget);
+          console.log('ActionTest Debug - Character Target:');
+          console.log('- targetAttribute:', targetAttribute);
+          console.log('- action.targetAttribute:', action.targetAttribute);
+          console.log('- groupedAttributes:', groupedAttributes);
+          console.log('- groupedAttributes[targetAttribute]:', groupedAttributes[targetAttribute]);
+          console.log('- target has equipment:', selectedTarget.equipment?.length || 0);
+          
           if (groupedAttributes[targetAttribute] !== undefined) {
             targetActionDifficulty = groupedAttributes[targetAttribute];
+            console.log('- Using grouped target value:', targetActionDifficulty);
           } else if (selectedTarget[targetAttribute] && selectedTarget[targetAttribute].attribute) {
             targetActionDifficulty = selectedTarget[targetAttribute].attribute.attributeValue;
+            console.log('- Using fallback target value:', targetActionDifficulty);
           }
         } else if (targetType === 'OBJECT') {
           // Use grouped attributes for object targets
           const groupedAttributes = calculateObjectGroupedAttributes(selectedTarget);
+          console.log('ActionTest Debug - Object Target:');
+          console.log('- targetAttribute:', targetAttribute);
+          console.log('- action.targetAttribute:', action.targetAttribute);
+          console.log('- groupedAttributes:', groupedAttributes);
+          console.log('- groupedAttributes[targetAttribute]:', groupedAttributes[targetAttribute]);
+          console.log('- target has equipment:', selectedTarget.equipment?.length || 0);
+          
           if (groupedAttributes[targetAttribute] !== undefined) {
             targetActionDifficulty = groupedAttributes[targetAttribute];
+            console.log('- Using grouped target value:', targetActionDifficulty);
           } else if (selectedTarget[targetAttribute]) {
             targetActionDifficulty = selectedTarget[targetAttribute].attributeValue;
+            console.log('- Using fallback target value:', targetActionDifficulty);
           }
         }
       } else if (targetType === 'ACTION') {
