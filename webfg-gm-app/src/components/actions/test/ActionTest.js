@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, GET_CHARACTER, GET_OBJECT } from '../../../graphql/operations';
+import { calculateGroupedAttributes, calculateObjectGroupedAttributes } from '../../../utils/attributeGrouping';
 import './ActionTest.css';
 
 const ActionTest = ({ action, character, onClose }) => {
@@ -47,10 +48,15 @@ const ActionTest = ({ action, character, onClose }) => {
     let sourceActionDifficulty = 0;
     let targetActionDifficulty = 0;
     
-    // Get source attribute value from character
+    // Get source attribute value from character using grouped attributes
     if (character) {
       const sourceAttribute = action.sourceAttribute.toLowerCase();
-      if (character[sourceAttribute] && character[sourceAttribute].attribute) {
+      const groupedAttributes = calculateGroupedAttributes(character);
+      
+      // Use grouped value if available, otherwise fall back to default value
+      if (groupedAttributes[sourceAttribute] !== undefined) {
+        sourceActionDifficulty = groupedAttributes[sourceAttribute];
+      } else if (character[sourceAttribute] && character[sourceAttribute].attribute) {
         sourceActionDifficulty = character[sourceAttribute].attribute.attributeValue;
       }
     }
@@ -61,10 +67,21 @@ const ActionTest = ({ action, character, onClose }) => {
     } else if (selectedTarget) {
       if (targetType === 'CHARACTER' || targetType === 'OBJECT') {
         const targetAttribute = action.targetAttribute.toLowerCase();
-        if (selectedTarget[targetAttribute]) {
-          if (targetType === 'CHARACTER' && selectedTarget[targetAttribute].attribute) {
+        
+        if (targetType === 'CHARACTER') {
+          // Use grouped attributes for character targets
+          const groupedAttributes = calculateGroupedAttributes(selectedTarget);
+          if (groupedAttributes[targetAttribute] !== undefined) {
+            targetActionDifficulty = groupedAttributes[targetAttribute];
+          } else if (selectedTarget[targetAttribute] && selectedTarget[targetAttribute].attribute) {
             targetActionDifficulty = selectedTarget[targetAttribute].attribute.attributeValue;
-          } else if (targetType === 'OBJECT') {
+          }
+        } else if (targetType === 'OBJECT') {
+          // Use grouped attributes for object targets
+          const groupedAttributes = calculateObjectGroupedAttributes(selectedTarget);
+          if (groupedAttributes[targetAttribute] !== undefined) {
+            targetActionDifficulty = groupedAttributes[targetAttribute];
+          } else if (selectedTarget[targetAttribute]) {
             targetActionDifficulty = selectedTarget[targetAttribute].attributeValue;
           }
         }

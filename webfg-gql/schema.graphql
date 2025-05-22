@@ -11,6 +11,7 @@ input AttributeInput {
 enum AttributeType {
   HELP
   HINDER
+  NONE
 }
 
 enum AttributeName {
