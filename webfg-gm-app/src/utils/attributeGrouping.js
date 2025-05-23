@@ -100,20 +100,17 @@ export const calculateGroupedAttributes = (character) => {
     // Add character attribute to the list for comparison
     const allAttributes = [charAttrInfo, ...equipmentAttributes];
     
-    // Find the highest value
-    let highestValue = Math.max(...allAttributes.map(attr => attr.value));
-    let currentGroupedValue = highestValue;
+    // Apply grouping formula sequentially to all attributes
+    let currentGroupedValue = allAttributes[0].value;
     
-    // Apply grouping formula for all other attributes (NONE attributes are already filtered out)
-    allAttributes.forEach(attr => {
-      if (attr.value !== highestValue) {
-        currentGroupedValue = calculateGroupingFormula(
-          currentGroupedValue,
-          attr.value,
-          attr.type
-        );
-      }
-    });
+    // Apply grouping formula for all subsequent attributes (NONE attributes are already filtered out)
+    for (let i = 1; i < allAttributes.length; i++) {
+      currentGroupedValue = calculateGroupingFormula(
+        currentGroupedValue,
+        allAttributes[i].value,
+        allAttributes[i].type
+      );
+    }
     
     groupedAttributes[attributeName] = Math.round(currentGroupedValue * 100) / 100; // Round to 2 decimal places
   });
@@ -166,20 +163,17 @@ export const calculateObjectGroupedAttributes = (object) => {
     // Add object attribute to the list for comparison
     const allAttributes = [objAttrInfo, ...equipmentAttributes];
     
-    // Find the highest value
-    let highestValue = Math.max(...allAttributes.map(attr => attr.value));
-    let currentGroupedValue = highestValue;
+    // Apply grouping formula sequentially to all attributes
+    let currentGroupedValue = allAttributes[0].value;
     
-    // Apply grouping formula for all other attributes (NONE attributes are already filtered out)
-    allAttributes.forEach(attr => {
-      if (attr.value !== highestValue) {
-        currentGroupedValue = calculateGroupingFormula(
-          currentGroupedValue,
-          attr.value,
-          attr.type
-        );
-      }
-    });
+    // Apply grouping formula for all subsequent attributes (NONE attributes are already filtered out)
+    for (let i = 1; i < allAttributes.length; i++) {
+      currentGroupedValue = calculateGroupingFormula(
+        currentGroupedValue,
+        allAttributes[i].value,
+        allAttributes[i].type
+      );
+    }
     
     groupedAttributes[attributeName] = Math.round(currentGroupedValue * 100) / 100; // Round to 2 decimal places
   });
