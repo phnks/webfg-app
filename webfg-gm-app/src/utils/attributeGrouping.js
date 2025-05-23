@@ -97,18 +97,51 @@ export const calculateGroupedAttributes = (character) => {
       return;
     }
     
-    // Add character attribute to the list for comparison
-    const allAttributes = [charAttrInfo, ...equipmentAttributes];
+    // Collect all entities with their grouped values (equipment might have their own equipment)
+    const allEntities = [];
     
-    // Apply grouping formula sequentially to all attributes
-    let currentGroupedValue = allAttributes[0].value;
+    // Add character with base value
+    allEntities.push({
+      value: charAttrInfo.value,
+      type: charAttrInfo.type,
+      groupedValue: charAttrInfo.value
+    });
     
-    // Apply grouping formula for all subsequent attributes (NONE attributes are already filtered out)
-    for (let i = 1; i < allAttributes.length; i++) {
+    // Add equipment with their own grouped values
+    if (character.equipment && character.equipment.length > 0) {
+      character.equipment.forEach(item => {
+        const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+        if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
+          // Calculate equipment's individual grouped value using their own equipment (if any)
+          let itemGroupedValue = itemAttrInfo.value;
+          
+          // Only calculate grouped value if equipment has its own equipment
+          if (item.equipment && item.equipment.length > 0) {
+            const itemGroupedAttrs = calculateObjectGroupedAttributes(item);
+            itemGroupedValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
+          }
+          
+          allEntities.push({
+            value: itemAttrInfo.value,
+            type: itemAttrInfo.type,
+            groupedValue: itemGroupedValue
+          });
+        }
+      });
+    }
+    
+    // Sort by grouped value in descending order (highest first)
+    allEntities.sort((a, b) => b.groupedValue - a.groupedValue);
+    
+    // Apply grouping formula sequentially starting with highest value
+    let currentGroupedValue = allEntities[0].groupedValue;
+    
+    // Apply grouping formula for all subsequent entities in descending order
+    for (let i = 1; i < allEntities.length; i++) {
       currentGroupedValue = calculateGroupingFormula(
         currentGroupedValue,
-        allAttributes[i].value,
-        allAttributes[i].type
+        allEntities[i].groupedValue,
+        allEntities[i].type
       );
     }
     
@@ -160,18 +193,37 @@ export const calculateObjectGroupedAttributes = (object) => {
       return;
     }
     
-    // Add object attribute to the list for comparison
-    const allAttributes = [objAttrInfo, ...equipmentAttributes];
+    // Collect all entities with their values (objects don't have nested equipment in this context)
+    const allEntities = [];
     
-    // Apply grouping formula sequentially to all attributes
-    let currentGroupedValue = allAttributes[0].value;
+    // Add object with base value
+    allEntities.push({
+      value: objAttrInfo.value,
+      type: objAttrInfo.type,
+      groupedValue: objAttrInfo.value
+    });
     
-    // Apply grouping formula for all subsequent attributes (NONE attributes are already filtered out)
-    for (let i = 1; i < allAttributes.length; i++) {
+    // Add equipment with their base values (no nested equipment for objects)
+    equipmentAttributes.forEach(itemAttrInfo => {
+      allEntities.push({
+        value: itemAttrInfo.value,
+        type: itemAttrInfo.type,
+        groupedValue: itemAttrInfo.value
+      });
+    });
+    
+    // Sort by grouped value in descending order (highest first)
+    allEntities.sort((a, b) => b.groupedValue - a.groupedValue);
+    
+    // Apply grouping formula sequentially starting with highest value
+    let currentGroupedValue = allEntities[0].groupedValue;
+    
+    // Apply grouping formula for all subsequent entities in descending order
+    for (let i = 1; i < allEntities.length; i++) {
       currentGroupedValue = calculateGroupingFormula(
         currentGroupedValue,
-        allAttributes[i].value,
-        allAttributes[i].type
+        allEntities[i].groupedValue,
+        allEntities[i].type
       );
     }
     
