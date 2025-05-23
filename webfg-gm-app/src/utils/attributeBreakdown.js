@@ -59,48 +59,29 @@ export const calculateAttributeBreakdown = (character, attributeName) => {
     ...equipmentAttributes
   ];
   
-  // Find the highest value to start with
-  const highestValue = Math.max(...allAttributes.map(attr => attr.value));
-  let currentValue = highestValue;
+  // Apply grouping formula sequentially to all attributes
+  let currentValue = allAttributes[0].value;
   let stepNumber = 1;
   
-  // Find who has the highest value
-  const highestAttr = allAttributes.find(attr => attr.value === highestValue);
-  
-  // If the highest isn't the character, add a step showing we start with the highest
-  if (highestAttr.name !== (character.name || 'Character')) {
+  // Apply grouping formula for each subsequent attribute
+  for (let i = 1; i < allAttributes.length; i++) {
+    const attr = allAttributes[i];
+    const previousValue = currentValue;
+    currentValue = calculateGroupingFormula(currentValue, attr.value, attr.type);
+    
     stepNumber++;
     breakdown.push({
       step: stepNumber,
-      entityName: highestAttr.name,
-      entityType: 'equipment',
-      attributeValue: highestAttr.value,
-      attributeType: highestAttr.type,
-      runningTotal: currentValue,
-      formula: `Starting with highest value: ${highestValue}`
+      entityName: attr.name,
+      entityType: attr.name === (character.name || 'Character') ? 'character' : 'equipment',
+      attributeValue: attr.value,
+      attributeType: attr.type,
+      runningTotal: Math.round(currentValue * 100) / 100,
+      formula: attr.type === 'HELP' 
+        ? `(${previousValue} + ${previousValue} × (1 + ${attr.value}/${previousValue})) / 2`
+        : `(${previousValue} + ${previousValue} × (1 - ${attr.value}/${previousValue})) / 2`
     });
   }
-  
-  // Apply grouping formula for each other attribute
-  allAttributes.forEach(attr => {
-    if (attr.value !== highestValue) {
-      const previousValue = currentValue;
-      currentValue = calculateGroupingFormula(currentValue, attr.value, attr.type);
-      
-      stepNumber++;
-      breakdown.push({
-        step: stepNumber,
-        entityName: attr.name,
-        entityType: attr.name === (character.name || 'Character') ? 'character' : 'equipment',
-        attributeValue: attr.value,
-        attributeType: attr.type,
-        runningTotal: Math.round(currentValue * 100) / 100,
-        formula: attr.type === 'HELP' 
-          ? `(${previousValue} + ${previousValue} × (1 + ${attr.value}/${previousValue})) / 2`
-          : `(${previousValue} + ${previousValue} × (1 - ${attr.value}/${previousValue})) / 2`
-      });
-    }
-  });
   
   return breakdown;
 };
@@ -160,48 +141,29 @@ export const calculateObjectAttributeBreakdown = (object, attributeName) => {
     ...equipmentAttributes
   ];
   
-  // Find the highest value to start with
-  const highestValue = Math.max(...allAttributes.map(attr => attr.value));
-  let currentValue = highestValue;
+  // Apply grouping formula sequentially to all attributes
+  let currentValue = allAttributes[0].value;
   let stepNumber = 1;
   
-  // Find who has the highest value
-  const highestAttr = allAttributes.find(attr => attr.value === highestValue);
-  
-  // If the highest isn't the object, add a step showing we start with the highest
-  if (highestAttr.name !== (object.name || 'Object')) {
+  // Apply grouping formula for each subsequent attribute
+  for (let i = 1; i < allAttributes.length; i++) {
+    const attr = allAttributes[i];
+    const previousValue = currentValue;
+    currentValue = calculateGroupingFormula(currentValue, attr.value, attr.type);
+    
     stepNumber++;
     breakdown.push({
       step: stepNumber,
-      entityName: highestAttr.name,
-      entityType: 'equipment',
-      attributeValue: highestAttr.value,
-      attributeType: highestAttr.type,
-      runningTotal: currentValue,
-      formula: `Starting with highest value: ${highestValue}`
+      entityName: attr.name,
+      entityType: attr.name === (object.name || 'Object') ? 'object' : 'equipment',
+      attributeValue: attr.value,
+      attributeType: attr.type,
+      runningTotal: Math.round(currentValue * 100) / 100,
+      formula: attr.type === 'HELP' 
+        ? `(${previousValue} + ${previousValue} × (1 + ${attr.value}/${previousValue})) / 2`
+        : `(${previousValue} + ${previousValue} × (1 - ${attr.value}/${previousValue})) / 2`
     });
   }
-  
-  // Apply grouping formula for each other attribute
-  allAttributes.forEach(attr => {
-    if (attr.value !== highestValue) {
-      const previousValue = currentValue;
-      currentValue = calculateGroupingFormula(currentValue, attr.value, attr.type);
-      
-      stepNumber++;
-      breakdown.push({
-        step: stepNumber,
-        entityName: attr.name,
-        entityType: attr.name === (object.name || 'Object') ? 'object' : 'equipment',
-        attributeValue: attr.value,
-        attributeType: attr.type,
-        runningTotal: Math.round(currentValue * 100) / 100,
-        formula: attr.type === 'HELP' 
-          ? `(${previousValue} + ${previousValue} × (1 + ${attr.value}/${previousValue})) / 2`
-          : `(${previousValue} + ${previousValue} × (1 - ${attr.value}/${previousValue})) / 2`
-      });
-    }
-  });
   
   return breakdown;
 };
