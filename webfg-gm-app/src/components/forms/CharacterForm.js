@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ErrorPopup from '../common/ErrorPopup';
 import { useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
+import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import {
   CREATE_CHARACTER,
   UPDATE_CHARACTER,
@@ -44,6 +45,7 @@ const ATTRIBUTE_TYPES = ['HELP', 'HINDER', 'NONE'];
 
 const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => {
   const navigate = useNavigate();
+  const { selectedCharacter } = useSelectedCharacter();
 
   // State for form data matching the new schema
   const [error, setError] = useState(null);
@@ -99,6 +101,13 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       });
     }
   }, [isEditing, character]);
+
+  // Clear stored values when selected character changes
+  useEffect(() => {
+    setSelectedValueName("");
+    setSelectedValueType("GOOD");
+    setShowAddValueModal(false);
+  }, [selectedCharacter]);
 
   const [createCharacter] = useMutation(CREATE_CHARACTER, {
     refetchQueries: [{ query: LIST_CHARACTERS }],
