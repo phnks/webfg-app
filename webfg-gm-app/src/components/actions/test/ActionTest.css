@@ -134,3 +134,134 @@
   border-radius: 4px;
   color: #dc3545;
 }
+
+/* Target selection styles for multi-target support */
+.target-selection-list {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.selection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+  font-weight: 600;
+  color: #333;
+}
+
+.selection-count {
+  background-color: #007bff;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.target-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s ease;
+}
+
+.target-option:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.target-option:last-child {
+  border-bottom: none;
+}
+
+.target-option input[type="checkbox"] {
+  margin-right: 10px;
+  transform: scale(1.1);
+}
+
+.target-name {
+  color: #333;
+  font-weight: 500;
+}
+
+.target-option input[type="checkbox"]:checked + .target-name {
+  color: #007bff;
+  font-weight: 600;
+}
+
+/* Source selection styles */
+.source-selection {
+  margin-bottom: 20px;
+}
+
+.source-selection h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.source-selection-list {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 15px;
+  background-color: #f0f8ff;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.source-note {
+  margin-bottom: 12px;
+  padding: 8px;
+  background-color: #e3f2fd;
+  border-radius: 4px;
+  color: #1976d2;
+  font-style: italic;
+}
+
+.source-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s ease;
+}
+
+.source-option:hover {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.source-option:last-child {
+  border-bottom: none;
+}
+
+.source-option input[type="checkbox"] {
+  margin-right: 10px;
+  transform: scale(1.1);
+}
+
+.source-name {
+  color: #333;
+  font-weight: 500;
+}
+
+.source-option input[type="checkbox"]:checked + .source-name {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.no-sources {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}

@@ -278,6 +278,7 @@ const CharacterView = () => {
             intelligence={character.intelligence}
             resolve={character.resolve}
             morale={character.morale}
+            character={character}
           />
         </div>
 
