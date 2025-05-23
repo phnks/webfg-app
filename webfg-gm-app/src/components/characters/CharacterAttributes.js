@@ -35,7 +35,7 @@ const CharacterAttributes = ({
   // Handler for showing breakdown
   const handleShowBreakdown = (attributeKey, attributeName) => {
     if (character && character.equipment && character.equipment.length > 0) {
-      const breakdown = calculateAttributeBreakdown(character, attributeKey);
+      const breakdown = calculateAttributeBreakdown(character, attributeKey, groupedAttributes);
       setBreakdownData(breakdown);
       setBreakdownAttributeName(attributeName);
       setShowBreakdown(true);
