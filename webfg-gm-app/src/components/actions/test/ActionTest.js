@@ -8,14 +8,19 @@ const ActionTest = ({ action, character, onClose }) => {
   const [targetType, setTargetType] = useState(action.targetType);
   const [selectedTargets, setSelectedTargets] = useState([]); // Changed to array for multi-selection
   const [selectedTargetIds, setSelectedTargetIds] = useState([]); // Changed to array
+  const [selectedSourceIds, setSelectedSourceIds] = useState(character ? [character.characterId] : []); // Source grouping
   const [override, setOverride] = useState(false);
   const [overrideValue, setOverrideValue] = useState('');
   const [actionDifficulty, setActionDifficulty] = useState(null);
+  const [lastCalculatedSourceValue, setLastCalculatedSourceValue] = useState(null);
   
   // Fetch potential targets based on targetType
   const { data: charactersData } = useQuery(LIST_CHARACTERS, { skip: targetType !== 'CHARACTER' });
   const { data: objectsData } = useQuery(LIST_OBJECTS, { skip: targetType !== 'OBJECT' });
   const { data: actionsData } = useQuery(LIST_ACTIONS, { skip: targetType !== 'ACTION' });
+  
+  // Fetch all characters for source selection (always needed)
+  const { data: allCharactersData } = useQuery(LIST_CHARACTERS);
   
   // We'll fetch detailed data dynamically when needed instead of using static queries
 
@@ -24,22 +29,16 @@ const ActionTest = ({ action, character, onClose }) => {
     setTargetType(action.targetType);
   }, [action]);
   
-  // Calculate action difficulty (async version for multi-target support)
+  // Calculate action difficulty (async version for multi-source and multi-target support)
   const calculateActionDifficultyAsync = async () => {
     let sourceActionDifficulty = 0;
     let targetActionDifficulty = 0;
     
-    // Get source attribute value from character using grouped attributes
-    if (character) {
+    // Get source attribute value from grouped sources
+    if (selectedSourceIds.length > 0) {
       const sourceAttribute = action.sourceAttribute.toLowerCase();
-      const groupedAttributes = calculateGroupedAttributes(character);
-      
-      // Use grouped value if available, otherwise fall back to default value
-      if (groupedAttributes[sourceAttribute] !== undefined) {
-        sourceActionDifficulty = groupedAttributes[sourceAttribute];
-      } else if (character[sourceAttribute] && character[sourceAttribute].attribute) {
-        sourceActionDifficulty = character[sourceAttribute].attribute.attributeValue;
-      }
+      sourceActionDifficulty = await groupSourceAttributes(selectedSourceIds, sourceAttribute);
+      setLastCalculatedSourceValue(sourceActionDifficulty);
     }
     
     // Get target attribute value based on selection or override
@@ -69,17 +68,22 @@ const ActionTest = ({ action, character, onClose }) => {
   
   // Helper function to get the actual source value used in calculation
   const getDisplaySourceValue = () => {
-    if (character) {
-      const sourceAttribute = action.sourceAttribute.toLowerCase();
-      const groupedAttributes = calculateGroupedAttributes(character);
-      
-      if (groupedAttributes[sourceAttribute] !== undefined) {
-        return groupedAttributes[sourceAttribute];
-      } else if (character[sourceAttribute] && character[sourceAttribute].attribute) {
-        return character[sourceAttribute].attribute.attributeValue;
+    if (selectedSourceIds.length > 0 && lastCalculatedSourceValue !== null) {
+      // Show the actual calculated value with context
+      if (selectedSourceIds.length === 1) {
+        return `${lastCalculatedSourceValue} (1 source)`;
+      } else {
+        return `${lastCalculatedSourceValue} (${selectedSourceIds.length} sources grouped)`;
+      }
+    } else if (selectedSourceIds.length > 0) {
+      // Before calculation, show placeholder
+      if (selectedSourceIds.length === 1) {
+        return `Source (${selectedSourceIds.length} selected)`;
+      } else {
+        return `Grouped Sources (${selectedSourceIds.length} selected)`;
       }
     }
-    return 0;
+    return 'N/A';
   };
 
   // State to store the last calculated target value for display
@@ -161,6 +165,72 @@ const ActionTest = ({ action, character, onClose }) => {
     return Math.round(currentValue * 100) / 100;
   };
   
+  // Function to group multiple sources into a single attribute value
+  const groupSourceAttributes = async (sourceIds, sourceAttribute) => {
+    if (sourceIds.length === 0) return 0;
+    if (sourceIds.length === 1) {
+      // Single source - get grouped value
+      const sourceChar = allCharactersData?.listCharacters.find(char => char.characterId === sourceIds[0]);
+      if (!sourceChar) return 0;
+      return getSingleCharacterAttributeValue(sourceChar, sourceAttribute);
+    }
+    
+    // Multiple sources - need to group them
+    const sourceEntities = [];
+    
+    for (const sourceId of sourceIds) {
+      const sourceChar = allCharactersData?.listCharacters.find(char => char.characterId === sourceId);
+      if (sourceChar) {
+        sourceEntities.push(sourceChar);
+      }
+    }
+    
+    if (sourceEntities.length === 0) return 0;
+    if (sourceEntities.length === 1) {
+      return getSingleCharacterAttributeValue(sourceEntities[0], sourceAttribute);
+    }
+    
+    // Get the final grouped attribute value for each source character
+    const sourceValues = [];
+    sourceEntities.forEach(entity => {
+      const groupedValue = getSingleCharacterAttributeValue(entity, sourceAttribute);
+      if (groupedValue > 0) { // Only include non-zero values
+        sourceValues.push({
+          name: entity.name || 'Unknown',
+          value: groupedValue,
+          type: 'HELP' // Use HELP as default type for combining grouped values
+        });
+      }
+    });
+    
+    if (sourceValues.length === 0) return 0;
+    if (sourceValues.length === 1) return sourceValues[0].value;
+    
+    // Apply grouping formula to combine the grouped values
+    // Sort by value descending to start with highest value first
+    sourceValues.sort((a, b) => b.value - a.value);
+    
+    // Start with the highest value and apply the formula for each subsequent value
+    let currentValue = sourceValues[0].value;
+    
+    for (let i = 1; i < sourceValues.length; i++) {
+      currentValue = calculateGroupingFormula(currentValue, sourceValues[i].value, 'HELP');
+    }
+    
+    return Math.round(currentValue * 100) / 100;
+  };
+  
+  // Helper function to get single character attribute value with grouping
+  const getSingleCharacterAttributeValue = (character, attributeName) => {
+    const groupedAttributes = calculateGroupedAttributes(character);
+    if (groupedAttributes[attributeName] !== undefined) {
+      return groupedAttributes[attributeName];
+    } else if (character[attributeName] && character[attributeName].attribute) {
+      return character[attributeName].attribute.attributeValue;
+    }
+    return 0;
+  };
+  
   // Helper function to fetch a single target entity
   const fetchTargetEntity = async (targetId) => {
     // For now, we'll use the list data which should have the basic attribute information
@@ -214,6 +284,19 @@ const ActionTest = ({ action, character, onClose }) => {
     }
     // Clear previous results when selection changes
     setActionDifficulty(null);
+    setLastCalculatedTargetValue(null);
+  };
+
+  // Handler for checkbox source selection
+  const handleSourceSelection = (sourceId, isChecked) => {
+    if (isChecked) {
+      setSelectedSourceIds(prev => [...prev, sourceId]);
+    } else {
+      setSelectedSourceIds(prev => prev.filter(id => id !== sourceId));
+    }
+    // Clear previous results when selection changes
+    setActionDifficulty(null);
+    setLastCalculatedSourceValue(null);
   };
 
   const getTargetOptions = () => {
@@ -298,6 +381,48 @@ const ActionTest = ({ action, character, onClose }) => {
         return <div>Invalid target type</div>;
     }
   };
+
+  const getSourceOptions = () => {
+    // Filter characters that have the same action
+    const charactersWithAction = allCharactersData?.listCharacters.filter(char => 
+      char.actions && char.actions.some(charAction => charAction.actionId === action.actionId)
+    ) || [];
+
+    if (charactersWithAction.length === 0) {
+      return (
+        <div className="no-sources">
+          <p>No characters have this action.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="source-selection-list">
+        <div className="selection-header">
+          <span>Select Source Characters (multiple allowed):</span>
+          {selectedSourceIds.length > 0 && (
+            <span className="selection-count">{selectedSourceIds.length} selected</span>
+          )}
+        </div>
+        <div className="source-note">
+          <small>Only characters who have the "{action.name}" action can be selected as sources.</small>
+        </div>
+        {charactersWithAction.map((char) => (
+          <label key={char.characterId} className="source-option">
+            <input
+              type="checkbox"
+              checked={selectedSourceIds.includes(char.characterId)}
+              onChange={(e) => handleSourceSelection(char.characterId, e.target.checked)}
+            />
+            <span className="source-name">
+              {char.name} 
+              {char.characterId === character?.characterId && ' (current)'}
+            </span>
+          </label>
+        ))}
+      </div>
+    );
+  };
   
   return (
     <div className="action-test-container">
@@ -308,9 +433,13 @@ const ActionTest = ({ action, character, onClose }) => {
       
       <div className="action-test-content">
         <div className="action-details">
-          <p><strong>Source:</strong> {character ? character.name : 'No character selected'}</p>
           <p><strong>Source Attribute:</strong> {action.sourceAttribute}</p>
           <p><strong>Target Attribute:</strong> {action.targetAttribute}</p>
+        </div>
+        
+        <div className="source-selection">
+          <h3>Select Sources</h3>
+          {getSourceOptions()}
         </div>
         
         <div className="target-selection">
@@ -340,7 +469,7 @@ const ActionTest = ({ action, character, onClose }) => {
           <button
             className="submit-button"
             onClick={handleSubmit}
-            disabled={(selectedTargetIds.length === 0 && !override) || (override && !overrideValue)}
+            disabled={(selectedTargetIds.length === 0 && !override) || (override && !overrideValue) || selectedSourceIds.length === 0}
           >
             Submit
           </button>
@@ -356,7 +485,7 @@ const ActionTest = ({ action, character, onClose }) => {
               {(actionDifficulty * 100).toFixed(2)}%
             </div>
             <p>
-              Source Value: {getDisplaySourceValue()} (grouped)
+              Source Value: {getDisplaySourceValue()} {selectedSourceIds.length > 0 ? '(grouped)' : ''}
               <br />
               Target Value: {getDisplayTargetValue()} {!override && selectedTargetIds.length > 0 ? '(grouped)' : ''}
             </p>
