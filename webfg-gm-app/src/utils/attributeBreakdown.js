@@ -29,19 +29,17 @@ export const calculateAttributeBreakdown = (character, attributeName, characterG
   const charAttrInfo = extractAttributeInfo(character[attributeName]);
   if (!charAttrInfo) return breakdown;
   
-  // Add the starting character value
-  breakdown.push({
-    step: 1,
-    entityName: character.name || 'Character',
-    entityType: 'character',
-    attributeValue: charAttrInfo.value,
-    attributeType: charAttrInfo.type,
-    runningTotal: charAttrInfo.value,
-    formula: null
-  });
-  
   // If character attribute is NONE, no further grouping occurs
   if (charAttrInfo.type === 'NONE') {
+    breakdown.push({
+      step: 1,
+      entityName: character.name || 'Character',
+      entityType: 'character',
+      attributeValue: charAttrInfo.value,
+      attributeType: charAttrInfo.type,
+      runningTotal: charAttrInfo.value,
+      formula: null
+    });
     return breakdown;
   }
   
@@ -61,6 +59,15 @@ export const calculateAttributeBreakdown = (character, attributeName, characterG
   
   // If no valid equipment, return just the character value
   if (equipmentAttributes.length === 0) {
+    breakdown.push({
+      step: 1,
+      entityName: character.name || 'Character',
+      entityType: 'character',
+      attributeValue: charAttrInfo.value,
+      attributeType: charAttrInfo.type,
+      runningTotal: charAttrInfo.value,
+      formula: null
+    });
     return breakdown;
   }
   
@@ -129,11 +136,22 @@ export const calculateAttributeBreakdown = (character, attributeName, characterG
     entityType: e.entityType 
   })));
   
-  // Start with the highest grouped value
+  // Start with the highest grouped value and build breakdown from sorted entities
   let currentValue = allEntities[0].groupedValue;
   let stepNumber = 1;
   
   console.log('🎯 CHARACTER Starting with highest entity:', allEntities[0].name, 'value:', currentValue);
+  
+  // Add the first (highest) entity as step 1
+  breakdown.push({
+    step: stepNumber,
+    entityName: allEntities[0].name,
+    entityType: allEntities[0].entityType,
+    attributeValue: allEntities[0].groupedValue,
+    attributeType: allEntities[0].attributeType,
+    runningTotal: currentValue,
+    formula: null
+  });
   
   // Apply grouping formula for each subsequent entity in descending order
   for (let i = 1; i < allEntities.length; i++) {
