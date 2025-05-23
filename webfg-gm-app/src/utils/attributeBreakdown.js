@@ -8,9 +8,10 @@ import { extractAttributeInfo, calculateGroupingFormula, calculateGroupedAttribu
  * Calculates step-by-step breakdown of how each equipment affects the final grouped value
  * @param {Object} character - Character object with attributes and equipment
  * @param {string} attributeName - The specific attribute to analyze (e.g., 'lethality')
+ * @param {Object} characterGroupedAttributes - Pre-calculated grouped attributes for character
  * @returns {Array} Array of steps showing the progression
  */
-export const calculateAttributeBreakdown = (character, attributeName) => {
+export const calculateAttributeBreakdown = (character, attributeName, characterGroupedAttributes = null) => {
   const breakdown = [];
   
   if (!character) return breakdown;
@@ -65,14 +66,19 @@ export const calculateAttributeBreakdown = (character, attributeName) => {
     groupedValue: charAttrInfo.value
   });
   
-  // Add equipment with their own individual grouped values
+  // Add equipment with their grouped values from the character's grouped attributes
   if (character.equipment && character.equipment.length > 0) {
     character.equipment.forEach(item => {
       const itemAttrInfo = extractAttributeInfo(item[attributeName]);
       if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
-        // Calculate this equipment's own grouped value using calculateGroupedAttributes
+        // Use the final grouped value that the character view displays
+        // Since we know the character's main display is correct, we can work backwards
+        // For now, let's use a simple approach: get the grouped value from main calculation
+        let itemGroupedValue = itemAttrInfo.value;
+        
+        // Calculate equipment's individual grouped value using their own equipment
         const itemGroupedAttrs = calculateGroupedAttributes(item);
-        const itemGroupedValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
+        itemGroupedValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
         
         allEntities.push({
           name: item.name,
