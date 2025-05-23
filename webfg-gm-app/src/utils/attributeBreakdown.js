@@ -53,33 +53,79 @@ export const calculateAttributeBreakdown = (character, attributeName) => {
     return breakdown;
   }
   
-  // Combine character and equipment attributes
-  const allAttributes = [
-    { name: character.name || 'Character', ...charAttrInfo },
-    ...equipmentAttributes
-  ];
+  // Get grouped values for each entity (character uses base, equipment uses their own grouped values)
+  const allEntities = [];
   
-  // Apply grouping formula sequentially to all attributes
-  let currentValue = allAttributes[0].value;
+  // Add character with base value (since we're calculating character's grouping)
+  allEntities.push({
+    name: character.name || 'Character',
+    entityType: 'character',
+    attributeValue: charAttrInfo.value,
+    attributeType: charAttrInfo.type,
+    groupedValue: charAttrInfo.value
+  });
+  
+  // Add equipment with their grouped values
+  if (character.equipment && character.equipment.length > 0) {
+    character.equipment.forEach(item => {
+      const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+      if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
+        // Calculate grouped value for this equipment item
+        let itemGroupedValue = itemAttrInfo.value;
+        if (item.equipment && item.equipment.length > 0) {
+          // This equipment has its own equipment, so calculate its grouped value
+          const itemEquipmentAttrs = [];
+          item.equipment.forEach(subItem => {
+            const subItemAttrInfo = extractAttributeInfo(subItem[attributeName]);
+            if (subItemAttrInfo && subItemAttrInfo.type !== 'NONE') {
+              itemEquipmentAttrs.push(subItemAttrInfo);
+            }
+          });
+          
+          if (itemEquipmentAttrs.length > 0) {
+            let currentItemValue = itemAttrInfo.value;
+            itemEquipmentAttrs.forEach(subAttr => {
+              currentItemValue = calculateGroupingFormula(currentItemValue, subAttr.value, subAttr.type);
+            });
+            itemGroupedValue = currentItemValue;
+          }
+        }
+        
+        allEntities.push({
+          name: item.name,
+          entityType: 'equipment',
+          attributeValue: itemAttrInfo.value,
+          attributeType: itemAttrInfo.type,
+          groupedValue: Math.round(itemGroupedValue * 100) / 100
+        });
+      }
+    });
+  }
+  
+  // Sort by grouped value in descending order (highest first)
+  allEntities.sort((a, b) => b.groupedValue - a.groupedValue);
+  
+  // Start with the highest grouped value
+  let currentValue = allEntities[0].groupedValue;
   let stepNumber = 1;
   
-  // Apply grouping formula for each subsequent attribute
-  for (let i = 1; i < allAttributes.length; i++) {
-    const attr = allAttributes[i];
+  // Apply grouping formula for each subsequent entity in descending order
+  for (let i = 1; i < allEntities.length; i++) {
+    const entity = allEntities[i];
     const previousValue = currentValue;
-    currentValue = calculateGroupingFormula(currentValue, attr.value, attr.type);
+    currentValue = calculateGroupingFormula(currentValue, entity.groupedValue, entity.attributeType);
     
     stepNumber++;
     breakdown.push({
       step: stepNumber,
-      entityName: attr.name,
-      entityType: attr.name === (character.name || 'Character') ? 'character' : 'equipment',
-      attributeValue: attr.value,
-      attributeType: attr.type,
+      entityName: entity.name,
+      entityType: entity.entityType,
+      attributeValue: entity.groupedValue,
+      attributeType: entity.attributeType,
       runningTotal: Math.round(currentValue * 100) / 100,
-      formula: attr.type === 'HELP' 
-        ? `(${previousValue} + ${previousValue} × (1 + ${attr.value}/${previousValue})) / 2`
-        : `(${previousValue} + ${previousValue} × (1 - ${attr.value}/${previousValue})) / 2`
+      formula: entity.attributeType === 'HELP' 
+        ? `(${previousValue} + ${previousValue} × (1 + ${entity.groupedValue}/${previousValue})) / 2`
+        : `(${previousValue} + ${previousValue} × (1 - ${entity.groupedValue}/${previousValue})) / 2`
     });
   }
   
@@ -135,33 +181,79 @@ export const calculateObjectAttributeBreakdown = (object, attributeName) => {
     return breakdown;
   }
   
-  // Combine object and equipment attributes
-  const allAttributes = [
-    { name: object.name || 'Object', ...objAttrInfo },
-    ...equipmentAttributes
-  ];
+  // Get grouped values for each entity (object uses base, equipment uses their own grouped values)
+  const allEntities = [];
   
-  // Apply grouping formula sequentially to all attributes
-  let currentValue = allAttributes[0].value;
+  // Add object with base value (since we're calculating object's grouping)
+  allEntities.push({
+    name: object.name || 'Object',
+    entityType: 'object',
+    attributeValue: objAttrInfo.value,
+    attributeType: objAttrInfo.type,
+    groupedValue: objAttrInfo.value
+  });
+  
+  // Add equipment with their grouped values
+  if (object.equipment && object.equipment.length > 0) {
+    object.equipment.forEach(item => {
+      const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+      if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
+        // Calculate grouped value for this equipment item
+        let itemGroupedValue = itemAttrInfo.value;
+        if (item.equipment && item.equipment.length > 0) {
+          // This equipment has its own equipment, so calculate its grouped value
+          const itemEquipmentAttrs = [];
+          item.equipment.forEach(subItem => {
+            const subItemAttrInfo = extractAttributeInfo(subItem[attributeName]);
+            if (subItemAttrInfo && subItemAttrInfo.type !== 'NONE') {
+              itemEquipmentAttrs.push(subItemAttrInfo);
+            }
+          });
+          
+          if (itemEquipmentAttrs.length > 0) {
+            let currentItemValue = itemAttrInfo.value;
+            itemEquipmentAttrs.forEach(subAttr => {
+              currentItemValue = calculateGroupingFormula(currentItemValue, subAttr.value, subAttr.type);
+            });
+            itemGroupedValue = currentItemValue;
+          }
+        }
+        
+        allEntities.push({
+          name: item.name,
+          entityType: 'equipment',
+          attributeValue: itemAttrInfo.value,
+          attributeType: itemAttrInfo.type,
+          groupedValue: Math.round(itemGroupedValue * 100) / 100
+        });
+      }
+    });
+  }
+  
+  // Sort by grouped value in descending order (highest first)
+  allEntities.sort((a, b) => b.groupedValue - a.groupedValue);
+  
+  // Start with the highest grouped value
+  let currentValue = allEntities[0].groupedValue;
   let stepNumber = 1;
   
-  // Apply grouping formula for each subsequent attribute
-  for (let i = 1; i < allAttributes.length; i++) {
-    const attr = allAttributes[i];
+  // Apply grouping formula for each subsequent entity in descending order
+  for (let i = 1; i < allEntities.length; i++) {
+    const entity = allEntities[i];
     const previousValue = currentValue;
-    currentValue = calculateGroupingFormula(currentValue, attr.value, attr.type);
+    currentValue = calculateGroupingFormula(currentValue, entity.groupedValue, entity.attributeType);
     
     stepNumber++;
     breakdown.push({
       step: stepNumber,
-      entityName: attr.name,
-      entityType: attr.name === (object.name || 'Object') ? 'object' : 'equipment',
-      attributeValue: attr.value,
-      attributeType: attr.type,
+      entityName: entity.name,
+      entityType: entity.entityType,
+      attributeValue: entity.groupedValue,
+      attributeType: entity.attributeType,
       runningTotal: Math.round(currentValue * 100) / 100,
-      formula: attr.type === 'HELP' 
-        ? `(${previousValue} + ${previousValue} × (1 + ${attr.value}/${previousValue})) / 2`
-        : `(${previousValue} + ${previousValue} × (1 - ${attr.value}/${previousValue})) / 2`
+      formula: entity.attributeType === 'HELP' 
+        ? `(${previousValue} + ${previousValue} × (1 + ${entity.groupedValue}/${previousValue})) / 2`
+        : `(${previousValue} + ${previousValue} × (1 - ${entity.groupedValue}/${previousValue})) / 2`
     });
   }
   
