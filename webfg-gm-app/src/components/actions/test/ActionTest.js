@@ -151,15 +151,12 @@ const ActionTest = ({ action, character, onClose }) => {
     if (targetValues.length === 1) return targetValues[0].value;
     
     // Apply grouping formula to combine the grouped values
-    // Start with the highest value and combine with others using HELP formula
-    const highestValue = Math.max(...targetValues.map(target => target.value));
-    let currentValue = highestValue;
+    // Start with the first value and apply the formula for each subsequent value
+    let currentValue = targetValues[0].value;
     
-    targetValues.forEach(target => {
-      if (target.value !== highestValue) {
-        currentValue = calculateGroupingFormula(currentValue, target.value, 'HELP');
-      }
-    });
+    for (let i = 1; i < targetValues.length; i++) {
+      currentValue = calculateGroupingFormula(currentValue, targetValues[i].value, 'HELP');
+    }
     
     return Math.round(currentValue * 100) / 100;
   };
