@@ -383,30 +383,15 @@ const ActionTest = ({ action, character, onClose }) => {
   };
 
   const getSourceOptions = () => {
-    // Debug logging
-    console.log('🔍 Source filtering debug:');
-    console.log('Current action:', action);
-    console.log('All characters data:', allCharactersData?.listCharacters);
-    console.log('Looking for actionId:', action.actionId);
-    
     // Filter characters that have the same action
-    const charactersWithAction = allCharactersData?.listCharacters.filter(char => {
-      console.log(`Character ${char.name}:`, {
-        hasActions: !!char.actions,
-        actions: char.actions,
-        actionIds: char.actions?.map(a => a.actionId),
-        hasTargetAction: char.actions?.some(charAction => charAction.actionId === action.actionId)
-      });
-      return char.actions && char.actions.some(charAction => charAction.actionId === action.actionId);
-    }) || [];
-
-    console.log('Characters with action:', charactersWithAction);
+    const charactersWithAction = allCharactersData?.listCharacters.filter(char => 
+      char.actions && char.actions.some(charAction => charAction.actionId === action.actionId)
+    ) || [];
 
     if (charactersWithAction.length === 0) {
       return (
         <div className="no-sources">
           <p>No characters have this action.</p>
-          <small>Debug: Looking for actionId {action.actionId}</small>
         </div>
       );
     }

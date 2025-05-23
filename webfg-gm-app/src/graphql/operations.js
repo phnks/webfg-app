@@ -45,6 +45,8 @@ export const LIST_CHARACTERS = gql`
           morale { attributeValue attributeType }
         }
       }
+      actionIds
+      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType }
     }
   }
 `;
