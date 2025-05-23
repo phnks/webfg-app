@@ -2,7 +2,7 @@
  * Additional utility functions for detailed attribute grouping breakdowns
  */
 
-import { extractAttributeInfo, calculateGroupingFormula } from './attributeGrouping';
+import { extractAttributeInfo, calculateGroupingFormula, calculateGroupedAttributes, calculateObjectGroupedAttributes } from './attributeGrouping';
 
 /**
  * Calculates step-by-step breakdown of how each equipment affects the final grouped value
@@ -53,7 +53,7 @@ export const calculateAttributeBreakdown = (character, attributeName) => {
     return breakdown;
   }
   
-  // Get grouped values for each entity (character uses base, equipment uses their own grouped values)
+  // Get grouped values for each entity
   const allEntities = [];
   
   // Add character with base value (since we're calculating character's grouping)
@@ -65,38 +65,21 @@ export const calculateAttributeBreakdown = (character, attributeName) => {
     groupedValue: charAttrInfo.value
   });
   
-  // Add equipment with their grouped values
+  // Add equipment with their own individual grouped values
   if (character.equipment && character.equipment.length > 0) {
     character.equipment.forEach(item => {
       const itemAttrInfo = extractAttributeInfo(item[attributeName]);
       if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
-        // Calculate grouped value for this equipment item
-        let itemGroupedValue = itemAttrInfo.value;
-        if (item.equipment && item.equipment.length > 0) {
-          // This equipment has its own equipment, so calculate its grouped value
-          const itemEquipmentAttrs = [];
-          item.equipment.forEach(subItem => {
-            const subItemAttrInfo = extractAttributeInfo(subItem[attributeName]);
-            if (subItemAttrInfo && subItemAttrInfo.type !== 'NONE') {
-              itemEquipmentAttrs.push(subItemAttrInfo);
-            }
-          });
-          
-          if (itemEquipmentAttrs.length > 0) {
-            let currentItemValue = itemAttrInfo.value;
-            itemEquipmentAttrs.forEach(subAttr => {
-              currentItemValue = calculateGroupingFormula(currentItemValue, subAttr.value, subAttr.type);
-            });
-            itemGroupedValue = currentItemValue;
-          }
-        }
+        // Calculate this equipment's own grouped value using calculateGroupedAttributes
+        const itemGroupedAttrs = calculateGroupedAttributes(item);
+        const itemGroupedValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
         
         allEntities.push({
           name: item.name,
           entityType: 'equipment',
           attributeValue: itemAttrInfo.value,
           attributeType: itemAttrInfo.type,
-          groupedValue: Math.round(itemGroupedValue * 100) / 100
+          groupedValue: itemGroupedValue
         });
       }
     });
@@ -181,7 +164,7 @@ export const calculateObjectAttributeBreakdown = (object, attributeName) => {
     return breakdown;
   }
   
-  // Get grouped values for each entity (object uses base, equipment uses their own grouped values)
+  // Get grouped values for each entity
   const allEntities = [];
   
   // Add object with base value (since we're calculating object's grouping)
@@ -193,38 +176,21 @@ export const calculateObjectAttributeBreakdown = (object, attributeName) => {
     groupedValue: objAttrInfo.value
   });
   
-  // Add equipment with their grouped values
+  // Add equipment with their own individual grouped values
   if (object.equipment && object.equipment.length > 0) {
     object.equipment.forEach(item => {
       const itemAttrInfo = extractAttributeInfo(item[attributeName]);
       if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
-        // Calculate grouped value for this equipment item
-        let itemGroupedValue = itemAttrInfo.value;
-        if (item.equipment && item.equipment.length > 0) {
-          // This equipment has its own equipment, so calculate its grouped value
-          const itemEquipmentAttrs = [];
-          item.equipment.forEach(subItem => {
-            const subItemAttrInfo = extractAttributeInfo(subItem[attributeName]);
-            if (subItemAttrInfo && subItemAttrInfo.type !== 'NONE') {
-              itemEquipmentAttrs.push(subItemAttrInfo);
-            }
-          });
-          
-          if (itemEquipmentAttrs.length > 0) {
-            let currentItemValue = itemAttrInfo.value;
-            itemEquipmentAttrs.forEach(subAttr => {
-              currentItemValue = calculateGroupingFormula(currentItemValue, subAttr.value, subAttr.type);
-            });
-            itemGroupedValue = currentItemValue;
-          }
-        }
+        // Calculate this equipment's own grouped value using calculateObjectGroupedAttributes
+        const itemGroupedAttrs = calculateObjectGroupedAttributes(item);
+        const itemGroupedValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
         
         allEntities.push({
           name: item.name,
           entityType: 'equipment',
           attributeValue: itemAttrInfo.value,
           attributeType: itemAttrInfo.type,
-          groupedValue: Math.round(itemGroupedValue * 100) / 100
+          groupedValue: itemGroupedValue
         });
       }
     });
