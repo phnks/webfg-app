@@ -12,19 +12,9 @@ import { extractAttributeInfo, calculateGroupingFormula, calculateGroupedAttribu
  * @returns {Array} Array of steps showing the progression
  */
 export const calculateAttributeBreakdown = (character, attributeName, characterGroupedAttributes = null) => {
-  console.log('🚀 Starting CHARACTER breakdown calculation');
   const breakdown = [];
   
   if (!character) return breakdown;
-  
-  // Debug logging
-  console.log('🔍 calculateAttributeBreakdown called with:', {
-    characterName: character.name,
-    attributeName,
-    hasEquipment: !!character.equipment,
-    equipmentCount: character.equipment?.length || 0,
-    equipment: character.equipment?.map(item => ({ name: item.name, [attributeName]: item[attributeName] }))
-  });
   
   const charAttrInfo = extractAttributeInfo(character[attributeName]);
   if (!charAttrInfo) return breakdown;
@@ -82,7 +72,6 @@ export const calculateAttributeBreakdown = (character, attributeName, characterG
     attributeType: charAttrInfo.type,
     groupedValue: charAttrInfo.value
   };
-  console.log('👤 Adding character entity:', characterEntity);
   allEntities.push(characterEntity);
   
   // Add equipment with their grouped values from the character's grouped attributes
@@ -99,15 +88,6 @@ export const calculateAttributeBreakdown = (character, attributeName, characterG
         const itemGroupedAttrs = calculateGroupedAttributes(item);
         itemGroupedValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
         
-        console.log(`Equipment ${item.name}:`, {
-          baseValue: itemAttrInfo.value,
-          hasOwnEquipment: !!item.equipment,
-          ownEquipmentCount: item.equipment?.length || 0,
-          groupedAttrs: itemGroupedAttrs,
-          groupedValue: itemGroupedValue,
-          attributeName
-        });
-        
         allEntities.push({
           name: item.name,
           entityType: 'equipment',
@@ -119,28 +99,12 @@ export const calculateAttributeBreakdown = (character, attributeName, characterG
     });
   }
   
-  // Debug: Log entities before sorting
-  console.log('🔄 CHARACTER Entities BEFORE sorting:', allEntities.map(e => ({ 
-    name: e.name, 
-    groupedValue: e.groupedValue, 
-    entityType: e.entityType 
-  })));
-  
   // Sort by grouped value in descending order (highest first)
   allEntities.sort((a, b) => b.groupedValue - a.groupedValue);
-  
-  // Debug: Log entities after sorting
-  console.log('✅ CHARACTER Entities AFTER sorting:', allEntities.map(e => ({ 
-    name: e.name, 
-    groupedValue: e.groupedValue, 
-    entityType: e.entityType 
-  })));
   
   // Start with the highest grouped value and build breakdown from sorted entities
   let currentValue = allEntities[0].groupedValue;
   let stepNumber = 1;
-  
-  console.log('🎯 CHARACTER Starting with highest entity:', allEntities[0].name, 'value:', currentValue);
   
   // Add the first (highest) entity as step 1
   breakdown.push({
