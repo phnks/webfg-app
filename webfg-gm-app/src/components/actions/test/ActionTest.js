@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, GET_CHARACTER, GET_OBJECT } from '../../../graphql/operations';
-import { calculateGroupedAttributes, calculateObjectGroupedAttributes, extractAttributeInfo, calculateGroupingFormula } from '../../../utils/attributeGrouping';
+import { calculateGroupedAttributes, calculateObjectGroupedAttributes, calculateGroupingFormula } from '../../../utils/attributeGrouping';
 import './ActionTest.css';
 
 const ActionTest = ({ action, character, onClose }) => {
@@ -45,14 +45,17 @@ const ActionTest = ({ action, character, onClose }) => {
     // Get target attribute value based on selection or override
     if (override) {
       targetActionDifficulty = parseFloat(overrideValue) || 0;
+      setLastCalculatedTargetValue(targetActionDifficulty);
     } else if (selectedTargetIds.length > 0) {
       if (targetType === 'CHARACTER' || targetType === 'OBJECT') {
         const targetAttribute = action.targetAttribute.toLowerCase();
         // Use new grouping function for multiple targets
         targetActionDifficulty = await groupTargetAttributes(selectedTargetIds, targetAttribute);
+        setLastCalculatedTargetValue(targetActionDifficulty);
       } else if (targetType === 'ACTION') {
         // Action logic will be implemented in future feature
         targetActionDifficulty = 0;
+        setLastCalculatedTargetValue(targetActionDifficulty);
       }
     }
     
@@ -79,13 +82,22 @@ const ActionTest = ({ action, character, onClose }) => {
     return 0;
   };
 
+  // State to store the last calculated target value for display
+  const [lastCalculatedTargetValue, setLastCalculatedTargetValue] = useState(null);
+
   // Helper function to get the actual target value used in calculation (now supports multiple targets)
   const getDisplayTargetValue = () => {
     if (override) {
       return parseFloat(overrideValue) || 0;
+    } else if (selectedTargetIds.length > 0 && lastCalculatedTargetValue !== null) {
+      // Show the actual calculated value with context
+      if (selectedTargetIds.length === 1) {
+        return `${lastCalculatedTargetValue} (1 target)`;
+      } else {
+        return `${lastCalculatedTargetValue} (${selectedTargetIds.length} targets grouped)`;
+      }
     } else if (selectedTargetIds.length > 0) {
-      // For display purposes, we'll show a placeholder since the actual calculation is async
-      // The real value will be calculated during submission
+      // Before calculation, show placeholder
       if (selectedTargetIds.length === 1) {
         return `Target (${selectedTargetIds.length} selected)`;
       } else {
@@ -122,28 +134,30 @@ const ActionTest = ({ action, character, onClose }) => {
       return getSingleEntityAttributeValue(targetEntities[0], targetAttribute);
     }
     
-    // Apply grouping logic to multiple targets
-    const attributeInfos = [];
+    // Get the final grouped attribute value for each target entity
+    const targetValues = [];
     targetEntities.forEach(entity => {
-      const attrInfo = extractAttributeInfo(entity[targetAttribute]);
-      if (attrInfo && attrInfo.type !== 'NONE') {
-        attributeInfos.push({
+      const groupedValue = getSingleEntityAttributeValue(entity, targetAttribute);
+      if (groupedValue > 0) { // Only include non-zero values
+        targetValues.push({
           name: entity.name || 'Unknown',
-          ...attrInfo
+          value: groupedValue,
+          type: 'HELP' // Use HELP as default type for combining grouped values
         });
       }
     });
     
-    if (attributeInfos.length === 0) return 0;
-    if (attributeInfos.length === 1) return attributeInfos[0].value;
+    if (targetValues.length === 0) return 0;
+    if (targetValues.length === 1) return targetValues[0].value;
     
-    // Find highest value and apply grouping formula
-    const highestValue = Math.max(...attributeInfos.map(attr => attr.value));
+    // Apply grouping formula to combine the grouped values
+    // Start with the highest value and combine with others using HELP formula
+    const highestValue = Math.max(...targetValues.map(target => target.value));
     let currentValue = highestValue;
     
-    attributeInfos.forEach(attr => {
-      if (attr.value !== highestValue) {
-        currentValue = calculateGroupingFormula(currentValue, attr.value, attr.type);
+    targetValues.forEach(target => {
+      if (target.value !== highestValue) {
+        currentValue = calculateGroupingFormula(currentValue, target.value, 'HELP');
       }
     });
     
