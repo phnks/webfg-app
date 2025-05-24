@@ -112,6 +112,8 @@ The application revolves around these primary entities:
 11. Only deploy both webfg-gm-app and webfg-gql if your changes include both backend and frontend changes
 12. It can take over 15 mins to depoy webfg-gql and over 5 mins to deploy webfg-gm-app so please make sure you only deploy when you have made changes in the respective apps to save time
 13. If you make ANY schema changes in webfg-gql, you MUST increment the schema version in the package.json for both qa and prod. If you don't do this your changes will not be reflected as AWS CloudFormation will not detect a schema change. QA schema version is stored in package.json config.qa_schema. Production schema version is stored in package.json config.prod_schema
+14. If you ever has questions during your task, you can message the user on discord via the discord MCP. The user's channel id is: 538552940303220750. The user will see your message then com
+e back to answer your question. You may have to wait a while depending on how busy the user is with other tasks
 
 ## Completing a Task
 
@@ -123,4 +125,4 @@ The application revolves around these primary entities:
     3. Add all files you have made changes to using the `git add` command
     4. Then commit the files you added by using the `git commit` command, providing a descriptive commit message of what the changes include
     5. Push your commit using `git push`, confirm that it was pushed successfully
-    6. Then tell the user that the task is complete, and that you added, committed, and pushed the changes successfully. Please provide a link to your PR so that the user can review your code changes
+    6. Then message the user via the discord MCP to inform them that the task is complete, and that you added, committed, and pushed the changes successfully. Please provide a link to your PR so that the user can review your code changes
