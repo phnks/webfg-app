@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ErrorPopup from '../common/ErrorPopup';
+import MobileNumberInput from '../common/MobileNumberInput';
 import { useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
@@ -358,8 +359,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             </div>
             <div className="form-group">
               <label>Will</label>
-              <input
-                type="number"
+              <MobileNumberInput
                 value={formData.will}
                 onChange={(e) => handleInputChange('will', e.target.value)}
               />
@@ -376,8 +376,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                 <div className="attribute-fields">
                   <div className="form-field">
                     <label>Value</label>
-                    <input
-                      type="number"
+                    <MobileNumberInput
                       step="0.1"
                       value={formData[attr]?.attribute?.attributeValue || 0}
                       onChange={(e) => handleNestedAttributeChange(attr, 'attributeValue', e.target.value)}
@@ -396,8 +395,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                   </div>
                   <div className="form-field">
                     <label>Fatigue</label>
-                    <input
-                      type="number"
+                    <MobileNumberInput
                       value={formData[attr]?.fatigue || 0}
                       onChange={(e) => handleAttributeChange(attr, 'fatigue', e.target.value)}
                     />
