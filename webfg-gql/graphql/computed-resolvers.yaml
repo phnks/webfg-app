@@ -1,0 +1,148 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'AppSync Computed Field Resolvers'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  AppSyncLambdaServiceRoleArn: 
+    Type: String
+    Description: 'Shared lambda service role'
+  CharactersTableName: 
+    Type: String
+    Description: 'Name of Characters table'
+  ObjectsTableName:
+    Type: String
+    Description: 'Name of Objects table'
+  ActionsTableName:
+    Type: String
+    Description: 'Name of Actions table'
+
+Resources:
+  # Lambda function for grouped attributes
+  ResolveGroupedAttributesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/resolveGroupedAttributes.handler 
+      Runtime: nodejs20.x 
+      MemorySize: 512
+      Timeout: 30
+      Policies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # Lambda function for attribute breakdown
+  ResolveAttributeBreakdownFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/resolveAttributeBreakdown.handler 
+      Runtime: nodejs20.x 
+      MemorySize: 512
+      Timeout: 30
+      Policies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # Lambda function for action test calculation
+  CalculateActionTestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/calculateActionTest.handler 
+      Runtime: nodejs20.x 
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+          OBJECTS_TABLE: !Ref ObjectsTableName
+          ACTIONS_TABLE: !Ref ActionsTableName
+      Policies:
+        - DynamoDBReadPolicy: 
+            TableName: !Ref CharactersTableName
+        - DynamoDBReadPolicy: 
+            TableName: !Ref ObjectsTableName
+        - DynamoDBReadPolicy: 
+            TableName: !Ref ActionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # Data sources for Lambda functions
+  ResolveGroupedAttributesDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ResolveGroupedAttributesDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ResolveGroupedAttributesFunction.Arn
+
+  ResolveAttributeBreakdownDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ResolveAttributeBreakdownDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ResolveAttributeBreakdownFunction.Arn
+
+  CalculateActionTestDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: CalculateActionTestDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt CalculateActionTestFunction.Arn
+
+  # Resolvers
+  CharacterGroupedAttributesResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Character
+      FieldName: groupedAttributes
+      DataSourceName: !GetAtt ResolveGroupedAttributesDataSource.Name
+
+  ObjectGroupedAttributesResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Object
+      FieldName: groupedAttributes
+      DataSourceName: !GetAtt ResolveGroupedAttributesDataSource.Name
+
+  CharacterAttributeBreakdownResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Character
+      FieldName: attributeBreakdown
+      DataSourceName: !GetAtt ResolveAttributeBreakdownDataSource.Name
+
+  ObjectAttributeBreakdownResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Object
+      FieldName: attributeBreakdown
+      DataSourceName: !GetAtt ResolveAttributeBreakdownDataSource.Name
+
+  CalculateActionTestResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Query
+      FieldName: calculateActionTest
+      DataSourceName: !GetAtt CalculateActionTestDataSource.Name
+
+Outputs:
+  ResolveGroupedAttributesFunctionArn:
+    Value: !GetAtt ResolveGroupedAttributesFunction.Arn
+  ResolveAttributeBreakdownFunctionArn:
+    Value: !GetAtt ResolveAttributeBreakdownFunction.Arn
+  CalculateActionTestFunctionArn:
+    Value: !GetAtt CalculateActionTestFunction.Arn
