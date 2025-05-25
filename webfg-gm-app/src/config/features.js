@@ -5,13 +5,13 @@
 
 export const FEATURE_FLAGS = {
   // Use backend for grouped attribute calculations
-  USE_BACKEND_GROUPED_ATTRIBUTES: process.env.REACT_APP_USE_BACKEND_GROUPED_ATTRIBUTES === 'true' || false,
+  USE_BACKEND_GROUPED_ATTRIBUTES: process.env.REACT_APP_USE_BACKEND_GROUPED_ATTRIBUTES === 'true' || true,
   
   // Use backend for action test calculations
-  USE_BACKEND_ACTION_TEST: process.env.REACT_APP_USE_BACKEND_ACTION_TEST === 'true' || false,
+  USE_BACKEND_ACTION_TEST: process.env.REACT_APP_USE_BACKEND_ACTION_TEST === 'true' || true,
   
   // Use backend for attribute breakdown
-  USE_BACKEND_ATTRIBUTE_BREAKDOWN: process.env.REACT_APP_USE_BACKEND_ATTRIBUTE_BREAKDOWN === 'true' || false,
+  USE_BACKEND_ATTRIBUTE_BREAKDOWN: process.env.REACT_APP_USE_BACKEND_ATTRIBUTE_BREAKDOWN === 'true' || true,
 };
 
 // Helper to check if any backend features are enabled
