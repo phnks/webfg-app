@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ErrorPopup from '../common/ErrorPopup';
+import MobileNumberInput from '../common/MobileNumberInput';
 import { useQuery, useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
@@ -281,8 +282,7 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
             <div style={{ display: 'flex', gap: '15px' }}>
               <div className="form-group" style={{ flex: 1 }}>
                 <label htmlFor={`${attr}.attributeValue`}>Value</label>
-                <input 
-                  type="number" 
+                <MobileNumberInput 
                   id={`${attr}.attributeValue`} 
                   name={`${attr}.attributeValue`} 
                   value={formData[attr].attributeValue} 
