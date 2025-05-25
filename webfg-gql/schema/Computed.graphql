@@ -42,23 +42,5 @@ input ActionTestInput {
   overrideValue: Float
 }
 
-extend type Character {
-  # Computed grouped attributes considering equipment
-  groupedAttributes: GroupedAttributes!
-  
-  # Get breakdown for a specific attribute
-  attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]!
-}
-
-extend type Object {
-  # Computed grouped attributes considering equipment
-  groupedAttributes: GroupedAttributes!
-  
-  # Get breakdown for a specific attribute
-  attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]!
-}
-
-extend type Query {
-  # Calculate action test without persisting
-  calculateActionTest(input: ActionTestInput!): ActionTestResult!
-}
+# Computed fields are now directly in Character and Object types
+# Query extension for calculateActionTest is now in Schema.graphql

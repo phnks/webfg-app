@@ -3,15 +3,15 @@ import ErrorPopup from '../common/ErrorPopup';
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useSubscription } from "@apollo/client";
 import {
-  GET_OBJECT,
   DELETE_OBJECT,
   ADD_OBJECT_TO_INVENTORY,
   ON_UPDATE_OBJECT,
   ON_DELETE_OBJECT
 } from "../../graphql/operations";
+import { GET_OBJECT_WITH_GROUPED } from "../../graphql/computedOperations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import ObjectForm from "../forms/ObjectForm";
-import ObjectAttributes from "./ObjectAttributes";
+import ObjectAttributesBackend from "./ObjectAttributesBackend";
 import "./ObjectView.css";
 
 const ObjectView = () => {
@@ -26,7 +26,7 @@ const ObjectView = () => {
   const [breadcrumbs, setBreadcrumbs] = useState([]);
 
   // Initial query to get object data
-  const { data, loading, error, refetch } = useQuery(GET_OBJECT, {
+  const { data, loading, error, refetch } = useQuery(GET_OBJECT_WITH_GROUPED, {
     variables: { objectId },
     onCompleted: (data) => {
       if (data && data.getObject) {
@@ -228,7 +228,7 @@ const ObjectView = () => {
             <span>{currentObject.objectCategory || "N/A"}</span>
           </div>
 
-          <ObjectAttributes object={currentObject} />
+          <ObjectAttributesBackend object={currentObject} />
 
           {currentObject.special && currentObject.special.length > 0 && (
             <>

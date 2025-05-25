@@ -9,7 +9,7 @@ import {
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import ActionForm from "../forms/ActionForm";
-import ActionTest from "./test/ActionTest";
+import ActionTestBackend from "./test/ActionTestBackend";
 import "./ActionView.css";
 import ErrorPopup from '../common/ErrorPopup';
 
@@ -161,7 +161,7 @@ const ActionView = () => {
     return (
       <>
         <div className="overlay" onClick={handleTestClose}></div>
-        <ActionTest 
+        <ActionTestBackend 
           action={action} 
           character={fullCharacterData} 
           onClose={handleTestClose} 
