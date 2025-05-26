@@ -214,6 +214,48 @@ Resources:
         ActionsTableName: !Ref ActionsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
+  EncounterObjectResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./encounter-object-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        EncountersTableName: !Ref EncountersTableName
+        ObjectsTableName: !Ref ObjectsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  EncounterTerrainResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./encounter-terrain-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        EncountersTableName: !Ref EncountersTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  ComputedResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./computed-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        CharactersTableName: !Ref CharactersTableName
+        ObjectsTableName: !Ref ObjectsTableName
+        ActionsTableName: !Ref ActionsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
 Outputs:
   AppSyncAPIEndpoint:
     Description: 'GraphQL API Custom Domain'

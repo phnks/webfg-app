@@ -1,0 +1,46 @@
+# Computed field types for grouped attributes and action calculations
+
+type GroupedAttributes {
+  lethality: Float
+  armour: Float
+  endurance: Float
+  strength: Float
+  dexterity: Float
+  agility: Float
+  perception: Float
+  charisma: Float
+  intelligence: Float
+  resolve: Float
+  morale: Float
+}
+
+type AttributeBreakdownStep {
+  step: Int!
+  entityName: String!
+  entityType: String!
+  attributeValue: Float!
+  attributeType: AttributeType!
+  runningTotal: Float!
+  formula: String
+}
+
+type ActionTestResult {
+  difficulty: Float!
+  sourceValue: Float!
+  targetValue: Float!
+  sourceCount: Int!
+  targetCount: Int!
+  successPercentage: Float!
+}
+
+input ActionTestInput {
+  actionId: ID!
+  sourceCharacterIds: [ID!]!
+  targetIds: [ID!]
+  targetType: TargetType!
+  override: Boolean
+  overrideValue: Float
+}
+
+# Computed fields are now directly in Character and Object types
+# Query extension for calculateActionTest is now in Schema.graphql

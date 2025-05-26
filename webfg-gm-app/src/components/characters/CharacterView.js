@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useSubscription } from "@apollo/client";
 import {
-  GET_CHARACTER,
   DELETE_CHARACTER,
   ON_UPDATE_CHARACTER, // Corrected import name
   ON_DELETE_CHARACTER,
@@ -11,9 +10,10 @@ import {
   ADD_OBJECT_TO_INVENTORY,
   REMOVE_OBJECT_FROM_EQUIPMENT
 } from "../../graphql/operations";
+import { GET_CHARACTER_WITH_GROUPED } from "../../graphql/computedOperations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
-import CharacterAttributes from "./CharacterAttributes";
-import ActionTest from "../actions/test/ActionTest";
+import CharacterAttributesBackend from "./CharacterAttributesBackend";
+import ActionTestBackend from "../actions/test/ActionTestBackend";
 import CharacterDetails from "./CharacterDetails";
 import CharacterForm from "../forms/CharacterForm";
 import "./CharacterView.css";
@@ -29,7 +29,7 @@ const CharacterView = () => {
   const [mutationError, setMutationError] = useState(null); // Added mutationError state
 
   // Initial query to get character data
-  const { data, loading, error, refetch } = useQuery(GET_CHARACTER, {
+  const { data, loading, error, refetch } = useQuery(GET_CHARACTER_WITH_GROUPED, {
     variables: { characterId },
     onCompleted: (data) => {
       if (data && data.getCharacter) {
@@ -227,7 +227,7 @@ const CharacterView = () => {
     return (
       <>
         <div className="overlay" onClick={handleTestClose}></div>
-        <ActionTest 
+        <ActionTestBackend 
           action={testAction} 
           character={character} 
           onClose={handleTestClose} 
@@ -266,7 +266,7 @@ const CharacterView = () => {
         </div>
 
         <div className="section-row">
-          <CharacterAttributes 
+          <CharacterAttributesBackend 
             lethality={character.lethality}
             armour={character.armour}
             endurance={character.endurance}
@@ -279,6 +279,7 @@ const CharacterView = () => {
             resolve={character.resolve}
             morale={character.morale}
             character={character}
+            groupedAttributes={character.groupedAttributes}
           />
         </div>
 

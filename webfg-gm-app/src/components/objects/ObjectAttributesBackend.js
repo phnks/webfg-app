@@ -1,14 +1,33 @@
 import React, { useState } from "react";
-import { calculateObjectGroupedAttributes } from "../../utils/attributeGrouping";
-import { calculateObjectAttributeBreakdown } from "../../utils/attributeBreakdown";
+import { useQuery } from "@apollo/client";
+import { GET_OBJECT_ATTRIBUTE_BREAKDOWN } from "../../graphql/computedOperations";
 import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
 import "./ObjectAttributes.css";
 
-const ObjectAttributes = ({ object }) => {
+const ObjectAttributesBackend = ({ object }) => {
   // State for breakdown popup (must be at top level)
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [breakdownData, setBreakdownData] = useState([]);
   const [breakdownAttributeName, setBreakdownAttributeName] = useState('');
+  const [selectedAttributeKey, setSelectedAttributeKey] = useState(null);
+  
+  // Query for attribute breakdown (only when needed)
+  const { data: breakdownQueryData, loading: breakdownLoading } = useQuery(
+    GET_OBJECT_ATTRIBUTE_BREAKDOWN,
+    {
+      variables: { 
+        objectId: object?.objectId,
+        attributeName: selectedAttributeKey 
+      },
+      skip: !selectedAttributeKey || !object?.objectId,
+      onCompleted: (data) => {
+        if (data?.getObject?.attributeBreakdown) {
+          setBreakdownData(data.getObject.attributeBreakdown);
+          setShowBreakdown(true);
+        }
+      }
+    }
+  );
   
   if (!object) return null;
   
@@ -26,16 +45,14 @@ const ObjectAttributes = ({ object }) => {
     { name: "Morale", key: "morale", data: object.morale }
   ].filter(attr => attr.data); // Only show attributes that have data
 
-  // Calculate grouped attributes if object and equipment data is available
-  const groupedAttributes = calculateObjectGroupedAttributes(object);
+  // Get grouped attributes from backend
+  const groupedAttributes = object.groupedAttributes || {};
   
   // Handler for showing breakdown
   const handleShowBreakdown = (attributeKey, attributeName) => {
     if (object && object.equipment && object.equipment.length > 0) {
-      const breakdown = calculateObjectAttributeBreakdown(object, attributeKey);
-      setBreakdownData(breakdown);
       setBreakdownAttributeName(attributeName);
-      setShowBreakdown(true);
+      setSelectedAttributeKey(attributeKey);
     }
   };
 
@@ -98,11 +115,14 @@ const ObjectAttributes = ({ object }) => {
         <AttributeBreakdownPopup
           breakdown={breakdownData}
           attributeName={breakdownAttributeName}
-          onClose={() => setShowBreakdown(false)}
+          onClose={() => {
+            setShowBreakdown(false);
+            setSelectedAttributeKey(null);
+          }}
         />
       )}
     </>
   );
 };
 
-export default ObjectAttributes;
+export default ObjectAttributesBackend;

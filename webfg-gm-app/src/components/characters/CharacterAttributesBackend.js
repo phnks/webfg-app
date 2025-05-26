@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import { calculateGroupedAttributes } from "../../utils/attributeGrouping";
-import { calculateAttributeBreakdown } from "../../utils/attributeBreakdown";
+import { useQuery } from "@apollo/client";
+import { GET_CHARACTER_ATTRIBUTE_BREAKDOWN } from "../../graphql/computedOperations";
 import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
 import "./CharacterAttributes.css";
 
-// New schema: each attribute has { attribute: { attributeValue, attributeType }, fatigue }
-const CharacterAttributes = ({ 
+// Version that uses backend computed fields
+const CharacterAttributesBackend = ({ 
   lethality, armour, endurance, strength, dexterity, agility,
   perception, charisma, intelligence, resolve, morale,
-  character // Added character prop to calculate grouped values
+  character, // Added character prop for breakdown queries
+  groupedAttributes // New prop from backend
 }) => {
   const attributes = [
     { name: "Lethality", key: "lethality", data: lethality },
@@ -24,19 +25,27 @@ const CharacterAttributes = ({
     { name: "Morale", key: "morale", data: morale }
   ].filter(attr => attr.data); // Only show attributes that have data
 
-  // Calculate grouped attributes if character and equipment data is available
-  const groupedAttributes = character ? calculateGroupedAttributes(character) : {};
-  
   // State for breakdown popup
   const [showBreakdown, setShowBreakdown] = useState(false);
-  const [breakdownData, setBreakdownData] = useState([]);
+  const [selectedAttribute, setSelectedAttribute] = useState(null);
   const [breakdownAttributeName, setBreakdownAttributeName] = useState('');
+  
+  // Query for breakdown data when needed
+  const { data: breakdownData, loading: breakdownLoading } = useQuery(
+    GET_CHARACTER_ATTRIBUTE_BREAKDOWN,
+    {
+      variables: {
+        characterId: character?.characterId,
+        attributeName: selectedAttribute
+      },
+      skip: !selectedAttribute || !character?.characterId
+    }
+  );
   
   // Handler for showing breakdown
   const handleShowBreakdown = (attributeKey, attributeName) => {
     if (character && character.equipment && character.equipment.length > 0) {
-      const breakdown = calculateAttributeBreakdown(character, attributeKey, groupedAttributes);
-      setBreakdownData(breakdown);
+      setSelectedAttribute(attributeKey);
       setBreakdownAttributeName(attributeName);
       setShowBreakdown(true);
     }
@@ -68,8 +77,8 @@ const CharacterAttributes = ({
         <div className="attributes-grid">
           {attributes.map(attr => {
             const originalValue = attr.data.attribute.attributeValue;
-            const groupedValue = groupedAttributes[attr.key];
-            const hasGroupedValue = groupedValue !== undefined && groupedValue !== originalValue;
+            const groupedValue = groupedAttributes?.[attr.key];
+            const hasGroupedValue = groupedValue !== undefined && groupedValue !== null && groupedValue !== originalValue;
             const hasEquipment = character && character.equipment && character.equipment.length > 0;
             
             return (
@@ -107,15 +116,19 @@ const CharacterAttributes = ({
         </div>
       </div>
       
-      {showBreakdown && (
+      {showBreakdown && breakdownData?.getCharacter?.attributeBreakdown && (
         <AttributeBreakdownPopup
-          breakdown={breakdownData}
+          breakdown={breakdownData.getCharacter.attributeBreakdown}
           attributeName={breakdownAttributeName}
-          onClose={() => setShowBreakdown(false)}
+          isLoading={breakdownLoading}
+          onClose={() => {
+            setShowBreakdown(false);
+            setSelectedAttribute(null);
+          }}
         />
       )}
     </>
   );
 };
 
-export default CharacterAttributes;
+export default CharacterAttributesBackend;

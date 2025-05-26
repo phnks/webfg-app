@@ -1,10 +1,11 @@
 /**
  * Utility functions for calculating grouped attribute values
  * between characters and their equipped objects.
+ * This is the backend version - shared across all resolvers.
  */
 
 // All available attribute names
-export const ATTRIBUTE_NAMES = [
+const ATTRIBUTE_NAMES = [
   'lethality', 'armour', 'endurance', 'strength', 'dexterity', 
   'agility', 'perception', 'intelligence', 'charisma', 'resolve', 'morale'
 ];
@@ -16,7 +17,7 @@ export const ATTRIBUTE_NAMES = [
  * @param {string} attributeType - Either 'HELP', 'HINDER', or 'NONE'
  * @returns {number} The calculated grouped value
  */
-export const calculateGroupingFormula = (highestValue, otherValue, attributeType) => {
+const calculateGroupingFormula = (highestValue, otherValue, attributeType) => {
   if (attributeType === 'HELP') {
     return (highestValue + highestValue * (1 + (otherValue / highestValue))) / 2;
   } else if (attributeType === 'HINDER') {
@@ -33,22 +34,22 @@ export const calculateGroupingFormula = (highestValue, otherValue, attributeType
  * @param {Object} attributeData - The attribute data object
  * @returns {Object} { value: number, type: string } or null if no data
  */
-export const extractAttributeInfo = (attributeData) => {
+const extractAttributeInfo = (attributeData) => {
   if (!attributeData) return null;
   
   // Handle character attributes with fatigue structure
   if (attributeData.attribute) {
     return {
-      value: attributeData.attribute.attributeValue,
-      type: attributeData.attribute.attributeType
+      value: attributeData.attribute.attributeValue || 0,
+      type: attributeData.attribute.attributeType || 'NONE'
     };
   }
   
   // Handle object attributes with direct structure
-  if (attributeData.attributeValue && attributeData.attributeType) {
+  if (attributeData.attributeValue !== undefined && attributeData.attributeType) {
     return {
-      value: attributeData.attributeValue,
-      type: attributeData.attributeType
+      value: attributeData.attributeValue || 0,
+      type: attributeData.attributeType || 'NONE'
     };
   }
   
@@ -60,7 +61,7 @@ export const extractAttributeInfo = (attributeData) => {
  * @param {Object} character - Character object with attributes and equipment
  * @returns {Object} Object containing grouped values for each attribute
  */
-export const calculateGroupedAttributes = (character) => {
+const calculateGroupedAttributes = (character) => {
   const groupedAttributes = {};
   
   if (!character) return groupedAttributes;
@@ -156,7 +157,7 @@ export const calculateGroupedAttributes = (character) => {
  * @param {Object} object - Object with attributes and equipment
  * @returns {Object} Object containing grouped values for each attribute
  */
-export const calculateObjectGroupedAttributes = (object) => {
+const calculateObjectGroupedAttributes = (object) => {
   const groupedAttributes = {};
   
   if (!object) return groupedAttributes;
@@ -231,4 +232,12 @@ export const calculateObjectGroupedAttributes = (object) => {
   });
   
   return groupedAttributes;
+};
+
+module.exports = {
+  ATTRIBUTE_NAMES,
+  calculateGroupingFormula,
+  extractAttributeInfo,
+  calculateGroupedAttributes,
+  calculateObjectGroupedAttributes
 };

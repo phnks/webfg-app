@@ -80,9 +80,9 @@ function combineSchemas() {
     'Value.graphql',
     'Character.graphql',
     'Object.graphql',
-    'Formula.graphql',
     'Action.graphql',
     'Schema.graphql',
+    'Computed.graphql',
     'Encounter.graphql'
   ];
   

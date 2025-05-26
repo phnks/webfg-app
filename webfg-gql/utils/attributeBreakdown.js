@@ -1,8 +1,14 @@
 /**
  * Additional utility functions for detailed attribute grouping breakdowns
+ * Backend version for GraphQL resolvers
  */
 
-import { extractAttributeInfo, calculateGroupingFormula, calculateGroupedAttributes, calculateObjectGroupedAttributes } from './attributeGrouping';
+const { 
+  extractAttributeInfo, 
+  calculateGroupingFormula, 
+  calculateGroupedAttributes, 
+  calculateObjectGroupedAttributes 
+} = require('./attributeGrouping');
 
 /**
  * Calculates step-by-step breakdown of how each equipment affects the final grouped value
@@ -11,7 +17,7 @@ import { extractAttributeInfo, calculateGroupingFormula, calculateGroupedAttribu
  * @param {Object} characterGroupedAttributes - Pre-calculated grouped attributes for character
  * @returns {Array} Array of steps showing the progression
  */
-export const calculateAttributeBreakdown = (character, attributeName, characterGroupedAttributes = null) => {
+const calculateAttributeBreakdown = (character, attributeName, characterGroupedAttributes = null) => {
   const breakdown = [];
   
   if (!character) return breakdown;
@@ -146,7 +152,7 @@ export const calculateAttributeBreakdown = (character, attributeName, characterG
  * @param {string} attributeName - The specific attribute to analyze
  * @returns {Array} Array of steps showing the progression
  */
-export const calculateObjectAttributeBreakdown = (object, attributeName) => {
+const calculateObjectAttributeBreakdown = (object, attributeName) => {
   const breakdown = [];
   
   if (!object) return breakdown;
@@ -249,4 +255,9 @@ export const calculateObjectAttributeBreakdown = (object, attributeName) => {
   }
   
   return breakdown;
+};
+
+module.exports = {
+  calculateAttributeBreakdown,
+  calculateObjectAttributeBreakdown
 };

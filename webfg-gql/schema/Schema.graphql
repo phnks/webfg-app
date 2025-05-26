@@ -17,6 +17,8 @@ type Query {
   getEncounter(encounterId: ID!): Encounter
   listEncounters(filter: EncounterFilterInput): [Encounter]
 
+  # Calculate action test without persisting
+  calculateActionTest(input: ActionTestInput!): ActionTestResult!
 }
 
 type Mutation {

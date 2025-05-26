@@ -27,6 +27,10 @@ type Character {
   inventory: [Object]
   equipmentIds: [ID]
   equipment: [Object]
+  
+  # Computed fields (only resolved when requested)
+  groupedAttributes: GroupedAttributes
+  attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]
 }
 
 enum CharacterCategory {
