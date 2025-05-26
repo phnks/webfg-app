@@ -82,7 +82,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       setFormData({
         name: character.name || "",
         characterCategory: character.characterCategory || "HUMAN",
-        will: character.will || 10,
+        will: character.will !== null && character.will !== undefined ? character.will : 10,
         values: (character.values || []).map(v => ({ ...v })),
         lethality: character.lethality || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
         armour: character.armour || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
@@ -211,7 +211,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       const input = {
         name: formData.name,
         characterCategory: formData.characterCategory,
-        will: parseInt(formData.will) || 10,
+        will: formData.will !== null && formData.will !== undefined && formData.will !== '' ? parseInt(formData.will) : 10,
         values: formData.values.map(v => ({ valueName: v.valueName, valueType: v.valueType })),
         lethality: {
           attribute: { 
