@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
-import { GET_CHARACTER } from '../../graphql/operations';
+import { GET_CHARACTER_WITH_GROUPED } from '../../graphql/computedOperations';
 import { FaSearch } from 'react-icons/fa';
 import './CharacterActionSelector.css';
 
 const CharacterActionSelector = ({ characterId, onSelectAction, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const { loading, error, data } = useQuery(GET_CHARACTER, {
+  const { loading, error, data } = useQuery(GET_CHARACTER_WITH_GROUPED, {
     variables: { characterId },
     fetchPolicy: 'network-only'
   });

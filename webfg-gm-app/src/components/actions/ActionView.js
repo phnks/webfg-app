@@ -4,9 +4,9 @@ import { useQuery, useMutation } from "@apollo/client";
 import {
   GET_ACTION,
   DELETE_ACTION,
-  ADD_ACTION_TO_CHARACTER,
-  GET_CHARACTER
+  ADD_ACTION_TO_CHARACTER
 } from "../../graphql/operations";
+import { GET_CHARACTER_WITH_GROUPED } from "../../graphql/computedOperations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import ActionForm from "../forms/ActionForm";
 import ActionTestBackend from "./test/ActionTestBackend";
@@ -36,7 +36,7 @@ const ActionView = () => {
   });
 
   // Get full character data when a character is selected
-  const { data: characterData } = useQuery(GET_CHARACTER, {
+  const { data: characterData } = useQuery(GET_CHARACTER_WITH_GROUPED, {
     variables: { characterId: selectedCharacter?.characterId },
     skip: !selectedCharacter,
     onCompleted: (data) => {
