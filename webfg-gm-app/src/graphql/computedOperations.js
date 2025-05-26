@@ -192,6 +192,11 @@ export const CALCULATE_ACTION_TEST = gql`
       sourceCount
       targetCount
       successPercentage
+      sourceDice
+      targetDice
+      adjustedSourceDice
+      adjustedTargetDice
+      dicePoolExceeded
     }
   }
 `;

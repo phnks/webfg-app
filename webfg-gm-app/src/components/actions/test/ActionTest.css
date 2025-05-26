@@ -269,6 +269,74 @@
   font-style: italic;
 }
 
+/* Dice Pool Information Styles */
+.dice-pool-info {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.dice-pool-info h4 {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.dice-pool-note {
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+.dice-pool-values {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dice-pool-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.dice-label {
+  font-weight: 600;
+  color: #555;
+  min-width: 100px;
+}
+
+.dice-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2e7d32;
+  margin-left: 10px;
+}
+
+.dice-original {
+  font-size: 1.1rem;
+  color: #999;
+  text-decoration: line-through;
+  margin-left: 10px;
+}
+
+.dice-arrow {
+  margin: 0 8px;
+  color: #666;
+}
+
+.dice-adjusted {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2e7d32;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 600px) {
   .action-test-container {
@@ -287,5 +355,14 @@
   
   .action-test-header h2 {
     font-size: 1.2rem;
+  }
+  
+  .dice-pool-item {
+    flex-wrap: wrap;
+  }
+  
+  .dice-label {
+    min-width: 80px;
+    font-size: 0.9rem;
   }
 }
