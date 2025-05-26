@@ -1,4 +1,9 @@
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, GetCommand } = require('@aws-sdk/lib-dynamodb');
 const { calculateGroupedAttributes, calculateObjectGroupedAttributes } = require('../utils/attributeGrouping');
+
+const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 exports.handler = async (event) => {
   console.log("Received event for resolveGroupedAttributes:", JSON.stringify(event, null, 2));
@@ -28,9 +33,15 @@ exports.handler = async (event) => {
     let groupedAttributes;
     
     if (typeName === 'Character') {
-      groupedAttributes = calculateGroupedAttributes(entity);
+      // For characters, we need to ensure we have full equipment data
+      const enrichedCharacter = await enrichCharacterWithEquipment(entity);
+      console.log("Enriched character equipment:", JSON.stringify(enrichedCharacter.equipment, null, 2));
+      groupedAttributes = calculateGroupedAttributes(enrichedCharacter);
     } else if (typeName === 'Object') {
-      groupedAttributes = calculateObjectGroupedAttributes(entity);
+      // For objects, we need to ensure we have full equipment data
+      const enrichedObject = await enrichObjectWithEquipment(entity);
+      console.log("Enriched object equipment:", JSON.stringify(enrichedObject.equipment, null, 2));
+      groupedAttributes = calculateObjectGroupedAttributes(enrichedObject);
     } else {
       throw new Error(`Unknown entity type: ${typeName}`);
     }
@@ -58,3 +69,53 @@ exports.handler = async (event) => {
     throw new Error(`Failed to calculate grouped attributes: ${error.message}`);
   }
 };
+
+async function enrichCharacterWithEquipment(character) {
+  if (!character.equipmentIds || character.equipmentIds.length === 0) {
+    return { ...character, equipment: [] };
+  }
+
+  const equipment = [];
+  
+  for (const objectId of character.equipmentIds) {
+    try {
+      const result = await docClient.send(new GetCommand({
+        TableName: process.env.OBJECTS_TABLE,
+        Key: { objectId }
+      }));
+      
+      if (result.Item) {
+        equipment.push(result.Item);
+      }
+    } catch (error) {
+      console.error(`Error fetching object ${objectId}:`, error);
+    }
+  }
+
+  return { ...character, equipment };
+}
+
+async function enrichObjectWithEquipment(object) {
+  if (!object.equipmentIds || object.equipmentIds.length === 0) {
+    return { ...object, equipment: [] };
+  }
+
+  const equipment = [];
+  
+  for (const objectId of object.equipmentIds) {
+    try {
+      const result = await docClient.send(new GetCommand({
+        TableName: process.env.OBJECTS_TABLE,
+        Key: { objectId }
+      }));
+      
+      if (result.Item) {
+        equipment.push(result.Item);
+      }
+    } catch (error) {
+      console.error(`Error fetching object ${objectId}:`, error);
+    }
+  }
+
+  return { ...object, equipment };
+}
