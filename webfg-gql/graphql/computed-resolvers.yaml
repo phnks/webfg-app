@@ -29,7 +29,12 @@ Resources:
       Runtime: nodejs20.x 
       MemorySize: 512
       Timeout: 30
+      Environment:
+        Variables:
+          OBJECTS_TABLE: !Ref ObjectsTableName
       Policies:
+        - DynamoDBReadPolicy: 
+            TableName: !Ref ObjectsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   # Lambda function for attribute breakdown
@@ -41,7 +46,12 @@ Resources:
       Runtime: nodejs20.x 
       MemorySize: 512
       Timeout: 30
+      Environment:
+        Variables:
+          OBJECTS_TABLE: !Ref ObjectsTableName
       Policies:
+        - DynamoDBReadPolicy: 
+            TableName: !Ref ObjectsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   # Lambda function for action test calculation
