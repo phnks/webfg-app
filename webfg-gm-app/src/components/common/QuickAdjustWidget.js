@@ -34,31 +34,33 @@ const QuickAdjustWidget = ({ currentValue, onAdjust, min = 0, max = null }) => {
   };
 
   return (
-    <div className={`quick-adjust-widget ${isLoading ? 'loading' : ''}`}>
-      <button 
-        className="adjust-button decrement"
-        onClick={() => handleAdjust('decrement')}
-        disabled={isLoading || currentValue <= min}
-        title={`Decrease by ${adjustAmount || 1}`}
-      >
-        −
-      </button>
-      <input
-        type="text"
-        className="adjust-amount"
-        value={adjustAmount}
-        onChange={handleInputChange}
-        disabled={isLoading}
-        placeholder="1"
-      />
-      <button 
-        className="adjust-button increment"
-        onClick={() => handleAdjust('increment')}
-        disabled={isLoading || (max !== null && currentValue >= max)}
-        title={`Increase by ${adjustAmount || 1}`}
-      >
-        +
-      </button>
+    <div className="quick-adjust-wrapper">
+      <div className={`quick-adjust-widget ${isLoading ? 'loading' : ''}`}>
+        <button 
+          className="adjust-button decrement"
+          onClick={() => handleAdjust('decrement')}
+          disabled={isLoading || currentValue <= min}
+          title={`Decrease by ${adjustAmount || 1}`}
+        >
+          −
+        </button>
+        <input
+          type="text"
+          className="adjust-amount"
+          value={adjustAmount}
+          onChange={handleInputChange}
+          disabled={isLoading}
+          placeholder="1"
+        />
+        <button 
+          className="adjust-button increment"
+          onClick={() => handleAdjust('increment')}
+          disabled={isLoading || (max !== null && currentValue >= max)}
+          title={`Increase by ${adjustAmount || 1}`}
+        >
+          +
+        </button>
+      </div>
     </div>
   );
 };

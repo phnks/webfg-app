@@ -63,7 +63,10 @@
   align-items: center;
   gap: 8px;
   margin-top: 4px;
-  min-height: 32px; /* Match widget height + padding */
+  height: 32px; /* Fixed height */
+  position: relative; /* For stable layout */
+  /* Prevent reflow during updates */
+  contain: layout;
 }
 
 .attribute-fatigue.has-fatigue {
@@ -77,5 +80,6 @@
 
 .attribute-fatigue span {
   display: inline-block;
-  min-width: 100px; /* Prevent text reflow */
+  width: 100px; /* Fixed width instead of min-width */
+  flex-shrink: 0;
 } 

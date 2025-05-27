@@ -16,10 +16,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 24px; /* Match widget height */
+  height: 24px; /* Fixed height */
+  position: relative; /* For stable layout */
+  /* Prevent reflow during updates */
+  contain: layout;
 }
 
 .value-with-widget span {
   display: inline-block;
-  min-width: 30px; /* Prevent number reflow */
+  width: 40px; /* Fixed width */
+  text-align: left;
+  flex-shrink: 0;
 } 

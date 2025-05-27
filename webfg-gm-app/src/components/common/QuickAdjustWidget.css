@@ -1,23 +1,45 @@
+/* Wrapper to create a stable layout boundary */
+.quick-adjust-wrapper {
+  display: inline-block;
+  width: 88px;
+  height: 24px;
+  margin-left: 8px;
+  position: relative;
+  /* Complete isolation from parent layout */
+  isolation: isolate;
+  contain: strict;
+}
+
 .quick-adjust-widget {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 4px;
-  margin-left: 8px;
-  width: 88px; /* Fixed width */
-  height: 24px; /* Fixed height */
-  position: relative; /* For absolute positioning if needed */
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Ensure widget doesn't affect parent layout */
+  will-change: opacity;
 }
 
 .quick-adjust-widget.loading {
   opacity: 0.6;
-  pointer-events: none; /* Prevent interaction during loading */
+}
+
+/* Create a stable container that won't reflow */
+.quick-adjust-widget::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .adjust-button {
   width: 24px;
   height: 24px;
-  min-width: 24px; /* Prevent shrinking */
-  min-height: 24px; /* Prevent shrinking */
+  min-width: 24px;
+  min-height: 24px;
   border: 1px solid #ddd;
   background-color: #f5f5f5;
   border-radius: 4px;
@@ -27,10 +49,13 @@
   justify-content: center;
   font-size: 16px;
   font-weight: bold;
-  transition: background-color 0.2s ease, border-color 0.2s ease; /* Only transition colors */
+  transition: background-color 0.2s ease, border-color 0.2s ease;
   padding: 0;
   line-height: 1;
-  flex-shrink: 0; /* Prevent button from shrinking */
+  flex-shrink: 0;
+  /* Prevent any layout recalculation */
+  position: relative;
+  z-index: 1;
 }
 
 .adjust-button:hover:not(:disabled) {
@@ -68,14 +93,17 @@
 .adjust-amount {
   width: 32px;
   height: 24px;
-  min-width: 32px; /* Prevent shrinking */
-  min-height: 24px; /* Prevent shrinking */
+  min-width: 32px;
+  min-height: 24px;
   text-align: center;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
   padding: 0 4px;
-  flex-shrink: 0; /* Prevent input from shrinking */
+  flex-shrink: 0;
+  /* Prevent any layout recalculation */
+  position: relative;
+  z-index: 1;
 }
 
 .adjust-amount:focus {
