@@ -15,7 +15,7 @@ const AttributeBreakdownPopup = ({ breakdown, attributeName, onClose }) => {
         <div className="breakdown-content">
           <div className="breakdown-steps">
             {breakdown.map((step, index) => (
-              <div key={index} className="breakdown-step">
+              <div key={index} className={`breakdown-step ${step.entityType === 'fatigue' ? 'fatigue-step' : ''}`}>
                 <div className="step-info">
                   <span className="step-number">{step.step}</span>
                   <span className="entity-name">
@@ -23,7 +23,10 @@ const AttributeBreakdownPopup = ({ breakdown, attributeName, onClose }) => {
                     <span className="entity-type">({step.entityType})</span>
                   </span>
                   <span className="attribute-details">
-                    {step.attributeValue} ({step.attributeType})
+                    {step.entityType === 'fatigue' ? 
+                      `Reduces by ${Math.abs(step.attributeValue)}` : 
+                      `${step.attributeValue} (${step.attributeType})`
+                    }
                   </span>
                 </div>
                 

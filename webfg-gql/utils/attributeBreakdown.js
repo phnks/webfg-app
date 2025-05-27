@@ -143,6 +143,24 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     });
   }
   
+  // Add fatigue step if character has fatigue for this attribute
+  const fatigue = character[attributeName]?.fatigue || 0;
+  if (fatigue > 0) {
+    const previousValue = currentValue;
+    currentValue = Math.max(1, currentValue - fatigue);
+    
+    stepNumber++;
+    breakdown.push({
+      step: stepNumber,
+      entityName: 'Fatigue Effect',
+      entityType: 'fatigue',
+      attributeValue: -fatigue,
+      attributeType: 'FATIGUE',
+      runningTotal: Math.round(currentValue * 100) / 100,
+      formula: `${previousValue} - ${fatigue} (minimum 1)`
+    });
+  }
+  
   return breakdown;
 };
 

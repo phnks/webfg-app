@@ -78,8 +78,15 @@ const CharacterAttributesBackend = ({
           {attributes.map(attr => {
             const originalValue = attr.data.attribute.attributeValue;
             const groupedValue = groupedAttributes?.[attr.key];
-            const hasGroupedValue = groupedValue !== undefined && groupedValue !== null && groupedValue !== originalValue;
+            const fatigue = attr.data.fatigue || 0;
             const hasEquipment = character && character.equipment && character.equipment.length > 0;
+            
+            // Show grouped value if:
+            // 1. There's equipment that could affect it
+            // 2. There's fatigue > 0
+            // 3. The grouped value is different from original (even after considering fatigue)
+            const shouldShowGroupedValue = (groupedValue !== undefined && groupedValue !== null) && 
+              (hasEquipment || fatigue > 0 || groupedValue !== originalValue);
             
             return (
               <div key={attr.name} className="attribute-item">
@@ -87,14 +94,14 @@ const CharacterAttributesBackend = ({
                 <div className="attribute-info">
                   <div className="attribute-value">
                     {originalValue} ({attr.data.attribute.attributeType})
-                    {hasGroupedValue && (
+                    {shouldShowGroupedValue && (
                       <span 
                         className="grouped-value" 
                         style={getGroupedValueStyle(originalValue, groupedValue)}
-                        title="Grouped value with equipment"
+                        title="Grouped value with equipment and/or fatigue"
                       >
                         {' → '}{groupedValue}
-                        {hasEquipment && (
+                        {(hasEquipment || fatigue > 0) && (
                           <button
                             className="info-icon"
                             onClick={() => handleShowBreakdown(attr.key, attr.name)}
@@ -106,8 +113,8 @@ const CharacterAttributesBackend = ({
                       </span>
                     )}
                   </div>
-                  <div className="attribute-fatigue">
-                    Fatigue: {attr.data.fatigue}
+                  <div className={`attribute-fatigue ${fatigue > 0 ? 'has-fatigue' : ''}`}>
+                    {fatigue > 0 ? `⚠️ Fatigue: ${fatigue}` : `Fatigue: ${fatigue}`}
                   </div>
                 </div>
               </div>
