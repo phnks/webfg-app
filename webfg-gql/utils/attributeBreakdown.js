@@ -155,7 +155,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
       entityName: 'Fatigue Effect',
       entityType: 'fatigue',
       attributeValue: -fatigue,
-      attributeType: 'FATIGUE',
+      attributeType: 'HINDER', // Use HINDER since fatigue reduces the value
       runningTotal: Math.round(currentValue * 100) / 100,
       formula: `${previousValue} - ${fatigue} (minimum 1)`
     });
