@@ -44,7 +44,7 @@ const CharacterAttributesBackend = ({
   
   // Handler for showing breakdown
   const handleShowBreakdown = (attributeKey, attributeName) => {
-    if (character && character.equipment && character.equipment.length > 0) {
+    if (character) {
       setSelectedAttribute(attributeKey);
       setBreakdownAttributeName(attributeName);
       setShowBreakdown(true);
