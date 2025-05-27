@@ -6,7 +6,8 @@
 const { 
   calculateGroupedAttributes, 
   calculateObjectGroupedAttributes,
-  calculateGroupingFormula 
+  calculateGroupingFormula,
+  calculateGroupedAttributesWithFatigue
 } = require('./attributeGrouping');
 
 /**
@@ -106,13 +107,22 @@ const calculateActionDifficulty = (sourceValue, targetValue) => {
  * Get single character attribute value with grouping
  * @param {Object} character - Character object
  * @param {string} attributeName - Attribute name (lowercase)
+ * @param {boolean} applyFatigue - Whether to apply fatigue for dice calculations
  * @returns {number} The grouped attribute value
  */
-const getSingleCharacterAttributeValue = (character, attributeName) => {
-  const groupedAttributes = calculateGroupedAttributes(character);
+const getSingleCharacterAttributeValue = (character, attributeName, applyFatigue = false) => {
+  const groupedAttributes = applyFatigue 
+    ? calculateGroupedAttributesWithFatigue(character)
+    : calculateGroupedAttributes(character);
+    
   if (groupedAttributes[attributeName] !== undefined) {
     return groupedAttributes[attributeName];
   } else if (character[attributeName] && character[attributeName].attribute) {
+    if (applyFatigue) {
+      const baseValue = character[attributeName].attribute.attributeValue || 0;
+      const fatigue = character[attributeName].fatigue || 0;
+      return Math.max(1, baseValue - fatigue);
+    }
     return character[attributeName].attribute.attributeValue || 0;
   }
   return 0;
@@ -123,17 +133,27 @@ const getSingleCharacterAttributeValue = (character, attributeName) => {
  * @param {Object} entity - Character or Object
  * @param {string} attributeName - Attribute name (lowercase)
  * @param {string} entityType - 'CHARACTER' or 'OBJECT'
+ * @param {boolean} applyFatigue - Whether to apply fatigue for dice calculations
  * @returns {number} The grouped attribute value
  */
-const getSingleEntityAttributeValue = (entity, attributeName, entityType) => {
+const getSingleEntityAttributeValue = (entity, attributeName, entityType, applyFatigue = false) => {
   if (entityType === 'CHARACTER') {
-    const groupedAttributes = calculateGroupedAttributes(entity);
+    const groupedAttributes = applyFatigue 
+      ? calculateGroupedAttributesWithFatigue(entity)
+      : calculateGroupedAttributes(entity);
+      
     if (groupedAttributes[attributeName] !== undefined) {
       return groupedAttributes[attributeName];
     } else if (entity[attributeName] && entity[attributeName].attribute) {
+      if (applyFatigue) {
+        const baseValue = entity[attributeName].attribute.attributeValue || 0;
+        const fatigue = entity[attributeName].fatigue || 0;
+        return Math.max(1, baseValue - fatigue);
+      }
       return entity[attributeName].attribute.attributeValue || 0;
     }
   } else if (entityType === 'OBJECT') {
+    // Objects don't have fatigue
     const groupedAttributes = calculateObjectGroupedAttributes(entity);
     if (groupedAttributes[attributeName] !== undefined) {
       return groupedAttributes[attributeName];
@@ -148,20 +168,21 @@ const getSingleEntityAttributeValue = (entity, attributeName, entityType) => {
  * Group multiple sources into a single attribute value
  * @param {Array} sourceCharacters - Array of character objects
  * @param {string} sourceAttribute - Attribute name (lowercase)
+ * @param {boolean} applyFatigue - Whether to apply fatigue for dice calculations
  * @returns {number} The grouped source value
  */
-const groupSourceAttributes = (sourceCharacters, sourceAttribute) => {
+const groupSourceAttributes = (sourceCharacters, sourceAttribute, applyFatigue = false) => {
   if (!sourceCharacters || sourceCharacters.length === 0) return 0;
   
   if (sourceCharacters.length === 1) {
-    // Single source - get grouped value
-    return getSingleCharacterAttributeValue(sourceCharacters[0], sourceAttribute);
+    // Single source - get grouped value with fatigue if requested
+    return getSingleCharacterAttributeValue(sourceCharacters[0], sourceAttribute, applyFatigue);
   }
   
   // Get the final grouped attribute value for each source character
   const sourceValues = [];
   sourceCharacters.forEach(character => {
-    const groupedValue = getSingleCharacterAttributeValue(character, sourceAttribute);
+    const groupedValue = getSingleCharacterAttributeValue(character, sourceAttribute, applyFatigue);
     if (groupedValue > 0) { // Only include non-zero values
       sourceValues.push({
         name: character.name || 'Unknown',
@@ -193,20 +214,21 @@ const groupSourceAttributes = (sourceCharacters, sourceAttribute) => {
  * @param {Array} targetEntities - Array of character or object entities
  * @param {string} targetAttribute - Attribute name (lowercase)
  * @param {string} targetType - 'CHARACTER' or 'OBJECT'
+ * @param {boolean} applyFatigue - Whether to apply fatigue for dice calculations
  * @returns {number} The grouped target value
  */
-const groupTargetAttributes = (targetEntities, targetAttribute, targetType) => {
+const groupTargetAttributes = (targetEntities, targetAttribute, targetType, applyFatigue = false) => {
   if (!targetEntities || targetEntities.length === 0) return 0;
   
   if (targetEntities.length === 1) {
-    // Single target - get grouped value
-    return getSingleEntityAttributeValue(targetEntities[0], targetAttribute, targetType);
+    // Single target - get grouped value with fatigue if requested
+    return getSingleEntityAttributeValue(targetEntities[0], targetAttribute, targetType, applyFatigue);
   }
   
   // Get the final grouped attribute value for each target entity
   const targetValues = [];
   targetEntities.forEach(entity => {
-    const groupedValue = getSingleEntityAttributeValue(entity, targetAttribute, targetType);
+    const groupedValue = getSingleEntityAttributeValue(entity, targetAttribute, targetType, applyFatigue);
     if (groupedValue > 0) { // Only include non-zero values
       targetValues.push({
         name: entity.name || 'Unknown',
@@ -260,26 +282,34 @@ const calculateActionTest = (params) => {
   const sourceLower = sourceAttribute.toLowerCase();
   const targetLower = targetAttribute.toLowerCase();
   
-  // Calculate source value
-  const sourceValue = groupSourceAttributes(sourceCharacters, sourceLower);
+  // Calculate source value WITHOUT fatigue (for display)
+  const sourceValue = groupSourceAttributes(sourceCharacters, sourceLower, false);
   
-  // Calculate target value
+  // Calculate source value WITH fatigue (for dice pools)
+  const sourceValueWithFatigue = groupSourceAttributes(sourceCharacters, sourceLower, true);
+  
+  // Calculate target value WITHOUT fatigue (for display)
   let targetValue = 0;
+  let targetValueWithFatigue = 0;
+  
   if (override) {
     targetValue = overrideValue;
+    targetValueWithFatigue = overrideValue;
   } else if (targetType === 'ACTION') {
     // Action targets not implemented yet
     targetValue = 0;
+    targetValueWithFatigue = 0;
   } else {
-    targetValue = groupTargetAttributes(targetEntities, targetLower, targetType);
+    targetValue = groupTargetAttributes(targetEntities, targetLower, targetType, false);
+    targetValueWithFatigue = groupTargetAttributes(targetEntities, targetLower, targetType, true);
   }
   
-  // Calculate difficulty
-  const difficulty = calculateActionDifficulty(sourceValue, targetValue);
+  // Calculate difficulty using fatigue-adjusted values
+  const difficulty = calculateActionDifficulty(sourceValueWithFatigue, targetValueWithFatigue);
   
-  // Calculate dice pool information
-  const sourceDice = Math.max(1, Math.floor(sourceValue));
-  const targetDice = Math.max(1, Math.floor(targetValue));
+  // Calculate dice pool information using fatigue-adjusted values
+  const sourceDice = Math.max(1, Math.floor(sourceValueWithFatigue));
+  const targetDice = Math.max(1, Math.floor(targetValueWithFatigue));
   const { adjustedSource, adjustedTarget } = adjustDicePools(sourceDice, targetDice);
   
   return {
