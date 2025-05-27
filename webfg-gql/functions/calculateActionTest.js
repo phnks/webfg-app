@@ -53,6 +53,13 @@ exports.handler = async (event) => {
       
       // Fetch equipment for each source character
       for (const source of sources) {
+        // Debug: Log the source character's attributes with fatigue
+        console.log(`Source character ${source.name} attributes:`, {
+          dexterity: source.dexterity,
+          strength: source.strength,
+          // Add other attributes as needed for debugging
+        });
+        
         if (source.equipmentIds && source.equipmentIds.length > 0) {
           const equipmentKeys = source.equipmentIds.map(id => ({ objectId: id }));
           const batchGetEquipmentCommand = new BatchGetCommand({

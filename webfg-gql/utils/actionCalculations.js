@@ -288,6 +288,14 @@ const calculateActionTest = (params) => {
   // Calculate source value WITH fatigue (for dice pools)
   const sourceValueWithFatigue = groupSourceAttributes(sourceCharacters, sourceLower, true);
   
+  // Debug logging
+  console.log('Action test calculation debug:', {
+    sourceAttribute: sourceLower,
+    sourceValueNoFatigue: sourceValue,
+    sourceValueWithFatigue: sourceValueWithFatigue,
+    sourceCharacterCount: sourceCharacters.length
+  });
+  
   // Calculate target value WITHOUT fatigue (for display)
   let targetValue = 0;
   let targetValueWithFatigue = 0;

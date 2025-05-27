@@ -49,6 +49,16 @@ const extractAttributeInfo = (attributeData, applyFatigue = true) => {
       ? Math.max(1, baseValue - fatigue)
       : baseValue;
     
+    // Debug logging when fatigue is present
+    if (fatigue > 0 && applyFatigue) {
+      console.log('Applying fatigue:', {
+        baseValue,
+        fatigue,
+        effectiveValue,
+        type: attributeData.attribute.attributeType
+      });
+    }
+    
     return {
       value: effectiveValue,
       baseValue: baseValue,
