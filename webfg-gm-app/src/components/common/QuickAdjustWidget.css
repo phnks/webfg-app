@@ -3,11 +3,14 @@
   align-items: center;
   gap: 4px;
   margin-left: 8px;
-  min-width: 88px; /* Prevent layout shift */
+  width: 88px; /* Fixed width */
+  height: 24px; /* Fixed height */
+  position: relative; /* For absolute positioning if needed */
 }
 
 .quick-adjust-widget.loading {
   opacity: 0.6;
+  pointer-events: none; /* Prevent interaction during loading */
 }
 
 .adjust-button {

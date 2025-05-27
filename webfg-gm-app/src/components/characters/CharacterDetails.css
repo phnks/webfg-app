@@ -16,4 +16,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 24px; /* Match widget height */
+}
+
+.value-with-widget span {
+  display: inline-block;
+  min-width: 30px; /* Prevent number reflow */
 } 
