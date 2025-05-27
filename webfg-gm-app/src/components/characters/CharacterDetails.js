@@ -1,7 +1,61 @@
 import React from "react";
+import { useMutation } from "@apollo/client";
+import { UPDATE_CHARACTER } from "../../graphql/operations";
+import QuickAdjustWidget from "../common/QuickAdjustWidget";
 import "./CharacterDetails.css";
 
-const CharacterDetails = ({ character }) => {
+const CharacterDetails = ({ character, onUpdate }) => {
+  const [updateCharacter] = useMutation(UPDATE_CHARACTER);
+
+  const handleWillAdjust = async (newValue) => {
+    try {
+      // Build the complete character input with all required fields
+      const characterInput = {
+        name: character.name,
+        characterCategory: character.characterCategory,
+        will: newValue,
+        values: character.values || [],
+        special: character.special || "",
+        actionIds: character.actionIds || [],
+        inventoryIds: character.inventoryIds || [],
+        equipmentIds: character.equipmentIds || []
+      };
+
+      // Add attributes with their current values and fatigue
+      const attributes = [
+        'lethality', 'armour', 'endurance', 'strength', 'dexterity',
+        'agility', 'perception', 'charisma', 'intelligence', 'resolve', 'morale'
+      ];
+
+      attributes.forEach(attr => {
+        if (character[attr]) {
+          characterInput[attr] = {
+            attribute: {
+              attributeValue: character[attr].attribute.attributeValue,
+              attributeType: character[attr].attribute.attributeType
+            },
+            fatigue: character[attr].fatigue || 0
+          };
+        }
+      });
+
+      await updateCharacter({
+        variables: {
+          characterId: character.characterId,
+          input: characterInput
+        }
+      });
+
+      // Call the onUpdate callback to refresh the parent component
+      if (onUpdate) {
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Failed to update will:', error);
+      throw error;
+    }
+  };
+
   return (
     <div className="section character-details">
       <h3>Character Details</h3>
@@ -21,7 +75,16 @@ const CharacterDetails = ({ character }) => {
           </tr>
           <tr>
             <td>Will:</td>
-            <td>{character.will}</td>
+            <td>
+              <div className="value-with-widget">
+                <span>{character.will}</span>
+                <QuickAdjustWidget
+                  currentValue={character.will || 0}
+                  onAdjust={handleWillAdjust}
+                  min={0}
+                />
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>

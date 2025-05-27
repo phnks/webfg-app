@@ -59,6 +59,10 @@
 .attribute-fatigue {
   font-size: 0.9em;
   color: #666;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .attribute-fatigue.has-fatigue {
@@ -68,6 +72,8 @@
   padding: 4px 8px;
   border-radius: 4px;
   font-weight: 500;
-  display: inline-block;
-  margin-top: 4px;
+}
+
+.attribute-fatigue span {
+  flex: 1;
 } 
