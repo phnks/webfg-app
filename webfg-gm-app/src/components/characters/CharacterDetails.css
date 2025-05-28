@@ -16,15 +16,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 24px; /* Fixed height */
-  position: relative; /* For stable layout */
-  /* Prevent reflow during updates */
-  contain: layout;
+  min-height: 24px;
 }
 
 .value-with-widget span {
-  display: inline-block;
-  width: 40px; /* Fixed width */
-  text-align: left;
-  flex-shrink: 0;
+  white-space: nowrap;
 } 
