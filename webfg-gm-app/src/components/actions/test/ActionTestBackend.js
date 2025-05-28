@@ -286,6 +286,46 @@ const ActionTestBackend = ({ action, character, onClose }) => {
               <br />
               Target Value: {getDisplayTargetValue()}
             </p>
+            
+            {/* Dice Pool Information */}
+            {testResult.calculateActionTest.dicePoolExceeded && (
+              <div className="dice-pool-info">
+                <h4>Dice Pools</h4>
+                <p className="dice-pool-note">
+                  Total dice exceeded 20, pools were halved:
+                </p>
+                <div className="dice-pool-values">
+                  <div className="dice-pool-item">
+                    <span className="dice-label">Source Dice:</span>
+                    <span className="dice-original">{testResult.calculateActionTest.sourceDice}</span>
+                    <span className="dice-arrow">→</span>
+                    <span className="dice-adjusted">{testResult.calculateActionTest.adjustedSourceDice}</span>
+                  </div>
+                  <div className="dice-pool-item">
+                    <span className="dice-label">Target Dice:</span>
+                    <span className="dice-original">{testResult.calculateActionTest.targetDice}</span>
+                    <span className="dice-arrow">→</span>
+                    <span className="dice-adjusted">{testResult.calculateActionTest.adjustedTargetDice}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {!testResult.calculateActionTest.dicePoolExceeded && (
+              <div className="dice-pool-info">
+                <h4>Dice to Roll</h4>
+                <div className="dice-pool-values">
+                  <div className="dice-pool-item">
+                    <span className="dice-label">Source Dice:</span>
+                    <span className="dice-value">{testResult.calculateActionTest.sourceDice}</span>
+                  </div>
+                  <div className="dice-pool-item">
+                    <span className="dice-label">Target Dice:</span>
+                    <span className="dice-value">{testResult.calculateActionTest.targetDice}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

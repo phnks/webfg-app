@@ -48,4 +48,33 @@
 .info-icon:hover {
   opacity: 1;
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+.attribute-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.attribute-fatigue {
+  font-size: 0.9em;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  min-height: 32px;
+}
+
+.attribute-fatigue.has-fatigue {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.attribute-fatigue span {
+  white-space: nowrap;
 } 

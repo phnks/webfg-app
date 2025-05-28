@@ -10,4 +10,15 @@
 .character-details td:first-child {
   font-weight: bold;
   width: 100px;
+}
+
+.value-with-widget {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+}
+
+.value-with-widget span {
+  white-space: nowrap;
 } 

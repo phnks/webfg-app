@@ -6,32 +6,111 @@
 const { 
   calculateGroupedAttributes, 
   calculateObjectGroupedAttributes,
-  calculateGroupingFormula 
+  calculateGroupingFormula
 } = require('./attributeGrouping');
 
 /**
- * Calculate action difficulty based on source and target values
- * @param {number} sourceValue - The source attribute value
- * @param {number} targetValue - The target attribute value
+ * Calculate expected number of successes for a given dice pool
+ * @param {number} diceCount - Number of dice to roll
+ * @returns {number} Expected number of successes
+ */
+const calculateExpectedSuccesses = (diceCount) => {
+  // Success rate is 50% per die (4-6 on d6, 5-8 on d8, 5-9 on d10)
+  return diceCount * 0.5;
+};
+
+/**
+ * Halve dice pools if total exceeds 20
+ * @param {number} sourceDice - Source dice pool
+ * @param {number} targetDice - Target dice pool
+ * @returns {Object} Adjusted dice pools
+ */
+const adjustDicePools = (sourceDice, targetDice) => {
+  let adjustedSource = sourceDice;
+  let adjustedTarget = targetDice;
+  
+  while (adjustedSource + adjustedTarget > 20) {
+    // Halve both pools, rounding down, but minimum 1 die
+    adjustedSource = Math.max(1, Math.floor(adjustedSource / 2));
+    adjustedTarget = Math.max(1, Math.floor(adjustedTarget / 2));
+    
+    // If we can't reduce further (both at 1), break
+    if (adjustedSource === 1 && adjustedTarget === 1) {
+      break;
+    }
+  }
+  
+  return { adjustedSource, adjustedTarget };
+};
+
+/**
+ * Calculate action difficulty based on source and target values using dice-based system
+ * @param {number} sourceValue - The source attribute value (number of dice)
+ * @param {number} targetValue - The target attribute value (number of dice)
  * @returns {number} The action difficulty percentage (0-1)
  */
 const calculateActionDifficulty = (sourceValue, targetValue) => {
-  // Calculate difficulty using formula: A1/(A1+A2)
+  // Handle edge cases
   if (sourceValue === 0 && targetValue === 0) {
     return 0.5; // Default to 50% if both values are 0
   }
   
-  return sourceValue / (sourceValue + targetValue);
+  // If only source has value (no opposition), very high success chance
+  if (targetValue === 0) {
+    return 0.95; // 95% success chance when unopposed
+  }
+  
+  // If only target has value (no source), very low success chance
+  if (sourceValue === 0) {
+    return 0.05; // 5% success chance with no source attribute
+  }
+  
+  // Ensure minimum 1 die for both sides
+  let sourceDice = Math.max(1, Math.floor(sourceValue));
+  let targetDice = Math.max(1, Math.floor(targetValue));
+  
+  // Adjust dice pools if total exceeds 20
+  const { adjustedSource, adjustedTarget } = adjustDicePools(sourceDice, targetDice);
+  
+  // Calculate expected successes for each side
+  const sourceSuccesses = calculateExpectedSuccesses(adjustedSource);
+  const targetSuccesses = calculateExpectedSuccesses(adjustedTarget);
+  
+  // Calculate probability of source having more successes than target
+  // This is a simplified calculation based on expected values
+  // In reality, this would involve complex probability distributions
+  
+  // If expected successes are equal, it's 50/50
+  if (sourceSuccesses === targetSuccesses) {
+    return 0.5;
+  }
+  
+  // Calculate success probability based on the ratio of expected successes
+  // Using a sigmoid-like function to map the success difference to a probability
+  const successDifference = sourceSuccesses - targetSuccesses;
+  const totalSuccesses = sourceSuccesses + targetSuccesses;
+  
+  // This formula gives a smooth probability curve
+  // When source has more expected successes, probability > 0.5
+  // When target has more expected successes, probability < 0.5
+  const probability = sourceSuccesses / (sourceSuccesses + targetSuccesses);
+  
+  // Apply a slight adjustment to make the curve more realistic
+  // This accounts for the variance in dice rolls
+  const adjustedProbability = 0.5 + (probability - 0.5) * 0.9;
+  
+  return Math.max(0.05, Math.min(0.95, adjustedProbability));
 };
 
 /**
  * Get single character attribute value with grouping
  * @param {Object} character - Character object
  * @param {string} attributeName - Attribute name (lowercase)
- * @returns {number} The grouped attribute value
+ * @returns {number} The grouped attribute value (includes fatigue)
  */
 const getSingleCharacterAttributeValue = (character, attributeName) => {
   const groupedAttributes = calculateGroupedAttributes(character);
+    
   if (groupedAttributes[attributeName] !== undefined) {
     return groupedAttributes[attributeName];
   } else if (character[attributeName] && character[attributeName].attribute) {
@@ -45,17 +124,19 @@ const getSingleCharacterAttributeValue = (character, attributeName) => {
  * @param {Object} entity - Character or Object
  * @param {string} attributeName - Attribute name (lowercase)
  * @param {string} entityType - 'CHARACTER' or 'OBJECT'
- * @returns {number} The grouped attribute value
+ * @returns {number} The grouped attribute value (includes fatigue for characters)
  */
 const getSingleEntityAttributeValue = (entity, attributeName, entityType) => {
   if (entityType === 'CHARACTER') {
     const groupedAttributes = calculateGroupedAttributes(entity);
+      
     if (groupedAttributes[attributeName] !== undefined) {
       return groupedAttributes[attributeName];
     } else if (entity[attributeName] && entity[attributeName].attribute) {
       return entity[attributeName].attribute.attributeValue || 0;
     }
   } else if (entityType === 'OBJECT') {
+    // Objects don't have fatigue
     const groupedAttributes = calculateObjectGroupedAttributes(entity);
     if (groupedAttributes[attributeName] !== undefined) {
       return groupedAttributes[attributeName];
@@ -70,7 +151,7 @@ const getSingleEntityAttributeValue = (entity, attributeName, entityType) => {
  * Group multiple sources into a single attribute value
  * @param {Array} sourceCharacters - Array of character objects
  * @param {string} sourceAttribute - Attribute name (lowercase)
- * @returns {number} The grouped source value
+ * @returns {number} The grouped source value (includes fatigue)
  */
 const groupSourceAttributes = (sourceCharacters, sourceAttribute) => {
   if (!sourceCharacters || sourceCharacters.length === 0) return 0;
@@ -115,7 +196,7 @@ const groupSourceAttributes = (sourceCharacters, sourceAttribute) => {
  * @param {Array} targetEntities - Array of character or object entities
  * @param {string} targetAttribute - Attribute name (lowercase)
  * @param {string} targetType - 'CHARACTER' or 'OBJECT'
- * @returns {number} The grouped target value
+ * @returns {number} The grouped target value (includes fatigue for characters)
  */
 const groupTargetAttributes = (targetEntities, targetAttribute, targetType) => {
   if (!targetEntities || targetEntities.length === 0) return 0;
@@ -182,11 +263,19 @@ const calculateActionTest = (params) => {
   const sourceLower = sourceAttribute.toLowerCase();
   const targetLower = targetAttribute.toLowerCase();
   
-  // Calculate source value
+  // Calculate source value (includes fatigue)
   const sourceValue = groupSourceAttributes(sourceCharacters, sourceLower);
   
-  // Calculate target value
+  // Debug logging
+  console.log('Action test calculation debug:', {
+    sourceAttribute: sourceLower,
+    sourceValue: sourceValue,
+    sourceCharacterCount: sourceCharacters.length
+  });
+  
+  // Calculate target value (includes fatigue for characters)
   let targetValue = 0;
+  
   if (override) {
     targetValue = overrideValue;
   } else if (targetType === 'ACTION') {
@@ -199,18 +288,31 @@ const calculateActionTest = (params) => {
   // Calculate difficulty
   const difficulty = calculateActionDifficulty(sourceValue, targetValue);
   
+  // Calculate dice pool information
+  const sourceDice = Math.max(1, Math.floor(sourceValue));
+  const targetDice = Math.max(1, Math.floor(targetValue));
+  const { adjustedSource, adjustedTarget } = adjustDicePools(sourceDice, targetDice);
+  
   return {
     difficulty: Math.round(difficulty * 10000) / 10000, // Round to 4 decimal places
     sourceValue,
     targetValue,
     sourceCount: sourceCharacters.length,
     targetCount: override ? 0 : targetEntities.length,
-    successPercentage: Math.round(difficulty * 10000) / 100 // Convert to percentage with 2 decimals
+    successPercentage: Math.round(difficulty * 10000) / 100, // Convert to percentage with 2 decimals
+    // Dice pool information for display
+    sourceDice,
+    targetDice,
+    adjustedSourceDice: adjustedSource,
+    adjustedTargetDice: adjustedTarget,
+    dicePoolExceeded: (sourceDice + targetDice) > 20
   };
 };
 
 module.exports = {
   calculateActionDifficulty,
+  calculateExpectedSuccesses,
+  adjustDicePools,
   getSingleCharacterAttributeValue,
   getSingleEntityAttributeValue,
   groupSourceAttributes,

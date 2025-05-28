@@ -262,7 +262,7 @@ const CharacterView = () => {
 
       <div className="character-sections">
         <div className="section-row">
-          <CharacterDetails character={character} />
+          <CharacterDetails character={character} onUpdate={refetch} />
         </div>
 
         <div className="section-row">
@@ -280,6 +280,7 @@ const CharacterView = () => {
             morale={character.morale}
             character={character}
             groupedAttributes={character.groupedAttributes}
+            onUpdate={refetch}
           />
         </div>
 

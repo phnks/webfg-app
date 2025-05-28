@@ -459,6 +459,11 @@ type ActionTestResult {
   sourceCount: Int!
   targetCount: Int!
   successPercentage: Float!
+  sourceDice: Int!
+  targetDice: Int!
+  adjustedSourceDice: Int!
+  adjustedTargetDice: Int!
+  dicePoolExceeded: Boolean!
 }
 
 input ActionTestInput {
