@@ -1,4 +1,5 @@
 {
+  "model": "us.anthropic.claude-opus-4-20250514-v1:0",
   "permissions": {
     "allow": [
       "Edit",
@@ -48,5 +49,18 @@
       "Bash(rg:*)",
       "mcp__discord__discord_send_message"
     ]
+  },
+  "env": {
+    "AWS_MAX_ATTEMPTS": "25",
+    "AWS_RETRY_MODE": "adaptive",
+    "DISCORD_BOT_TOKEN": "",
+    "GIT_USERNAME": "",
+    "GIT_TOKEN": "",
+    "GH_TOKEN": "",
+    "AWS_ACCESS_KEY_ID": "",
+    "AWS_SECRET_ACCESS_KEY": "",
+    "AWS_REGION": "",
+    "AWS_ACCOUNT_ID": "",
+    "AWS_DEFAULT_REGION": ""
   }
 }
