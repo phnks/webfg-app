@@ -64,7 +64,10 @@ const CharacterAttributesBackend = ({
         name: character.name,
         characterCategory: character.characterCategory,
         will: character.will || 0,
-        values: character.values || [],
+        values: character.values ? character.values.map(value => ({
+          valueName: value.valueName,
+          valueType: value.valueType
+        })) : [],
         special: character.special || "",
         actionIds: character.actionIds || [],
         inventoryIds: character.inventoryIds || [],
