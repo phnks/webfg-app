@@ -31,16 +31,15 @@ const adjustDicePools = (sourceDice, targetDice) => {
   
   while (adjustedSource + adjustedTarget > 20) {
     // Halve both pools, rounding down, but minimum 0 dice
-    const newSource = Math.max(0, Math.floor(adjustedSource / 2));
-    const newTarget = Math.max(0, Math.floor(adjustedTarget / 2));
+    adjustedSource = Math.max(0, Math.floor(adjustedSource / 2));
+    adjustedTarget = Math.max(0, Math.floor(adjustedTarget / 2));
     
-    // If halving would result in both pools being 0, stop before this iteration
-    if (newSource === 0 && newTarget === 0) {
+    // If either pool is now 0 and total still > 20, do one more halving and stop
+    if ((adjustedSource === 0 || adjustedTarget === 0) && adjustedSource + adjustedTarget > 20) {
+      adjustedSource = Math.max(0, Math.floor(adjustedSource / 2));
+      adjustedTarget = Math.max(0, Math.floor(adjustedTarget / 2));
       break;
     }
-    
-    adjustedSource = newSource;
-    adjustedTarget = newTarget;
   }
   
   return { adjustedSource, adjustedTarget };
