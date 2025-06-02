@@ -157,7 +157,7 @@ const CharacterAttributesBackend = ({
                       title={attr.data.attribute.isGrouped ? 'This attribute participates in grouping' : 'This attribute does not participate in grouping'}
                       style={{ marginLeft: '6px', fontSize: '0.8em', opacity: 0.7 }}
                     >
-                      {attr.data.attribute.isGrouped ? '☑️' : '☐'}
+                      {attr.data.attribute.isGrouped ? '☑️' : '❌'}
                     </span>
                     {shouldShowGroupedValue && (
                       <span 

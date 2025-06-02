@@ -25,7 +25,7 @@ const AttributeBreakdownPopup = ({ breakdown, attributeName, onClose }) => {
                   <span className="attribute-details">
                     {step.entityType === 'fatigue' ? 
                       `Reduces by ${Math.abs(step.attributeValue)}` : 
-                      `${step.attributeValue} ${step.isGrouped ? '☑️' : '☐'}`
+                      `${step.attributeValue} ${step.isGrouped ? '☑️' : '❌'}`
                     }
                   </span>
                 </div>

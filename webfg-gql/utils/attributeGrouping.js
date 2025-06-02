@@ -89,14 +89,28 @@ const calculateGroupedAttributes = (character) => {
     // Store fatigue for later application
     const fatigue = charAttrInfo.fatigue || 0;
     
-    // If character attribute is not grouped, just apply fatigue and return
-    if (!charAttrInfo.isGrouped) {
+    // Check if there's any equipment with this attribute that wants to be grouped
+    let hasGroupableEquipment = false;
+    if (character.equipment && character.equipment.length > 0) {
+      hasGroupableEquipment = character.equipment.some(item => {
+        const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+        return itemAttrInfo && itemAttrInfo.isGrouped;
+      });
+    }
+    
+    // If character attribute is not grouped AND no equipment wants to group, just apply fatigue and return
+    if (!charAttrInfo.isGrouped && !hasGroupableEquipment) {
       groupedAttributes[attributeName] = Math.max(1, charAttrInfo.value - fatigue);
       return;
     }
     
-    // Collect all values for grouping (character + equipment)
-    const valuesToGroup = [charAttrInfo.value]; // Start with character's base value
+    // Collect all values for grouping
+    const valuesToGroup = [];
+    
+    // Only include character's value if they have isGrouped=true
+    if (charAttrInfo.isGrouped) {
+      valuesToGroup.push(charAttrInfo.value);
+    }
     
     if (character.equipment && character.equipment.length > 0) {
       character.equipment.forEach(item => {
@@ -113,6 +127,12 @@ const calculateGroupedAttributes = (character) => {
           valuesToGroup.push(itemValue);
         }
       });
+    }
+    
+    // If no values to group (shouldn't happen with our logic above), use character's base value
+    if (valuesToGroup.length === 0) {
+      groupedAttributes[attributeName] = Math.max(1, charAttrInfo.value - fatigue);
+      return;
     }
     
     // Sort values in descending order (highest first)

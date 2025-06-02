@@ -91,7 +91,7 @@ const ObjectAttributesBackend = ({ object }) => {
                     title={attr.data.isGrouped ? 'This attribute participates in grouping' : 'This attribute does not participate in grouping'}
                     style={{ marginLeft: '6px', fontSize: '0.8em', opacity: 0.7 }}
                   >
-                    {attr.data.isGrouped ? '☑️' : '☐'}
+                    {attr.data.isGrouped ? '☑️' : '❌'}
                   </span>
                   {hasGroupedValue && (
                     <span 

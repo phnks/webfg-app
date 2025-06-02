@@ -25,8 +25,25 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
   const charAttrInfo = extractAttributeInfo(character[attributeName]);
   if (!charAttrInfo) return breakdown;
   
-  // If character attribute is not grouped, no further grouping occurs but fatigue still applies
-  if (!charAttrInfo.isGrouped) {
+  // Check if there's any equipment with this attribute that wants to be grouped
+  let hasGroupableEquipment = false;
+  const equipmentAttributes = [];
+  
+  if (character.equipment && character.equipment.length > 0) {
+    character.equipment.forEach(item => {
+      const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+      if (itemAttrInfo && itemAttrInfo.isGrouped) {
+        hasGroupableEquipment = true;
+        equipmentAttributes.push({
+          name: item.name,
+          ...itemAttrInfo
+        });
+      }
+    });
+  }
+  
+  // If character attribute is not grouped AND no equipment wants to group, no further grouping occurs but fatigue still applies
+  if (!charAttrInfo.isGrouped && !hasGroupableEquipment) {
     let currentValue = charAttrInfo.value;
     let stepNumber = 1;
     
@@ -114,15 +131,17 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
   // Get grouped values for each entity
   const allEntities = [];
   
-  // Add character with base value (since we're calculating character's grouping)
-  const characterEntity = {
-    name: character.name || 'Character',
-    entityType: 'character',
-    attributeValue: charAttrInfo.value,
-    isGrouped: charAttrInfo.isGrouped,
-    groupedValue: charAttrInfo.value
-  };
-  allEntities.push(characterEntity);
+  // Add character with base value only if they have isGrouped=true
+  if (charAttrInfo.isGrouped) {
+    const characterEntity = {
+      name: character.name || 'Character',
+      entityType: 'character',
+      attributeValue: charAttrInfo.value,
+      isGrouped: charAttrInfo.isGrouped,
+      groupedValue: charAttrInfo.value
+    };
+    allEntities.push(characterEntity);
+  }
   
   // Add equipment with their grouped values from the character's grouped attributes
   if (character.equipment && character.equipment.length > 0) {
@@ -149,14 +168,65 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     });
   }
   
+  // If no entities are being grouped, return the character value with fatigue
+  if (allEntities.length === 0) {
+    let currentValue = charAttrInfo.value;
+    let stepNumber = 1;
+    
+    // Show character value (not grouped)
+    breakdown.push({
+      step: stepNumber,
+      entityName: character.name || 'Character',
+      entityType: 'character',
+      attributeValue: charAttrInfo.value,
+      isGrouped: charAttrInfo.isGrouped,
+      runningTotal: currentValue,
+      formula: 'Not grouped'
+    });
+    
+    // Add fatigue step if character has fatigue for this attribute
+    const fatigue = character[attributeName]?.fatigue || 0;
+    if (fatigue > 0) {
+      const previousValue = currentValue;
+      currentValue = Math.max(1, currentValue - fatigue);
+      
+      stepNumber++;
+      breakdown.push({
+        step: stepNumber,
+        entityName: 'Fatigue Effect',
+        entityType: 'fatigue',
+        attributeValue: -fatigue,
+        isGrouped: false,
+        runningTotal: Math.round(currentValue * 100) / 100,
+        formula: `${previousValue} - ${fatigue} (minimum 1)`
+      });
+    }
+    
+    return breakdown;
+  }
+  
   // Sort by grouped value in descending order (highest first)
   allEntities.sort((a, b) => b.groupedValue - a.groupedValue);
   
+  // If character has isGrouped=false but equipment is being grouped, show character first (not participating)
+  let stepNumber = 1;
+  if (!charAttrInfo.isGrouped && allEntities.length > 0) {
+    breakdown.push({
+      step: stepNumber,
+      entityName: character.name || 'Character',
+      entityType: 'character',
+      attributeValue: charAttrInfo.value,
+      isGrouped: charAttrInfo.isGrouped,
+      runningTotal: charAttrInfo.value,
+      formula: 'Not participating in grouping'
+    });
+    stepNumber++;
+  }
+  
   // Start with the highest grouped value and build breakdown from sorted entities
   let currentValue = allEntities[0].groupedValue;
-  let stepNumber = 1;
   
-  // Add the first (highest) entity as step 1
+  // Add the first (highest) entity
   breakdown.push({
     step: stepNumber,
     entityName: allEntities[0].name,
