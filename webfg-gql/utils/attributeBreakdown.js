@@ -25,8 +25,8 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
   const charAttrInfo = extractAttributeInfo(character[attributeName]);
   if (!charAttrInfo) return breakdown;
   
-  // If character attribute is NONE, no further grouping occurs but fatigue still applies
-  if (charAttrInfo.type === 'NONE') {
+  // If character attribute is not grouped, no further grouping occurs but fatigue still applies
+  if (!charAttrInfo.isGrouped) {
     let currentValue = charAttrInfo.value;
     let stepNumber = 1;
     
@@ -35,7 +35,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
       entityName: character.name || 'Character',
       entityType: 'character',
       attributeValue: charAttrInfo.value,
-      attributeType: charAttrInfo.type,
+      isGrouped: charAttrInfo.isGrouped,
       runningTotal: currentValue,
       formula: null
     });
@@ -52,7 +52,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
         entityName: 'Fatigue Effect',
         entityType: 'fatigue',
         attributeValue: -fatigue,
-        attributeType: 'HINDER',
+        isGrouped: false,
         runningTotal: Math.round(currentValue * 100) / 100,
         formula: `${previousValue} - ${fatigue} (minimum 1)`
       });
@@ -61,12 +61,12 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     return breakdown;
   }
   
-  // Collect equipment attributes (excluding NONE types)
+  // Collect equipment attributes (excluding non-grouped types)
   const equipmentAttributes = [];
   if (character.equipment && character.equipment.length > 0) {
     character.equipment.forEach(item => {
       const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-      if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
+      if (itemAttrInfo && itemAttrInfo.isGrouped) {
         equipmentAttributes.push({
           name: item.name,
           ...itemAttrInfo
@@ -85,7 +85,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
       entityName: character.name || 'Character',
       entityType: 'character',
       attributeValue: charAttrInfo.value,
-      attributeType: charAttrInfo.type,
+      isGrouped: charAttrInfo.isGrouped,
       runningTotal: currentValue,
       formula: null
     });
@@ -102,7 +102,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
         entityName: 'Fatigue Effect',
         entityType: 'fatigue',
         attributeValue: -fatigue,
-        attributeType: 'HINDER',
+        isGrouped: false,
         runningTotal: Math.round(currentValue * 100) / 100,
         formula: `${previousValue} - ${fatigue} (minimum 1)`
       });
@@ -119,7 +119,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     name: character.name || 'Character',
     entityType: 'character',
     attributeValue: charAttrInfo.value,
-    attributeType: charAttrInfo.type,
+    isGrouped: charAttrInfo.isGrouped,
     groupedValue: charAttrInfo.value
   };
   allEntities.push(characterEntity);
@@ -128,7 +128,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
   if (character.equipment && character.equipment.length > 0) {
     character.equipment.forEach(item => {
       const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-      if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
+      if (itemAttrInfo && itemAttrInfo.isGrouped) {
         // Use the final grouped value that the character view displays
         // Since we know the character's main display is correct, we can work backwards
         // For now, let's use a simple approach: get the grouped value from main calculation
@@ -142,7 +142,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
           name: item.name,
           entityType: 'equipment',
           attributeValue: itemAttrInfo.value,
-          attributeType: itemAttrInfo.type,
+          isGrouped: itemAttrInfo.isGrouped,
           groupedValue: itemGroupedValue
         });
       }
@@ -162,16 +162,33 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     entityName: allEntities[0].name,
     entityType: allEntities[0].entityType,
     attributeValue: allEntities[0].groupedValue,
-    attributeType: allEntities[0].attributeType,
+    isGrouped: allEntities[0].isGrouped,
     runningTotal: currentValue,
     formula: null
   });
   
-  // Apply grouping formula for each subsequent entity in descending order
+  // Apply new weighted average grouping formula for each subsequent entity
+  const allGroupedValues = allEntities.map(e => e.groupedValue);
+  
   for (let i = 1; i < allEntities.length; i++) {
     const entity = allEntities[i];
     const previousValue = currentValue;
-    currentValue = calculateGroupingFormula(currentValue, entity.groupedValue, entity.attributeType);
+    
+    // Use the new weighted average formula
+    const valuesUpToHere = allGroupedValues.slice(0, i + 1);
+    const A1 = valuesUpToHere[0]; // highest value
+    let sum = A1;
+    
+    for (let j = 1; j < valuesUpToHere.length; j++) {
+      const Ai = valuesUpToHere[j];
+      if (A1 > 0) {
+        sum += Ai * (0.1 + Ai / A1);
+      } else {
+        sum += Ai * 0.1;
+      }
+    }
+    
+    currentValue = sum / valuesUpToHere.length;
     
     stepNumber++;
     breakdown.push({
@@ -179,11 +196,9 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
       entityName: entity.name,
       entityType: entity.entityType,
       attributeValue: entity.groupedValue,
-      attributeType: entity.attributeType,
+      isGrouped: entity.isGrouped,
       runningTotal: Math.round(currentValue * 100) / 100,
-      formula: entity.attributeType === 'HELP' 
-        ? `(${previousValue} + ${previousValue} × (1 + ${entity.groupedValue}/${previousValue})) / 2`
-        : `(${previousValue} + ${previousValue} × (1 - ${entity.groupedValue}/${previousValue})) / 2`
+      formula: `Weighted Average: (${A1} + ${entity.groupedValue}*(0.1+${entity.groupedValue}/${A1})) / ${valuesUpToHere.length}`
     });
   }
   
@@ -199,7 +214,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
       entityName: 'Fatigue Effect',
       entityType: 'fatigue',
       attributeValue: -fatigue,
-      attributeType: 'HINDER', // Use HINDER since fatigue reduces the value
+      isGrouped: false, // Fatigue doesn't participate in grouping
       runningTotal: Math.round(currentValue * 100) / 100,
       formula: `${previousValue} - ${fatigue} (minimum 1)`
     });
@@ -228,22 +243,22 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
     entityName: object.name || 'Object',
     entityType: 'object',
     attributeValue: objAttrInfo.value,
-    attributeType: objAttrInfo.type,
+    isGrouped: objAttrInfo.isGrouped,
     runningTotal: objAttrInfo.value,
     formula: null
   });
   
-  // If object attribute is NONE, no further grouping occurs
-  if (objAttrInfo.type === 'NONE') {
+  // If object attribute is not grouped, no further grouping occurs
+  if (!objAttrInfo.isGrouped) {
     return breakdown;
   }
   
-  // Collect equipment attributes (excluding NONE types)
+  // Collect equipment attributes (excluding non-grouped types)
   const equipmentAttributes = [];
   if (object.equipment && object.equipment.length > 0) {
     object.equipment.forEach(item => {
       const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-      if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
+      if (itemAttrInfo && itemAttrInfo.isGrouped) {
         equipmentAttributes.push({
           name: item.name,
           ...itemAttrInfo
@@ -265,7 +280,7 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
     name: object.name || 'Object',
     entityType: 'object',
     attributeValue: objAttrInfo.value,
-    attributeType: objAttrInfo.type,
+    isGrouped: objAttrInfo.isGrouped,
     groupedValue: objAttrInfo.value
   });
   
@@ -273,7 +288,7 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
   if (object.equipment && object.equipment.length > 0) {
     object.equipment.forEach(item => {
       const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-      if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
+      if (itemAttrInfo && itemAttrInfo.isGrouped) {
         // Calculate this equipment's own grouped value using calculateObjectGroupedAttributes
         const itemGroupedAttrs = calculateObjectGroupedAttributes(item);
         const itemGroupedValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
@@ -282,7 +297,7 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
           name: item.name,
           entityType: 'equipment',
           attributeValue: itemAttrInfo.value,
-          attributeType: itemAttrInfo.type,
+          isGrouped: itemAttrInfo.isGrouped,
           groupedValue: itemGroupedValue
         });
       }
@@ -296,11 +311,28 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
   let currentValue = allEntities[0].groupedValue;
   let stepNumber = 1;
   
-  // Apply grouping formula for each subsequent entity in descending order
+  // Apply new weighted average grouping formula for each subsequent entity
+  const allGroupedValues = allEntities.map(e => e.groupedValue);
+  
   for (let i = 1; i < allEntities.length; i++) {
     const entity = allEntities[i];
     const previousValue = currentValue;
-    currentValue = calculateGroupingFormula(currentValue, entity.groupedValue, entity.attributeType);
+    
+    // Use the new weighted average formula
+    const valuesUpToHere = allGroupedValues.slice(0, i + 1);
+    const A1 = valuesUpToHere[0]; // highest value
+    let sum = A1;
+    
+    for (let j = 1; j < valuesUpToHere.length; j++) {
+      const Ai = valuesUpToHere[j];
+      if (A1 > 0) {
+        sum += Ai * (0.1 + Ai / A1);
+      } else {
+        sum += Ai * 0.1;
+      }
+    }
+    
+    currentValue = sum / valuesUpToHere.length;
     
     stepNumber++;
     breakdown.push({
@@ -308,11 +340,9 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
       entityName: entity.name,
       entityType: entity.entityType,
       attributeValue: entity.groupedValue,
-      attributeType: entity.attributeType,
+      isGrouped: entity.isGrouped,
       runningTotal: Math.round(currentValue * 100) / 100,
-      formula: entity.attributeType === 'HELP' 
-        ? `(${previousValue} + ${previousValue} × (1 + ${entity.groupedValue}/${previousValue})) / 2`
-        : `(${previousValue} + ${previousValue} × (1 - ${entity.groupedValue}/${previousValue})) / 2`
+      formula: `Weighted Average: (${A1} + ${entity.groupedValue}*(0.1+${entity.groupedValue}/${A1})) / ${valuesUpToHere.length}`
     });
   }
   
