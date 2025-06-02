@@ -30,12 +30,14 @@ const adjustDicePools = (sourceDice, targetDice) => {
   let adjustedTarget = targetDice;
   
   while (adjustedSource + adjustedTarget > 20) {
-    // Halve both pools, rounding down, but minimum 1 die
-    adjustedSource = Math.max(1, Math.floor(adjustedSource / 2));
-    adjustedTarget = Math.max(1, Math.floor(adjustedTarget / 2));
+    // Halve both pools, rounding down, but minimum 0 dice
+    adjustedSource = Math.max(0, Math.floor(adjustedSource / 2));
+    adjustedTarget = Math.max(0, Math.floor(adjustedTarget / 2));
     
-    // If we can't reduce further (both at 1), break
-    if (adjustedSource === 1 && adjustedTarget === 1) {
+    // If either pool is now 0 and total still > 20, do one more halving and stop
+    if ((adjustedSource === 0 || adjustedTarget === 0) && adjustedSource + adjustedTarget > 20) {
+      adjustedSource = Math.max(0, Math.floor(adjustedSource / 2));
+      adjustedTarget = Math.max(0, Math.floor(adjustedTarget / 2));
       break;
     }
   }
