@@ -1,17 +1,11 @@
 type Attribute {
   attributeValue: Float!
-  attributeType: AttributeType!
+  isGrouped: Boolean!
 }
 
 input AttributeInput {
   attributeValue: Float!
-  attributeType: AttributeType!
-}
-
-enum AttributeType {
-  HELP
-  HINDER
-  NONE
+  isGrouped: Boolean!
 }
 
 enum AttributeName {
