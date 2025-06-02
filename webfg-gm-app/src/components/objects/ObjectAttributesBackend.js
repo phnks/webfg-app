@@ -85,7 +85,7 @@ const ObjectAttributesBackend = ({ object }) => {
               <div key={attr.name} className="detail-row">
                 <span>{attr.name}:</span>
                 <span>
-                  {originalValue} ({attr.data.attributeType})
+                  {originalValue} ({attr.data.isGrouped ? 'Grouped' : 'Not Grouped'})
                   {hasGroupedValue && (
                     <span 
                       className="grouped-value" 

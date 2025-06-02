@@ -85,7 +85,7 @@ const CharacterAttributesBackend = ({
           characterInput[attr] = {
             attribute: {
               attributeValue: character[attr].attribute.attributeValue,
-              attributeType: character[attr].attribute.attributeType
+              isGrouped: character[attr].attribute.isGrouped
             },
             fatigue: attr === attributeKey ? newFatigue : (character[attr].fatigue || 0)
           };
@@ -151,7 +151,7 @@ const CharacterAttributesBackend = ({
                 <div className="attribute-name">{attr.name}</div>
                 <div className="attribute-info">
                   <div className="attribute-value">
-                    {originalValue} ({attr.data.attribute.attributeType})
+                    {originalValue} ({attr.data.attribute.isGrouped ? 'Grouped' : 'Not Grouped'})
                     {shouldShowGroupedValue && (
                       <span 
                         className="grouped-value" 
