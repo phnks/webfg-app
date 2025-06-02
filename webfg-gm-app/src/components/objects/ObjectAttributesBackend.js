@@ -85,14 +85,21 @@ const ObjectAttributesBackend = ({ object }) => {
               <div key={attr.name} className="detail-row">
                 <span>{attr.name}:</span>
                 <span>
-                  {originalValue} ({attr.data.isGrouped ? 'Grouped' : 'Not Grouped'})
+                  {originalValue} 
+                  <span 
+                    className="grouping-indicator" 
+                    title={attr.data.isGrouped ? 'This attribute participates in grouping' : 'This attribute does not participate in grouping'}
+                    style={{ marginLeft: '6px', fontSize: '0.8em', opacity: 0.7 }}
+                  >
+                    {attr.data.isGrouped ? '☑️' : '☐'}
+                  </span>
                   {hasGroupedValue && (
                     <span 
                       className="grouped-value" 
-                      style={getGroupedValueStyle(originalValue, groupedValue)}
+                      style={getGroupedValueStyle(originalValue, Math.round(groupedValue))}
                       title="Grouped value with equipment"
                     >
-                      {' → '}{groupedValue}
+                      {' → '}{Math.round(groupedValue)}
                       {hasEquipment && (
                         <button
                           className="info-icon"
