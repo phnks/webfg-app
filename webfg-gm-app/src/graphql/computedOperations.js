@@ -23,7 +23,7 @@ export const ATTRIBUTE_BREAKDOWN_FRAGMENT = gql`
     entityName
     entityType
     attributeValue
-    attributeType
+    isGrouped
     runningTotal
     formula
   }
@@ -41,17 +41,17 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       values { valueName valueType }
       
       # Character attributes with fatigue
-      lethality { attribute { attributeValue attributeType } fatigue }
-      armour { attribute { attributeValue attributeType } fatigue }
-      endurance { attribute { attributeValue attributeType } fatigue }
-      strength { attribute { attributeValue attributeType } fatigue }
-      dexterity { attribute { attributeValue attributeType } fatigue }
-      agility { attribute { attributeValue attributeType } fatigue }
-      perception { attribute { attributeValue attributeType } fatigue }
-      charisma { attribute { attributeValue attributeType } fatigue }
-      intelligence { attribute { attributeValue attributeType } fatigue }
-      resolve { attribute { attributeValue attributeType } fatigue }
-      morale { attribute { attributeValue attributeType } fatigue }
+      lethality { attribute { attributeValue isGrouped } fatigue }
+      armour { attribute { attributeValue isGrouped } fatigue }
+      endurance { attribute { attributeValue isGrouped } fatigue }
+      strength { attribute { attributeValue isGrouped } fatigue }
+      dexterity { attribute { attributeValue isGrouped } fatigue }
+      agility { attribute { attributeValue isGrouped } fatigue }
+      perception { attribute { attributeValue isGrouped } fatigue }
+      charisma { attribute { attributeValue isGrouped } fatigue }
+      intelligence { attribute { attributeValue isGrouped } fatigue }
+      resolve { attribute { attributeValue isGrouped } fatigue }
+      morale { attribute { attributeValue isGrouped } fatigue }
       
       # Computed grouped attributes
       groupedAttributes {
@@ -66,17 +66,17 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       equipmentIds
       equipment { 
         objectId name objectCategory
-        lethality { attributeValue attributeType }
-        armour { attributeValue attributeType }
-        endurance { attributeValue attributeType }
-        strength { attributeValue attributeType }
-        dexterity { attributeValue attributeType }
-        agility { attributeValue attributeType }
-        perception { attributeValue attributeType }
-        charisma { attributeValue attributeType }
-        intelligence { attributeValue attributeType }
-        resolve { attributeValue attributeType }
-        morale { attributeValue attributeType }
+        lethality { attributeValue isGrouped }
+        armour { attributeValue isGrouped }
+        endurance { attributeValue isGrouped }
+        strength { attributeValue isGrouped }
+        dexterity { attributeValue isGrouped }
+        agility { attributeValue isGrouped }
+        perception { attributeValue isGrouped }
+        charisma { attributeValue isGrouped }
+        intelligence { attributeValue isGrouped }
+        resolve { attributeValue isGrouped }
+        morale { attributeValue isGrouped }
         
         # Equipment can also have grouped attributes
         groupedAttributes {
@@ -85,17 +85,17 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
         
         equipment { 
           objectId name objectCategory
-          lethality { attributeValue attributeType }
-          armour { attributeValue attributeType }
-          endurance { attributeValue attributeType }
-          strength { attributeValue attributeType }
-          dexterity { attributeValue attributeType }
-          agility { attributeValue attributeType }
-          perception { attributeValue attributeType }
-          charisma { attributeValue attributeType }
-          intelligence { attributeValue attributeType }
-          resolve { attributeValue attributeType }
-          morale { attributeValue attributeType }
+          lethality { attributeValue isGrouped }
+          armour { attributeValue isGrouped }
+          endurance { attributeValue isGrouped }
+          strength { attributeValue isGrouped }
+          dexterity { attributeValue isGrouped }
+          agility { attributeValue isGrouped }
+          perception { attributeValue isGrouped }
+          charisma { attributeValue isGrouped }
+          intelligence { attributeValue isGrouped }
+          resolve { attributeValue isGrouped }
+          morale { attributeValue isGrouped }
         }
       }
     }
@@ -126,17 +126,17 @@ export const GET_OBJECT_WITH_GROUPED = gql`
       objectCategory
       
       # Object attributes
-      lethality { attributeValue attributeType }
-      armour { attributeValue attributeType }
-      endurance { attributeValue attributeType }
-      strength { attributeValue attributeType }
-      dexterity { attributeValue attributeType }
-      agility { attributeValue attributeType }
-      perception { attributeValue attributeType }
-      charisma { attributeValue attributeType }
-      intelligence { attributeValue attributeType }
-      resolve { attributeValue attributeType }
-      morale { attributeValue attributeType }
+      lethality { attributeValue isGrouped }
+      armour { attributeValue isGrouped }
+      endurance { attributeValue isGrouped }
+      strength { attributeValue isGrouped }
+      dexterity { attributeValue isGrouped }
+      agility { attributeValue isGrouped }
+      perception { attributeValue isGrouped }
+      charisma { attributeValue isGrouped }
+      intelligence { attributeValue isGrouped }
+      resolve { attributeValue isGrouped }
+      morale { attributeValue isGrouped }
       
       # Computed grouped attributes
       groupedAttributes {
@@ -147,17 +147,17 @@ export const GET_OBJECT_WITH_GROUPED = gql`
       equipmentIds
       equipment { 
         objectId name objectCategory
-        lethality { attributeValue attributeType }
-        armour { attributeValue attributeType }
-        endurance { attributeValue attributeType }
-        strength { attributeValue attributeType }
-        dexterity { attributeValue attributeType }
-        agility { attributeValue attributeType }
-        perception { attributeValue attributeType }
-        charisma { attributeValue attributeType }
-        intelligence { attributeValue attributeType }
-        resolve { attributeValue attributeType }
-        morale { attributeValue attributeType }
+        lethality { attributeValue isGrouped }
+        armour { attributeValue isGrouped }
+        endurance { attributeValue isGrouped }
+        strength { attributeValue isGrouped }
+        dexterity { attributeValue isGrouped }
+        agility { attributeValue isGrouped }
+        perception { attributeValue isGrouped }
+        charisma { attributeValue isGrouped }
+        intelligence { attributeValue isGrouped }
+        resolve { attributeValue isGrouped }
+        morale { attributeValue isGrouped }
         
         # Equipment can also have grouped attributes
         groupedAttributes {
@@ -208,17 +208,17 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
     listCharacters {
       characterId
       name
-      lethality { attribute { attributeValue attributeType } fatigue }
-      armour { attribute { attributeValue attributeType } fatigue }
-      endurance { attribute { attributeValue attributeType } fatigue }
-      strength { attribute { attributeValue attributeType } fatigue }
-      dexterity { attribute { attributeValue attributeType } fatigue }
-      agility { attribute { attributeValue attributeType } fatigue }
-      perception { attribute { attributeValue attributeType } fatigue }
-      charisma { attribute { attributeValue attributeType } fatigue }
-      intelligence { attribute { attributeValue attributeType } fatigue }
-      resolve { attribute { attributeValue attributeType } fatigue }
-      morale { attribute { attributeValue attributeType } fatigue }
+      lethality { attribute { attributeValue isGrouped } fatigue }
+      armour { attribute { attributeValue isGrouped } fatigue }
+      endurance { attribute { attributeValue isGrouped } fatigue }
+      strength { attribute { attributeValue isGrouped } fatigue }
+      dexterity { attribute { attributeValue isGrouped } fatigue }
+      agility { attribute { attributeValue isGrouped } fatigue }
+      perception { attribute { attributeValue isGrouped } fatigue }
+      charisma { attribute { attributeValue isGrouped } fatigue }
+      intelligence { attribute { attributeValue isGrouped } fatigue }
+      resolve { attribute { attributeValue isGrouped } fatigue }
+      morale { attribute { attributeValue isGrouped } fatigue }
       
       # Computed grouped attributes
       groupedAttributes {
@@ -227,17 +227,17 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
       
       equipment { 
         objectId name objectCategory
-        lethality { attributeValue attributeType }
-        armour { attributeValue attributeType }
-        endurance { attributeValue attributeType }
-        strength { attributeValue attributeType }
-        dexterity { attributeValue attributeType }
-        agility { attributeValue attributeType }
-        perception { attributeValue attributeType }
-        charisma { attributeValue attributeType }
-        intelligence { attributeValue attributeType }
-        resolve { attributeValue attributeType }
-        morale { attributeValue attributeType }
+        lethality { attributeValue isGrouped }
+        armour { attributeValue isGrouped }
+        endurance { attributeValue isGrouped }
+        strength { attributeValue isGrouped }
+        dexterity { attributeValue isGrouped }
+        agility { attributeValue isGrouped }
+        perception { attributeValue isGrouped }
+        charisma { attributeValue isGrouped }
+        intelligence { attributeValue isGrouped }
+        resolve { attributeValue isGrouped }
+        morale { attributeValue isGrouped }
         
         groupedAttributes {
           ...GroupedAttributesFields
@@ -245,17 +245,17 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
         
         equipment { 
           objectId name objectCategory
-          lethality { attributeValue attributeType }
-          armour { attributeValue attributeType }
-          endurance { attributeValue attributeType }
-          strength { attributeValue attributeType }
-          dexterity { attributeValue attributeType }
-          agility { attributeValue attributeType }
-          perception { attributeValue attributeType }
-          charisma { attributeValue attributeType }
-          intelligence { attributeValue attributeType }
-          resolve { attributeValue attributeType }
-          morale { attributeValue attributeType }
+          lethality { attributeValue isGrouped }
+          armour { attributeValue isGrouped }
+          endurance { attributeValue isGrouped }
+          strength { attributeValue isGrouped }
+          dexterity { attributeValue isGrouped }
+          agility { attributeValue isGrouped }
+          perception { attributeValue isGrouped }
+          charisma { attributeValue isGrouped }
+          intelligence { attributeValue isGrouped }
+          resolve { attributeValue isGrouped }
+          morale { attributeValue isGrouped }
         }
       }
       actionIds
@@ -274,17 +274,17 @@ export const LIST_OBJECTS_WITH_GROUPED = gql`
       objectCategory
       
       # Object attributes
-      lethality { attributeValue attributeType }
-      armour { attributeValue attributeType }
-      endurance { attributeValue attributeType }
-      strength { attributeValue attributeType }
-      dexterity { attributeValue attributeType }
-      agility { attributeValue attributeType }
-      perception { attributeValue attributeType }
-      charisma { attributeValue attributeType }
-      intelligence { attributeValue attributeType }
-      resolve { attributeValue attributeType }
-      morale { attributeValue attributeType }
+      lethality { attributeValue isGrouped }
+      armour { attributeValue isGrouped }
+      endurance { attributeValue isGrouped }
+      strength { attributeValue isGrouped }
+      dexterity { attributeValue isGrouped }
+      agility { attributeValue isGrouped }
+      perception { attributeValue isGrouped }
+      charisma { attributeValue isGrouped }
+      intelligence { attributeValue isGrouped }
+      resolve { attributeValue isGrouped }
+      morale { attributeValue isGrouped }
       
       # Computed grouped attributes
       groupedAttributes {

@@ -1,17 +1,11 @@
 type Attribute {
   attributeValue: Float!
-  attributeType: AttributeType!
+  isGrouped: Boolean!
 }
 
 input AttributeInput {
   attributeValue: Float!
-  attributeType: AttributeType!
-}
-
-enum AttributeType {
-  HELP
-  HINDER
-  NONE
+  isGrouped: Boolean!
 }
 
 enum AttributeName {
@@ -447,7 +441,7 @@ type AttributeBreakdownStep {
   entityName: String!
   entityType: String!
   attributeValue: Float!
-  attributeType: AttributeType!
+  isGrouped: Boolean!
   runningTotal: Float!
   formula: String
 }

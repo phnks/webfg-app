@@ -19,7 +19,7 @@ type AttributeBreakdownStep {
   entityName: String!
   entityType: String!
   attributeValue: Float!
-  attributeType: AttributeType!
+  isGrouped: Boolean!
   runningTotal: Float!
   formula: String
 }

@@ -16,21 +16,21 @@ const testQuery = JSON.stringify({
         lethality {
           attribute {
             attributeValue
-            attributeType
+            isGrouped
           }
           fatigue
         }
         armour {
           attribute {
             attributeValue
-            attributeType
+            isGrouped
           }
           fatigue
         }
         strength {
           attribute {
             attributeValue
-            attributeType
+            isGrouped
           }
           fatigue
         }

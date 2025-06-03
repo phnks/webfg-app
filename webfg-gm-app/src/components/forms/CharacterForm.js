@@ -42,7 +42,7 @@ const CHARACTER_CATEGORIES = [
   'ICER', 'DAXMC', 'QRTIS', 'TYVIR'
 ];
 
-const ATTRIBUTE_TYPES = ['HELP', 'HINDER', 'NONE'];
+// Removed ATTRIBUTE_TYPES as we now use a simple boolean isGrouped field
 
 const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => {
   const navigate = useNavigate();
@@ -59,17 +59,17 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     characterCategory: "HUMAN",
     will: 10,
     values: [],
-    lethality: { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-    armour: { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-    endurance: { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-    strength: { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-    dexterity: { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-    agility: { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-    perception: { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-    charisma: { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-    intelligence: { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-    resolve: { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-    morale: { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
+    lethality: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+    armour: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+    endurance: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+    strength: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+    dexterity: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+    agility: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+    perception: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+    charisma: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+    intelligence: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+    resolve: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+    morale: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
     special: [],
     actionIds: [],
     inventoryIds: [],
@@ -84,17 +84,17 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         characterCategory: character.characterCategory || "HUMAN",
         will: character.will !== null && character.will !== undefined ? character.will : 10,
         values: (character.values || []).map(v => ({ ...v })),
-        lethality: character.lethality || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-        armour: character.armour || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-        endurance: character.endurance || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-        strength: character.strength || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-        dexterity: character.dexterity || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-        agility: character.agility || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-        perception: character.perception || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-        charisma: character.charisma || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-        intelligence: character.intelligence || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-        resolve: character.resolve || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
-        morale: character.morale || { attribute: { attributeValue: 0, attributeType: 'HELP' }, fatigue: 0 },
+        lethality: character.lethality || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+        armour: character.armour || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+        endurance: character.endurance || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+        strength: character.strength || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+        dexterity: character.dexterity || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+        agility: character.agility || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+        perception: character.perception || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+        charisma: character.charisma || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+        intelligence: character.intelligence || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+        resolve: character.resolve || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+        morale: character.morale || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
         special: character.special || [],
         actionIds: character.actionIds || [],
         inventoryIds: character.inventoryIds || [],
@@ -216,77 +216,77 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         lethality: {
           attribute: { 
             attributeValue: parseFloat(formData.lethality.attribute.attributeValue) || 0,
-            attributeType: formData.lethality.attribute.attributeType
+            isGrouped: formData.lethality.attribute.isGrouped
           },
           fatigue: parseInt(formData.lethality.fatigue) || 0
         },
         armour: {
           attribute: { 
             attributeValue: parseFloat(formData.armour.attribute.attributeValue) || 0,
-            attributeType: formData.armour.attribute.attributeType
+            isGrouped: formData.armour.attribute.isGrouped
           },
           fatigue: parseInt(formData.armour.fatigue) || 0
         },
         endurance: {
           attribute: { 
             attributeValue: parseFloat(formData.endurance.attribute.attributeValue) || 0,
-            attributeType: formData.endurance.attribute.attributeType
+            isGrouped: formData.endurance.attribute.isGrouped
           },
           fatigue: parseInt(formData.endurance.fatigue) || 0
         },
         strength: {
           attribute: { 
             attributeValue: parseFloat(formData.strength.attribute.attributeValue) || 0,
-            attributeType: formData.strength.attribute.attributeType
+            isGrouped: formData.strength.attribute.isGrouped
           },
           fatigue: parseInt(formData.strength.fatigue) || 0
         },
         dexterity: {
           attribute: { 
             attributeValue: parseFloat(formData.dexterity.attribute.attributeValue) || 0,
-            attributeType: formData.dexterity.attribute.attributeType
+            isGrouped: formData.dexterity.attribute.isGrouped
           },
           fatigue: parseInt(formData.dexterity.fatigue) || 0
         },
         agility: {
           attribute: { 
             attributeValue: parseFloat(formData.agility.attribute.attributeValue) || 0,
-            attributeType: formData.agility.attribute.attributeType
+            isGrouped: formData.agility.attribute.isGrouped
           },
           fatigue: parseInt(formData.agility.fatigue) || 0
         },
         perception: {
           attribute: { 
             attributeValue: parseFloat(formData.perception.attribute.attributeValue) || 0,
-            attributeType: formData.perception.attribute.attributeType
+            isGrouped: formData.perception.attribute.isGrouped
           },
           fatigue: parseInt(formData.perception.fatigue) || 0
         },
         charisma: {
           attribute: { 
             attributeValue: parseFloat(formData.charisma.attribute.attributeValue) || 0,
-            attributeType: formData.charisma.attribute.attributeType
+            isGrouped: formData.charisma.attribute.isGrouped
           },
           fatigue: parseInt(formData.charisma.fatigue) || 0
         },
         intelligence: {
           attribute: { 
             attributeValue: parseFloat(formData.intelligence.attribute.attributeValue) || 0,
-            attributeType: formData.intelligence.attribute.attributeType
+            isGrouped: formData.intelligence.attribute.isGrouped
           },
           fatigue: parseInt(formData.intelligence.fatigue) || 0
         },
         resolve: {
           attribute: { 
             attributeValue: parseFloat(formData.resolve.attribute.attributeValue) || 0,
-            attributeType: formData.resolve.attribute.attributeType
+            isGrouped: formData.resolve.attribute.isGrouped
           },
           fatigue: parseInt(formData.resolve.fatigue) || 0
         },
         morale: {
           attribute: { 
             attributeValue: parseFloat(formData.morale.attribute.attributeValue) || 0,
-            attributeType: formData.morale.attribute.attributeType
+            isGrouped: formData.morale.attribute.isGrouped
           },
           fatigue: parseInt(formData.morale.fatigue) || 0
         },
@@ -383,15 +383,14 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                     />
                   </div>
                   <div className="form-field">
-                    <label>Type</label>
-                    <select
-                      value={formData[attr]?.attribute?.attributeType || 'HELP'}
-                      onChange={(e) => handleNestedAttributeChange(attr, 'attributeType', e.target.value)}
-                    >
-                      {ATTRIBUTE_TYPES.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={formData[attr]?.attribute?.isGrouped !== false}
+                        onChange={(e) => handleNestedAttributeChange(attr, 'isGrouped', e.target.checked)}
+                      />
+                      Include in Grouping
+                    </label>
                   </div>
                   <div className="form-field">
                     <label>Fatigue</label>

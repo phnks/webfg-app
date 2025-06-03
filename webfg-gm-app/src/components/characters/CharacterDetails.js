@@ -32,7 +32,7 @@ const CharacterDetails = ({ character, onUpdate }) => {
           characterInput[attr] = {
             attribute: {
               attributeValue: character[attr].attribute.attributeValue,
-              attributeType: character[attr].attribute.attributeType
+              isGrouped: character[attr].attribute.isGrouped
             },
             fatigue: character[attr].fatigue || 0
           };

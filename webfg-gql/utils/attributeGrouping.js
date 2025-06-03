@@ -11,28 +11,37 @@ const ATTRIBUTE_NAMES = [
 ];
 
 /**
- * Calculates the grouped value for a single attribute using the grouping formula
- * @param {number} highestValue - The highest attribute value (A1)
- * @param {number} otherValue - The other attribute value (A2) 
- * @param {string} attributeType - Either 'HELP', 'HINDER', or 'NONE'
+ * Calculate the grouped value using the new weighted average formula
+ * Formula: (A1 + A2*(0.1+A2/A1) + A3*(0.1+A3/A1) + ...) / N
+ * Where A1 is the highest value, A2, A3... are other values, N is total count
+ * @param {Array} values - Array of attribute values, sorted highest first
  * @returns {number} The calculated grouped value
  */
-const calculateGroupingFormula = (highestValue, otherValue, attributeType) => {
-  if (attributeType === 'HELP') {
-    return (highestValue + highestValue * (1 + (otherValue / highestValue))) / 2;
-  } else if (attributeType === 'HINDER') {
-    return (highestValue + highestValue * (1 - (otherValue / highestValue))) / 2;
-  } else if (attributeType === 'NONE') {
-    // NONE attributes don't participate in grouping, return the highest value unchanged
-    return highestValue;
+const calculateGroupingFormula = (values) => {
+  if (!values || values.length === 0) return 0;
+  if (values.length === 1) return values[0];
+  
+  const A1 = values[0]; // Highest value
+  let sum = A1; // Start with the highest value
+  
+  // Add weighted values for all other attributes
+  for (let i = 1; i < values.length; i++) {
+    const Ai = values[i];
+    if (A1 > 0) {
+      sum += Ai * (0.1 + Ai / A1);
+    } else {
+      // Handle edge case where A1 is 0
+      sum += Ai * 0.1;
+    }
   }
-  return highestValue; // Default fallback
+  
+  return sum / values.length;
 };
 
 /**
- * Extracts attribute value and type from character or object attribute data
+ * Extracts attribute value and grouping status from character or object attribute data
  * @param {Object} attributeData - The attribute data object
- * @returns {Object} { value: number, type: string, fatigue: number } or null if no data
+ * @returns {Object} { value: number, isGrouped: boolean, fatigue: number } or null if no data
  */
 const extractAttributeInfo = (attributeData) => {
   if (!attributeData) return null;
@@ -42,16 +51,16 @@ const extractAttributeInfo = (attributeData) => {
     return {
       value: attributeData.attribute.attributeValue || 0,
       fatigue: attributeData.fatigue || 0,
-      type: attributeData.attribute.attributeType || 'NONE'
+      isGrouped: attributeData.attribute.isGrouped !== undefined ? attributeData.attribute.isGrouped : true // Default to true
     };
   }
   
   // Handle object attributes with direct structure (no fatigue)
-  if (attributeData.attributeValue !== undefined && attributeData.attributeType) {
+  if (attributeData.attributeValue !== undefined) {
     return {
       value: attributeData.attributeValue || 0,
       fatigue: 0,
-      type: attributeData.attributeType || 'NONE'
+      isGrouped: attributeData.isGrouped !== undefined ? attributeData.isGrouped : true // Default to true
     };
   }
   
@@ -59,7 +68,7 @@ const extractAttributeInfo = (attributeData) => {
 };
 
 /**
- * Groups attributes from a character and their equipped objects
+ * Groups attributes from a character and their equipped objects using weighted average formula
  * IMPORTANT: Fatigue is applied AFTER grouping
  * @param {Object} character - Character object with attributes and equipment
  * @returns {Object} Object containing grouped values for each attribute (with fatigue applied)
@@ -80,74 +89,61 @@ const calculateGroupedAttributes = (character) => {
     // Store fatigue for later application
     const fatigue = charAttrInfo.fatigue || 0;
     
-    // Start with character's base value (without fatigue)
-    let groupedValue = charAttrInfo.value;
+    // Check if there's any equipment with this attribute that wants to be grouped
+    let hasGroupableEquipment = false;
+    if (character.equipment && character.equipment.length > 0) {
+      hasGroupableEquipment = character.equipment.some(item => {
+        const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+        return itemAttrInfo && itemAttrInfo.isGrouped;
+      });
+    }
     
-    // Collect all relevant attributes from equipment
-    const equipmentAttributes = [];
+    // If character attribute is not grouped AND no equipment wants to group, just apply fatigue and return
+    if (!charAttrInfo.isGrouped && !hasGroupableEquipment) {
+      groupedAttributes[attributeName] = Math.max(1, charAttrInfo.value - fatigue);
+      return;
+    }
+    
+    // Collect all values for grouping
+    const valuesToGroup = [];
+    
+    // Only include character's value if they have isGrouped=true
+    if (charAttrInfo.isGrouped) {
+      valuesToGroup.push(charAttrInfo.value);
+    }
     
     if (character.equipment && character.equipment.length > 0) {
       character.equipment.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-        if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
-          equipmentAttributes.push(itemAttrInfo);
+        if (itemAttrInfo && itemAttrInfo.isGrouped) {
+          // For objects, check if they have their own equipment and get their grouped value
+          let itemValue = itemAttrInfo.value;
+          
+          if (item.equipment && item.equipment.length > 0) {
+            const itemGroupedAttrs = calculateObjectGroupedAttributes(item);
+            itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
+          }
+          
+          valuesToGroup.push(itemValue);
         }
       });
     }
     
-    // If character attribute is NONE or no equipment, just apply fatigue and return
-    if (charAttrInfo.type === 'NONE' || equipmentAttributes.length === 0) {
-      groupedAttributes[attributeName] = Math.max(1, groupedValue - fatigue);
+    // If no values to group (shouldn't happen with our logic above), use character's base value
+    if (valuesToGroup.length === 0) {
+      groupedAttributes[attributeName] = Math.max(1, charAttrInfo.value - fatigue);
       return;
     }
     
-    // Collect all entities for grouping
-    const allEntities = [];
+    // Sort values in descending order (highest first)
+    valuesToGroup.sort((a, b) => b - a);
     
-    // Add character
-    allEntities.push({
-      value: charAttrInfo.value,
-      type: charAttrInfo.type,
-      groupedValue: charAttrInfo.value
-    });
-    
-    // Add equipment
-    character.equipment.forEach(item => {
-      const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-      if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
-        // For objects, check if they have their own equipment
-        let itemGroupedValue = itemAttrInfo.value;
-        
-        if (item.equipment && item.equipment.length > 0) {
-          const itemGroupedAttrs = calculateObjectGroupedAttributes(item);
-          itemGroupedValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
-        }
-        
-        allEntities.push({
-          value: itemAttrInfo.value,
-          type: itemAttrInfo.type,
-          groupedValue: itemGroupedValue
-        });
-      }
-    });
-    
-    // Sort by grouped value in descending order
-    allEntities.sort((a, b) => b.groupedValue - a.groupedValue);
-    
-    // Apply grouping formula sequentially
-    let currentGroupedValue = allEntities[0].groupedValue;
-    
-    for (let i = 1; i < allEntities.length; i++) {
-      currentGroupedValue = calculateGroupingFormula(
-        currentGroupedValue,
-        allEntities[i].groupedValue,
-        allEntities[i].type
-      );
-    }
+    // Apply new weighted average grouping formula
+    const groupedValue = calculateGroupingFormula(valuesToGroup);
     
     // Apply fatigue AFTER all grouping is complete
     // Ensure minimum of 1 die
-    const finalValue = Math.max(1, currentGroupedValue - fatigue);
+    const finalValue = Math.max(1, groupedValue - fatigue);
     
     groupedAttributes[attributeName] = Math.round(finalValue * 100) / 100;
   });
@@ -156,7 +152,7 @@ const calculateGroupedAttributes = (character) => {
 };
 
 /**
- * Groups attributes from an object and its equipped objects
+ * Groups attributes from an object and its equipped objects using weighted average formula
  * Objects don't have fatigue
  * @param {Object} object - Object with attributes and equipment
  * @returns {Object} Object containing grouped values for each attribute
@@ -173,57 +169,39 @@ const calculateObjectGroupedAttributes = (object) => {
       return;
     }
     
-    // Objects don't have fatigue, so we just do normal grouping
-    let groupedValue = objAttrInfo.value;
-    
-    // Collect equipment attributes
-    const equipmentAttributes = [];
-    
-    if (object.equipment && object.equipment.length > 0) {
-      object.equipment.forEach(item => {
-        const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-        if (itemAttrInfo && itemAttrInfo.type !== 'NONE') {
-          equipmentAttributes.push(itemAttrInfo);
-        }
-      });
-    }
-    
-    // If no equipment or NONE type, return base value
-    if (objAttrInfo.type === 'NONE' || equipmentAttributes.length === 0) {
+    // If object attribute is not grouped, return base value
+    if (!objAttrInfo.isGrouped) {
       groupedAttributes[attributeName] = objAttrInfo.value;
       return;
     }
     
-    // Collect all entities
-    const allEntities = [{
-      value: objAttrInfo.value,
-      type: objAttrInfo.type,
-      groupedValue: objAttrInfo.value
-    }];
+    // Collect all values for grouping (object + equipment)
+    const valuesToGroup = [objAttrInfo.value]; // Start with object's base value
     
-    // Add equipment values
-    equipmentAttributes.forEach(itemAttrInfo => {
-      allEntities.push({
-        value: itemAttrInfo.value,
-        type: itemAttrInfo.type,
-        groupedValue: itemAttrInfo.value
+    if (object.equipment && object.equipment.length > 0) {
+      object.equipment.forEach(item => {
+        const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+        if (itemAttrInfo && itemAttrInfo.isGrouped) {
+          // For nested equipment, get their grouped value recursively
+          let itemValue = itemAttrInfo.value;
+          
+          if (item.equipment && item.equipment.length > 0) {
+            const itemGroupedAttrs = calculateObjectGroupedAttributes(item);
+            itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
+          }
+          
+          valuesToGroup.push(itemValue);
+        }
       });
-    });
-    
-    // Sort and apply grouping
-    allEntities.sort((a, b) => b.groupedValue - a.groupedValue);
-    
-    let currentGroupedValue = allEntities[0].groupedValue;
-    
-    for (let i = 1; i < allEntities.length; i++) {
-      currentGroupedValue = calculateGroupingFormula(
-        currentGroupedValue,
-        allEntities[i].groupedValue,
-        allEntities[i].type
-      );
     }
     
-    groupedAttributes[attributeName] = Math.round(currentGroupedValue * 100) / 100;
+    // Sort values in descending order (highest first)
+    valuesToGroup.sort((a, b) => b - a);
+    
+    // Apply new weighted average grouping formula
+    const groupedValue = calculateGroupingFormula(valuesToGroup);
+    
+    groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
   });
   
   return groupedAttributes;

@@ -85,7 +85,7 @@ const CharacterAttributesBackend = ({
           characterInput[attr] = {
             attribute: {
               attributeValue: character[attr].attribute.attributeValue,
-              attributeType: character[attr].attribute.attributeType
+              isGrouped: character[attr].attribute.isGrouped
             },
             fatigue: attr === attributeKey ? newFatigue : (character[attr].fatigue || 0)
           };
@@ -151,14 +151,21 @@ const CharacterAttributesBackend = ({
                 <div className="attribute-name">{attr.name}</div>
                 <div className="attribute-info">
                   <div className="attribute-value">
-                    {originalValue} ({attr.data.attribute.attributeType})
+                    {originalValue} 
+                    <span 
+                      className="grouping-indicator" 
+                      title={attr.data.attribute.isGrouped ? 'This attribute participates in grouping' : 'This attribute does not participate in grouping'}
+                      style={{ marginLeft: '6px', fontSize: '0.8em', opacity: 0.7 }}
+                    >
+                      {attr.data.attribute.isGrouped ? '☑️' : '❌'}
+                    </span>
                     {shouldShowGroupedValue && (
                       <span 
                         className="grouped-value" 
-                        style={getGroupedValueStyle(originalValue, groupedValue)}
+                        style={getGroupedValueStyle(originalValue, Math.round(groupedValue))}
                         title="Grouped value with equipment and/or fatigue"
                       >
-                        {' → '}{groupedValue}
+                        {' → '}{Math.round(groupedValue)}
                         {(hasEquipment || fatigue > 0) && (
                           <button
                             className="info-icon"

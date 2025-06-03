@@ -12,7 +12,7 @@ import "./Form.css";
 
 // Enums from schema
 const ObjectCategoryEnum = ["TOOL", "WEAPON", "ARMOR", "CONTAINER", "STRUCTURE", "JEWLERY", "DEVICE", "MATERIAL", "CLOTHING", "LIGHT_SOURCE", "DOCUMENT", "COMPONENT", "ARTIFACT"];
-const AttributeTypeEnum = ["HELP", "HINDER", "NONE"];
+// Removed AttributeTypeEnum as we now use a simple boolean isGrouped field
 
 // Helper function to strip __typename fields recursively
 const stripTypename = (obj) => {
@@ -33,7 +33,7 @@ const stripTypename = (obj) => {
 
 const defaultAttribute = {
   attributeValue: 0,
-  attributeType: "HELP"
+  isGrouped: true
 };
 
 const defaultObjectForm = {
@@ -60,47 +60,47 @@ const prepareObjectInput = (data) => {
     objectCategory: data.objectCategory || ObjectCategoryEnum[0],
     lethality: {
       attributeValue: parseFloat(data.lethality.attributeValue) || 0,
-      attributeType: data.lethality.attributeType || "HELP"
+      isGrouped: data.lethality.isGrouped !== undefined ? data.lethality.isGrouped : true
     },
     armour: {
       attributeValue: parseFloat(data.armour.attributeValue) || 0,
-      attributeType: data.armour.attributeType || "HELP"
+      isGrouped: data.armour.isGrouped !== undefined ? data.armour.isGrouped : true
     },
     endurance: {
       attributeValue: parseFloat(data.endurance.attributeValue) || 0,
-      attributeType: data.endurance.attributeType || "HELP"
+      isGrouped: data.endurance.isGrouped !== undefined ? data.endurance.isGrouped : true
     },
     strength: {
       attributeValue: parseFloat(data.strength.attributeValue) || 0,
-      attributeType: data.strength.attributeType || "HELP"
+      isGrouped: data.strength.isGrouped !== undefined ? data.strength.isGrouped : true
     },
     dexterity: {
       attributeValue: parseFloat(data.dexterity.attributeValue) || 0,
-      attributeType: data.dexterity.attributeType || "HELP"
+      isGrouped: data.dexterity.isGrouped !== undefined ? data.dexterity.isGrouped : true
     },
     agility: {
       attributeValue: parseFloat(data.agility.attributeValue) || 0,
-      attributeType: data.agility.attributeType || "HELP"
+      isGrouped: data.agility.isGrouped !== undefined ? data.agility.isGrouped : true
     },
     perception: {
       attributeValue: parseFloat(data.perception.attributeValue) || 0,
-      attributeType: data.perception.attributeType || "HELP"
+      isGrouped: data.perception.isGrouped !== undefined ? data.perception.isGrouped : true
     },
     charisma: {
       attributeValue: parseFloat(data.charisma.attributeValue) || 0,
-      attributeType: data.charisma.attributeType || "HELP"
+      isGrouped: data.charisma.isGrouped !== undefined ? data.charisma.isGrouped : true
     },
     intelligence: {
       attributeValue: parseFloat(data.intelligence.attributeValue) || 0,
-      attributeType: data.intelligence.attributeType || "HELP"
+      isGrouped: data.intelligence.isGrouped !== undefined ? data.intelligence.isGrouped : true
     },
     resolve: {
       attributeValue: parseFloat(data.resolve.attributeValue) || 0,
-      attributeType: data.resolve.attributeType || "HELP"
+      isGrouped: data.resolve.isGrouped !== undefined ? data.resolve.isGrouped : true
     },
     morale: {
       attributeValue: parseFloat(data.morale.attributeValue) || 0,
-      attributeType: data.morale.attributeType || "HELP"
+      isGrouped: data.morale.isGrouped !== undefined ? data.morale.isGrouped : true
     },
     special: data.special || [],
     equipmentIds: data.equipmentIds || []
@@ -151,8 +151,9 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
   const loading = createLoading || updateLoading || allObjectsLoading;
 
   const handleChange = (e) => {
-    const { name, value, type } = e.target;
+    const { name, value, type, checked } = e.target;
     const [field, nestedField, subNestedField] = name.split('.');
+    const actualValue = type === 'checkbox' ? checked : value;
 
     setFormData(prev => {
       if (subNestedField) {
@@ -161,7 +162,7 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
           ...prev,
           [field]: {
             ...prev[field],
-            [nestedField]: value
+            [nestedField]: actualValue
           }
         };
       } else if (nestedField) {
@@ -169,13 +170,13 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
           ...prev,
           [field]: {
             ...prev[field],
-            [nestedField]: value
+            [nestedField]: actualValue
           }
         };
       } else {
         return {
           ...prev,
-          [name]: value
+          [name]: actualValue
         };
       }
     });
@@ -292,15 +293,16 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
                 />
               </div>
               <div className="form-group" style={{ flex: 1 }}>
-                <label htmlFor={`${attr}.attributeType`}>Type</label>
-                <select 
-                  id={`${attr}.attributeType`} 
-                  name={`${attr}.attributeType`} 
-                  value={formData[attr].attributeType} 
-                  onChange={handleChange}
-                >
-                  {AttributeTypeEnum.map(type => <option key={type} value={type}>{type}</option>)}
-                </select>
+                <label htmlFor={`${attr}.isGrouped`}>
+                  <input
+                    type="checkbox"
+                    id={`${attr}.isGrouped`}
+                    name={`${attr}.isGrouped`}
+                    checked={formData[attr].isGrouped !== false}
+                    onChange={handleChange}
+                  />
+                  Include in Grouping
+                </label>
               </div>
             </div>
           </div>

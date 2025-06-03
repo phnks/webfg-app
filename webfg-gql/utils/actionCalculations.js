@@ -168,29 +168,20 @@ const groupSourceAttributes = (sourceCharacters, sourceAttribute) => {
   sourceCharacters.forEach(character => {
     const groupedValue = getSingleCharacterAttributeValue(character, sourceAttribute);
     if (groupedValue > 0) { // Only include non-zero values
-      sourceValues.push({
-        name: character.name || 'Unknown',
-        value: groupedValue,
-        type: 'HELP' // Use HELP as default type for combining grouped values
-      });
+      sourceValues.push(groupedValue);
     }
   });
   
   if (sourceValues.length === 0) return 0;
-  if (sourceValues.length === 1) return sourceValues[0].value;
+  if (sourceValues.length === 1) return sourceValues[0];
   
-  // Apply grouping formula to combine the grouped values
-  // Sort by value descending to start with highest value first
-  sourceValues.sort((a, b) => b.value - a.value);
+  // Sort values in descending order (highest first)
+  sourceValues.sort((a, b) => b - a);
   
-  // Start with the highest value and apply the formula for each subsequent value
-  let currentValue = sourceValues[0].value;
+  // Apply new weighted average grouping formula
+  const groupedValue = calculateGroupingFormula(sourceValues);
   
-  for (let i = 1; i < sourceValues.length; i++) {
-    currentValue = calculateGroupingFormula(currentValue, sourceValues[i].value, 'HELP');
-  }
-  
-  return Math.round(currentValue * 100) / 100;
+  return Math.round(groupedValue * 100) / 100;
 };
 
 /**
@@ -213,29 +204,20 @@ const groupTargetAttributes = (targetEntities, targetAttribute, targetType) => {
   targetEntities.forEach(entity => {
     const groupedValue = getSingleEntityAttributeValue(entity, targetAttribute, targetType);
     if (groupedValue > 0) { // Only include non-zero values
-      targetValues.push({
-        name: entity.name || 'Unknown',
-        value: groupedValue,
-        type: 'HELP' // Use HELP as default type for combining grouped values
-      });
+      targetValues.push(groupedValue);
     }
   });
   
   if (targetValues.length === 0) return 0;
-  if (targetValues.length === 1) return targetValues[0].value;
+  if (targetValues.length === 1) return targetValues[0];
   
-  // Apply grouping formula to combine the grouped values
-  // Sort by value descending to start with highest value first
-  targetValues.sort((a, b) => b.value - a.value);
+  // Sort values in descending order (highest first)
+  targetValues.sort((a, b) => b - a);
   
-  // Start with the highest value and apply the formula for each subsequent value
-  let currentValue = targetValues[0].value;
+  // Apply new weighted average grouping formula
+  const groupedValue = calculateGroupingFormula(targetValues);
   
-  for (let i = 1; i < targetValues.length; i++) {
-    currentValue = calculateGroupingFormula(currentValue, targetValues[i].value, 'HELP');
-  }
-  
-  return Math.round(currentValue * 100) / 100;
+  return Math.round(groupedValue * 100) / 100;
 };
 
 /**

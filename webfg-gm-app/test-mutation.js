@@ -16,7 +16,7 @@ const testMutation = JSON.stringify({
         lethality {
           attribute {
             attributeValue
-            attributeType
+            isGrouped
           }
           fatigue
         }
@@ -39,77 +39,77 @@ const testMutation = JSON.stringify({
       lethality: {
         attribute: {
           attributeValue: 4,
-          attributeType: "HELP"
+          isGrouped: true
         },
         fatigue: 0
       },
       armour: {
         attribute: {
           attributeValue: 2,
-          attributeType: "HELP"
+          isGrouped: true
         },
         fatigue: 0
       },
       endurance: {
         attribute: {
           attributeValue: 3,
-          attributeType: "HELP"
+          isGrouped: true
         },
         fatigue: 0
       },
       strength: {
         attribute: {
           attributeValue: 4,
-          attributeType: "HELP"
+          isGrouped: true
         },
         fatigue: 0
       },
       dexterity: {
         attribute: {
           attributeValue: 3,
-          attributeType: "HELP"
+          isGrouped: true
         },
         fatigue: 0
       },
       agility: {
         attribute: {
           attributeValue: 3,
-          attributeType: "HELP"
+          isGrouped: true
         },
         fatigue: 0
       },
       perception: {
         attribute: {
           attributeValue: 3,
-          attributeType: "HELP"
+          isGrouped: true
         },
         fatigue: 0
       },
       charisma: {
         attribute: {
           attributeValue: 2,
-          attributeType: "HELP"
+          isGrouped: true
         },
         fatigue: 0
       },
       intelligence: {
         attribute: {
           attributeValue: 3,
-          attributeType: "HELP"
+          isGrouped: true
         },
         fatigue: 0
       },
       resolve: {
         attribute: {
           attributeValue: 3,
-          attributeType: "HELP"
+          isGrouped: true
         },
         fatigue: 0
       },
       morale: {
         attribute: {
           attributeValue: 3,
-          attributeType: "HELP"
+          isGrouped: true
         },
         fatigue: 0
       }

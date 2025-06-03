@@ -25,7 +25,7 @@ const AttributeBreakdownPopup = ({ breakdown, attributeName, onClose }) => {
                   <span className="attribute-details">
                     {step.entityType === 'fatigue' ? 
                       `Reduces by ${Math.abs(step.attributeValue)}` : 
-                      `${step.attributeValue} (${step.attributeType})`
+                      `${step.attributeValue} ${step.isGrouped ? '☑️' : '❌'}`
                     }
                   </span>
                 </div>
@@ -37,7 +37,7 @@ const AttributeBreakdownPopup = ({ breakdown, attributeName, onClose }) => {
                 )}
                 
                 <div className="step-result">
-                  <strong>Result:</strong> {step.runningTotal}
+                  <strong>Result:</strong> {Math.round(step.runningTotal * 100) / 100}
                 </div>
                 
                 {index < breakdown.length - 1 && (
@@ -48,7 +48,7 @@ const AttributeBreakdownPopup = ({ breakdown, attributeName, onClose }) => {
           </div>
           
           <div className="breakdown-summary">
-            <strong>Final Grouped Value: {breakdown[breakdown.length - 1]?.runningTotal || 0}</strong>
+            <strong>Final Grouped Value: {Math.round(breakdown[breakdown.length - 1]?.runningTotal || 0)}</strong>
           </div>
         </div>
       </div>
