@@ -446,6 +446,12 @@ type AttributeBreakdownStep {
   formula: String
 }
 
+type FatigueContribution {
+  characterId: ID!
+  characterName: String!
+  fatigue: Int!
+}
+
 type ActionTestResult {
   difficulty: Float!
   sourceValue: Float!
@@ -462,6 +468,8 @@ type ActionTestResult {
   finalSourceDice: Int!
   finalTargetDice: Int!
   dicePoolExceeded: Boolean!
+  sourceFatigueDetails: [FatigueContribution!]!
+  targetFatigueDetails: [FatigueContribution!]!
 }
 
 input ActionTestInput {

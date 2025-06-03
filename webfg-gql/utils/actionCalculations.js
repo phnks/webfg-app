@@ -276,27 +276,53 @@ const calculateActionTest = (params) => {
   // Apply dice pool halving if needed
   const { adjustedSource, adjustedTarget } = adjustDicePools(sourceDice, targetDice);
   
-  // Calculate total fatigue for source characters
+  // Calculate total fatigue for source characters and collect details
   let sourceFatigue = 0;
+  const sourceFatigueDetails = [];
   sourceCharacters.forEach(character => {
-    if (character.fatigue) {
-      sourceFatigue += character.fatigue;
-    }
+    const characterFatigue = character.fatigue || 0;
+    sourceFatigue += characterFatigue;
+    sourceFatigueDetails.push({
+      characterId: character.characterId,
+      characterName: character.name,
+      fatigue: characterFatigue
+    });
   });
   
   // Calculate total fatigue for target characters (objects don't have fatigue)
   let targetFatigue = 0;
+  const targetFatigueDetails = [];
   if (targetType === 'CHARACTER') {
     targetEntities.forEach(character => {
-      if (character.fatigue) {
-        targetFatigue += character.fatigue;
-      }
+      const characterFatigue = character.fatigue || 0;
+      targetFatigue += characterFatigue;
+      targetFatigueDetails.push({
+        characterId: character.characterId,
+        characterName: character.name,
+        fatigue: characterFatigue
+      });
     });
   }
   
-  // Apply fatigue AFTER halving (minimum 1 die)
-  const finalSourceDice = Math.max(1, adjustedSource - sourceFatigue);
-  const finalTargetDice = Math.max(1, adjustedTarget - targetFatigue);
+  // Apply fatigue AFTER halving
+  // Only apply minimum 1 dice if the pool is > 0 after halving but would be reduced to 0 by fatigue
+  let finalSourceDice, finalTargetDice;
+  
+  if (adjustedSource === 0) {
+    // If already 0 after halving, fatigue can't reduce it further
+    finalSourceDice = 0;
+  } else {
+    // If > 0 after halving, apply fatigue but ensure minimum 1 dice
+    finalSourceDice = Math.max(1, adjustedSource - sourceFatigue);
+  }
+  
+  if (adjustedTarget === 0) {
+    // If already 0 after halving, fatigue can't reduce it further
+    finalTargetDice = 0;
+  } else {
+    // If > 0 after halving, apply fatigue but ensure minimum 1 dice
+    finalTargetDice = Math.max(1, adjustedTarget - targetFatigue);
+  }
   
   // Calculate difficulty using final dice pools
   const difficulty = calculateActionDifficulty(finalSourceDice, finalTargetDice);
@@ -317,7 +343,9 @@ const calculateActionTest = (params) => {
     targetFatigue,
     finalSourceDice,
     finalTargetDice,
-    dicePoolExceeded: (sourceDice + targetDice) > 20
+    dicePoolExceeded: (sourceDice + targetDice) > 20,
+    sourceFatigueDetails,
+    targetFatigueDetails
   };
 };
 
