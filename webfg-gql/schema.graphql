@@ -479,6 +479,8 @@ input ActionTestInput {
   targetType: TargetType!
   override: Boolean
   overrideValue: Float
+  sourceOverride: Boolean
+  sourceOverrideValue: Float
 }
 
 # Computed fields are now directly in Character and Object types

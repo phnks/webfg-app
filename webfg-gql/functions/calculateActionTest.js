@@ -21,7 +21,9 @@ exports.handler = async (event) => {
     targetIds = [],
     targetType,
     override = false,
-    overrideValue = 0
+    overrideValue = 0,
+    sourceOverride = false,
+    sourceOverrideValue = 0
   } = input;
 
   try {
@@ -153,7 +155,9 @@ exports.handler = async (event) => {
       targetAttribute: action.targetAttribute,
       targetType,
       override,
-      overrideValue
+      overrideValue,
+      sourceOverride,
+      sourceOverrideValue
     });
 
     console.log("Calculated action test result:", JSON.stringify(result, null, 2));
