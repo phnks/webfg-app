@@ -214,83 +214,73 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         name: formData.name,
         characterCategory: formData.characterCategory,
         will: formData.will !== null && formData.will !== undefined && formData.will !== '' ? parseInt(formData.will) : 10,
+        fatigue: formData.fatigue !== null && formData.fatigue !== undefined && formData.fatigue !== '' ? parseInt(formData.fatigue) : 0,
         values: formData.values.map(v => ({ valueName: v.valueName, valueType: v.valueType })),
         lethality: {
           attribute: { 
             attributeValue: parseFloat(formData.lethality.attribute.attributeValue) || 0,
             isGrouped: formData.lethality.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.lethality.fatigue) || 0
+          }
         },
         armour: {
           attribute: { 
             attributeValue: parseFloat(formData.armour.attribute.attributeValue) || 0,
             isGrouped: formData.armour.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.armour.fatigue) || 0
+          }
         },
         endurance: {
           attribute: { 
             attributeValue: parseFloat(formData.endurance.attribute.attributeValue) || 0,
             isGrouped: formData.endurance.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.endurance.fatigue) || 0
+          }
         },
         strength: {
           attribute: { 
             attributeValue: parseFloat(formData.strength.attribute.attributeValue) || 0,
             isGrouped: formData.strength.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.strength.fatigue) || 0
+          }
         },
         dexterity: {
           attribute: { 
             attributeValue: parseFloat(formData.dexterity.attribute.attributeValue) || 0,
             isGrouped: formData.dexterity.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.dexterity.fatigue) || 0
+          }
         },
         agility: {
           attribute: { 
             attributeValue: parseFloat(formData.agility.attribute.attributeValue) || 0,
             isGrouped: formData.agility.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.agility.fatigue) || 0
+          }
         },
         perception: {
           attribute: { 
             attributeValue: parseFloat(formData.perception.attribute.attributeValue) || 0,
             isGrouped: formData.perception.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.perception.fatigue) || 0
+          }
         },
         charisma: {
           attribute: { 
             attributeValue: parseFloat(formData.charisma.attribute.attributeValue) || 0,
             isGrouped: formData.charisma.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.charisma.fatigue) || 0
+          }
         },
         intelligence: {
           attribute: { 
             attributeValue: parseFloat(formData.intelligence.attribute.attributeValue) || 0,
             isGrouped: formData.intelligence.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.intelligence.fatigue) || 0
+          }
         },
         resolve: {
           attribute: { 
             attributeValue: parseFloat(formData.resolve.attribute.attributeValue) || 0,
             isGrouped: formData.resolve.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.resolve.fatigue) || 0
+          }
         },
         morale: {
           attribute: { 
             attributeValue: parseFloat(formData.morale.attribute.attributeValue) || 0,
             isGrouped: formData.morale.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.morale.fatigue) || 0
+          }
         },
         special: formData.special,
         actionIds: formData.actionIds,
