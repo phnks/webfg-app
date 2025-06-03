@@ -6,17 +6,17 @@ export const LIST_CHARACTERS = gql`
     listCharacters {
       characterId
       name
-      lethality { attribute { attributeValue isGrouped } fatigue }
-      armour { attribute { attributeValue isGrouped } fatigue }
-      endurance { attribute { attributeValue isGrouped } fatigue }
-      strength { attribute { attributeValue isGrouped } fatigue }
-      dexterity { attribute { attributeValue isGrouped } fatigue }
-      agility { attribute { attributeValue isGrouped } fatigue }
-      perception { attribute { attributeValue isGrouped } fatigue }
-      charisma { attribute { attributeValue isGrouped } fatigue }
-      intelligence { attribute { attributeValue isGrouped } fatigue }
-      resolve { attribute { attributeValue isGrouped } fatigue }
-      morale { attribute { attributeValue isGrouped } fatigue }
+      lethality { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      perception { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
       equipment { 
         objectId name objectCategory
         lethality { attributeValue isGrouped }
@@ -58,20 +58,21 @@ export const GET_CHARACTER = gql`
       name
       characterCategory
       will
+      fatigue
       values { valueName valueType }
       
-      # Character attributes with fatigue
-      lethality { attribute { attributeValue isGrouped } fatigue }
-      armour { attribute { attributeValue isGrouped } fatigue }
-      endurance { attribute { attributeValue isGrouped } fatigue }
-      strength { attribute { attributeValue isGrouped } fatigue }
-      dexterity { attribute { attributeValue isGrouped } fatigue }
-      agility { attribute { attributeValue isGrouped } fatigue }
-      perception { attribute { attributeValue isGrouped } fatigue }
-      charisma { attribute { attributeValue isGrouped } fatigue }
-      intelligence { attribute { attributeValue isGrouped } fatigue }
-      resolve { attribute { attributeValue isGrouped } fatigue }
-      morale { attribute { attributeValue isGrouped } fatigue }
+      # Character attributes (no longer have fatigue)
+      lethality { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      perception { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -304,20 +305,21 @@ export const CREATE_CHARACTER = gql`
       name
       characterCategory
       will
+      fatigue
       values { valueName valueType }
       
-      # Character attributes with fatigue
-      lethality { attribute { attributeValue isGrouped } fatigue }
-      armour { attribute { attributeValue isGrouped } fatigue }
-      endurance { attribute { attributeValue isGrouped } fatigue }
-      strength { attribute { attributeValue isGrouped } fatigue }
-      dexterity { attribute { attributeValue isGrouped } fatigue }
-      agility { attribute { attributeValue isGrouped } fatigue }
-      perception { attribute { attributeValue isGrouped } fatigue }
-      charisma { attribute { attributeValue isGrouped } fatigue }
-      intelligence { attribute { attributeValue isGrouped } fatigue }
-      resolve { attribute { attributeValue isGrouped } fatigue }
-      morale { attribute { attributeValue isGrouped } fatigue }
+      # Character attributes (no longer have fatigue)
+      lethality { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      perception { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -334,20 +336,21 @@ export const UPDATE_CHARACTER = gql`
       name
       characterCategory
       will
+      fatigue
       values { valueName valueType }
       
-      # Character attributes with fatigue
-      lethality { attribute { attributeValue isGrouped } fatigue }
-      armour { attribute { attributeValue isGrouped } fatigue }
-      endurance { attribute { attributeValue isGrouped } fatigue }
-      strength { attribute { attributeValue isGrouped } fatigue }
-      dexterity { attribute { attributeValue isGrouped } fatigue }
-      agility { attribute { attributeValue isGrouped } fatigue }
-      perception { attribute { attributeValue isGrouped } fatigue }
-      charisma { attribute { attributeValue isGrouped } fatigue }
-      intelligence { attribute { attributeValue isGrouped } fatigue }
-      resolve { attribute { attributeValue isGrouped } fatigue }
-      morale { attribute { attributeValue isGrouped } fatigue }
+      # Character attributes (no longer have fatigue)
+      lethality { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      perception { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
       
       special
       actionIds

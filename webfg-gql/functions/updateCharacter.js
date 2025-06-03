@@ -37,6 +37,7 @@ exports.handler = async (event) => {
   addUpdateField("name", input.name);
   addUpdateField("characterCategory", input.characterCategory);
   addUpdateField("will", input.will);
+  addUpdateField("fatigue", input.fatigue);
   addUpdateField("values", input.values);
   addUpdateField("lethality", input.lethality);
   addUpdateField("armour", input.armour);

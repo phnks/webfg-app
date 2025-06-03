@@ -108,7 +108,7 @@ const calculateActionDifficulty = (sourceValue, targetValue) => {
  * Get single character attribute value with grouping
  * @param {Object} character - Character object
  * @param {string} attributeName - Attribute name (lowercase)
- * @returns {number} The grouped attribute value (includes fatigue)
+ * @returns {number} The grouped attribute value (no longer includes fatigue)
  */
 const getSingleCharacterAttributeValue = (character, attributeName) => {
   const groupedAttributes = calculateGroupedAttributes(character);
@@ -126,7 +126,7 @@ const getSingleCharacterAttributeValue = (character, attributeName) => {
  * @param {Object} entity - Character or Object
  * @param {string} attributeName - Attribute name (lowercase)
  * @param {string} entityType - 'CHARACTER' or 'OBJECT'
- * @returns {number} The grouped attribute value (includes fatigue for characters)
+ * @returns {number} The grouped attribute value (no longer includes fatigue)
  */
 const getSingleEntityAttributeValue = (entity, attributeName, entityType) => {
   if (entityType === 'CHARACTER') {
@@ -153,7 +153,7 @@ const getSingleEntityAttributeValue = (entity, attributeName, entityType) => {
  * Group multiple sources into a single attribute value
  * @param {Array} sourceCharacters - Array of character objects
  * @param {string} sourceAttribute - Attribute name (lowercase)
- * @returns {number} The grouped source value (includes fatigue)
+ * @returns {number} The grouped source value (no longer includes fatigue)
  */
 const groupSourceAttributes = (sourceCharacters, sourceAttribute) => {
   if (!sourceCharacters || sourceCharacters.length === 0) return 0;
@@ -189,7 +189,7 @@ const groupSourceAttributes = (sourceCharacters, sourceAttribute) => {
  * @param {Array} targetEntities - Array of character or object entities
  * @param {string} targetAttribute - Attribute name (lowercase)
  * @param {string} targetType - 'CHARACTER' or 'OBJECT'
- * @returns {number} The grouped target value (includes fatigue for characters)
+ * @returns {number} The grouped target value (no longer includes fatigue)
  */
 const groupTargetAttributes = (targetEntities, targetAttribute, targetType) => {
   if (!targetEntities || targetEntities.length === 0) return 0;
@@ -247,7 +247,7 @@ const calculateActionTest = (params) => {
   const sourceLower = sourceAttribute.toLowerCase();
   const targetLower = targetAttribute.toLowerCase();
   
-  // Calculate source value (includes fatigue)
+  // Calculate source value (without fatigue)
   const sourceValue = groupSourceAttributes(sourceCharacters, sourceLower);
   
   // Debug logging
@@ -257,7 +257,7 @@ const calculateActionTest = (params) => {
     sourceCharacterCount: sourceCharacters.length
   });
   
-  // Calculate target value (includes fatigue for characters)
+  // Calculate target value (without fatigue for characters)
   let targetValue = 0;
   
   if (override) {
@@ -269,13 +269,37 @@ const calculateActionTest = (params) => {
     targetValue = groupTargetAttributes(targetEntities, targetLower, targetType);
   }
   
-  // Calculate difficulty
-  const difficulty = calculateActionDifficulty(sourceValue, targetValue);
-  
-  // Calculate dice pool information
+  // Calculate dice pool information before fatigue
   const sourceDice = Math.max(1, Math.floor(sourceValue));
   const targetDice = Math.max(1, Math.floor(targetValue));
+  
+  // Apply dice pool halving if needed
   const { adjustedSource, adjustedTarget } = adjustDicePools(sourceDice, targetDice);
+  
+  // Calculate total fatigue for source characters
+  let sourceFatigue = 0;
+  sourceCharacters.forEach(character => {
+    if (character.fatigue) {
+      sourceFatigue += character.fatigue;
+    }
+  });
+  
+  // Calculate total fatigue for target characters (objects don't have fatigue)
+  let targetFatigue = 0;
+  if (targetType === 'CHARACTER') {
+    targetEntities.forEach(character => {
+      if (character.fatigue) {
+        targetFatigue += character.fatigue;
+      }
+    });
+  }
+  
+  // Apply fatigue AFTER halving (minimum 1 die)
+  const finalSourceDice = Math.max(1, adjustedSource - sourceFatigue);
+  const finalTargetDice = Math.max(1, adjustedTarget - targetFatigue);
+  
+  // Calculate difficulty using final dice pools
+  const difficulty = calculateActionDifficulty(finalSourceDice, finalTargetDice);
   
   return {
     difficulty: Math.round(difficulty * 10000) / 10000, // Round to 4 decimal places
@@ -289,6 +313,10 @@ const calculateActionTest = (params) => {
     targetDice,
     adjustedSourceDice: adjustedSource,
     adjustedTargetDice: adjustedTarget,
+    sourceFatigue,
+    targetFatigue,
+    finalSourceDice,
+    finalTargetDice,
     dicePoolExceeded: (sourceDice + targetDice) > 20
   };
 };

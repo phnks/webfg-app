@@ -38,20 +38,21 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       name
       characterCategory
       will
+      fatigue
       values { valueName valueType }
       
-      # Character attributes with fatigue
-      lethality { attribute { attributeValue isGrouped } fatigue }
-      armour { attribute { attributeValue isGrouped } fatigue }
-      endurance { attribute { attributeValue isGrouped } fatigue }
-      strength { attribute { attributeValue isGrouped } fatigue }
-      dexterity { attribute { attributeValue isGrouped } fatigue }
-      agility { attribute { attributeValue isGrouped } fatigue }
-      perception { attribute { attributeValue isGrouped } fatigue }
-      charisma { attribute { attributeValue isGrouped } fatigue }
-      intelligence { attribute { attributeValue isGrouped } fatigue }
-      resolve { attribute { attributeValue isGrouped } fatigue }
-      morale { attribute { attributeValue isGrouped } fatigue }
+      # Character attributes (no longer have fatigue)
+      lethality { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      perception { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
       
       # Computed grouped attributes
       groupedAttributes {
@@ -196,6 +197,10 @@ export const CALCULATE_ACTION_TEST = gql`
       targetDice
       adjustedSourceDice
       adjustedTargetDice
+      sourceFatigue
+      targetFatigue
+      finalSourceDice
+      finalTargetDice
       dicePoolExceeded
     }
   }
@@ -208,17 +213,18 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
     listCharacters {
       characterId
       name
-      lethality { attribute { attributeValue isGrouped } fatigue }
-      armour { attribute { attributeValue isGrouped } fatigue }
-      endurance { attribute { attributeValue isGrouped } fatigue }
-      strength { attribute { attributeValue isGrouped } fatigue }
-      dexterity { attribute { attributeValue isGrouped } fatigue }
-      agility { attribute { attributeValue isGrouped } fatigue }
-      perception { attribute { attributeValue isGrouped } fatigue }
-      charisma { attribute { attributeValue isGrouped } fatigue }
-      intelligence { attribute { attributeValue isGrouped } fatigue }
-      resolve { attribute { attributeValue isGrouped } fatigue }
-      morale { attribute { attributeValue isGrouped } fatigue }
+      fatigue
+      lethality { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      perception { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
       
       # Computed grouped attributes
       groupedAttributes {

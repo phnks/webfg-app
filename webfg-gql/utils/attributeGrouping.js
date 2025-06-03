@@ -41,25 +41,23 @@ const calculateGroupingFormula = (values) => {
 /**
  * Extracts attribute value and grouping status from character or object attribute data
  * @param {Object} attributeData - The attribute data object
- * @returns {Object} { value: number, isGrouped: boolean, fatigue: number } or null if no data
+ * @returns {Object} { value: number, isGrouped: boolean } or null if no data
  */
 const extractAttributeInfo = (attributeData) => {
   if (!attributeData) return null;
   
-  // Handle character attributes with fatigue structure
+  // Handle character attributes (no longer has fatigue in attributes)
   if (attributeData.attribute) {
     return {
       value: attributeData.attribute.attributeValue || 0,
-      fatigue: attributeData.fatigue || 0,
       isGrouped: attributeData.attribute.isGrouped !== undefined ? attributeData.attribute.isGrouped : true // Default to true
     };
   }
   
-  // Handle object attributes with direct structure (no fatigue)
+  // Handle object attributes with direct structure
   if (attributeData.attributeValue !== undefined) {
     return {
       value: attributeData.attributeValue || 0,
-      fatigue: 0,
       isGrouped: attributeData.isGrouped !== undefined ? attributeData.isGrouped : true // Default to true
     };
   }
@@ -69,9 +67,9 @@ const extractAttributeInfo = (attributeData) => {
 
 /**
  * Groups attributes from a character and their equipped objects using weighted average formula
- * IMPORTANT: Fatigue is applied AFTER grouping
+ * Note: Fatigue is no longer applied here - it's handled at the action test level
  * @param {Object} character - Character object with attributes and equipment
- * @returns {Object} Object containing grouped values for each attribute (with fatigue applied)
+ * @returns {Object} Object containing grouped values for each attribute
  */
 const calculateGroupedAttributes = (character) => {
   const groupedAttributes = {};
@@ -86,9 +84,6 @@ const calculateGroupedAttributes = (character) => {
       return;
     }
     
-    // Store fatigue for later application
-    const fatigue = charAttrInfo.fatigue || 0;
-    
     // Check if there's any equipment with this attribute that wants to be grouped
     let hasGroupableEquipment = false;
     if (character.equipment && character.equipment.length > 0) {
@@ -98,9 +93,9 @@ const calculateGroupedAttributes = (character) => {
       });
     }
     
-    // If character attribute is not grouped AND no equipment wants to group, just apply fatigue and return
+    // If character attribute is not grouped AND no equipment wants to group, just return base value
     if (!charAttrInfo.isGrouped && !hasGroupableEquipment) {
-      groupedAttributes[attributeName] = Math.max(1, charAttrInfo.value - fatigue);
+      groupedAttributes[attributeName] = charAttrInfo.value;
       return;
     }
     
@@ -131,7 +126,7 @@ const calculateGroupedAttributes = (character) => {
     
     // If no values to group (shouldn't happen with our logic above), use character's base value
     if (valuesToGroup.length === 0) {
-      groupedAttributes[attributeName] = Math.max(1, charAttrInfo.value - fatigue);
+      groupedAttributes[attributeName] = charAttrInfo.value;
       return;
     }
     
@@ -141,11 +136,8 @@ const calculateGroupedAttributes = (character) => {
     // Apply new weighted average grouping formula
     const groupedValue = calculateGroupingFormula(valuesToGroup);
     
-    // Apply fatigue AFTER all grouping is complete
-    // Ensure minimum of 1 die
-    const finalValue = Math.max(1, groupedValue - fatigue);
-    
-    groupedAttributes[attributeName] = Math.round(finalValue * 100) / 100;
+    // No fatigue applied here anymore - it's handled at action test level
+    groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
   });
   
   return groupedAttributes;

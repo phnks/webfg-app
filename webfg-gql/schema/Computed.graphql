@@ -35,6 +35,10 @@ type ActionTestResult {
   targetDice: Int!
   adjustedSourceDice: Int!
   adjustedTargetDice: Int!
+  sourceFatigue: Int!
+  targetFatigue: Int!
+  finalSourceDice: Int!
+  finalTargetDice: Int!
   dicePoolExceeded: Boolean!
 }
 

@@ -326,6 +326,49 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                 </div>
               </div>
             )}
+            
+            {/* Fatigue Application */}
+            {(testResult.calculateActionTest.sourceFatigue > 0 || testResult.calculateActionTest.targetFatigue > 0) && (
+              <div className="fatigue-info">
+                <h4>Fatigue Applied</h4>
+                <p className="fatigue-note">
+                  Fatigue is applied after dice pool adjustment:
+                </p>
+                <div className="fatigue-values">
+                  {testResult.calculateActionTest.sourceFatigue > 0 && (
+                    <div className="fatigue-item">
+                      <span className="fatigue-label">Source Fatigue:</span>
+                      <span className="fatigue-value">-{testResult.calculateActionTest.sourceFatigue}</span>
+                      <span className="fatigue-arrow">→</span>
+                      <span className="fatigue-final">{testResult.calculateActionTest.finalSourceDice} dice</span>
+                    </div>
+                  )}
+                  {testResult.calculateActionTest.targetFatigue > 0 && (
+                    <div className="fatigue-item">
+                      <span className="fatigue-label">Target Fatigue:</span>
+                      <span className="fatigue-value">-{testResult.calculateActionTest.targetFatigue}</span>
+                      <span className="fatigue-arrow">→</span>
+                      <span className="fatigue-final">{testResult.calculateActionTest.finalTargetDice} dice</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* Final Dice Pools */}
+            <div className="final-dice-info">
+              <h4>Final Dice Pools</h4>
+              <div className="final-dice-values">
+                <div className="final-dice-item">
+                  <span className="dice-label">Source:</span>
+                  <span className="dice-final-value">{testResult.calculateActionTest.finalSourceDice} dice</span>
+                </div>
+                <div className="final-dice-item">
+                  <span className="dice-label">Target:</span>
+                  <span className="dice-final-value">{testResult.calculateActionTest.finalTargetDice} dice</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
