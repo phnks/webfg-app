@@ -228,8 +228,10 @@ const groupTargetAttributes = (targetEntities, targetAttribute, targetType) => {
  * @param {string} params.sourceAttribute - Source attribute name (uppercase)
  * @param {string} params.targetAttribute - Target attribute name (uppercase)
  * @param {string} params.targetType - 'CHARACTER' or 'OBJECT'
- * @param {boolean} params.override - Whether to use override value
- * @param {number} params.overrideValue - Override value if override is true
+ * @param {boolean} params.override - Whether to use target override value
+ * @param {number} params.overrideValue - Target override value if override is true
+ * @param {boolean} params.sourceOverride - Whether to use source override value
+ * @param {number} params.sourceOverrideValue - Source override value if sourceOverride is true
  * @returns {Object} Action test result with difficulty and breakdown
  */
 const calculateActionTest = (params) => {
@@ -240,7 +242,9 @@ const calculateActionTest = (params) => {
     targetAttribute,
     targetType,
     override = false,
-    overrideValue = 0
+    overrideValue = 0,
+    sourceOverride = false,
+    sourceOverrideValue = 0
   } = params;
   
   // Convert attribute names to lowercase for calculation
@@ -248,7 +252,13 @@ const calculateActionTest = (params) => {
   const targetLower = targetAttribute.toLowerCase();
   
   // Calculate source value (without fatigue)
-  const sourceValue = groupSourceAttributes(sourceCharacters, sourceLower);
+  let sourceValue = 0;
+  
+  if (sourceOverride) {
+    sourceValue = sourceOverrideValue;
+  } else {
+    sourceValue = groupSourceAttributes(sourceCharacters, sourceLower);
+  }
   
   // Debug logging
   console.log('Action test calculation debug:', {
@@ -277,17 +287,20 @@ const calculateActionTest = (params) => {
   const { adjustedSource, adjustedTarget } = adjustDicePools(sourceDice, targetDice);
   
   // Calculate total fatigue for source characters and collect details
+  // Only apply source fatigue if not using source override
   let sourceFatigue = 0;
   const sourceFatigueDetails = [];
-  sourceCharacters.forEach(character => {
-    const characterFatigue = character.fatigue || 0;
-    sourceFatigue += characterFatigue;
-    sourceFatigueDetails.push({
-      characterId: character.characterId,
-      characterName: character.name,
-      fatigue: characterFatigue
+  if (!sourceOverride) {
+    sourceCharacters.forEach(character => {
+      const characterFatigue = character.fatigue || 0;
+      sourceFatigue += characterFatigue;
+      sourceFatigueDetails.push({
+        characterId: character.characterId,
+        characterName: character.name,
+        fatigue: characterFatigue
+      });
     });
-  });
+  }
   
   // Calculate total fatigue for target characters (objects don't have fatigue)
   let targetFatigue = 0;
@@ -331,7 +344,7 @@ const calculateActionTest = (params) => {
     difficulty: Math.round(difficulty * 10000) / 10000, // Round to 4 decimal places
     sourceValue,
     targetValue,
-    sourceCount: sourceCharacters.length,
+    sourceCount: sourceOverride ? 0 : sourceCharacters.length,
     targetCount: override ? 0 : targetEntities.length,
     successPercentage: Math.round(difficulty * 10000) / 100, // Convert to percentage with 2 decimals
     // Dice pool information for display

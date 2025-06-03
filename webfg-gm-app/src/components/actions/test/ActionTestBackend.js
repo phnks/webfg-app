@@ -10,6 +10,8 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   const [selectedSourceIds, setSelectedSourceIds] = useState(character ? [character.characterId] : []);
   const [override, setOverride] = useState(false);
   const [overrideValue, setOverrideValue] = useState('');
+  const [sourceOverride, setSourceOverride] = useState(false);
+  const [sourceOverrideValue, setSourceOverrideValue] = useState('');
   
   // Fetch potential targets based on targetType
   const { data: charactersData } = useQuery(LIST_CHARACTERS, { skip: targetType !== 'CHARACTER' });
@@ -39,11 +41,13 @@ const ActionTestBackend = ({ action, character, onClose }) => {
     // Prepare input for backend calculation
     const input = {
       actionId: action.actionId,
-      sourceCharacterIds: selectedSourceIds,
+      sourceCharacterIds: sourceOverride ? [] : selectedSourceIds,
       targetIds: override ? [] : selectedTargetIds,
       targetType,
       override,
-      overrideValue: override ? parseFloat(overrideValue) || 0 : 0
+      overrideValue: override ? parseFloat(overrideValue) || 0 : 0,
+      sourceOverride,
+      sourceOverrideValue: sourceOverride ? parseFloat(sourceOverrideValue) || 0 : 0
     };
     
     // Call backend to calculate
@@ -197,7 +201,9 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   
   // Get display values from backend result
   const getDisplaySourceValue = () => {
-    if (testResult?.calculateActionTest) {
+    if (sourceOverride) {
+      return parseFloat(sourceOverrideValue) || 0;
+    } else if (testResult?.calculateActionTest) {
       const { sourceValue, sourceCount } = testResult.calculateActionTest;
       if (sourceCount === 1) {
         return `${sourceValue} (1 source)`;
@@ -241,7 +247,33 @@ const ActionTestBackend = ({ action, character, onClose }) => {
         
         <div className="source-selection">
           <h3>Select Sources</h3>
-          {getSourceOptions()}
+          
+          <div className="override-toggle">
+            <label>
+              <input
+                type="checkbox"
+                checked={sourceOverride}
+                onChange={() => {
+                  setSourceOverride(!sourceOverride);
+                  setSelectedSourceIds([]);
+                }}
+              />
+              Override with manual value
+            </label>
+          </div>
+          
+          {sourceOverride ? (
+            <div className="override-input">
+              <input
+                type="number"
+                value={sourceOverrideValue}
+                onChange={(e) => setSourceOverrideValue(e.target.value)}
+                placeholder="Enter source value"
+              />
+            </div>
+          ) : (
+            getSourceOptions()
+          )}
         </div>
         
         <div className="target-selection">
@@ -269,7 +301,7 @@ const ActionTestBackend = ({ action, character, onClose }) => {
           <button
             className="submit-button"
             onClick={handleSubmit}
-            disabled={(selectedTargetIds.length === 0 && !override) || (override && !overrideValue) || selectedSourceIds.length === 0 || calculating}
+            disabled={(selectedTargetIds.length === 0 && !override) || (override && !overrideValue) || (selectedSourceIds.length === 0 && !sourceOverride) || (sourceOverride && !sourceOverrideValue) || calculating}
           >
             {calculating ? 'Calculating...' : 'Submit'}
           </button>
