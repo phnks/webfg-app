@@ -7,6 +7,8 @@ type Action {
   description: String
   targetType: TargetType!
   effectType: EffectType!
+  triggeredActionId: ID
+  triggeredAction: Action
 }
 
 enum ActionCategory {
@@ -29,6 +31,7 @@ enum EffectType {
   HELP
   HINDER
   DESTROY
+  TRIGGER_ACTION
 }
 
 input ActionInput {
@@ -39,4 +42,5 @@ input ActionInput {
   description: String
   targetType: TargetType!
   effectType: EffectType!
+  triggeredActionId: ID
 }
