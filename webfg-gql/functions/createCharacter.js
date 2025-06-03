@@ -22,6 +22,7 @@ exports.handler = async (event) => {
     name: input.name,
     characterCategory: input.characterCategory,
     will: input.will || 0,
+    fatigue: input.fatigue || 0,
     values: input.values || [],
     lethality: input.lethality,
     armour: input.armour,

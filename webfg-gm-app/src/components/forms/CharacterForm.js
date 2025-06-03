@@ -58,18 +58,19 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     name: "",
     characterCategory: "HUMAN",
     will: 10,
+    fatigue: 0,
     values: [],
-    lethality: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-    armour: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-    endurance: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-    strength: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-    dexterity: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-    agility: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-    perception: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-    charisma: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-    intelligence: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-    resolve: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-    morale: { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+    lethality: { attribute: { attributeValue: 0, isGrouped: true } },
+    armour: { attribute: { attributeValue: 0, isGrouped: true } },
+    endurance: { attribute: { attributeValue: 0, isGrouped: true } },
+    strength: { attribute: { attributeValue: 0, isGrouped: true } },
+    dexterity: { attribute: { attributeValue: 0, isGrouped: true } },
+    agility: { attribute: { attributeValue: 0, isGrouped: true } },
+    perception: { attribute: { attributeValue: 0, isGrouped: true } },
+    charisma: { attribute: { attributeValue: 0, isGrouped: true } },
+    intelligence: { attribute: { attributeValue: 0, isGrouped: true } },
+    resolve: { attribute: { attributeValue: 0, isGrouped: true } },
+    morale: { attribute: { attributeValue: 0, isGrouped: true } },
     special: [],
     actionIds: [],
     inventoryIds: [],
@@ -83,18 +84,19 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         name: character.name || "",
         characterCategory: character.characterCategory || "HUMAN",
         will: character.will !== null && character.will !== undefined ? character.will : 10,
+        fatigue: character.fatigue || 0,
         values: (character.values || []).map(v => ({ ...v })),
-        lethality: character.lethality || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-        armour: character.armour || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-        endurance: character.endurance || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-        strength: character.strength || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-        dexterity: character.dexterity || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-        agility: character.agility || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-        perception: character.perception || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-        charisma: character.charisma || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-        intelligence: character.intelligence || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-        resolve: character.resolve || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
-        morale: character.morale || { attribute: { attributeValue: 0, isGrouped: true }, fatigue: 0 },
+        lethality: character.lethality || { attribute: { attributeValue: 0, isGrouped: true } },
+        armour: character.armour || { attribute: { attributeValue: 0, isGrouped: true } },
+        endurance: character.endurance || { attribute: { attributeValue: 0, isGrouped: true } },
+        strength: character.strength || { attribute: { attributeValue: 0, isGrouped: true } },
+        dexterity: character.dexterity || { attribute: { attributeValue: 0, isGrouped: true } },
+        agility: character.agility || { attribute: { attributeValue: 0, isGrouped: true } },
+        perception: character.perception || { attribute: { attributeValue: 0, isGrouped: true } },
+        charisma: character.charisma || { attribute: { attributeValue: 0, isGrouped: true } },
+        intelligence: character.intelligence || { attribute: { attributeValue: 0, isGrouped: true } },
+        resolve: character.resolve || { attribute: { attributeValue: 0, isGrouped: true } },
+        morale: character.morale || { attribute: { attributeValue: 0, isGrouped: true } },
         special: character.special || [],
         actionIds: character.actionIds || [],
         inventoryIds: character.inventoryIds || [],
@@ -133,19 +135,19 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: field === 'will' || field === 'fatigue' ? parseInt(value) || 0 : value
     }));
   };
 
   const handleAttributeChange = (attributeName, field, value) => {
+    // Since we no longer have fatigue per attribute, this is simpler
     setFormData(prev => ({
       ...prev,
       [attributeName]: {
         ...prev[attributeName],
-        [field]: field === 'fatigue' ? parseInt(value) || 0 : {
-          ...prev[attributeName][field],
-          [field === 'attribute' ? (value.includes('Value') ? 'attributeValue' : 'attributeType') : field]: 
-            field === 'attribute' && value.includes('Value') ? parseFloat(value.replace('Value', '')) || 0 : value
+        attribute: {
+          ...prev[attributeName].attribute,
+          [field]: field === 'attributeValue' ? parseFloat(value) || 0 : value
         }
       }
     }));
@@ -212,83 +214,73 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         name: formData.name,
         characterCategory: formData.characterCategory,
         will: formData.will !== null && formData.will !== undefined && formData.will !== '' ? parseInt(formData.will) : 10,
+        fatigue: formData.fatigue !== null && formData.fatigue !== undefined && formData.fatigue !== '' ? parseInt(formData.fatigue) : 0,
         values: formData.values.map(v => ({ valueName: v.valueName, valueType: v.valueType })),
         lethality: {
           attribute: { 
             attributeValue: parseFloat(formData.lethality.attribute.attributeValue) || 0,
             isGrouped: formData.lethality.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.lethality.fatigue) || 0
+          }
         },
         armour: {
           attribute: { 
             attributeValue: parseFloat(formData.armour.attribute.attributeValue) || 0,
             isGrouped: formData.armour.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.armour.fatigue) || 0
+          }
         },
         endurance: {
           attribute: { 
             attributeValue: parseFloat(formData.endurance.attribute.attributeValue) || 0,
             isGrouped: formData.endurance.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.endurance.fatigue) || 0
+          }
         },
         strength: {
           attribute: { 
             attributeValue: parseFloat(formData.strength.attribute.attributeValue) || 0,
             isGrouped: formData.strength.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.strength.fatigue) || 0
+          }
         },
         dexterity: {
           attribute: { 
             attributeValue: parseFloat(formData.dexterity.attribute.attributeValue) || 0,
             isGrouped: formData.dexterity.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.dexterity.fatigue) || 0
+          }
         },
         agility: {
           attribute: { 
             attributeValue: parseFloat(formData.agility.attribute.attributeValue) || 0,
             isGrouped: formData.agility.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.agility.fatigue) || 0
+          }
         },
         perception: {
           attribute: { 
             attributeValue: parseFloat(formData.perception.attribute.attributeValue) || 0,
             isGrouped: formData.perception.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.perception.fatigue) || 0
+          }
         },
         charisma: {
           attribute: { 
             attributeValue: parseFloat(formData.charisma.attribute.attributeValue) || 0,
             isGrouped: formData.charisma.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.charisma.fatigue) || 0
+          }
         },
         intelligence: {
           attribute: { 
             attributeValue: parseFloat(formData.intelligence.attribute.attributeValue) || 0,
             isGrouped: formData.intelligence.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.intelligence.fatigue) || 0
+          }
         },
         resolve: {
           attribute: { 
             attributeValue: parseFloat(formData.resolve.attribute.attributeValue) || 0,
             isGrouped: formData.resolve.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.resolve.fatigue) || 0
+          }
         },
         morale: {
           attribute: { 
             attributeValue: parseFloat(formData.morale.attribute.attributeValue) || 0,
             isGrouped: formData.morale.attribute.isGrouped
-          },
-          fatigue: parseInt(formData.morale.fatigue) || 0
+          }
         },
         special: formData.special,
         actionIds: formData.actionIds,
@@ -364,6 +356,13 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                 onChange={(e) => handleInputChange('will', e.target.value)}
               />
             </div>
+            <div className="form-group">
+              <label>Fatigue</label>
+              <MobileNumberInput
+                value={formData.fatigue}
+                onChange={(e) => handleInputChange('fatigue', e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
@@ -391,13 +390,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                       />
                       Include in Grouping
                     </label>
-                  </div>
-                  <div className="form-field">
-                    <label>Fatigue</label>
-                    <MobileNumberInput
-                      value={formData[attr]?.fatigue || 0}
-                      onChange={(e) => handleAttributeChange(attr, 'fatigue', e.target.value)}
-                    />
                   </div>
                 </div>
               </div>

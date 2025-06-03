@@ -14,6 +14,7 @@ const CharacterDetails = ({ character, onUpdate }) => {
         name: character.name,
         characterCategory: character.characterCategory,
         will: newValue,
+        fatigue: character.fatigue || 0,
         values: character.values || [],
         special: character.special || "",
         actionIds: character.actionIds || [],
@@ -21,7 +22,7 @@ const CharacterDetails = ({ character, onUpdate }) => {
         equipmentIds: character.equipmentIds || []
       };
 
-      // Add attributes with their current values and fatigue
+      // Add attributes with their current values (no more fatigue per attribute)
       const attributes = [
         'lethality', 'armour', 'endurance', 'strength', 'dexterity',
         'agility', 'perception', 'charisma', 'intelligence', 'resolve', 'morale'
@@ -33,8 +34,7 @@ const CharacterDetails = ({ character, onUpdate }) => {
             attribute: {
               attributeValue: character[attr].attribute.attributeValue,
               isGrouped: character[attr].attribute.isGrouped
-            },
-            fatigue: character[attr].fatigue || 0
+            }
           };
         }
       });
@@ -52,6 +52,55 @@ const CharacterDetails = ({ character, onUpdate }) => {
       }
     } catch (error) {
       console.error('Failed to update will:', error);
+      throw error;
+    }
+  };
+
+  const handleFatigueAdjust = async (newValue) => {
+    try {
+      // Build the complete character input with all required fields
+      const characterInput = {
+        name: character.name,
+        characterCategory: character.characterCategory,
+        will: character.will || 0,
+        fatigue: newValue,
+        values: character.values || [],
+        special: character.special || "",
+        actionIds: character.actionIds || [],
+        inventoryIds: character.inventoryIds || [],
+        equipmentIds: character.equipmentIds || []
+      };
+
+      // Add attributes with their current values (no more fatigue per attribute)
+      const attributes = [
+        'lethality', 'armour', 'endurance', 'strength', 'dexterity',
+        'agility', 'perception', 'charisma', 'intelligence', 'resolve', 'morale'
+      ];
+
+      attributes.forEach(attr => {
+        if (character[attr]) {
+          characterInput[attr] = {
+            attribute: {
+              attributeValue: character[attr].attribute.attributeValue,
+              isGrouped: character[attr].attribute.isGrouped
+            }
+          };
+        }
+      });
+
+      await updateCharacter({
+        variables: {
+          characterId: character.characterId,
+          input: characterInput
+        }
+      });
+
+      // Call the onUpdate callback to refresh the parent component
+      if (onUpdate) {
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Failed to update fatigue:', error);
       throw error;
     }
   };
@@ -81,6 +130,19 @@ const CharacterDetails = ({ character, onUpdate }) => {
                 <QuickAdjustWidget
                   currentValue={character.will || 0}
                   onAdjust={handleWillAdjust}
+                  min={0}
+                />
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Fatigue:</td>
+            <td>
+              <div className="value-with-widget">
+                <span>{character.fatigue || 0}</span>
+                <QuickAdjustWidget
+                  currentValue={character.fatigue || 0}
+                  onAdjust={handleFatigueAdjust}
                   min={0}
                 />
               </div>

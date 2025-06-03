@@ -61,6 +61,7 @@ type Character {
   name: String!
   characterCategory: CharacterCategory!
   will: Int!
+  fatigue: Int!
 
   values: [Value]      
 
@@ -105,12 +106,10 @@ enum CharacterCategory {
 
 type CharacterAttribute {
   attribute: Attribute!
-  fatigue: Int!
 }
 
 input CharacterAttributeInput {
   attribute: AttributeInput!
-  fatigue: Int!
 }
 
 input ValueInput {
@@ -122,6 +121,7 @@ input CharacterInput {
   name: String!
   characterCategory: CharacterCategory!
   will: Int!
+  fatigue: Int!
   values: [ValueInput]
   lethality: CharacterAttributeInput!
   armour: CharacterAttributeInput!
@@ -446,6 +446,12 @@ type AttributeBreakdownStep {
   formula: String
 }
 
+type FatigueContribution {
+  characterId: ID!
+  characterName: String!
+  fatigue: Int!
+}
+
 type ActionTestResult {
   difficulty: Float!
   sourceValue: Float!
@@ -457,7 +463,13 @@ type ActionTestResult {
   targetDice: Int!
   adjustedSourceDice: Int!
   adjustedTargetDice: Int!
+  sourceFatigue: Int!
+  targetFatigue: Int!
+  finalSourceDice: Int!
+  finalTargetDice: Int!
   dicePoolExceeded: Boolean!
+  sourceFatigueDetails: [FatigueContribution!]!
+  targetFatigueDetails: [FatigueContribution!]!
 }
 
 input ActionTestInput {
