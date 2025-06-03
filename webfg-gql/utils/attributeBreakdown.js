@@ -78,19 +78,8 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     return breakdown;
   }
   
-  // Collect equipment attributes (excluding non-grouped types)
-  const equipmentAttributes = [];
-  if (character.equipment && character.equipment.length > 0) {
-    character.equipment.forEach(item => {
-      const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-      if (itemAttrInfo && itemAttrInfo.isGrouped) {
-        equipmentAttributes.push({
-          name: item.name,
-          ...itemAttrInfo
-        });
-      }
-    });
-  }
+  // Re-use the equipment attributes already collected above
+  // (No need to collect again since we already have them from lines 30-43)
   
   // If no valid equipment, start with just the character value
   if (equipmentAttributes.length === 0) {
