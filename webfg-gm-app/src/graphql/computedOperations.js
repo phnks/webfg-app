@@ -202,6 +202,16 @@ export const CALCULATE_ACTION_TEST = gql`
       finalSourceDice
       finalTargetDice
       dicePoolExceeded
+      sourceFatigueDetails {
+        characterId
+        characterName
+        fatigue
+      }
+      targetFatigueDetails {
+        characterId
+        characterName
+        fatigue
+      }
     }
   }
 `;

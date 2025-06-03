@@ -305,23 +305,23 @@ const calculateActionTest = (params) => {
   }
   
   // Apply fatigue AFTER halving
-  // Only apply minimum 1 dice if the pool is > 0 after halving but would be reduced to 0 by fatigue
+  // Fatigue can reduce dice to 0, but not below 0
   let finalSourceDice, finalTargetDice;
   
   if (adjustedSource === 0) {
     // If already 0 after halving, fatigue can't reduce it further
     finalSourceDice = 0;
   } else {
-    // If > 0 after halving, apply fatigue but ensure minimum 1 dice
-    finalSourceDice = Math.max(1, adjustedSource - sourceFatigue);
+    // If > 0 after halving, apply fatigue (can reduce to 0, but not below)
+    finalSourceDice = Math.max(0, adjustedSource - sourceFatigue);
   }
   
   if (adjustedTarget === 0) {
     // If already 0 after halving, fatigue can't reduce it further
     finalTargetDice = 0;
   } else {
-    // If > 0 after halving, apply fatigue but ensure minimum 1 dice
-    finalTargetDice = Math.max(1, adjustedTarget - targetFatigue);
+    // If > 0 after halving, apply fatigue (can reduce to 0, but not below)
+    finalTargetDice = Math.max(0, adjustedTarget - targetFatigue);
   }
   
   // Calculate difficulty using final dice pools

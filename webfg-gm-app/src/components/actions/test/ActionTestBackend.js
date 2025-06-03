@@ -23,7 +23,10 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   const [calculateTest, { data: testResult, loading: calculating }] = useLazyQuery(
     CALCULATE_ACTION_TEST,
     {
-      fetchPolicy: 'no-cache' // Always get fresh calculation
+      fetchPolicy: 'no-cache', // Always get fresh calculation
+      onCompleted: (data) => {
+        console.log('Action test result:', data.calculateActionTest);
+      }
     }
   );
   
@@ -338,7 +341,21 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                   {testResult.calculateActionTest.sourceFatigue > 0 && (
                     <div className="fatigue-item">
                       <span className="fatigue-label">Source Fatigue:</span>
-                      <span className="fatigue-value">-{testResult.calculateActionTest.sourceFatigue}</span>
+                      <div className="fatigue-breakdown">
+                        {testResult.calculateActionTest.sourceFatigueDetails && testResult.calculateActionTest.sourceFatigueDetails.length > 0 ? (
+                          <>
+                            {testResult.calculateActionTest.sourceFatigueDetails.map((detail, index) => (
+                              <span key={detail.characterId} className="fatigue-character">
+                                {detail.characterName}: {detail.fatigue}
+                                {index < testResult.calculateActionTest.sourceFatigueDetails.length - 1 && " + "}
+                              </span>
+                            ))}
+                            <span className="fatigue-total"> = {testResult.calculateActionTest.sourceFatigue}</span>
+                          </>
+                        ) : (
+                          <span className="fatigue-value">-{testResult.calculateActionTest.sourceFatigue}</span>
+                        )}
+                      </div>
                       <span className="fatigue-arrow">→</span>
                       <span className="fatigue-final">{testResult.calculateActionTest.finalSourceDice} dice</span>
                     </div>
@@ -346,7 +363,21 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                   {testResult.calculateActionTest.targetFatigue > 0 && (
                     <div className="fatigue-item">
                       <span className="fatigue-label">Target Fatigue:</span>
-                      <span className="fatigue-value">-{testResult.calculateActionTest.targetFatigue}</span>
+                      <div className="fatigue-breakdown">
+                        {testResult.calculateActionTest.targetFatigueDetails && testResult.calculateActionTest.targetFatigueDetails.length > 0 ? (
+                          <>
+                            {testResult.calculateActionTest.targetFatigueDetails.map((detail, index) => (
+                              <span key={detail.characterId} className="fatigue-character">
+                                {detail.characterName}: {detail.fatigue}
+                                {index < testResult.calculateActionTest.targetFatigueDetails.length - 1 && " + "}
+                              </span>
+                            ))}
+                            <span className="fatigue-total"> = {testResult.calculateActionTest.targetFatigue}</span>
+                          </>
+                        ) : (
+                          <span className="fatigue-value">-{testResult.calculateActionTest.targetFatigue}</span>
+                        )}
+                      </div>
                       <span className="fatigue-arrow">→</span>
                       <span className="fatigue-final">{testResult.calculateActionTest.finalTargetDice} dice</span>
                     </div>
