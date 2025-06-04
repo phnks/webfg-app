@@ -13,6 +13,9 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   const [sourceOverride, setSourceOverride] = useState(false);
   const [sourceOverrideValue, setSourceOverrideValue] = useState('');
   
+  // Per-action override settings
+  const [actionOverrides, setActionOverrides] = useState({});
+  
   // Fetch potential targets based on targetType
   const { data: charactersData } = useQuery(LIST_CHARACTERS, { skip: targetType !== 'CHARACTER' });
   const { data: objectsData } = useQuery(LIST_OBJECTS, { skip: targetType !== 'OBJECT' });
@@ -45,17 +48,37 @@ const ActionTestBackend = ({ action, character, onClose }) => {
 
   // Recursive function to calculate action chain
   const calculateActionChain = async (currentAction, sourceIds, targetIds, chainResults = []) => {
+    const isFirstAction = chainResults.length === 0;
+    const actionIndex = chainResults.length;
+    const actionKey = `${currentAction.actionId}_${actionIndex}`;
+    
+    // Get override settings for this specific action
+    const actionOverride = actionOverrides[actionKey] || {};
+    const hasTargetOverride = isFirstAction ? override : actionOverride.targetOverride;
+    const targetOverrideVal = isFirstAction ? overrideValue : actionOverride.targetOverrideValue;
+    const hasSourceOverride = isFirstAction ? sourceOverride : actionOverride.sourceOverride;
+    const sourceOverrideVal = isFirstAction ? sourceOverrideValue : actionOverride.sourceOverrideValue;
+    
     // Prepare input for backend calculation
     const input = {
       actionId: currentAction.actionId,
-      sourceCharacterIds: sourceOverride && chainResults.length === 0 ? [] : sourceIds,
-      targetIds: override && chainResults.length === 0 ? [] : targetIds,
+      sourceCharacterIds: hasSourceOverride ? [] : sourceIds,
+      targetIds: hasTargetOverride ? [] : targetIds,
       targetType: currentAction.targetType || targetType,
-      override: override && chainResults.length === 0,
-      overrideValue: override && chainResults.length === 0 ? parseFloat(overrideValue) || 0 : 0,
-      sourceOverride: sourceOverride && chainResults.length === 0,
-      sourceOverrideValue: sourceOverride && chainResults.length === 0 ? parseFloat(sourceOverrideValue) || 0 : 0
+      override: hasTargetOverride,
+      overrideValue: hasTargetOverride ? parseFloat(targetOverrideVal) || 0 : 0,
+      sourceOverride: hasSourceOverride,
+      sourceOverrideValue: hasSourceOverride ? parseFloat(sourceOverrideVal) || 0 : 0
     };
+    
+    console.log(`Calculating action ${actionIndex + 1}: ${currentAction.name}`, {
+      sourceIds,
+      targetIds,
+      isFirstAction,
+      actionKey,
+      actionOverride,
+      input
+    });
     
     // Calculate test for current action
     const result = await calculateTest({
@@ -72,28 +95,46 @@ const ActionTestBackend = ({ action, character, onClose }) => {
       chainResults.push(actionResult);
       
       // Check if there's a triggered action
+      console.log('Checking for triggered action:', {
+        triggeredActionId: currentAction.triggeredActionId,
+        effectType: currentAction.effectType,
+        triggeredAction: currentAction.triggeredAction
+      });
+      
       if (currentAction.triggeredActionId && currentAction.effectType === 'TRIGGER_ACTION') {
+        console.log('Found triggered action, processing...');
+        
         // Fetch the triggered action details if not already loaded
         let triggeredAction = currentAction.triggeredAction;
         if (!triggeredAction && currentAction.triggeredActionId) {
+          console.log('Fetching triggered action details for ID:', currentAction.triggeredActionId);
           const actionResult = await getAction({
             variables: { actionId: currentAction.triggeredActionId }
           });
           triggeredAction = actionResult.data?.getAction;
+          console.log('Fetched triggered action:', triggeredAction);
         }
         
         if (triggeredAction) {
-          // For triggered actions, the source becomes the previous target
-          // and we need to determine new targets based on the triggered action's targetType
-          const newSourceIds = targetIds;
-          let newTargetIds = [];
+          console.log('Processing triggered action:', triggeredAction.name);
           
-          // For now, we'll use empty target IDs for triggered actions
-          // In a real scenario, you might want to prompt for new targets
-          // or use some logic to determine them
+          // For triggered actions, keep the same source and target characters as the first action
+          // This ensures fatigue is calculated properly for all actions in the chain
+          const newSourceIds = sourceIds; // Same sources for all actions in chain
+          const newTargetIds = targetIds; // Same targets for all actions in chain
+          
+          console.log('Recursive call with:', {
+            action: triggeredAction.name,
+            newSourceIds,
+            newTargetIds
+          });
           
           await calculateActionChain(triggeredAction, newSourceIds, newTargetIds, chainResults);
+        } else {
+          console.log('No triggered action found despite having triggeredActionId');
         }
+      } else {
+        console.log('No triggered action or not TRIGGER_ACTION type');
       }
     }
     
@@ -104,8 +145,36 @@ const ActionTestBackend = ({ action, character, onClose }) => {
     setIsCalculatingChain(true);
     setActionChainResults([]);
     
+    console.log('Starting action chain calculation for:', {
+      action: action.name,
+      actionId: action.actionId,
+      effectType: action.effectType,
+      triggeredActionId: action.triggeredActionId,
+      triggeredAction: action.triggeredAction,
+      selectedSourceIds,
+      selectedTargetIds
+    });
+    
+    // Let's fetch the action fresh to get the triggered action data
+    console.log('Fetching fresh action data to ensure we have triggered action fields...');
+    let actionToUse = action;
     try {
-      const results = await calculateActionChain(action, selectedSourceIds, selectedTargetIds);
+      const freshActionResult = await getAction({
+        variables: { actionId: action.actionId }
+      });
+      console.log('Fresh action data:', freshActionResult.data?.getAction);
+      if (freshActionResult.data?.getAction) {
+        actionToUse = freshActionResult.data.getAction;
+        console.log('Using fresh action data for chain calculation');
+      }
+    } catch (err) {
+      console.error('Error fetching fresh action data:', err);
+      console.log('Falling back to original action data');
+    }
+    
+    try {
+      const results = await calculateActionChain(actionToUse, selectedSourceIds, selectedTargetIds);
+      console.log('Final chain results:', results);
       setActionChainResults(results);
     } catch (error) {
       console.error('Error calculating action chain:', error);
@@ -373,25 +442,114 @@ const ActionTestBackend = ({ action, character, onClose }) => {
             <h3>Action Chain Results</h3>
             
             {/* Display each action in the chain */}
-            {actionChainResults.map((actionResult, index) => (
-              <div key={index} className="action-chain-item">
-                <h4>{index + 1}. {actionResult.action.name}</h4>
-                <div className="difficulty-value">
-                  {actionResult.result.successPercentage.toFixed(2)}%
-                </div>
-                <p>
-                  Source Value: {actionResult.result.sourceCount === 1 ? 
-                    `${actionResult.result.sourceValue} (1 source)` : 
-                    actionResult.result.sourceCount > 1 ? 
-                    `${actionResult.result.sourceValue} (${actionResult.result.sourceCount} sources grouped)` : 
-                    actionResult.result.sourceValue}
-                  <br />
-                  Target Value: {actionResult.result.targetCount === 1 ? 
-                    `${actionResult.result.targetValue} (1 target)` : 
-                    actionResult.result.targetCount > 1 ? 
-                    `${actionResult.result.targetValue} (${actionResult.result.targetCount} targets grouped)` : 
-                    actionResult.result.targetValue}
-                </p>
+            {actionChainResults.map((actionResult, index) => {
+              const actionKey = `${actionResult.action.actionId}_${index}`;
+              const actionOverride = actionOverrides[actionKey] || {};
+              const isFirstAction = index === 0;
+              
+              return (
+                <div key={index} className="action-chain-item">
+                  <h4>{index + 1}. {actionResult.action.name}</h4>
+                  <div className="difficulty-value">
+                    {actionResult.result.successPercentage.toFixed(2)}%
+                  </div>
+                  
+                  {/* Per-action override controls (except for first action) */}
+                  {!isFirstAction && (
+                    <div className="per-action-overrides">
+                      <h5>Override Values for This Action</h5>
+                      
+                      {/* Source Override */}
+                      <div className="override-control">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={actionOverride.sourceOverride || false}
+                            onChange={(e) => {
+                              setActionOverrides(prev => ({
+                                ...prev,
+                                [actionKey]: {
+                                  ...prev[actionKey],
+                                  sourceOverride: e.target.checked,
+                                  sourceOverrideValue: e.target.checked ? prev[actionKey]?.sourceOverrideValue || '' : ''
+                                }
+                              }));
+                            }}
+                          />
+                          Override source value
+                        </label>
+                        {actionOverride.sourceOverride && (
+                          <input
+                            type="number"
+                            value={actionOverride.sourceOverrideValue || ''}
+                            onChange={(e) => {
+                              setActionOverrides(prev => ({
+                                ...prev,
+                                [actionKey]: {
+                                  ...prev[actionKey],
+                                  sourceOverrideValue: e.target.value
+                                }
+                              }));
+                            }}
+                            placeholder="Enter source value"
+                            className="override-input-small"
+                          />
+                        )}
+                      </div>
+                      
+                      {/* Target Override */}
+                      <div className="override-control">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={actionOverride.targetOverride || false}
+                            onChange={(e) => {
+                              setActionOverrides(prev => ({
+                                ...prev,
+                                [actionKey]: {
+                                  ...prev[actionKey],
+                                  targetOverride: e.target.checked,
+                                  targetOverrideValue: e.target.checked ? prev[actionKey]?.targetOverrideValue || '' : ''
+                                }
+                              }));
+                            }}
+                          />
+                          Override target value
+                        </label>
+                        {actionOverride.targetOverride && (
+                          <input
+                            type="number"
+                            value={actionOverride.targetOverrideValue || ''}
+                            onChange={(e) => {
+                              setActionOverrides(prev => ({
+                                ...prev,
+                                [actionKey]: {
+                                  ...prev[actionKey],
+                                  targetOverrideValue: e.target.value
+                                }
+                              }));
+                            }}
+                            placeholder="Enter target value"
+                            className="override-input-small"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <p>
+                    Source Value: {actionResult.result.sourceCount === 1 ? 
+                      `${actionResult.result.sourceValue} (1 source)` : 
+                      actionResult.result.sourceCount > 1 ? 
+                      `${actionResult.result.sourceValue} (${actionResult.result.sourceCount} sources grouped)` : 
+                      actionResult.result.sourceValue}
+                    <br />
+                    Target Value: {actionResult.result.targetCount === 1 ? 
+                      `${actionResult.result.targetValue} (1 target)` : 
+                      actionResult.result.targetCount > 1 ? 
+                      `${actionResult.result.targetValue} (${actionResult.result.targetCount} targets grouped)` : 
+                      actionResult.result.targetValue}
+                  </p>
                 
                 {/* Dice Pool Information */}
                 {actionResult.result.dicePoolExceeded && (
@@ -504,7 +662,21 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
+            
+            {/* Recalculate button when overrides are changed */}
+            {actionChainResults.length > 1 && Object.keys(actionOverrides).length > 0 && (
+              <div className="recalculate-section">
+                <button
+                  className="recalculate-button"
+                  onClick={handleSubmit}
+                  disabled={calculating || isCalculatingChain}
+                >
+                  {(calculating || isCalculatingChain) ? 'Recalculating...' : 'Recalculate with Overrides'}
+                </button>
+              </div>
+            )}
             
             {/* Total chain success probability */}
             {actionChainResults.length > 1 && (
