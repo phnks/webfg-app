@@ -337,6 +337,260 @@
   color: #2e7d32;
 }
 
+/* Fatigue Information Styles */
+.fatigue-info {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #fff3e0;
+  border-radius: 6px;
+  border: 1px solid #ffe0b2;
+}
+
+.fatigue-info h4, .fatigue-info h5 {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+  color: #e65100;
+}
+
+.fatigue-note {
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+.fatigue-values {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fatigue-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #ffcc80;
+}
+
+.fatigue-label {
+  font-weight: 600;
+  color: #e65100;
+  min-width: 120px;
+}
+
+.fatigue-breakdown {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.fatigue-character {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.fatigue-total {
+  font-weight: bold;
+  color: #e65100;
+  margin-left: 5px;
+}
+
+.fatigue-value {
+  font-weight: bold;
+  color: #e65100;
+}
+
+.fatigue-arrow {
+  margin: 0 8px;
+  color: #666;
+}
+
+.fatigue-final {
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+/* Final Dice Pools */
+.final-dice-info {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #e8f5e9;
+  border-radius: 6px;
+  border: 1px solid #a5d6a7;
+}
+
+.final-dice-info h4, .final-dice-info h5 {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+  color: #1b5e20;
+}
+
+.final-dice-values {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.final-dice-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #81c784;
+}
+
+.dice-final-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #1b5e20;
+  margin-left: 10px;
+}
+
+/* Action Chain Styles */
+.action-chain-item {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  position: relative;
+}
+
+.action-chain-item::after {
+  content: '↓';
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  color: #666;
+}
+
+.action-chain-item:last-child::after {
+  display: none;
+}
+
+.action-chain-item h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.action-chain-item h5 {
+  margin: 15px 0 10px 0;
+  color: #555;
+  font-size: 1rem;
+}
+
+/* Chain Total Styles */
+.chain-total {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #e3f2fd;
+  border-radius: 8px;
+  border: 2px solid #1976d2;
+  text-align: center;
+}
+
+.chain-total h4 {
+  margin: 0 0 15px 0;
+  color: #1976d2;
+  font-size: 1.3rem;
+}
+
+.chain-calculation {
+  font-size: 1.1rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.chain-calculation strong {
+  font-size: 1.5rem;
+  color: #1976d2;
+  margin-left: 10px;
+}
+
+/* Per-action override controls */
+.per-action-overrides {
+  margin: 15px 0;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+}
+
+.per-action-overrides h5 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.override-control {
+  margin-bottom: 10px;
+}
+
+.override-control label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+.override-control input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.override-input-small {
+  margin-left: 25px;
+  padding: 6px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  width: 150px;
+  font-size: 0.9rem;
+}
+
+.override-input-small:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Recalculate section */
+.recalculate-section {
+  margin: 20px 0;
+  text-align: center;
+  padding: 15px;
+  background-color: #e3f2fd;
+  border-radius: 6px;
+}
+
+.recalculate-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.recalculate-button:hover {
+  background-color: #0056b3;
+}
+
+.recalculate-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 600px) {
   .action-test-container {
@@ -364,5 +618,17 @@
   .dice-label {
     min-width: 80px;
     font-size: 0.9rem;
+  }
+  
+  .action-chain-item {
+    padding: 15px;
+  }
+  
+  .chain-calculation {
+    font-size: 0.9rem;
+  }
+  
+  .chain-calculation strong {
+    font-size: 1.2rem;
   }
 }

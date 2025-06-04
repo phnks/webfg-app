@@ -92,6 +92,9 @@ Resources:
             "targetAttribute": $util.dynamodb.toDynamoDBJson($ctx.args.input.targetAttribute),
             "targetType": $util.dynamodb.toDynamoDBJson($ctx.args.input.targetType),
             "effectType": $util.dynamodb.toDynamoDBJson($ctx.args.input.effectType),
+            #if($ctx.args.input.triggeredActionId)
+              "triggeredActionId": $util.dynamodb.toDynamoDBJson($ctx.args.input.triggeredActionId),
+            #end
             "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
           }
         }
@@ -113,7 +116,7 @@ Resources:
             "actionId": $util.dynamodb.toDynamoDBJson($ctx.args.actionId)
           },
           "update": {
-            "expression": "SET #name = :name, #actionCategory = :actionCategory, #sourceAttribute = :sourceAttribute, #targetAttribute = :targetAttribute, #description = :description, #targetType = :targetType, #effectType = :effectType",
+            "expression": "SET #name = :name, #actionCategory = :actionCategory, #sourceAttribute = :sourceAttribute, #targetAttribute = :targetAttribute, #description = :description, #targetType = :targetType, #effectType = :effectType#if($ctx.args.input.triggeredActionId), #triggeredActionId = :triggeredActionId#end",
             "expressionNames": {
               "#name": "name",
               "#actionCategory": "actionCategory",
@@ -121,7 +124,8 @@ Resources:
               "#targetAttribute": "targetAttribute",
               "#description": "description",
               "#targetType": "targetType",
-              "#effectType": "effectType"
+              "#effectType": "effectType"#if($ctx.args.input.triggeredActionId),
+              "#triggeredActionId": "triggeredActionId"#end
             },
             "expressionValues": {
               ":name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
@@ -130,7 +134,8 @@ Resources:
               ":targetAttribute": $util.dynamodb.toDynamoDBJson($ctx.args.input.targetAttribute),
               ":description": $util.dynamodb.toDynamoDBJson($ctx.args.input.description),
               ":targetType": $util.dynamodb.toDynamoDBJson($ctx.args.input.targetType),
-              ":effectType": $util.dynamodb.toDynamoDBJson($ctx.args.input.effectType)
+              ":effectType": $util.dynamodb.toDynamoDBJson($ctx.args.input.effectType)#if($ctx.args.input.triggeredActionId),
+              ":triggeredActionId": $util.dynamodb.toDynamoDBJson($ctx.args.input.triggeredActionId)#end
             }
           }
         }
@@ -155,6 +160,38 @@ Resources:
         }
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
+
+  TriggeredActionResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Action
+      FieldName: triggeredAction
+      DataSourceName: !Ref ActionsDataSourceName
+      RequestMappingTemplate: |
+        #if($ctx.source.triggeredActionId)
+          {
+            "version": "2017-02-28",
+            "operation": "GetItem",
+            "key": {
+              "actionId": $util.dynamodb.toDynamoDBJson($ctx.source.triggeredActionId)
+            }
+          }
+        #else
+          {
+            "version": "2017-02-28",
+            "operation": "GetItem",
+            "key": {
+              "actionId": {"S": "non-existent"}
+            }
+          }
+        #end
+      ResponseMappingTemplate: |
+        #if($ctx.result)
+          $util.toJson($ctx.result)
+        #else
+          null
+        #end
 
   GetActionsFunction:
     Type: AWS::Serverless::Function

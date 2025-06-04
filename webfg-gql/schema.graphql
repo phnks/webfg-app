@@ -209,6 +209,8 @@ type Action {
   description: String
   targetType: TargetType!
   effectType: EffectType!
+  triggeredActionId: ID
+  triggeredAction: Action
 }
 
 enum ActionCategory {
@@ -231,6 +233,7 @@ enum EffectType {
   HELP
   HINDER
   DESTROY
+  TRIGGER_ACTION
 }
 
 input ActionInput {
@@ -241,6 +244,7 @@ input ActionInput {
   description: String
   targetType: TargetType!
   effectType: EffectType!
+  triggeredActionId: ID
 }
 
 type Query {
@@ -479,6 +483,8 @@ input ActionTestInput {
   targetType: TargetType!
   override: Boolean
   overrideValue: Float
+  sourceOverride: Boolean
+  sourceOverrideValue: Float
 }
 
 # Computed fields are now directly in Character and Object types

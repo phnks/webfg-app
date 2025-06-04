@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import ErrorPopup from '../common/ErrorPopup';
-import { useMutation } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
   CREATE_ACTION,
@@ -12,7 +12,7 @@ import "./Form.css";
 const ActionCategory = ["MOVE", "ATTACK", "DEFEND", "RECOVER", "INTERACT", "MANIPULATE", "ASSIST"];
 const AttributeName = ["LETHALITY", "ARMOUR", "ENDURANCE", "STRENGTH", "DEXTERITY", "AGILITY", "PERCEPTION", "CHARISMA", "INTELLIGENCE", "RESOLVE", "MORALE"];
 const TargetType = ["OBJECT", "CHARACTER", "ACTION"];
-const EffectType = ["HELP", "HINDER", "DESTROY"];
+const EffectType = ["HELP", "HINDER", "DESTROY", "TRIGGER_ACTION"];
 
 const defaultActionForm = {
   name: '',
@@ -21,7 +21,8 @@ const defaultActionForm = {
   targetAttribute: AttributeName[0],
   description: '',
   targetType: TargetType[0],
-  effectType: EffectType[0]
+  effectType: EffectType[0],
+  triggeredActionId: null
 };
 
 const stripTypename = (obj) => {
@@ -50,6 +51,9 @@ const prepareActionInput = (data, isEditing) => {
     targetType: data.targetType,
     effectType: data.effectType
   };
+  if (data.effectType === 'TRIGGER_ACTION' && data.triggeredActionId) {
+    input.triggeredActionId = data.triggeredActionId;
+  }
   if (!isEditing) {
       delete input.actionId;
   }
@@ -64,6 +68,9 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
   const navigate = useNavigate();
+
+  const { data: actionsData } = useQuery(LIST_ACTIONS);
+  const availableActions = actionsData?.listActions || [];
 
   const [createAction, { loading: createLoading }] = useMutation(CREATE_ACTION, {
     update(cache, { data: { createAction } }) {
@@ -234,6 +241,26 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
             {EffectType.map(type => <option key={type} value={type}>{type}</option>)}
           </select>
         </div>
+
+        {formData.effectType === 'TRIGGER_ACTION' && (
+          <div className="form-group">
+            <label htmlFor="triggeredActionId">Triggered Action</label>
+            <select
+              id="triggeredActionId"
+              name="triggeredActionId"
+              value={formData.triggeredActionId || ""}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select an action to trigger...</option>
+              {availableActions.map(action => (
+                <option key={action.actionId} value={action.actionId}>
+                  {action.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="form-group">
           <label htmlFor="description">Description</label>

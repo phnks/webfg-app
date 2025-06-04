@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client';
-import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS } from '../../../graphql/operations';
+import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, GET_ACTION } from '../../../graphql/operations';
 import { CALCULATE_ACTION_TEST } from '../../../graphql/computedOperations';
 import './ActionTest.css';
 
@@ -10,6 +10,11 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   const [selectedSourceIds, setSelectedSourceIds] = useState(character ? [character.characterId] : []);
   const [override, setOverride] = useState(false);
   const [overrideValue, setOverrideValue] = useState('');
+  const [sourceOverride, setSourceOverride] = useState(false);
+  const [sourceOverrideValue, setSourceOverrideValue] = useState('');
+  
+  // Per-action override settings
+  const [actionOverrides, setActionOverrides] = useState({});
   
   // Fetch potential targets based on targetType
   const { data: charactersData } = useQuery(LIST_CHARACTERS, { skip: targetType !== 'CHARACTER' });
@@ -19,37 +24,163 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   // Fetch all characters for source selection (always needed)
   const { data: allCharactersData } = useQuery(LIST_CHARACTERS);
   
+  // State for action chain results
+  const [actionChainResults, setActionChainResults] = useState([]);
+  const [isCalculatingChain, setIsCalculatingChain] = useState(false);
+  
   // Lazy query for action test calculation
   const [calculateTest, { data: testResult, loading: calculating }] = useLazyQuery(
     CALCULATE_ACTION_TEST,
     {
-      fetchPolicy: 'no-cache', // Always get fresh calculation
-      onCompleted: (data) => {
-        console.log('Action test result:', data.calculateActionTest);
-      }
+      fetchPolicy: 'no-cache' // Always get fresh calculation
     }
   );
+  
+  // Lazy query for fetching action details
+  const [getAction] = useLazyQuery(GET_ACTION, {
+    fetchPolicy: 'no-cache'
+  });
   
   // Initial setup
   useEffect(() => {
     setTargetType(action.targetType);
   }, [action]);
 
-  const handleSubmit = async () => {
+  // Recursive function to calculate action chain
+  const calculateActionChain = async (currentAction, sourceIds, targetIds, chainResults = []) => {
+    const isFirstAction = chainResults.length === 0;
+    const actionIndex = chainResults.length;
+    const actionKey = `${currentAction.actionId}_${actionIndex}`;
+    
+    // Get override settings for this specific action
+    const actionOverride = actionOverrides[actionKey] || {};
+    const hasTargetOverride = isFirstAction ? override : actionOverride.targetOverride;
+    const targetOverrideVal = isFirstAction ? overrideValue : actionOverride.targetOverrideValue;
+    const hasSourceOverride = isFirstAction ? sourceOverride : actionOverride.sourceOverride;
+    const sourceOverrideVal = isFirstAction ? sourceOverrideValue : actionOverride.sourceOverrideValue;
+    
     // Prepare input for backend calculation
     const input = {
-      actionId: action.actionId,
-      sourceCharacterIds: selectedSourceIds,
-      targetIds: override ? [] : selectedTargetIds,
-      targetType,
-      override,
-      overrideValue: override ? parseFloat(overrideValue) || 0 : 0
+      actionId: currentAction.actionId,
+      sourceCharacterIds: hasSourceOverride ? [] : sourceIds,
+      targetIds: hasTargetOverride ? [] : targetIds,
+      targetType: currentAction.targetType || targetType,
+      override: hasTargetOverride,
+      overrideValue: hasTargetOverride ? parseFloat(targetOverrideVal) || 0 : 0,
+      sourceOverride: hasSourceOverride,
+      sourceOverrideValue: hasSourceOverride ? parseFloat(sourceOverrideVal) || 0 : 0
     };
     
-    // Call backend to calculate
-    calculateTest({
+    console.log(`Calculating action ${actionIndex + 1}: ${currentAction.name}`, {
+      sourceIds,
+      targetIds,
+      isFirstAction,
+      actionKey,
+      actionOverride,
+      input
+    });
+    
+    // Calculate test for current action
+    const result = await calculateTest({
       variables: { input }
     });
+    
+    if (result.data && result.data.calculateActionTest) {
+      const actionResult = {
+        action: currentAction,
+        result: result.data.calculateActionTest,
+        sourceIds,
+        targetIds
+      };
+      chainResults.push(actionResult);
+      
+      // Check if there's a triggered action
+      console.log('Checking for triggered action:', {
+        triggeredActionId: currentAction.triggeredActionId,
+        effectType: currentAction.effectType,
+        triggeredAction: currentAction.triggeredAction
+      });
+      
+      if (currentAction.triggeredActionId && currentAction.effectType === 'TRIGGER_ACTION') {
+        console.log('Found triggered action, processing...');
+        
+        // Fetch the triggered action details if not already loaded
+        let triggeredAction = currentAction.triggeredAction;
+        if (!triggeredAction && currentAction.triggeredActionId) {
+          console.log('Fetching triggered action details for ID:', currentAction.triggeredActionId);
+          const actionResult = await getAction({
+            variables: { actionId: currentAction.triggeredActionId }
+          });
+          triggeredAction = actionResult.data?.getAction;
+          console.log('Fetched triggered action:', triggeredAction);
+        }
+        
+        if (triggeredAction) {
+          console.log('Processing triggered action:', triggeredAction.name);
+          
+          // For triggered actions, keep the same source and target characters as the first action
+          // This ensures fatigue is calculated properly for all actions in the chain
+          const newSourceIds = sourceIds; // Same sources for all actions in chain
+          const newTargetIds = targetIds; // Same targets for all actions in chain
+          
+          console.log('Recursive call with:', {
+            action: triggeredAction.name,
+            newSourceIds,
+            newTargetIds
+          });
+          
+          await calculateActionChain(triggeredAction, newSourceIds, newTargetIds, chainResults);
+        } else {
+          console.log('No triggered action found despite having triggeredActionId');
+        }
+      } else {
+        console.log('No triggered action or not TRIGGER_ACTION type');
+      }
+    }
+    
+    return chainResults;
+  };
+  
+  const handleSubmit = async () => {
+    setIsCalculatingChain(true);
+    setActionChainResults([]);
+    
+    console.log('Starting action chain calculation for:', {
+      action: action.name,
+      actionId: action.actionId,
+      effectType: action.effectType,
+      triggeredActionId: action.triggeredActionId,
+      triggeredAction: action.triggeredAction,
+      selectedSourceIds,
+      selectedTargetIds
+    });
+    
+    // Let's fetch the action fresh to get the triggered action data
+    console.log('Fetching fresh action data to ensure we have triggered action fields...');
+    let actionToUse = action;
+    try {
+      const freshActionResult = await getAction({
+        variables: { actionId: action.actionId }
+      });
+      console.log('Fresh action data:', freshActionResult.data?.getAction);
+      if (freshActionResult.data?.getAction) {
+        actionToUse = freshActionResult.data.getAction;
+        console.log('Using fresh action data for chain calculation');
+      }
+    } catch (err) {
+      console.error('Error fetching fresh action data:', err);
+      console.log('Falling back to original action data');
+    }
+    
+    try {
+      const results = await calculateActionChain(actionToUse, selectedSourceIds, selectedTargetIds);
+      console.log('Final chain results:', results);
+      setActionChainResults(results);
+    } catch (error) {
+      console.error('Error calculating action chain:', error);
+    } finally {
+      setIsCalculatingChain(false);
+    }
   };
   
   // Handler for checkbox target selection
@@ -197,7 +328,9 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   
   // Get display values from backend result
   const getDisplaySourceValue = () => {
-    if (testResult?.calculateActionTest) {
+    if (sourceOverride) {
+      return parseFloat(sourceOverrideValue) || 0;
+    } else if (testResult?.calculateActionTest) {
       const { sourceValue, sourceCount } = testResult.calculateActionTest;
       if (sourceCount === 1) {
         return `${sourceValue} (1 source)`;
@@ -241,7 +374,33 @@ const ActionTestBackend = ({ action, character, onClose }) => {
         
         <div className="source-selection">
           <h3>Select Sources</h3>
-          {getSourceOptions()}
+          
+          <div className="override-toggle">
+            <label>
+              <input
+                type="checkbox"
+                checked={sourceOverride}
+                onChange={() => {
+                  setSourceOverride(!sourceOverride);
+                  setSelectedSourceIds([]);
+                }}
+              />
+              Override with manual value
+            </label>
+          </div>
+          
+          {sourceOverride ? (
+            <div className="override-input">
+              <input
+                type="number"
+                value={sourceOverrideValue}
+                onChange={(e) => setSourceOverrideValue(e.target.value)}
+                placeholder="Enter source value"
+              />
+            </div>
+          ) : (
+            getSourceOptions()
+          )}
         </div>
         
         <div className="target-selection">
@@ -269,137 +428,276 @@ const ActionTestBackend = ({ action, character, onClose }) => {
           <button
             className="submit-button"
             onClick={handleSubmit}
-            disabled={(selectedTargetIds.length === 0 && !override) || (override && !overrideValue) || selectedSourceIds.length === 0 || calculating}
+            disabled={(selectedTargetIds.length === 0 && !override) || (override && !overrideValue) || (selectedSourceIds.length === 0 && !sourceOverride) || (sourceOverride && !sourceOverrideValue) || calculating || isCalculatingChain}
           >
-            {calculating ? 'Calculating...' : 'Submit'}
+            {(calculating || isCalculatingChain) ? 'Calculating...' : 'Submit'}
           </button>
           <button className="cancel-button" onClick={onClose}>
             Cancel
           </button>
         </div>
         
-        {testResult?.calculateActionTest && (
+        {actionChainResults.length > 0 && (
           <div className="result-display">
-            <h3>Action Difficulty</h3>
-            <div className="difficulty-value">
-              {testResult.calculateActionTest.successPercentage.toFixed(2)}%
-            </div>
-            <p>
-              Source Value: {getDisplaySourceValue()}
-              <br />
-              Target Value: {getDisplayTargetValue()}
-            </p>
+            <h3>Action Chain Results</h3>
             
-            {/* Dice Pool Information */}
-            {testResult.calculateActionTest.dicePoolExceeded && (
-              <div className="dice-pool-info">
-                <h4>Dice Pools</h4>
-                <p className="dice-pool-note">
-                  Total dice exceeded 20, pools were halved:
-                </p>
-                <div className="dice-pool-values">
-                  <div className="dice-pool-item">
-                    <span className="dice-label">Source Dice:</span>
-                    <span className="dice-original">{testResult.calculateActionTest.sourceDice}</span>
-                    <span className="dice-arrow">→</span>
-                    <span className="dice-adjusted">{testResult.calculateActionTest.adjustedSourceDice}</span>
+            {/* Display each action in the chain */}
+            {actionChainResults.map((actionResult, index) => {
+              const actionKey = `${actionResult.action.actionId}_${index}`;
+              const actionOverride = actionOverrides[actionKey] || {};
+              const isFirstAction = index === 0;
+              
+              return (
+                <div key={index} className="action-chain-item">
+                  <h4>{index + 1}. {actionResult.action.name}</h4>
+                  <div className="difficulty-value">
+                    {actionResult.result.successPercentage.toFixed(2)}%
                   </div>
-                  <div className="dice-pool-item">
-                    <span className="dice-label">Target Dice:</span>
-                    <span className="dice-original">{testResult.calculateActionTest.targetDice}</span>
-                    <span className="dice-arrow">→</span>
-                    <span className="dice-adjusted">{testResult.calculateActionTest.adjustedTargetDice}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {!testResult.calculateActionTest.dicePoolExceeded && (
-              <div className="dice-pool-info">
-                <h4>Dice to Roll</h4>
-                <div className="dice-pool-values">
-                  <div className="dice-pool-item">
-                    <span className="dice-label">Source Dice:</span>
-                    <span className="dice-value">{testResult.calculateActionTest.sourceDice}</span>
-                  </div>
-                  <div className="dice-pool-item">
-                    <span className="dice-label">Target Dice:</span>
-                    <span className="dice-value">{testResult.calculateActionTest.targetDice}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Fatigue Application */}
-            {(testResult.calculateActionTest.sourceFatigue > 0 || testResult.calculateActionTest.targetFatigue > 0) && (
-              <div className="fatigue-info">
-                <h4>Fatigue Applied</h4>
-                <p className="fatigue-note">
-                  Fatigue is applied after dice pool adjustment:
-                </p>
-                <div className="fatigue-values">
-                  {testResult.calculateActionTest.sourceFatigue > 0 && (
-                    <div className="fatigue-item">
-                      <span className="fatigue-label">Source Fatigue:</span>
-                      <div className="fatigue-breakdown">
-                        {testResult.calculateActionTest.sourceFatigueDetails && testResult.calculateActionTest.sourceFatigueDetails.length > 0 ? (
-                          <>
-                            {testResult.calculateActionTest.sourceFatigueDetails.map((detail, index) => (
-                              <span key={detail.characterId} className="fatigue-character">
-                                {detail.characterName}: {detail.fatigue}
-                                {index < testResult.calculateActionTest.sourceFatigueDetails.length - 1 && " + "}
-                              </span>
-                            ))}
-                            <span className="fatigue-total"> = {testResult.calculateActionTest.sourceFatigue}</span>
-                          </>
-                        ) : (
-                          <span className="fatigue-value">-{testResult.calculateActionTest.sourceFatigue}</span>
+                  
+                  {/* Per-action override controls (except for first action) */}
+                  {!isFirstAction && (
+                    <div className="per-action-overrides">
+                      <h5>Override Values for This Action</h5>
+                      
+                      {/* Source Override */}
+                      <div className="override-control">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={actionOverride.sourceOverride || false}
+                            onChange={(e) => {
+                              setActionOverrides(prev => ({
+                                ...prev,
+                                [actionKey]: {
+                                  ...prev[actionKey],
+                                  sourceOverride: e.target.checked,
+                                  sourceOverrideValue: e.target.checked ? prev[actionKey]?.sourceOverrideValue || '' : ''
+                                }
+                              }));
+                            }}
+                          />
+                          Override source value
+                        </label>
+                        {actionOverride.sourceOverride && (
+                          <input
+                            type="number"
+                            value={actionOverride.sourceOverrideValue || ''}
+                            onChange={(e) => {
+                              setActionOverrides(prev => ({
+                                ...prev,
+                                [actionKey]: {
+                                  ...prev[actionKey],
+                                  sourceOverrideValue: e.target.value
+                                }
+                              }));
+                            }}
+                            placeholder="Enter source value"
+                            className="override-input-small"
+                          />
                         )}
                       </div>
-                      <span className="fatigue-arrow">→</span>
-                      <span className="fatigue-final">{testResult.calculateActionTest.finalSourceDice} dice</span>
-                    </div>
-                  )}
-                  {testResult.calculateActionTest.targetFatigue > 0 && (
-                    <div className="fatigue-item">
-                      <span className="fatigue-label">Target Fatigue:</span>
-                      <div className="fatigue-breakdown">
-                        {testResult.calculateActionTest.targetFatigueDetails && testResult.calculateActionTest.targetFatigueDetails.length > 0 ? (
-                          <>
-                            {testResult.calculateActionTest.targetFatigueDetails.map((detail, index) => (
-                              <span key={detail.characterId} className="fatigue-character">
-                                {detail.characterName}: {detail.fatigue}
-                                {index < testResult.calculateActionTest.targetFatigueDetails.length - 1 && " + "}
-                              </span>
-                            ))}
-                            <span className="fatigue-total"> = {testResult.calculateActionTest.targetFatigue}</span>
-                          </>
-                        ) : (
-                          <span className="fatigue-value">-{testResult.calculateActionTest.targetFatigue}</span>
+                      
+                      {/* Target Override */}
+                      <div className="override-control">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={actionOverride.targetOverride || false}
+                            onChange={(e) => {
+                              setActionOverrides(prev => ({
+                                ...prev,
+                                [actionKey]: {
+                                  ...prev[actionKey],
+                                  targetOverride: e.target.checked,
+                                  targetOverrideValue: e.target.checked ? prev[actionKey]?.targetOverrideValue || '' : ''
+                                }
+                              }));
+                            }}
+                          />
+                          Override target value
+                        </label>
+                        {actionOverride.targetOverride && (
+                          <input
+                            type="number"
+                            value={actionOverride.targetOverrideValue || ''}
+                            onChange={(e) => {
+                              setActionOverrides(prev => ({
+                                ...prev,
+                                [actionKey]: {
+                                  ...prev[actionKey],
+                                  targetOverrideValue: e.target.value
+                                }
+                              }));
+                            }}
+                            placeholder="Enter target value"
+                            className="override-input-small"
+                          />
                         )}
                       </div>
-                      <span className="fatigue-arrow">→</span>
-                      <span className="fatigue-final">{testResult.calculateActionTest.finalTargetDice} dice</span>
                     </div>
                   )}
+                  
+                  <p>
+                    Source Value: {actionResult.result.sourceCount === 1 ? 
+                      `${actionResult.result.sourceValue} (1 source)` : 
+                      actionResult.result.sourceCount > 1 ? 
+                      `${actionResult.result.sourceValue} (${actionResult.result.sourceCount} sources grouped)` : 
+                      actionResult.result.sourceValue}
+                    <br />
+                    Target Value: {actionResult.result.targetCount === 1 ? 
+                      `${actionResult.result.targetValue} (1 target)` : 
+                      actionResult.result.targetCount > 1 ? 
+                      `${actionResult.result.targetValue} (${actionResult.result.targetCount} targets grouped)` : 
+                      actionResult.result.targetValue}
+                  </p>
+                
+                {/* Dice Pool Information */}
+                {actionResult.result.dicePoolExceeded && (
+                  <div className="dice-pool-info">
+                    <h5>Dice Pools</h5>
+                    <p className="dice-pool-note">
+                      Total dice exceeded 20, pools were halved:
+                    </p>
+                    <div className="dice-pool-values">
+                      <div className="dice-pool-item">
+                        <span className="dice-label">Source Dice:</span>
+                        <span className="dice-original">{actionResult.result.sourceDice}</span>
+                        <span className="dice-arrow">→</span>
+                        <span className="dice-adjusted">{actionResult.result.adjustedSourceDice}</span>
+                      </div>
+                      <div className="dice-pool-item">
+                        <span className="dice-label">Target Dice:</span>
+                        <span className="dice-original">{actionResult.result.targetDice}</span>
+                        <span className="dice-arrow">→</span>
+                        <span className="dice-adjusted">{actionResult.result.adjustedTargetDice}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {!actionResult.result.dicePoolExceeded && (
+                  <div className="dice-pool-info">
+                    <h5>Dice to Roll</h5>
+                    <div className="dice-pool-values">
+                      <div className="dice-pool-item">
+                        <span className="dice-label">Source Dice:</span>
+                        <span className="dice-value">{actionResult.result.sourceDice}</span>
+                      </div>
+                      <div className="dice-pool-item">
+                        <span className="dice-label">Target Dice:</span>
+                        <span className="dice-value">{actionResult.result.targetDice}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Fatigue Application */}
+                {(actionResult.result.sourceFatigue > 0 || actionResult.result.targetFatigue > 0) && (
+                  <div className="fatigue-info">
+                    <h5>Fatigue Applied</h5>
+                    <p className="fatigue-note">
+                      Fatigue is applied after dice pool adjustment:
+                    </p>
+                    <div className="fatigue-values">
+                      {actionResult.result.sourceFatigue > 0 && (
+                        <div className="fatigue-item">
+                          <span className="fatigue-label">Source Fatigue:</span>
+                          <div className="fatigue-breakdown">
+                            {actionResult.result.sourceFatigueDetails && actionResult.result.sourceFatigueDetails.length > 0 ? (
+                              <>
+                                {actionResult.result.sourceFatigueDetails.map((detail, idx) => (
+                                  <span key={detail.characterId} className="fatigue-character">
+                                    {detail.characterName}: {detail.fatigue}
+                                    {idx < actionResult.result.sourceFatigueDetails.length - 1 && " + "}
+                                  </span>
+                                ))}
+                                <span className="fatigue-total"> = {actionResult.result.sourceFatigue}</span>
+                              </>
+                            ) : (
+                              <span className="fatigue-value">-{actionResult.result.sourceFatigue}</span>
+                            )}
+                          </div>
+                          <span className="fatigue-arrow">→</span>
+                          <span className="fatigue-final">{actionResult.result.finalSourceDice} dice</span>
+                        </div>
+                      )}
+                      {actionResult.result.targetFatigue > 0 && (
+                        <div className="fatigue-item">
+                          <span className="fatigue-label">Target Fatigue:</span>
+                          <div className="fatigue-breakdown">
+                            {actionResult.result.targetFatigueDetails && actionResult.result.targetFatigueDetails.length > 0 ? (
+                              <>
+                                {actionResult.result.targetFatigueDetails.map((detail, idx) => (
+                                  <span key={detail.characterId} className="fatigue-character">
+                                    {detail.characterName}: {detail.fatigue}
+                                    {idx < actionResult.result.targetFatigueDetails.length - 1 && " + "}
+                                  </span>
+                                ))}
+                                <span className="fatigue-total"> = {actionResult.result.targetFatigue}</span>
+                              </>
+                            ) : (
+                              <span className="fatigue-value">-{actionResult.result.targetFatigue}</span>
+                            )}
+                          </div>
+                          <span className="fatigue-arrow">→</span>
+                          <span className="fatigue-final">{actionResult.result.finalTargetDice} dice</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Final Dice Pools */}
+                <div className="final-dice-info">
+                  <h5>Final Dice Pools</h5>
+                  <div className="final-dice-values">
+                    <div className="final-dice-item">
+                      <span className="dice-label">Source:</span>
+                      <span className="dice-final-value">{actionResult.result.finalSourceDice} dice</span>
+                    </div>
+                    <div className="final-dice-item">
+                      <span className="dice-label">Target:</span>
+                      <span className="dice-final-value">{actionResult.result.finalTargetDice} dice</span>
+                    </div>
+                  </div>
                 </div>
+              </div>
+            );
+            })}
+            
+            {/* Recalculate button when overrides are changed */}
+            {actionChainResults.length > 1 && Object.keys(actionOverrides).length > 0 && (
+              <div className="recalculate-section">
+                <button
+                  className="recalculate-button"
+                  onClick={handleSubmit}
+                  disabled={calculating || isCalculatingChain}
+                >
+                  {(calculating || isCalculatingChain) ? 'Recalculating...' : 'Recalculate with Overrides'}
+                </button>
               </div>
             )}
             
-            {/* Final Dice Pools */}
-            <div className="final-dice-info">
-              <h4>Final Dice Pools</h4>
-              <div className="final-dice-values">
-                <div className="final-dice-item">
-                  <span className="dice-label">Source:</span>
-                  <span className="dice-final-value">{testResult.calculateActionTest.finalSourceDice} dice</span>
-                </div>
-                <div className="final-dice-item">
-                  <span className="dice-label">Target:</span>
-                  <span className="dice-final-value">{testResult.calculateActionTest.finalTargetDice} dice</span>
+            {/* Total chain success probability */}
+            {actionChainResults.length > 1 && (
+              <div className="chain-total">
+                <h4>Total Chain Success</h4>
+                <div className="chain-calculation">
+                  {actionChainResults.map((result, index) => (
+                    <span key={index}>
+                      {result.result.successPercentage.toFixed(2)}%
+                      {index < actionChainResults.length - 1 && ' × '}
+                    </span>
+                  ))}
+                  {' = '}
+                  <strong>
+                    {(actionChainResults.reduce((acc, result) => 
+                      acc * (result.result.successPercentage / 100), 1
+                    ) * 100).toFixed(2)}%
+                  </strong>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>

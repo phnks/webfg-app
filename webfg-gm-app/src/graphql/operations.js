@@ -46,7 +46,7 @@ export const LIST_CHARACTERS = gql`
         }
       }
       actionIds
-      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType }
+      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType triggeredActionId triggeredAction { actionId name sourceAttribute targetAttribute targetType effectType } }
     }
   }
 `;
@@ -76,7 +76,7 @@ export const GET_CHARACTER = gql`
       
       special
       actionIds
-      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType }
+      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType triggeredActionId triggeredAction { actionId name sourceAttribute targetAttribute targetType effectType } }
       inventoryIds
       inventory { objectId name objectCategory }
       equipmentIds
@@ -203,6 +203,16 @@ export const LIST_ACTIONS = gql`
       description
       targetType
       effectType
+      triggeredActionId
+      triggeredAction {
+        actionId
+        name
+        sourceAttribute
+        targetAttribute
+        targetType
+        effectType
+        triggeredActionId
+      }
     }
   }
 `;
@@ -218,6 +228,16 @@ export const GET_ACTION = gql`
       description
       targetType
       effectType
+      triggeredActionId
+      triggeredAction {
+        actionId
+        name
+        sourceAttribute
+        targetAttribute
+        targetType
+        effectType
+        triggeredActionId
+      }
     }
   }
 `;
