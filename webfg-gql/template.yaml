@@ -43,6 +43,10 @@ Parameters:
     Type: String
     Description: 'Name of db data source'
     Default: 'ActionsDataSource'
+  ConditionsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
+    Default: 'ConditionsDataSource'
   EncountersDataSourceName:
     Type: String
     Description: 'Name of db data source'
@@ -56,6 +60,10 @@ Parameters:
     Description: 'Name of table'
     Default: ''
   ActionsTableName:
+    Type: String
+    Description: 'Name of table'
+    Default: ''
+  ConditionsTableName:
     Type: String
     Description: 'Name of table'
     Default: ''
@@ -114,10 +122,12 @@ Resources:
         CharactersTableName: !GetAtt DatabasesNestedStack.Outputs.CharactersTableName
         ObjectsTableName: !GetAtt DatabasesNestedStack.Outputs.ObjectsTableName
         ActionsTableName: !GetAtt DatabasesNestedStack.Outputs.ActionsTableName
+        ConditionsTableName: !GetAtt DatabasesNestedStack.Outputs.ConditionsTableName
         EncountersTableName: !GetAtt DatabasesNestedStack.Outputs.EncountersTableName
         CharactersDataSourceName: !Ref CharactersDataSourceName
         ObjectsDataSourceName: !Ref ObjectsDataSourceName
         ActionsDataSourceName: !Ref ActionsDataSourceName
+        ConditionsDataSourceName: !Ref ConditionsDataSourceName
         EncountersDataSourceName: !Ref EncountersDataSourceName
         PhnksCertArn: !Ref PhnksCertArn
         PhnksHostedZoneId: !Ref PhnksHostedZoneId

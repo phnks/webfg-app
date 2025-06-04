@@ -50,30 +50,47 @@ exports.handler = async (event) => {
 };
 
 async function enrichCharacterWithEquipment(character) {
-  if (!character.equipmentIds || character.equipmentIds.length === 0) {
-    return { ...character, equipment: [] };
-  }
-
+  // Enrich with equipment
   const equipment = [];
-  
-  for (const objectId of character.equipmentIds) {
-    try {
-      const result = await docClient.send(new GetCommand({
-        TableName: process.env.OBJECTS_TABLE,
-        Key: { objectId }
-      }));
-      
-      if (result.Item) {
-        // Recursively enrich equipment if they have their own equipment
-        const enrichedEquipment = await enrichObjectWithEquipment(result.Item);
-        equipment.push(enrichedEquipment);
+  if (character.equipmentIds && character.equipmentIds.length > 0) {
+    for (const objectId of character.equipmentIds) {
+      try {
+        const result = await docClient.send(new GetCommand({
+          TableName: process.env.OBJECTS_TABLE,
+          Key: { objectId }
+        }));
+        
+        if (result.Item) {
+          // Recursively enrich equipment if they have their own equipment
+          const enrichedEquipment = await enrichObjectWithEquipment(result.Item);
+          equipment.push(enrichedEquipment);
+        }
+      } catch (error) {
+        console.error(`Error fetching object ${objectId}:`, error);
       }
-    } catch (error) {
-      console.error(`Error fetching object ${objectId}:`, error);
     }
   }
 
-  return { ...character, equipment };
+  // Enrich with conditions
+  const conditions = [];
+  if (character.conditionIds && character.conditionIds.length > 0) {
+    for (const conditionId of character.conditionIds) {
+      try {
+        const result = await docClient.send(new GetCommand({
+          TableName: process.env.CONDITIONS_TABLE,
+          Key: { conditionId }
+        }));
+        
+        if (result.Item) {
+          conditions.push(result.Item);
+        }
+      } catch (error) {
+        console.error(`Error fetching condition ${conditionId}:`, error);
+      }
+    }
+  }
+
+  return { ...character, equipment, conditions };
 }
 
 async function enrichObjectWithEquipment(object) {

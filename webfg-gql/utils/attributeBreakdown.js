@@ -207,6 +207,40 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     });
   }
   
+  // Apply conditions (HELP/HINDER) at the end
+  if (character.conditions && character.conditions.length > 0) {
+    character.conditions.forEach(condition => {
+      if (!condition.conditionTarget || !condition.conditionType || condition.conditionAmount === undefined) {
+        return; // Skip invalid conditions
+      }
+      
+      // Convert condition target to lowercase to match attribute names
+      const targetAttribute = condition.conditionTarget.toLowerCase();
+      
+      // Only apply if this condition targets the current attribute
+      if (targetAttribute === attributeName) {
+        const previousValue = currentValue;
+        
+        if (condition.conditionType === 'HELP') {
+          currentValue = currentValue + condition.conditionAmount;
+        } else if (condition.conditionType === 'HINDER') {
+          currentValue = currentValue - condition.conditionAmount;
+        }
+        
+        stepNumber++;
+        breakdown.push({
+          step: stepNumber,
+          entityName: condition.name || 'Condition',
+          entityType: 'condition',
+          attributeValue: condition.conditionAmount,
+          isGrouped: true,
+          runningTotal: Math.round(currentValue * 100) / 100,
+          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${condition.conditionAmount}`
+        });
+      }
+    });
+  }
+  
   return breakdown;
 };
 

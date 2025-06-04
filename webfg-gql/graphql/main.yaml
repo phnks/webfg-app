@@ -24,6 +24,9 @@ Parameters:
   ActionsDataSourceName:
     Type: String
     Description: 'Name of db data source'
+  ConditionsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
   EncountersDataSourceName:
     Type: String
     Description: 'Name of db data source'
@@ -34,6 +37,9 @@ Parameters:
     Type: String
     Description: 'Name of table'
   ActionsTableName:
+    Type: String
+    Description: 'Name of table'
+  ConditionsTableName:
     Type: String
     Description: 'Name of table'
   PhnksCertArn:
@@ -86,9 +92,11 @@ Resources:
         ObjectsTableName: !Ref ObjectsTableName
         ObjectsDataSourceName: !Ref ObjectsDataSourceName
         ActionsDataSourceName: !Ref ActionsDataSourceName
+        ConditionsDataSourceName: !Ref ConditionsDataSourceName
         EncountersDataSourceName: !Ref EncountersDataSourceName
         CharactersTableName: !Ref CharactersTableName
         ActionsTableName: !Ref ActionsTableName
+        ConditionsTableName: !Ref ConditionsTableName
         EncountersTableName: !Ref EncountersTableName
 
   CharacterResolversStack:
@@ -100,6 +108,7 @@ Resources:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         CharactersDataSourceName: !Ref CharactersDataSourceName
         CharactersTableName: !Ref CharactersTableName # Added missing parameter
+        ConditionsTableName: !Ref ConditionsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Pass down
 
   ObjectResolversStack:
@@ -124,6 +133,19 @@ Resources:
          ActionsDataSourceName: !Ref ActionsDataSourceName # Corrected Indent
          ActionsTableName: !Ref ActionsTableName # Corrected Indent
          AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Corrected Indent
+
+  ConditionResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./condition-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        ConditionsDataSourceName: !Ref ConditionsDataSourceName
+        ConditionsTableName: !Ref ConditionsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
 
   AppSyncLambdaServiceRole:
@@ -254,6 +276,7 @@ Resources:
         CharactersTableName: !Ref CharactersTableName
         ObjectsTableName: !Ref ObjectsTableName
         ActionsTableName: !Ref ActionsTableName
+        ConditionsTableName: !Ref ConditionsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
 Outputs:

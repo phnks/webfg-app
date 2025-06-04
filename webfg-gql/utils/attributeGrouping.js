@@ -67,8 +67,9 @@ const extractAttributeInfo = (attributeData) => {
 
 /**
  * Groups attributes from a character and their equipped objects using weighted average formula
+ * Then applies conditions (HELP/HINDER) to the final values
  * Note: Fatigue is no longer applied here - it's handled at the action test level
- * @param {Object} character - Character object with attributes and equipment
+ * @param {Object} character - Character object with attributes, equipment, and conditions
  * @returns {Object} Object containing grouped values for each attribute
  */
 const calculateGroupedAttributes = (character) => {
@@ -76,6 +77,7 @@ const calculateGroupedAttributes = (character) => {
   
   if (!character) return groupedAttributes;
   
+  // First calculate base grouped attributes from character and equipment
   ATTRIBUTE_NAMES.forEach(attributeName => {
     const charAttrInfo = extractAttributeInfo(character[attributeName]);
     
@@ -139,6 +141,33 @@ const calculateGroupedAttributes = (character) => {
     // No fatigue applied here anymore - it's handled at action test level
     groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
   });
+  
+  // Now apply conditions (HELP/HINDER) to the grouped values
+  if (character.conditions && character.conditions.length > 0) {
+    character.conditions.forEach(condition => {
+      if (!condition.conditionTarget || !condition.conditionType || condition.conditionAmount === undefined) {
+        return; // Skip invalid conditions
+      }
+      
+      // Convert condition target to lowercase to match attribute names
+      const targetAttribute = condition.conditionTarget.toLowerCase();
+      
+      // Only apply if this is a valid attribute and we have a value for it
+      if (ATTRIBUTE_NAMES.includes(targetAttribute) && groupedAttributes[targetAttribute] !== undefined) {
+        const currentValue = groupedAttributes[targetAttribute];
+        let newValue = currentValue;
+        
+        if (condition.conditionType === 'HELP') {
+          newValue = currentValue + condition.conditionAmount;
+        } else if (condition.conditionType === 'HINDER') {
+          newValue = currentValue - condition.conditionAmount;
+        }
+        
+        // Round to 2 decimal places
+        groupedAttributes[targetAttribute] = Math.round(newValue * 100) / 100;
+      }
+    });
+  }
   
   return groupedAttributes;
 };

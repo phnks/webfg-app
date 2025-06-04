@@ -846,3 +846,139 @@ export const ON_DELETE_ENCOUNTER = gql`
   subscription OnDeleteEncounter { onDeleteEncounter { encounterId name } }
 `;
 
+// Condition Operations
+export const CREATE_CONDITION = gql`
+  mutation CreateCondition($input: ConditionInput!) {
+    createCondition(input: $input) {
+      conditionId
+      name
+      description
+      conditionCategory
+      conditionType
+      conditionTarget
+      conditionAmount
+    }
+  }
+`;
+
+export const UPDATE_CONDITION = gql`
+  mutation UpdateCondition($conditionId: ID!, $input: ConditionInput!) {
+    updateCondition(conditionId: $conditionId, input: $input) {
+      conditionId
+      name
+      description
+      conditionCategory
+      conditionType
+      conditionTarget
+      conditionAmount
+    }
+  }
+`;
+
+export const DELETE_CONDITION = gql`
+  mutation DeleteCondition($conditionId: ID!) {
+    deleteCondition(conditionId: $conditionId) {
+      conditionId
+      name
+    }
+  }
+`;
+
+export const LIST_CONDITIONS = gql`
+  query ListConditions($filter: ConditionFilterInput) {
+    listConditions(filter: $filter) {
+      conditionId
+      name
+      description
+      conditionCategory
+      conditionType
+      conditionTarget
+      conditionAmount
+    }
+  }
+`;
+
+export const GET_CONDITION = gql`
+  query GetCondition($conditionId: ID!) {
+    getCondition(conditionId: $conditionId) {
+      conditionId
+      name
+      description
+      conditionCategory
+      conditionType
+      conditionTarget
+      conditionAmount
+    }
+  }
+`;
+
+export const GET_CONDITIONS = gql`
+  query GetConditions($conditionIds: [ID!]!) {
+    getConditions(conditionIds: $conditionIds) {
+      conditionId
+      name
+      description
+      conditionCategory
+      conditionType
+      conditionTarget
+      conditionAmount
+    }
+  }
+`;
+
+export const ADD_CONDITION_TO_CHARACTER = gql`
+  mutation AddConditionToCharacter($characterId: ID!, $conditionId: ID!) {
+    addConditionToCharacter(characterId: $characterId, conditionId: $conditionId) {
+      characterId
+      name
+      conditionIds
+    }
+  }
+`;
+
+export const REMOVE_CONDITION_FROM_CHARACTER = gql`
+  mutation RemoveConditionFromCharacter($characterId: ID!, $conditionId: ID!) {
+    removeConditionFromCharacter(characterId: $characterId, conditionId: $conditionId) {
+      characterId
+      name
+      conditionIds
+    }
+  }
+`;
+
+// Condition Subscriptions
+export const ON_CREATE_CONDITION = gql`
+  subscription OnCreateCondition { 
+    onCreateCondition { 
+      conditionId 
+      name 
+      conditionType 
+      conditionTarget 
+      conditionAmount 
+    } 
+  }
+`;
+
+export const ON_UPDATE_CONDITION = gql`
+  subscription OnUpdateCondition { 
+    onUpdateCondition { 
+      conditionId 
+      name 
+      description 
+      conditionCategory 
+      conditionType 
+      conditionTarget 
+      conditionAmount 
+    } 
+  }
+`;
+
+export const ON_DELETE_CONDITION = gql`
+  subscription OnDeleteCondition { 
+    onDeleteCondition { 
+      conditionId 
+      name 
+    } 
+  }
+`;
+

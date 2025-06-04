@@ -18,6 +18,9 @@ Parameters:
   ActionsTableName:
     Type: String
     Description: 'Name of Actions table'
+  ConditionsTableName:
+    Type: String
+    Description: 'Name of Conditions table'
 
 Resources:
   # Lambda function for grouped attributes
@@ -32,9 +35,12 @@ Resources:
       Environment:
         Variables:
           OBJECTS_TABLE: !Ref ObjectsTableName
+          CONDITIONS_TABLE: !Ref ConditionsTableName
       Policies:
         - DynamoDBReadPolicy: 
             TableName: !Ref ObjectsTableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref ConditionsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   # Lambda function for attribute breakdown
@@ -49,9 +55,12 @@ Resources:
       Environment:
         Variables:
           OBJECTS_TABLE: !Ref ObjectsTableName
+          CONDITIONS_TABLE: !Ref ConditionsTableName
       Policies:
         - DynamoDBReadPolicy: 
             TableName: !Ref ObjectsTableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref ConditionsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   # Lambda function for action test calculation

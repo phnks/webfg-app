@@ -1,0 +1,23 @@
+type Condition {
+  conditionId: ID!
+  name: String!
+  description: String!
+  conditionCategory: String!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+  conditionAmount: Int!
+}
+
+enum ConditionType {
+  HELP
+  HINDER
+}
+
+input ConditionInput {
+  name: String!
+  description: String!
+  conditionCategory: String!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+  conditionAmount: Int!
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useSubscription } from '@apollo/client';
-import { FaBars, FaTimes, FaUser, FaCube, FaBolt, FaHome, FaChessBoard } from 'react-icons/fa';
+import { FaBars, FaTimes, FaUser, FaCube, FaBolt, FaHome, FaChessBoard, FaExclamationTriangle } from 'react-icons/fa';
 import {
   ON_CREATE_CHARACTER, ON_UPDATE_ACTION, ON_DELETE_CHARACTER,
   ON_CREATE_OBJECT, ON_UPDATE_OBJECT, ON_DELETE_OBJECT,
@@ -11,7 +11,7 @@ import {
 } from '../../graphql/operations';
 import './NavBar.css';
 
-const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
+const NavBar = ({ characterList = [], objectList = [], actionList = [], conditionList = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const location = useLocation();
@@ -21,6 +21,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
   const [characters, setCharacters] = useState(characterList);
   const [objects, setObjects] = useState(objectList);
   const [actions, setActions] = useState(actionList);
+  const [conditions, setConditions] = useState(conditionList);
   const [encounters, setEncounters] = useState([]);
 
   // Track deleted items to prevent them showing up
@@ -28,6 +29,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
     characters: new Set(),
     objects: new Set(),
     actions: new Set(),
+    conditions: new Set(),
     encounters: new Set()
   });
 
@@ -80,6 +82,18 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
     }
   }, [actionList]);
 
+  useEffect(() => {
+    if (conditionList && conditionList.length > 0) {
+      setConditions(prev => {
+        // Filter out deleted conditions
+        const filtered = conditionList.filter(
+          condition => !deletedItemIds.current.conditions.has(condition.conditionId)
+        );
+        return filtered;
+      });
+    }
+  }, [conditionList]);
+
   // Determine active section based on URL
   useEffect(() => {
     if (location.pathname.includes('/characters')) {
@@ -88,6 +102,8 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
       setActiveSection('objects');
     } else if (location.pathname.includes('/actions')) {
       setActiveSection('actions');
+    } else if (location.pathname.includes('/conditions')) {
+      setActiveSection('conditions');
     } else if (location.pathname.includes('/encounters')) {
       setActiveSection('encounters');
     } else {
@@ -316,6 +332,9 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
       case 'actions':
         navigate('/actions/new');
         break;
+      case 'conditions':
+        navigate('/conditions/new');
+        break;
       case 'encounters':
         navigate('/encounters'); // Redirects to encounters list with create form
         break;
@@ -351,6 +370,12 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
             <NavLink to="/actions" onClick={() => setActiveSection('actions')}>
               <FaBolt />
               <span>Actions</span>
+            </NavLink>
+          </li>
+          <li className={activeSection === 'conditions' ? 'active' : ''}>
+            <NavLink to="/conditions" onClick={() => setActiveSection('conditions')}>
+              <FaExclamationTriangle />
+              <span>Conditions</span>
             </NavLink>
           </li>
           <li className={activeSection === 'encounters' ? 'active' : ''}>
@@ -421,6 +446,25 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [] }) => {
                   </li>
                 )) : (
                   <li className="empty-message">No actions available</li>
+                )}
+              </ul>
+            )}
+
+            {activeSection === 'conditions' && (
+              <ul className="item-list">
+                {conditions.length > 0 ? conditions.map(condition => (
+                  <li key={condition.conditionId}>
+                    <NavLink
+                      to={`/conditions/${condition.conditionId}`}
+                      onClick={closeMenu}
+                      className={({ isActive }) => isActive ? 'active' : ''}
+                    >
+                      <div className="item-name">{condition.name}</div>
+                      {condition.conditionType && <div className="item-meta">{condition.conditionType}</div>}
+                    </NavLink>
+                  </li>
+                )) : (
+                  <li className="empty-message">No conditions available</li>
                 )}
               </ul>
             )}

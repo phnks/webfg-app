@@ -45,6 +45,18 @@ Resources:
         - AttributeName: actionId
           KeyType: HASH
 
+  ConditionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ServiceName}-Conditions"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: conditionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: conditionId
+          KeyType: HASH
+
   EncountersTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -71,6 +83,9 @@ Outputs:
   ActionsTableName:
     Description: 'Name of the Actions table'
     Value: !Ref ActionsTable
+  ConditionsTableName:
+    Description: 'Name of the Conditions table'
+    Value: !Ref ConditionsTable
   EncountersTableName:
     Description: 'Name of the Encounters table'
     Value: !Ref EncountersTable

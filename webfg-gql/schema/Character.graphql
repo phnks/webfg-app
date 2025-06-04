@@ -29,6 +29,9 @@ type Character {
   equipmentIds: [ID]
   equipment: [Object]
   
+  conditionIds: [ID]
+  conditions: [Condition]
+  
   # Computed fields (only resolved when requested)
   groupedAttributes: GroupedAttributes
   attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]
@@ -80,4 +83,5 @@ input CharacterInput {
   special: [String]
   inventoryIds: [ID]
   equipmentIds: [ID]
+  conditionIds: [ID]
 }
