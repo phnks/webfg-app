@@ -111,7 +111,12 @@ The application revolves around these primary entities:
 10. If your changes only affect the backend graphql or databases then you only need to deploy webfg-gql to test your changes.
 11. Only deploy both webfg-gm-app and webfg-gql if your changes include both backend and frontend changes
 12. It can take over 15 mins to depoy webfg-gql and over 5 mins to deploy webfg-gm-app so please make sure you only deploy when you have made changes in the respective apps to save time
-13. If you make ANY schema changes in webfg-gql, you MUST increment the schema version in the package.json for both qa and prod. If you don't do this your changes will not be reflected as AWS CloudFormation will not detect a schema change. QA schema version is stored in package.json config.qa_schema. Production schema version is stored in package.json config.prod_schema
+13. **CRITICAL: Schema Version Management** - If you make ANY schema changes in webfg-gql, you MUST increment the schema version in the package.json for BOTH qa and prod. This is absolutely essential because:
+    - AWS CloudFormation will not detect schema changes without version increments
+    - QA schema version: `package.json config.qa_schema` 
+    - Production schema version: `package.json config.prod_schema`
+    - **ALWAYS update both versions when making schema changes**
+    - **REMINDER: When completing a task with schema changes, increment prod_schema to match qa_schema before merging PR**
 14. If you ever has questions during your task, you can message the user on discord via the discord MCP. The user's channel id is: 538552940303220750. The user will see your message then com
 e back to answer your question. You may have to wait a while depending on how busy the user is with other tasks
 

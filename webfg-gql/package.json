@@ -31,7 +31,7 @@
   },
   "config": {
     "qa_schema": "v70",
-    "prod_schema": "v41",
+    "prod_schema": "v70",
     "stack_name": "webfg-gql"
   },
   "devDependencies": {
