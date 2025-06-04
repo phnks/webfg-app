@@ -99,6 +99,17 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
           morale { attributeValue isGrouped }
         }
       }
+      
+      conditionIds
+      conditions {
+        conditionId
+        name
+        description
+        conditionCategory
+        conditionType
+        conditionTarget
+        conditionAmount
+      }
     }
   }
 `;

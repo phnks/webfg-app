@@ -8,7 +8,8 @@ import {
   ADD_OBJECT_TO_EQUIPMENT,
   REMOVE_OBJECT_FROM_INVENTORY,
   ADD_OBJECT_TO_INVENTORY,
-  REMOVE_OBJECT_FROM_EQUIPMENT
+  REMOVE_OBJECT_FROM_EQUIPMENT,
+  REMOVE_CONDITION_FROM_CHARACTER
 } from "../../graphql/operations";
 import { GET_CHARACTER_WITH_GROUPED } from "../../graphql/computedOperations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
@@ -81,6 +82,16 @@ const CharacterView = () => {
       console.error("Error unequipping item:", err);
       setMutationError({ 
         message: err.message || "Error unequipping item", 
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  });
+
+  const [removeConditionFromCharacter] = useMutation(REMOVE_CONDITION_FROM_CHARACTER, {
+    onError: (err) => {
+      console.error("Error removing condition:", err);
+      setMutationError({ 
+        message: err.message || "Error removing condition", 
         stack: err.stack || "No stack trace available."
       });
     }
@@ -212,6 +223,24 @@ const CharacterView = () => {
       console.error("Error in unequip item flow:", err);
       setMutationError({ 
         message: "Failed to unequip item. " + (err.message || ""),
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  };
+
+  // Handler for removing a condition
+  const handleRemoveCondition = async (conditionId) => {
+    try {
+      await removeConditionFromCharacter({
+        variables: { characterId, conditionId }
+      });
+      
+      // Refetch to update the UI
+      refetch();
+    } catch (err) {
+      console.error("Error removing condition:", err);
+      setMutationError({ 
+        message: "Failed to remove condition. " + (err.message || ""),
         stack: err.stack || "No stack trace available."
       });
     }
@@ -406,6 +435,50 @@ const CharacterView = () => {
               </div>
             ) : (
               <p>No actions</p>
+            )}
+          </div>
+        </div>
+
+        <div className="section-row">
+          <div className="section character-conditions">
+            <h3>Conditions</h3>
+            {character.conditions && character.conditions.length > 0 ? (
+              <ul className="conditions-list">
+                {character.conditions.map((condition) => (
+                  <li key={condition.conditionId} className="condition-item">
+                    <div className="condition-info">
+                      <Link to={`/conditions/${condition.conditionId}`} className="condition-link">
+                        <span className="condition-name">{condition.name}</span>
+                        <span className={`condition-type ${condition.conditionType.toLowerCase()}`}>
+                          {condition.conditionType}
+                        </span>
+                        <span className="condition-effect">
+                          {condition.conditionTarget}: {condition.conditionType === 'HELP' ? '+' : '-'}{condition.conditionAmount}
+                        </span>
+                      </Link>
+                    </div>
+                    <button 
+                      type="button"
+                      className="remove-condition-button" 
+                      onClick={() => handleRemoveCondition(condition.conditionId)}
+                      style={{
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        padding: '4px 10px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        fontSize: '0.9em',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No active conditions.</p>
             )}
           </div>
         </div>
