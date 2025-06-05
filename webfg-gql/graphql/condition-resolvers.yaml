@@ -23,36 +23,64 @@ Resources:
     Properties:
       CodeUri: ../
       Handler: ./functions/createCondition.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
       Environment:
         Variables:
           CONDITION_TABLE_NAME: !Ref ConditionsTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConditionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   UpdateConditionFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
       Handler: ./functions/updateCondition.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
       Environment:
         Variables:
           CONDITION_TABLE_NAME: !Ref ConditionsTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConditionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   DeleteConditionFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
       Handler: ./functions/deleteCondition.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
       Environment:
         Variables:
           CONDITION_TABLE_NAME: !Ref ConditionsTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConditionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   GetConditionsFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
       Handler: ./functions/getConditions.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
       Environment:
         Variables:
           CONDITION_TABLE_NAME: !Ref ConditionsTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConditionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   # Lambda Data Sources
   CreateConditionLambdaDataSource:
@@ -119,7 +147,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Query
       FieldName: getConditions
-      DataSourceName: GetConditionsLambdaSource
+      DataSourceName: !GetAtt GetConditionsLambdaDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -191,7 +219,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: createCondition
-      DataSourceName: CreateConditionLambdaSource
+      DataSourceName: !GetAtt CreateConditionLambdaDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -208,7 +236,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: updateCondition
-      DataSourceName: UpdateConditionLambdaSource
+      DataSourceName: !GetAtt UpdateConditionLambdaDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -226,7 +254,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: Mutation
       FieldName: deleteCondition
-      DataSourceName: DeleteConditionLambdaSource
+      DataSourceName: !GetAtt DeleteConditionLambdaDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
