@@ -81,12 +81,14 @@ const CharacterAttributesBackend = ({
             const originalValue = attr.data.attribute.attributeValue;
             const groupedValue = groupedAttributes?.[attr.key];
             const hasEquipment = character && character.equipment && character.equipment.length > 0;
+            const hasConditions = character && character.conditions && character.conditions.length > 0;
             
             // Show grouped value if:
-            // 1. There's equipment that could affect it
-            // 2. The grouped value is different from original
+            // 1. There's equipment that could affect it, OR
+            // 2. There are conditions that could affect it, OR
+            // 3. The grouped value is different from original
             const shouldShowGroupedValue = (groupedValue !== undefined && groupedValue !== null) && 
-              (hasEquipment || groupedValue !== originalValue);
+              (hasEquipment || hasConditions || groupedValue !== originalValue);
             
             return (
               <div key={attr.name} className="attribute-item">
@@ -105,10 +107,10 @@ const CharacterAttributesBackend = ({
                       <span 
                         className="grouped-value" 
                         style={getGroupedValueStyle(originalValue, Math.round(groupedValue))}
-                        title="Grouped value with equipment"
+                        title="Final grouped value with equipment and conditions"
                       >
                         {' → '}{Math.round(groupedValue)}
-                        {hasEquipment && (
+                        {(hasEquipment || hasConditions) && (
                           <button
                             className="info-icon"
                             onClick={() => handleShowBreakdown(attr.key, attr.name)}
