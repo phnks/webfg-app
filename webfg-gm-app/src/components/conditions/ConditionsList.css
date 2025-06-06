@@ -1,8 +1,6 @@
 .condition-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  margin-left: 300px;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -136,4 +134,24 @@
 
 .error {
   color: #dc3545;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .condition-page {
+    padding: 10px;
+  }
+
+  .condition-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .condition-card {
+    padding: 15px;
+  }
+  
+  .condition-card h3 {
+    font-size: 1.1em;
+  }
 }

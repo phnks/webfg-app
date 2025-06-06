@@ -10,12 +10,13 @@ import {
 import "./Form.css";
 
 const ConditionType = ["HELP", "HINDER"];
+const ConditionCategory = ["PHYSICAL", "MENTAL", "ENVIRONMENTAL", "MAGICAL", "DISEASE", "BUFF", "DEBUFF", "STATUS"];
 const AttributeName = ["LETHALITY", "ARMOUR", "ENDURANCE", "STRENGTH", "DEXTERITY", "AGILITY", "PERCEPTION", "CHARISMA", "INTELLIGENCE", "RESOLVE", "MORALE"];
 
 const defaultConditionForm = {
   name: '',
   description: '',
-  conditionCategory: '',
+  conditionCategory: ConditionCategory[0],
   conditionType: ConditionType[0],
   conditionTarget: AttributeName[0],
   conditionAmount: 1
@@ -75,7 +76,7 @@ const ConditionForm = ({ condition, isEditing = false, onClose, onSuccess }) => 
     },
     onCompleted: (data) => {
       if (onSuccess) {
-        onSuccess(data.createCondition);
+        onSuccess(data.createCondition.conditionId);
       } else {
         navigate(`/conditions/${data.createCondition.conditionId}`);
       }
@@ -114,11 +115,6 @@ const ConditionForm = ({ condition, isEditing = false, onClose, onSuccess }) => 
 
     if (!formData.name.trim()) {
       setError("Condition name is required");
-      return;
-    }
-
-    if (!formData.conditionCategory.trim()) {
-      setError("Condition category is required");
       return;
     }
 
@@ -191,15 +187,19 @@ const ConditionForm = ({ condition, isEditing = false, onClose, onSuccess }) => 
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="conditionCategory">Category *</label>
-            <input
-              type="text"
+            <select
               id="conditionCategory"
               name="conditionCategory"
               value={formData.conditionCategory}
               onChange={handleInputChange}
               required
-              placeholder="e.g., Disease, Spell, Injury"
-            />
+            >
+              {ConditionCategory.map(category => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-group">

@@ -2,7 +2,7 @@ type Condition {
   conditionId: ID!
   name: String!
   description: String!
-  conditionCategory: String!
+  conditionCategory: ConditionCategory!
   conditionType: ConditionType!
   conditionTarget: AttributeName!
   conditionAmount: Int!
@@ -13,10 +13,21 @@ enum ConditionType {
   HINDER
 }
 
+enum ConditionCategory {
+  PHYSICAL
+  MENTAL
+  ENVIRONMENTAL
+  MAGICAL
+  DISEASE
+  BUFF
+  DEBUFF
+  STATUS
+}
+
 input ConditionInput {
   name: String!
   description: String!
-  conditionCategory: String!
+  conditionCategory: ConditionCategory!
   conditionType: ConditionType!
   conditionTarget: AttributeName!
   conditionAmount: Int!

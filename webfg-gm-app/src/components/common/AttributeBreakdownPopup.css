@@ -158,6 +158,19 @@
   color: #856404;
 }
 
+.condition-step {
+  background-color: #e7f3ff;
+  border-color: #b8daff;
+}
+
+.condition-step .step-number {
+  background-color: #007bff;
+}
+
+.condition-step .step-result {
+  color: #004085;
+}
+
 /* Responsive design */
 @media (max-width: 600px) {
   .breakdown-popup {

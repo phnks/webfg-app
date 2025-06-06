@@ -141,8 +141,9 @@ const ConditionView = () => {
       {isEditing ? (
         <ConditionForm
           condition={condition}
+          isEditing={true}
           onSuccess={handleUpdateSuccess}
-          onCancel={handleCancelEdit}
+          onClose={handleCancelEdit}
         />
       ) : (
         <div className="condition-details">
