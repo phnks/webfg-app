@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_CHARACTER_ATTRIBUTE_BREAKDOWN } from "../../graphql/computedOperations";
 import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
@@ -52,22 +52,74 @@ const CharacterAttributesBackend = ({
     }
   };
   
-
-  if (attributes.length === 0) {
-    return (
-      <div className="section character-attributes">
-        <h3>Attributes</h3>
-        <p>No attributes defined.</p>
-      </div>
-    );
+  // Debug outputs using console.log directly
+  const hasConditions = character && character.conditions && character.conditions.length > 0;
+  if (hasConditions) {
+    console.log('[DEBUG] Character has conditions:', character.conditions);
   }
+  
+  if (groupedAttributes) {
+    console.log('[DEBUG] Grouped attributes:', groupedAttributes);
+  } else {
+    console.log('[DEBUG] WARNING: groupedAttributes is undefined or null');
+  }
+  
+  // Create a fallback groupedAttributes object if it's undefined
+  // This will calculate the values based on conditions directly in the frontend
+  const effectiveGroupedAttributes = useMemo(() => {
+    if (groupedAttributes) return groupedAttributes;
+    
+    // If the backend didn't provide groupedAttributes, create our own version
+    console.log('[DEBUG] Creating fallback groupedAttributes');
+    const fallbackAttributes = {};
+    
+    // Initialize with base attribute values
+    attributes.forEach(attr => {
+      if (attr.data?.attribute?.attributeValue) {
+        fallbackAttributes[attr.key] = Number(attr.data.attribute.attributeValue);
+      }
+    });
+    
+    // Apply condition effects
+    if (character?.conditions?.length > 0) {
+      character.conditions.forEach(condition => {
+        if (!condition.conditionTarget || !condition.conditionType || condition.conditionAmount === undefined) {
+          return; // Skip invalid conditions
+        }
+        
+        const targetAttr = condition.conditionTarget.toLowerCase();
+        if (fallbackAttributes[targetAttr] !== undefined) {
+          if (condition.conditionType === 'HELP') {
+            fallbackAttributes[targetAttr] += Number(condition.conditionAmount);
+          } else if (condition.conditionType === 'HINDER') {
+            fallbackAttributes[targetAttr] -= Number(condition.conditionAmount);
+          }
+        }
+      });
+    }
+    
+    console.log('[DEBUG] Fallback grouped attributes:', fallbackAttributes);
+    return fallbackAttributes;
+  }, [attributes, character?.conditions, groupedAttributes]);
 
   // Helper function to get color style for grouped value
   const getGroupedValueStyle = (originalValue, groupedValue) => {
+    // If groupedValue is undefined, return default style
+    if (groupedValue === undefined || groupedValue === null) {
+      console.log(`[DEBUG] getGroupedValueStyle - Grouped value is undefined or null`);
+      return { fontWeight: 'bold' };
+    }
+    
     // More robust numeric conversion - ensure we're comparing proper numbers
     // First convert string values to numbers if needed
     const numOriginal = typeof originalValue === 'string' ? parseFloat(originalValue) : Number(originalValue);
     const numGrouped = typeof groupedValue === 'string' ? parseFloat(groupedValue) : Number(groupedValue);
+    
+    // Handle NaN case
+    if (isNaN(numGrouped) || isNaN(numOriginal)) {
+      console.log(`[DEBUG] getGroupedValueStyle - NaN detected: Original: ${numOriginal}, Grouped: ${numGrouped}`);
+      return { fontWeight: 'bold' };
+    }
     
     console.log(`[DEBUG] getGroupedValueStyle - Original: ${originalValue} (${typeof originalValue}) => ${numOriginal}, Grouped: ${groupedValue} (${typeof groupedValue}) => ${numGrouped}`);
     
@@ -85,15 +137,15 @@ const CharacterAttributesBackend = ({
     return { fontWeight: 'bold' }; // Normal color for same
   };
 
-  // Debug outputs using console.log directly instead of useEffect
-  if (character?.conditions?.length > 0) {
-    console.log('[DEBUG] Character has conditions:', character.conditions);
+  if (attributes.length === 0) {
+    return (
+      <div className="section character-attributes">
+        <h3>Attributes</h3>
+        <p>No attributes defined.</p>
+      </div>
+    );
   }
-  
-  if (groupedAttributes) {
-    console.log('[DEBUG] Grouped attributes:', groupedAttributes);
-  }
-  
+
   return (
     <>
       <div className="section character-attributes">
@@ -101,7 +153,7 @@ const CharacterAttributesBackend = ({
         <div className="attributes-grid">
           {attributes.map(attr => {
             const originalValue = attr.data.attribute.attributeValue;
-            const groupedValue = groupedAttributes?.[attr.key];
+            const groupedValue = effectiveGroupedAttributes?.[attr.key];
             const hasEquipment = character && character.equipment && character.equipment.length > 0;
             const hasConditions = character && character.conditions && character.conditions.length > 0;
             
@@ -116,13 +168,6 @@ const CharacterAttributesBackend = ({
             // 1. There's equipment that could affect it, OR
             // 2. There are conditions that could affect it, OR
             // 3. The grouped value is different from original
-            // Convert values to numbers for accurate comparison and ensure we're comparing numeric values
-            const numOriginal = typeof originalValue === 'string' ? parseFloat(originalValue) : Number(originalValue);
-            const numGrouped = typeof groupedValue === 'string' ? parseFloat(groupedValue) : Number(groupedValue);
-            
-            console.log(`  - numOriginal: ${numOriginal} (${typeof numOriginal})`);
-            console.log(`  - numGrouped: ${numGrouped} (${typeof numGrouped})`);
-            console.log(`  - Difference: ${Math.abs(numGrouped - numOriginal)}`);
             
             // Make sure we handle conditions properly - we want to show the difference even if very small
             // Fixed issue: Always show the grouped value if there are conditions that might affect this attribute
@@ -132,11 +177,47 @@ const CharacterAttributesBackend = ({
             
             console.log(`  - Has condition for this attribute (${attr.key}): ${hasConditionForThisAttribute}`);
             
-            const isDifferent = Math.abs(numGrouped - numOriginal) >= 0.01;
-            console.log(`  - Values are different: ${isDifferent} (diff: ${Math.abs(numGrouped - numOriginal)})`);
+            // Handle potential undefined/null groupedValue
+            if (groupedValue === undefined || groupedValue === null) {
+              console.log(`  - Grouped value is undefined/null for ${attr.key}`);
+              // If we have a condition for this attribute but no grouped value,
+              // we need to calculate what it should be
+              if (hasConditionForThisAttribute) {
+                console.log(`  - Computing expected grouped value from conditions directly`);
+                const affectingConditions = character.conditions.filter(c => 
+                  c.conditionTarget && c.conditionTarget.toLowerCase() === attr.key.toLowerCase()
+                );
+                
+                if (affectingConditions.length > 0) {
+                  console.log(`  - Found ${affectingConditions.length} conditions affecting ${attr.key}`);
+                }
+              }
+            }
             
-            const shouldShowGroupedValue = (groupedValue !== undefined && groupedValue !== null) && 
-              (hasEquipment || hasConditionForThisAttribute || isDifferent);
+            // Convert values to numbers for accurate comparison and ensure we're comparing numeric values
+            const numOriginal = typeof originalValue === 'string' ? parseFloat(originalValue) : Number(originalValue);
+            const numGrouped = typeof groupedValue === 'string' ? parseFloat(groupedValue) : Number(groupedValue);
+            
+            console.log(`  - numOriginal: ${numOriginal} (${typeof numOriginal})`);
+            console.log(`  - numGrouped: ${numGrouped} (${typeof numGrouped})`);
+            
+            // Check if we have valid numbers before computing difference
+            const canComputeDifference = !isNaN(numOriginal) && !isNaN(numGrouped);
+            const difference = canComputeDifference ? Math.abs(numGrouped - numOriginal) : 0;
+            console.log(`  - Can compute difference: ${canComputeDifference}, Difference: ${difference}`);
+            
+            const isDifferent = canComputeDifference && difference >= 0.01;
+            console.log(`  - Values are different: ${isDifferent} (diff: ${difference})`);
+            
+            // Improved condition to show grouped value
+            // Now includes a fallback for undefined groupedValue but with conditions
+            const shouldShowGroupedValue = 
+              // Regular case - we have a grouped value and some reason to show it
+              ((groupedValue !== undefined && groupedValue !== null) && 
+               (hasEquipment || hasConditionForThisAttribute || isDifferent)) ||
+              // Special case - no grouped value but we have conditions that should affect this attribute
+              (hasConditionForThisAttribute && effectiveGroupedAttributes && 
+               effectiveGroupedAttributes[attr.key] !== undefined);
             
             console.log(`  - Should show grouped value: ${shouldShowGroupedValue}`);
             
@@ -156,11 +237,17 @@ const CharacterAttributesBackend = ({
                     {shouldShowGroupedValue && (
                       <span 
                         className="grouped-value" 
-                        style={getGroupedValueStyle(originalValue, Math.round(numGrouped))}
+                        style={getGroupedValueStyle(originalValue, effectiveGroupedAttributes[attr.key])}
                         title="Final grouped value with equipment and conditions"
                       >
-                        {console.log(`[DEBUG] Rendering grouped value for ${attr.name}: ${Math.round(numGrouped)}`)}
-                        {' → '}{typeof numGrouped === 'number' && !isNaN(numGrouped) ? Math.round(numGrouped) : numGrouped}
+                        {console.log(`[DEBUG] Rendering grouped value for ${attr.name}: ${effectiveGroupedAttributes[attr.key]}`)}
+                        {' → '}{
+                          // Use either the actual groupedValue or our computed fallback value
+                          effectiveGroupedAttributes[attr.key] !== undefined && 
+                          !isNaN(Number(effectiveGroupedAttributes[attr.key])) ? 
+                            Math.round(Number(effectiveGroupedAttributes[attr.key])) : 
+                            originalValue
+                        }
                         {(hasEquipment || hasConditions) && (
                           <button
                             className="info-icon"
