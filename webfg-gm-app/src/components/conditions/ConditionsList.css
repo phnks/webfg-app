@@ -5,6 +5,19 @@
   box-sizing: border-box;
 }
 
+.condition-page h1 {
+  margin: 0 0 20px 0;
+  font-size: 2em;
+  color: #333;
+}
+
+.condition-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
 .condition-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -13,18 +26,18 @@
 }
 
 .condition-card {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .condition-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
 .condition-card.help {
@@ -113,11 +126,12 @@
   background: #007bff;
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
+  padding: 8px 16px;
+  border-radius: 4px;
   font-size: 1em;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  font-weight: 500;
 }
 
 .create-button:hover {
@@ -130,6 +144,9 @@
   align-items: center;
   height: 200px;
   font-size: 1.1em;
+  padding: 40px;
+  text-align: center;
+  color: #666;
 }
 
 .error {

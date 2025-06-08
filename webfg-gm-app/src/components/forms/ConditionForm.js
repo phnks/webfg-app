@@ -8,6 +8,7 @@ import {
   LIST_CONDITIONS
 } from "../../graphql/operations";
 import "./Form.css";
+import "./ConditionForm.css";
 
 const ConditionType = ["HELP", "HINDER"];
 const ConditionCategory = ["PHYSICAL", "MENTAL", "ENVIRONMENTAL", "MAGICAL", "DISEASE", "BUFF", "DEBUFF", "STATUS"];

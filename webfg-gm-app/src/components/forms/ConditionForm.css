@@ -1,0 +1,82 @@
+.condition-form {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.condition-form h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.condition-preview {
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 15px;
+  margin: 20px 0;
+}
+
+.condition-preview h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #34495e;
+}
+
+.condition-preview p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.condition-preview strong {
+  color: #007bff;
+}
+
+.submit-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background-color: #45a049;
+}
+
+.submit-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.cancel-btn:hover {
+  background-color: #d0d0d0;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}

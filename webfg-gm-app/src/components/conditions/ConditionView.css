@@ -5,16 +5,14 @@
 .condition-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #e9ecef;
 }
 
 .condition-title h1 {
   margin: 0 0 10px 0;
   color: #333;
-  font-size: 2em;
+  font-size: 32px;
 }
 
 .condition-badges {
@@ -70,55 +68,52 @@
   flex-wrap: wrap;
 }
 
-.add-to-character-btn {
-  background: #28a745;
-  color: white;
+.add-to-character-btn, .edit-btn, .delete-btn {
+  padding: 8px 16px;
   border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 0.9em;
+  font-size: 16px;
   transition: background-color 0.2s ease;
+}
+
+.add-to-character-btn {
+  background-color: #28a745;
+  color: white;
 }
 
 .add-to-character-btn:hover {
-  background: #218838;
+  background-color: #218838;
+}
+
+.add-to-character-btn.success {
+  background-color: #20c997;
 }
 
 .edit-btn {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9em;
-  transition: background-color 0.2s ease;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  color: #333;
 }
 
 .edit-btn:hover {
-  background: #0056b3;
+  background-color: #e9ecef;
 }
 
 .delete-btn {
-  background: #dc3545;
+  background-color: #dc3545;
   color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9em;
-  transition: background-color 0.2s ease;
 }
 
 .delete-btn:hover {
-  background: #c82333;
+  background-color: #c82333;
 }
 
 .condition-details {
-  background: #f8f9fa;
+  background-color: white;
   border-radius: 8px;
-  padding: 30px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
 }
 
 .detail-section {
@@ -130,11 +125,12 @@
 }
 
 .detail-section h3 {
-  margin: 0 0 15px 0;
-  color: #333;
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #444;
   font-size: 1.3em;
-  border-bottom: 1px solid #dee2e6;
-  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
 }
 
 .detail-section p {
