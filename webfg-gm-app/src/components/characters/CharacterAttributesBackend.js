@@ -32,23 +32,47 @@ const CharacterAttributesBackend = ({
   const [breakdownAttributeName, setBreakdownAttributeName] = useState('');
   
   // Query for breakdown data when needed
-  const { data: breakdownData, loading: breakdownLoading } = useQuery(
+  const { data: breakdownData, loading: breakdownLoading, error: breakdownError } = useQuery(
     GET_CHARACTER_ATTRIBUTE_BREAKDOWN,
     {
       variables: {
         characterId: character?.characterId,
         attributeName: selectedAttribute
       },
-      skip: !selectedAttribute || !character?.characterId
+      skip: !selectedAttribute || !character?.characterId,
+      onCompleted: (data) => {
+        console.log(`[DEBUG] Breakdown query completed with data:`, data);
+      },
+      onError: (error) => {
+        console.error(`[DEBUG] Breakdown query failed:`, error);
+      }
     }
   );
   
+  // Debug tracking for breakdown state
+  useMemo(() => {
+    if (selectedAttribute) {
+      console.log(`[DEBUG] selectedAttribute: ${selectedAttribute}, showBreakdown: ${showBreakdown}`);
+      if (breakdownData) {
+        console.log(`[DEBUG] breakdownData:`, breakdownData);
+      }
+      if (breakdownError) {
+        console.error(`[DEBUG] breakdownError:`, breakdownError);
+      }
+    }
+  }, [selectedAttribute, showBreakdown, breakdownData, breakdownError]);
+  
   // Handler for showing breakdown
   const handleShowBreakdown = (attributeKey, attributeName) => {
+    console.log(`[DEBUG] handleShowBreakdown called with attributeKey=${attributeKey}, attributeName=${attributeName}`);
     if (character) {
+      console.log(`[DEBUG] Character ID: ${character.characterId}`);
       setSelectedAttribute(attributeKey);
       setBreakdownAttributeName(attributeName);
       setShowBreakdown(true);
+      console.log(`[DEBUG] Set showBreakdown to true, selectedAttribute to ${attributeKey}`);
+    } else {
+      console.log(`[DEBUG] Character is null or undefined - can't show breakdown`);
     }
   };
   
@@ -63,6 +87,76 @@ const CharacterAttributesBackend = ({
   } else {
     console.log('[DEBUG] WARNING: groupedAttributes is undefined or null');
   }
+  
+  // Function to generate a fallback breakdown when backend data is unavailable
+  const generateFallbackBreakdown = (attributeKey) => {
+    console.log(`[DEBUG] Generating fallback breakdown for ${attributeKey}`);
+    const steps = [];
+    let stepCount = 1;
+    
+    // Find the attribute in our attributes array
+    const attribute = attributes.find(attr => attr.key === attributeKey);
+    if (!attribute) {
+      console.error(`[DEBUG] Could not find attribute with key ${attributeKey}`);
+      return steps;
+    }
+    
+    // Get original value
+    const originalValue = Number(attribute.data.attribute.attributeValue);
+    
+    // Add base value as first step
+    steps.push({
+      step: stepCount++,
+      entityName: character?.name || 'Character',
+      entityType: 'character',
+      attributeValue: originalValue,
+      isGrouped: attribute.data.attribute.isGrouped,
+      runningTotal: originalValue,
+      formula: null
+    });
+    
+    // If no conditions affect this attribute, return just the base value
+    if (!hasConditions) {
+      return steps;
+    }
+    
+    // Check for conditions that affect this attribute
+    const relevantConditions = character.conditions.filter(c => 
+      c.conditionTarget && c.conditionTarget.toLowerCase() === attributeKey.toLowerCase()
+    );
+    
+    if (relevantConditions.length === 0) {
+      return steps;
+    }
+    
+    console.log(`[DEBUG] Found ${relevantConditions.length} conditions affecting ${attributeKey}`);
+    
+    // Add steps for each condition
+    let runningTotal = originalValue;
+    relevantConditions.forEach(condition => {
+      const conditionAmount = Number(condition.conditionAmount);
+      const previousValue = runningTotal;
+      
+      if (condition.conditionType === 'HELP') {
+        runningTotal += conditionAmount;
+      } else if (condition.conditionType === 'HINDER') {
+        runningTotal -= conditionAmount;
+      }
+      
+      steps.push({
+        step: stepCount++,
+        entityName: condition.name || 'Condition',
+        entityType: 'condition',
+        attributeValue: conditionAmount,
+        isGrouped: true,
+        runningTotal: runningTotal,
+        formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${conditionAmount}`
+      });
+    });
+    
+    console.log(`[DEBUG] Generated fallback breakdown:`, steps);
+    return steps;
+  };
   
   // Create a fallback groupedAttributes object if it's undefined
   // This will calculate the values based on conditions directly in the frontend
@@ -251,7 +345,11 @@ const CharacterAttributesBackend = ({
                         {(hasEquipment || hasConditions) && (
                           <button
                             className="info-icon"
-                            onClick={() => handleShowBreakdown(attr.key, attr.name)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent event bubbling
+                              console.log(`[DEBUG] Info button clicked for ${attr.name} (${attr.key})`);
+                              handleShowBreakdown(attr.key, attr.name);
+                            }}
                             title="Show detailed breakdown"
                           >
                             ℹ️
@@ -267,9 +365,10 @@ const CharacterAttributesBackend = ({
         </div>
       </div>
       
-      {showBreakdown && breakdownData?.getCharacter?.attributeBreakdown && (
+      {console.log(`[DEBUG] showBreakdown: ${showBreakdown}, hasBreakdownData: ${Boolean(breakdownData?.getCharacter?.attributeBreakdown)}`)}  
+      {showBreakdown && (
         <AttributeBreakdownPopup
-          breakdown={breakdownData.getCharacter.attributeBreakdown}
+          breakdown={breakdownData?.getCharacter?.attributeBreakdown || generateFallbackBreakdown(selectedAttribute)}
           attributeName={breakdownAttributeName}
           isLoading={breakdownLoading}
           onClose={() => {
