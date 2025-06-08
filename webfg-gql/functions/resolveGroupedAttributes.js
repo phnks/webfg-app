@@ -11,6 +11,11 @@ exports.handler = async (event) => {
   // Source contains the parent Character or Object
   const entity = event.source;
   const typeName = event.info.parentTypeName; // 'Character' or 'Object'
+  
+  // Log if character has conditions
+  if (typeName === 'Character' && entity.conditionIds && entity.conditionIds.length > 0) {
+    console.log(`[DEBUG] Character ${entity.name || 'unknown'} has ${entity.conditionIds.length} condition IDs:`, entity.conditionIds);
+  }
 
   if (!entity) {
     console.log("No entity found, returning empty grouped attributes.");
@@ -36,6 +41,14 @@ exports.handler = async (event) => {
       // For characters, we need to ensure we have full equipment data
       const enrichedCharacter = await enrichCharacterWithEquipment(entity);
       console.log("Enriched character equipment:", JSON.stringify(enrichedCharacter.equipment, null, 2));
+      
+      // Log if we found conditions during enrichment
+      if (enrichedCharacter.conditions && enrichedCharacter.conditions.length > 0) {
+        console.log(`[DEBUG] Enriched character with ${enrichedCharacter.conditions.length} conditions:`, JSON.stringify(enrichedCharacter.conditions, null, 2));
+      } else {
+        console.log(`[DEBUG] Enriched character has NO conditions`); 
+      }
+      
       groupedAttributes = calculateGroupedAttributes(enrichedCharacter);
     } else if (typeName === 'Object') {
       // For objects, we need to ensure we have full equipment data
@@ -62,6 +75,28 @@ exports.handler = async (event) => {
     };
 
     console.log("Calculated grouped attributes:", JSON.stringify(result, null, 2));
+    
+    // Debug: Check for expected attribute changes due to conditions
+    if (typeName === 'Character' && entity.conditionIds && entity.conditionIds.length > 0) {
+      console.log(`[DEBUG] Checking for expected condition effects:`);
+      const enrichedCharacter = await enrichCharacterWithEquipment(entity);
+      
+      if (enrichedCharacter.conditions) {
+        enrichedCharacter.conditions.forEach(condition => {
+          if (condition.conditionTarget && condition.conditionAmount) {
+            const targetAttr = condition.conditionTarget.toLowerCase();
+            const baseValue = entity[targetAttr]?.attribute?.attributeValue;
+            const groupedValue = result[targetAttr];
+            
+            console.log(`[DEBUG] Condition '${condition.name}' targeting ${targetAttr}:`);
+            console.log(`  - Base value: ${baseValue}`);
+            console.log(`  - Expected ${condition.conditionType === 'HELP' ? '+' : '-'}${condition.conditionAmount}`);
+            console.log(`  - Grouped value: ${groupedValue}`);
+          }
+        });
+      }
+    }
+    
     return result;
 
   } catch (error) {

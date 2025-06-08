@@ -208,27 +208,37 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
   }
   
   // Apply conditions (HELP/HINDER) at the end
+  console.log(`[DEBUG] Checking for conditions to apply in attribute breakdown for ${attributeName}`);
   if (character.conditions && character.conditions.length > 0) {
+    console.log(`[DEBUG] Found ${character.conditions.length} conditions to check for attribute ${attributeName}`);
+    
     character.conditions.forEach(condition => {
+      console.log(`[DEBUG] Checking condition ${condition.name} (${condition.conditionType}) for ${attributeName}`);
+      
       if (!condition.conditionTarget || !condition.conditionType || condition.conditionAmount === undefined) {
+        console.log(`[DEBUG] Skipping invalid condition: missing required fields`);
         return; // Skip invalid conditions
       }
       
       // Convert condition target to lowercase to match attribute names
       const targetAttribute = condition.conditionTarget.toLowerCase();
+      console.log(`[DEBUG] Condition target: ${targetAttribute}, Current attribute: ${attributeName}`);
       
       // Only apply if this condition targets the current attribute
       if (targetAttribute === attributeName) {
+        console.log(`[DEBUG] Condition targets current attribute - applying effect`);
         const previousValue = currentValue;
         
         if (condition.conditionType === 'HELP') {
           currentValue = currentValue + condition.conditionAmount;
+          console.log(`[DEBUG] Applied HELP: ${previousValue} + ${condition.conditionAmount} = ${currentValue}`);
         } else if (condition.conditionType === 'HINDER') {
           currentValue = currentValue - condition.conditionAmount;
+          console.log(`[DEBUG] Applied HINDER: ${previousValue} - ${condition.conditionAmount} = ${currentValue}`);
         }
         
         stepNumber++;
-        breakdown.push({
+        const breakdownStep = {
           step: stepNumber,
           entityName: condition.name || 'Condition',
           entityType: 'condition',
@@ -236,9 +246,16 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
           isGrouped: true,
           runningTotal: Math.round(currentValue * 100) / 100,
           formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${condition.conditionAmount}`
-        });
+        };
+        
+        console.log(`[DEBUG] Adding condition step to breakdown:`, JSON.stringify(breakdownStep));
+        breakdown.push(breakdownStep);
+      } else {
+        console.log(`[DEBUG] Condition does not target current attribute - skipping`);
       }
     });
+  } else {
+    console.log(`[DEBUG] No conditions found for character in breakdown calculation`);
   }
   
   return breakdown;

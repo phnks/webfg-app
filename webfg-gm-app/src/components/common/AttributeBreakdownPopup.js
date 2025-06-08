@@ -1,7 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './AttributeBreakdownPopup.css';
 
 const AttributeBreakdownPopup = ({ breakdown, attributeName, onClose }) => {
+  // Debug log the breakdown steps using useEffect hook
+  // Note: This must be defined before any early returns to avoid React Hook rules violation
+  useEffect(() => {
+    if (breakdown && breakdown.length > 0) {
+      console.log(`[DEBUG] AttributeBreakdownPopup for ${attributeName}:`, breakdown);
+      
+      // Check for condition steps specifically
+      const conditionSteps = breakdown.filter(step => step.entityType === 'condition');
+      console.log(`[DEBUG] Found ${conditionSteps.length} condition steps in breakdown:`, conditionSteps);
+    }
+  }, [breakdown, attributeName]);
+  
   if (!breakdown || breakdown.length === 0) return null;
 
   return (
@@ -26,7 +38,10 @@ const AttributeBreakdownPopup = ({ breakdown, attributeName, onClose }) => {
                     {step.entityType === 'fatigue' ? 
                       `Reduces by ${Math.abs(step.attributeValue)}` : 
                       step.entityType === 'condition' ?
-                      `${step.formula?.includes('HINDER') ? 'Hinders' : 'Helps'} by ${step.attributeValue}` :
+                      (() => {
+                        console.log(`[DEBUG] Rendering condition step: ${JSON.stringify(step)}`);
+                        return `${step.formula?.includes('HINDER') ? 'Hinders' : 'Helps'} by ${step.attributeValue}`;
+                      })() :
                       `${step.attributeValue} ${step.isGrouped ? '☑️' : '❌'}`
                     }
                   </span>

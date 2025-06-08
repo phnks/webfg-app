@@ -143,31 +143,50 @@ const calculateGroupedAttributes = (character) => {
   });
   
   // Now apply conditions (HELP/HINDER) to the grouped values
+  console.log(`[DEBUG] Starting to apply conditions for character ${character.name || 'unknown'} (${character.characterId || 'no-id'})`);
+  
   if (character.conditions && character.conditions.length > 0) {
+    console.log(`[DEBUG] Found ${character.conditions.length} conditions to process`);
+    
     character.conditions.forEach(condition => {
+      console.log(`[DEBUG] Processing condition: ${JSON.stringify(condition)}`);
+      
       if (!condition.conditionTarget || !condition.conditionType || condition.conditionAmount === undefined) {
+        console.log(`[DEBUG] Skipping invalid condition: ${condition.name || 'unnamed'} - missing required fields`);
         return; // Skip invalid conditions
       }
       
       // Convert condition target to lowercase to match attribute names
       const targetAttribute = condition.conditionTarget.toLowerCase();
+      console.log(`[DEBUG] Condition target attribute: ${targetAttribute}`);
       
       // Only apply if this is a valid attribute and we have a value for it
       if (ATTRIBUTE_NAMES.includes(targetAttribute) && groupedAttributes[targetAttribute] !== undefined) {
         const currentValue = groupedAttributes[targetAttribute];
         let newValue = currentValue;
         
+        console.log(`[DEBUG] Before applying condition: ${targetAttribute} = ${currentValue}`);
+        
         if (condition.conditionType === 'HELP') {
           newValue = currentValue + condition.conditionAmount;
+          console.log(`[DEBUG] Applying HELP condition: ${currentValue} + ${condition.conditionAmount} = ${newValue}`);
         } else if (condition.conditionType === 'HINDER') {
           newValue = currentValue - condition.conditionAmount;
+          console.log(`[DEBUG] Applying HINDER condition: ${currentValue} - ${condition.conditionAmount} = ${newValue}`);
         }
         
         // Round to 2 decimal places
         groupedAttributes[targetAttribute] = Math.round(newValue * 100) / 100;
+        console.log(`[DEBUG] After applying condition (rounded): ${targetAttribute} = ${groupedAttributes[targetAttribute]}`);
+      } else {
+        console.log(`[DEBUG] Cannot apply condition: target=${targetAttribute}, valid=${ATTRIBUTE_NAMES.includes(targetAttribute)}, hasValue=${groupedAttributes[targetAttribute] !== undefined}`);
       }
     });
+  } else {
+    console.log('[DEBUG] No conditions to apply');
   }
+  
+  console.log('[DEBUG] Final grouped attributes after conditions:', JSON.stringify(groupedAttributes));
   
   return groupedAttributes;
 };

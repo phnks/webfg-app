@@ -64,18 +64,36 @@ const CharacterAttributesBackend = ({
 
   // Helper function to get color style for grouped value
   const getGroupedValueStyle = (originalValue, groupedValue) => {
-    // Convert to numbers to ensure accurate comparison
-    const numOriginal = Number(originalValue);
-    const numGrouped = Number(groupedValue);
+    // More robust numeric conversion - ensure we're comparing proper numbers
+    // First convert string values to numbers if needed
+    const numOriginal = typeof originalValue === 'string' ? parseFloat(originalValue) : Number(originalValue);
+    const numGrouped = typeof groupedValue === 'string' ? parseFloat(groupedValue) : Number(groupedValue);
     
-    if (numGrouped > numOriginal) {
+    console.log(`[DEBUG] getGroupedValueStyle - Original: ${originalValue} (${typeof originalValue}) => ${numOriginal}, Grouped: ${groupedValue} (${typeof groupedValue}) => ${numGrouped}`);
+    
+    // Use small epsilon for floating point comparison to avoid precision issues
+    const epsilon = 0.001;
+    
+    if (numGrouped - numOriginal > epsilon) {
+      console.log(`[DEBUG] Grouped value HIGHER than original: ${numGrouped} > ${numOriginal}`);
       return { color: '#28a745', fontWeight: 'bold' }; // Green for higher
-    } else if (numGrouped < numOriginal) {
+    } else if (numOriginal - numGrouped > epsilon) {
+      console.log(`[DEBUG] Grouped value LOWER than original: ${numGrouped} < ${numOriginal}`);
       return { color: '#dc3545', fontWeight: 'bold' }; // Red for lower
     }
+    console.log(`[DEBUG] Grouped value SAME as original: ${numGrouped} = ${numOriginal}`);
     return { fontWeight: 'bold' }; // Normal color for same
   };
 
+  // Debug outputs using console.log directly instead of useEffect
+  if (character?.conditions?.length > 0) {
+    console.log('[DEBUG] Character has conditions:', character.conditions);
+  }
+  
+  if (groupedAttributes) {
+    console.log('[DEBUG] Grouped attributes:', groupedAttributes);
+  }
+  
   return (
     <>
       <div className="section character-attributes">
@@ -87,15 +105,40 @@ const CharacterAttributesBackend = ({
             const hasEquipment = character && character.equipment && character.equipment.length > 0;
             const hasConditions = character && character.conditions && character.conditions.length > 0;
             
+            // Debug for each attribute
+            console.log(`[DEBUG] Attribute ${attr.name} (${attr.key}):`); 
+            console.log(`  - Original value: ${originalValue} (${typeof originalValue})`);
+            console.log(`  - Grouped value: ${groupedValue} (${typeof groupedValue})`);
+            console.log(`  - Has equipment: ${hasEquipment}`);
+            console.log(`  - Has conditions: ${hasConditions}`);
+            
             // Show grouped value if:
             // 1. There's equipment that could affect it, OR
             // 2. There are conditions that could affect it, OR
             // 3. The grouped value is different from original
-            // Convert values to numbers for accurate comparison
-            const numOriginal = Number(originalValue);
-            const numGrouped = Number(groupedValue);
+            // Convert values to numbers for accurate comparison and ensure we're comparing numeric values
+            const numOriginal = typeof originalValue === 'string' ? parseFloat(originalValue) : Number(originalValue);
+            const numGrouped = typeof groupedValue === 'string' ? parseFloat(groupedValue) : Number(groupedValue);
+            
+            console.log(`  - numOriginal: ${numOriginal} (${typeof numOriginal})`);
+            console.log(`  - numGrouped: ${numGrouped} (${typeof numGrouped})`);
+            console.log(`  - Difference: ${Math.abs(numGrouped - numOriginal)}`);
+            
+            // Make sure we handle conditions properly - we want to show the difference even if very small
+            // Fixed issue: Always show the grouped value if there are conditions that might affect this attribute
+            const hasConditionForThisAttribute = hasConditions && character.conditions.some(c => 
+              c.conditionTarget && c.conditionTarget.toLowerCase() === attr.key.toLowerCase()
+            );
+            
+            console.log(`  - Has condition for this attribute (${attr.key}): ${hasConditionForThisAttribute}`);
+            
+            const isDifferent = Math.abs(numGrouped - numOriginal) >= 0.01;
+            console.log(`  - Values are different: ${isDifferent} (diff: ${Math.abs(numGrouped - numOriginal)})`);
+            
             const shouldShowGroupedValue = (groupedValue !== undefined && groupedValue !== null) && 
-              (hasEquipment || hasConditions || Math.abs(numGrouped - numOriginal) > 0.01);
+              (hasEquipment || hasConditionForThisAttribute || isDifferent);
+            
+            console.log(`  - Should show grouped value: ${shouldShowGroupedValue}`);
             
             return (
               <div key={attr.name} className="attribute-item">
@@ -116,7 +159,8 @@ const CharacterAttributesBackend = ({
                         style={getGroupedValueStyle(originalValue, Math.round(numGrouped))}
                         title="Final grouped value with equipment and conditions"
                       >
-                        {' → '}{Math.round(numGrouped)}
+                        {console.log(`[DEBUG] Rendering grouped value for ${attr.name}: ${Math.round(numGrouped)}`)}
+                        {' → '}{typeof numGrouped === 'number' && !isNaN(numGrouped) ? Math.round(numGrouped) : numGrouped}
                         {(hasEquipment || hasConditions) && (
                           <button
                             className="info-icon"
