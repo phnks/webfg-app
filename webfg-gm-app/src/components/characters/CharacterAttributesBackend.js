@@ -64,9 +64,13 @@ const CharacterAttributesBackend = ({
 
   // Helper function to get color style for grouped value
   const getGroupedValueStyle = (originalValue, groupedValue) => {
-    if (groupedValue > originalValue) {
+    // Convert to numbers to ensure accurate comparison
+    const numOriginal = Number(originalValue);
+    const numGrouped = Number(groupedValue);
+    
+    if (numGrouped > numOriginal) {
       return { color: '#28a745', fontWeight: 'bold' }; // Green for higher
-    } else if (groupedValue < originalValue) {
+    } else if (numGrouped < numOriginal) {
       return { color: '#dc3545', fontWeight: 'bold' }; // Red for lower
     }
     return { fontWeight: 'bold' }; // Normal color for same
@@ -87,8 +91,11 @@ const CharacterAttributesBackend = ({
             // 1. There's equipment that could affect it, OR
             // 2. There are conditions that could affect it, OR
             // 3. The grouped value is different from original
+            // Convert values to numbers for accurate comparison
+            const numOriginal = Number(originalValue);
+            const numGrouped = Number(groupedValue);
             const shouldShowGroupedValue = (groupedValue !== undefined && groupedValue !== null) && 
-              (hasEquipment || hasConditions || groupedValue !== originalValue);
+              (hasEquipment || hasConditions || Math.abs(numGrouped - numOriginal) > 0.01);
             
             return (
               <div key={attr.name} className="attribute-item">
@@ -106,10 +113,10 @@ const CharacterAttributesBackend = ({
                     {shouldShowGroupedValue && (
                       <span 
                         className="grouped-value" 
-                        style={getGroupedValueStyle(originalValue, Math.round(groupedValue))}
+                        style={getGroupedValueStyle(originalValue, Math.round(numGrouped))}
                         title="Final grouped value with equipment and conditions"
                       >
-                        {' → '}{Math.round(groupedValue)}
+                        {' → '}{Math.round(numGrouped)}
                         {(hasEquipment || hasConditions) && (
                           <button
                             className="info-icon"
