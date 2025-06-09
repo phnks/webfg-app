@@ -1,21 +1,28 @@
-.condition-page {
+.condition-list {
+  width: 250px;
+  border-right: 1px solid #ddd;
   display: flex;
   flex-direction: column;
-  padding: 20px;
-  box-sizing: border-box;
+  height: 100%;
 }
 
-.condition-page h1 {
-  margin: 0 0 20px 0;
-  font-size: 2em;
-  color: #333;
-}
-
-.condition-page-header {
+.list-header {
+  padding: 15px;
+  border-bottom: 1px solid #ddd;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+}
+
+.list-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.list-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
 }
 
 .condition-grid {
@@ -23,6 +30,24 @@
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   margin-top: 20px;
+}
+
+.list-item {
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  background-color: #f9f9f9;
+  transition: background-color 0.2s;
+}
+
+.list-item:hover {
+  background-color: #f0f0f0;
+}
+
+.list-item.selected {
+  background-color: #e6f2ff;
+  border-left: 3px solid #007bff;
 }
 
 .condition-card {
@@ -113,38 +138,26 @@
 
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: 30px 20px;
   color: #6c757d;
 }
 
 .empty-state p {
-  font-size: 1.1em;
-  margin-bottom: 20px;
+  font-size: 1em;
+  margin-bottom: 15px;
 }
 
-.create-button {
-  background: #007bff;
+.add-button {
+  background-color: #007bff;
   color: white;
   border: none;
-  padding: 8px 16px;
   border-radius: 4px;
-  font-size: 1em;
+  padding: 5px 10px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-weight: 500;
 }
 
-.create-button:hover {
-  background: #0056b3;
-}
-
-.loading, .error {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  font-size: 1.1em;
-  padding: 40px;
+.empty-list, .loading, .error {
+  padding: 20px;
   text-align: center;
   color: #666;
 }

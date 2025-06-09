@@ -2,16 +2,15 @@
   padding: 20px;
 }
 
-.condition-header {
+.view-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
 }
 
-.condition-title h1 {
-  margin: 0 0 10px 0;
-  color: #333;
+.view-header h1 {
+  margin: 0;
   font-size: 32px;
 }
 
@@ -62,19 +61,17 @@
   border: 1px solid #ffeaa7;
 }
 
-.condition-actions {
+.view-actions {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
-.add-to-character-btn, .edit-btn, .delete-btn {
+.edit-button, .delete-button, .add-to-character-btn {
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
-  transition: background-color 0.2s ease;
 }
 
 .add-to-character-btn {
@@ -90,26 +87,31 @@
   background-color: #20c997;
 }
 
-.edit-btn {
+.edit-button {
   background-color: #f8f9fa;
   border: 1px solid #ddd;
-  color: #333;
 }
 
-.edit-btn:hover {
-  background-color: #e9ecef;
-}
-
-.delete-btn {
+.delete-button {
   background-color: #dc3545;
   color: white;
 }
 
-.delete-btn:hover {
-  background-color: #c82333;
+.condition-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.condition-details {
+.section-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.section {
+  flex: 1;
+  min-width: 300px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -124,13 +126,11 @@
   margin-bottom: 0;
 }
 
-.detail-section h3 {
+.section h3 {
   margin-top: 0;
-  margin-bottom: 15px;
-  color: #444;
-  font-size: 1.3em;
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
+  color: #444;
 }
 
 .detail-section p {
@@ -199,11 +199,10 @@
 }
 
 .loading, .error {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  font-size: 1.1em;
+  padding: 40px;
+  text-align: center;
+  color: #666;
+  font-size: 18px;
 }
 
 .error {

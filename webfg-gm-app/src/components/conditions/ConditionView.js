@@ -108,8 +108,8 @@ const ConditionView = () => {
         </div>
       )}
 
-      <div className="condition-header">
-        <div className="condition-title">
+      <div className="view-header">
+        <div>
           <h1>{condition.name}</h1>
           <div className="condition-badges">
             <span className={`condition-type-badge ${condition.conditionType.toLowerCase()}`}>
@@ -123,7 +123,7 @@ const ConditionView = () => {
             </span>
           </div>
         </div>
-        <div className="condition-actions">
+        <div className="view-actions">
           {selectedCharacter && (
             <button 
               className="add-to-character-btn"
@@ -133,8 +133,8 @@ const ConditionView = () => {
               Add to Character
             </button>
           )}
-          <button className="edit-btn" onClick={handleEdit}>Edit</button>
-          <button className="delete-btn" onClick={handleDelete}>Delete</button>
+          <button className="edit-button" onClick={handleEdit}>Edit</button>
+          <button className="delete-button" onClick={handleDelete}>Delete</button>
         </div>
       </div>
 
@@ -146,45 +146,51 @@ const ConditionView = () => {
           onClose={handleCancelEdit}
         />
       ) : (
-        <div className="condition-details">
-          <div className="detail-section">
-            <h3>Description</h3>
-            <p>{condition.description}</p>
+        <div className="condition-sections">
+          <div className="section-row">
+            <div className="section">
+              <h3>Description</h3>
+              <p>{condition.description}</p>
+            </div>
           </div>
-
-          <div className="detail-section">
-            <h3>Details</h3>
-            <div className="detail-grid">
-              <div className="detail-item">
-                <label>Category:</label>
-                <span>{condition.conditionCategory}</span>
-              </div>
-              <div className="detail-item">
-                <label>Type:</label>
-                <span className={`condition-type ${condition.conditionType.toLowerCase()}`}>
-                  {condition.conditionType}
-                </span>
-              </div>
-              <div className="detail-item">
-                <label>Target Attribute:</label>
-                <span>{condition.conditionTarget}</span>
-              </div>
-              <div className="detail-item">
-                <label>Amount:</label>
-                <span className="condition-amount">
-                  {condition.conditionType === 'HELP' ? '+' : '-'}{condition.conditionAmount}
-                </span>
+          
+          <div className="section-row">
+            <div className="section">
+              <h3>Details</h3>
+              <div className="detail-grid">
+                <div className="detail-item">
+                  <label>Category:</label>
+                  <span>{condition.conditionCategory}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Type:</label>
+                  <span className={`condition-type ${condition.conditionType.toLowerCase()}`}>
+                    {condition.conditionType}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <label>Target Attribute:</label>
+                  <span>{condition.conditionTarget}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Amount:</label>
+                  <span className="condition-amount">
+                    {condition.conditionType === 'HELP' ? '+' : '-'}{condition.conditionAmount}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-
-          <div className="detail-section">
-            <h3>Effect</h3>
-            <p className="condition-effect">
-              This condition will {condition.conditionType === 'HELP' ? 'increase' : 'decrease'} the 
-              character's <strong>{condition.conditionTarget.toLowerCase()}</strong> attribute by{' '}
-              <strong>{condition.conditionAmount}</strong> points.
-            </p>
+          
+          <div className="section-row">
+            <div className="section">
+              <h3>Effect</h3>
+              <p className="condition-effect">
+                This condition will {condition.conditionType === 'HELP' ? 'increase' : 'decrease'} the 
+                character's <strong>{condition.conditionTarget.toLowerCase()}</strong> attribute by{' '}
+                <strong>{condition.conditionAmount}</strong> points.
+              </p>
+            </div>
           </div>
         </div>
       )}

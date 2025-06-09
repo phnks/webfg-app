@@ -1,13 +1,24 @@
+/* Inheriting common styles from Form.css */
 .condition-form {
   background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Aligning with other form component headers */
 .condition-form h2 {
   margin-top: 0;
   margin-bottom: 20px;
   color: #2c3e50;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+/* Using form-grid class for consistency with other forms */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
 .form-row {
@@ -40,6 +51,14 @@
   color: #007bff;
 }
 
+/* Using consistent button styles from Form.css */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
 .submit-btn {
   background-color: #4CAF50;
   color: white;
@@ -48,10 +67,6 @@
   border-radius: 4px;
   font-weight: 500;
   cursor: pointer;
-}
-
-.submit-btn:hover {
-  background-color: #45a049;
 }
 
 .submit-btn:disabled {
@@ -68,10 +83,6 @@
   font-weight: 500;
   cursor: pointer;
   margin-right: 10px;
-}
-
-.cancel-btn:hover {
-  background-color: #d0d0d0;
 }
 
 /* Mobile Responsive Styles */

@@ -18,15 +18,24 @@ const ConditionsList = () => {
   const conditions = data?.listConditions || [];
 
   return (
-    <div className="condition-page">
-      <div className="page-content">
-        <h1>Conditions</h1>
-        
+    <div className="condition-list">
+      <div className="list-header">
+        <h2>Conditions</h2>
+        <button 
+          className="add-button"
+          onClick={() => navigate("/conditions/new")}
+        >
+          +
+        </button>
+      </div>
+      
+      <div className="list-items">
+                
         {conditions.length === 0 ? (
-          <div className="empty-state">
+          <div className="empty-list">
             <p>No conditions have been created yet.</p>
             <button 
-              className="create-button"
+              className="add-button"
               onClick={() => navigate("/conditions/new")}
             >
               Create New Condition
