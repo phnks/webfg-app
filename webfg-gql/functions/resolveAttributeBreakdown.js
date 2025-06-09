@@ -1,6 +1,7 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, GetCommand } = require('@aws-sdk/lib-dynamodb');
 const { calculateAttributeBreakdown, calculateObjectAttributeBreakdown } = require('../utils/attributeBreakdown');
+const { toInt } = require('../utils/stringToNumber');
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -73,21 +74,31 @@ async function enrichCharacterWithEquipment(character) {
 
   // Enrich with conditions
   const conditions = [];
-  if (character.conditionIds && character.conditionIds.length > 0) {
-    for (const conditionId of character.conditionIds) {
+  if (character.characterConditions && character.characterConditions.length > 0) {
+    console.log("[DEBUG] Character has characterConditions:", JSON.stringify(character.characterConditions));
+    
+    for (const charCondition of character.characterConditions) {
       try {
         const result = await docClient.send(new GetCommand({
           TableName: process.env.CONDITIONS_TABLE,
-          Key: { conditionId }
+          Key: { conditionId: charCondition.conditionId }
         }));
         
         if (result.Item) {
-          conditions.push(result.Item);
+          // Include the amount from the character-condition relationship
+          const conditionWithAmount = {
+            ...result.Item,
+            amount: toInt(charCondition.amount, 1)
+          };
+          console.log(`[DEBUG] Added condition with amount:`, JSON.stringify(conditionWithAmount));
+          conditions.push(conditionWithAmount);
         }
       } catch (error) {
-        console.error(`Error fetching condition ${conditionId}:`, error);
+        console.error(`Error fetching condition ${charCondition.conditionId}:`, error);
       }
     }
+  } else {
+    console.log("[DEBUG] Character has no characterConditions");
   }
 
   return { ...character, equipment, conditions };
