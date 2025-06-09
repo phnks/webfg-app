@@ -18,24 +18,15 @@ const ConditionsList = () => {
   const conditions = data?.listConditions || [];
 
   return (
-    <div className="condition-list">
-      <div className="list-header">
-        <h2>Conditions</h2>
-        <button 
-          className="add-button"
-          onClick={() => navigate("/conditions/new")}
-        >
-          +
-        </button>
-      </div>
-      
-      <div className="list-items">
+    <div className="condition-page">
+      <div className="page-content">
+        <h1>Conditions</h1>
                 
         {conditions.length === 0 ? (
-          <div className="empty-list">
+          <div className="empty-state">
             <p>No conditions have been created yet.</p>
             <button 
-              className="add-button"
+              className="create-button"
               onClick={() => navigate("/conditions/new")}
             >
               Create New Condition
@@ -65,6 +56,17 @@ const ConditionsList = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        
+        {/* Add a 'Create New Condition' card at the end when conditions exist */}
+        {conditions.length > 0 && (
+          <div 
+            className="condition-card add-card"
+            onClick={() => navigate("/conditions/new")}
+          >
+            <div className="add-icon">+</div>
+            <h3>Create New Condition</h3>
           </div>
         )}
       </div>
