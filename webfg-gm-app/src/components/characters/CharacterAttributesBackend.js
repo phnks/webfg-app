@@ -40,64 +40,31 @@ const CharacterAttributesBackend = ({
         attributeName: selectedAttribute
       },
       skip: !selectedAttribute || !character?.characterId,
-      onCompleted: (data) => {
-        console.log(`[DEBUG] Breakdown query completed with data:`, data);
-      },
-      onError: (error) => {
-        console.error(`[DEBUG] Breakdown query failed:`, error);
-      }
+      onCompleted: (data) => {},
+      onError: (error) => {}
     }
   );
   
-  // Debug tracking for breakdown state
-  useMemo(() => {
-    if (selectedAttribute) {
-      console.log(`[DEBUG] selectedAttribute: ${selectedAttribute}, showBreakdown: ${showBreakdown}`);
-      if (breakdownData) {
-        console.log(`[DEBUG] breakdownData:`, breakdownData);
-      }
-      if (breakdownError) {
-        console.error(`[DEBUG] breakdownError:`, breakdownError);
-      }
-    }
-  }, [selectedAttribute, showBreakdown, breakdownData, breakdownError]);
   
   // Handler for showing breakdown
   const handleShowBreakdown = (attributeKey, attributeName) => {
-    console.log(`[DEBUG] handleShowBreakdown called with attributeKey=${attributeKey}, attributeName=${attributeName}`);
     if (character) {
-      console.log(`[DEBUG] Character ID: ${character.characterId}`);
       setSelectedAttribute(attributeKey);
       setBreakdownAttributeName(attributeName);
       setShowBreakdown(true);
-      console.log(`[DEBUG] Set showBreakdown to true, selectedAttribute to ${attributeKey}`);
-    } else {
-      console.log(`[DEBUG] Character is null or undefined - can't show breakdown`);
     }
   };
   
-  // Debug outputs using console.log directly
   const hasConditions = character && character.conditions && character.conditions.length > 0;
-  if (hasConditions) {
-    console.log('[DEBUG] Character has conditions:', character.conditions);
-  }
-  
-  if (groupedAttributes) {
-    console.log('[DEBUG] Grouped attributes:', groupedAttributes);
-  } else {
-    console.log('[DEBUG] WARNING: groupedAttributes is undefined or null');
-  }
   
   // Function to generate a fallback breakdown when backend data is unavailable
   const generateFallbackBreakdown = (attributeKey) => {
-    console.log(`[DEBUG] Generating fallback breakdown for ${attributeKey}`);
     const steps = [];
     let stepCount = 1;
     
     // Find the attribute in our attributes array
     const attribute = attributes.find(attr => attr.key === attributeKey);
     if (!attribute) {
-      console.error(`[DEBUG] Could not find attribute with key ${attributeKey}`);
       return steps;
     }
     
@@ -129,7 +96,6 @@ const CharacterAttributesBackend = ({
       return steps;
     }
     
-    console.log(`[DEBUG] Found ${relevantConditions.length} conditions affecting ${attributeKey}`);
     
     // Add steps for each condition
     let runningTotal = originalValue;
@@ -154,7 +120,6 @@ const CharacterAttributesBackend = ({
       });
     });
     
-    console.log(`[DEBUG] Generated fallback breakdown:`, steps);
     return steps;
   };
   
@@ -164,7 +129,6 @@ const CharacterAttributesBackend = ({
     if (groupedAttributes) return groupedAttributes;
     
     // If the backend didn't provide groupedAttributes, create our own version
-    console.log('[DEBUG] Creating fallback groupedAttributes');
     const fallbackAttributes = {};
     
     // Initialize with base attribute values
@@ -192,7 +156,6 @@ const CharacterAttributesBackend = ({
       });
     }
     
-    console.log('[DEBUG] Fallback grouped attributes:', fallbackAttributes);
     return fallbackAttributes;
   }, [attributes, character?.conditions, groupedAttributes]);
 
@@ -200,7 +163,6 @@ const CharacterAttributesBackend = ({
   const getGroupedValueStyle = (originalValue, groupedValue) => {
     // If groupedValue is undefined, return default style
     if (groupedValue === undefined || groupedValue === null) {
-      console.log(`[DEBUG] getGroupedValueStyle - Grouped value is undefined or null`);
       return { fontWeight: 'bold' };
     }
     
@@ -211,23 +173,17 @@ const CharacterAttributesBackend = ({
     
     // Handle NaN case
     if (isNaN(numGrouped) || isNaN(numOriginal)) {
-      console.log(`[DEBUG] getGroupedValueStyle - NaN detected: Original: ${numOriginal}, Grouped: ${numGrouped}`);
       return { fontWeight: 'bold' };
     }
-    
-    console.log(`[DEBUG] getGroupedValueStyle - Original: ${originalValue} (${typeof originalValue}) => ${numOriginal}, Grouped: ${groupedValue} (${typeof groupedValue}) => ${numGrouped}`);
     
     // Use small epsilon for floating point comparison to avoid precision issues
     const epsilon = 0.001;
     
     if (numGrouped - numOriginal > epsilon) {
-      console.log(`[DEBUG] Grouped value HIGHER than original: ${numGrouped} > ${numOriginal}`);
       return { color: '#28a745', fontWeight: 'bold' }; // Green for higher
     } else if (numOriginal - numGrouped > epsilon) {
-      console.log(`[DEBUG] Grouped value LOWER than original: ${numGrouped} < ${numOriginal}`);
       return { color: '#dc3545', fontWeight: 'bold' }; // Red for lower
     }
-    console.log(`[DEBUG] Grouped value SAME as original: ${numGrouped} = ${numOriginal}`);
     return { fontWeight: 'bold' }; // Normal color for same
   };
 
@@ -251,12 +207,6 @@ const CharacterAttributesBackend = ({
             const hasEquipment = character && character.equipment && character.equipment.length > 0;
             const hasConditions = character && character.conditions && character.conditions.length > 0;
             
-            // Debug for each attribute
-            console.log(`[DEBUG] Attribute ${attr.name} (${attr.key}):`); 
-            console.log(`  - Original value: ${originalValue} (${typeof originalValue})`);
-            console.log(`  - Grouped value: ${groupedValue} (${typeof groupedValue})`);
-            console.log(`  - Has equipment: ${hasEquipment}`);
-            console.log(`  - Has conditions: ${hasConditions}`);
             
             // Show grouped value if:
             // 1. There's equipment that could affect it, OR
@@ -269,36 +219,15 @@ const CharacterAttributesBackend = ({
               c.conditionTarget && c.conditionTarget.toLowerCase() === attr.key.toLowerCase()
             );
             
-            console.log(`  - Has condition for this attribute (${attr.key}): ${hasConditionForThisAttribute}`);
             
-            // Handle potential undefined/null groupedValue
-            if (groupedValue === undefined || groupedValue === null) {
-              console.log(`  - Grouped value is undefined/null for ${attr.key}`);
-              // If we have a condition for this attribute but no grouped value,
-              // we need to calculate what it should be
-              if (hasConditionForThisAttribute) {
-                console.log(`  - Computing expected grouped value from conditions directly`);
-                const affectingConditions = character.conditions.filter(c => 
-                  c.conditionTarget && c.conditionTarget.toLowerCase() === attr.key.toLowerCase()
-                );
-                
-                if (affectingConditions.length > 0) {
-                  console.log(`  - Found ${affectingConditions.length} conditions affecting ${attr.key}`);
-                }
-              }
-            }
             
             // Convert values to numbers for accurate comparison and ensure we're comparing numeric values
             const numOriginal = typeof originalValue === 'string' ? parseFloat(originalValue) : Number(originalValue);
             const numGrouped = typeof groupedValue === 'string' ? parseFloat(groupedValue) : Number(groupedValue);
             
-            console.log(`  - numOriginal: ${numOriginal} (${typeof numOriginal})`);
-            console.log(`  - numGrouped: ${numGrouped} (${typeof numGrouped})`);
-            
             // Check if we have valid numbers before computing difference
             const canComputeDifference = !isNaN(numOriginal) && !isNaN(numGrouped);
             const difference = canComputeDifference ? Math.abs(numGrouped - numOriginal) : 0;
-            console.log(`  - Can compute difference: ${canComputeDifference}, Difference: ${difference}`);
             
             const isDifferent = canComputeDifference && difference >= 0.01;
             console.log(`  - Values are different: ${isDifferent} (diff: ${difference})`);
@@ -313,7 +242,6 @@ const CharacterAttributesBackend = ({
               (hasConditionForThisAttribute && effectiveGroupedAttributes && 
                effectiveGroupedAttributes[attr.key] !== undefined);
             
-            console.log(`  - Should show grouped value: ${shouldShowGroupedValue}`);
             
             return (
               <div key={attr.name} className="attribute-item">
@@ -334,7 +262,6 @@ const CharacterAttributesBackend = ({
                         style={getGroupedValueStyle(originalValue, effectiveGroupedAttributes[attr.key])}
                         title="Final grouped value with equipment and conditions"
                       >
-                        {console.log(`[DEBUG] Rendering grouped value for ${attr.name}: ${effectiveGroupedAttributes[attr.key]}`)}
                         {' → '}{
                           // Use either the actual groupedValue or our computed fallback value
                           effectiveGroupedAttributes[attr.key] !== undefined && 
@@ -347,7 +274,6 @@ const CharacterAttributesBackend = ({
                             className="info-icon"
                             onClick={(e) => {
                               e.stopPropagation(); // Prevent event bubbling
-                              console.log(`[DEBUG] Info button clicked for ${attr.name} (${attr.key})`);
                               handleShowBreakdown(attr.key, attr.name);
                             }}
                             title="Show detailed breakdown"
@@ -365,7 +291,6 @@ const CharacterAttributesBackend = ({
         </div>
       </div>
       
-      {console.log(`[DEBUG] showBreakdown: ${showBreakdown}, hasBreakdownData: ${Boolean(breakdownData?.getCharacter?.attributeBreakdown)}`)}  
       {showBreakdown && (
         <AttributeBreakdownPopup
           breakdown={breakdownData?.getCharacter?.attributeBreakdown || generateFallbackBreakdown(selectedAttribute)}
