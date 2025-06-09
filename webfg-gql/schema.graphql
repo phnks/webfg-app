@@ -87,8 +87,8 @@ type Character {
   equipmentIds: [ID]
   equipment: [Object]
   
-  conditionIds: [ID]
-  conditions: [Condition]
+  characterConditions: [CharacterCondition]
+  conditions: [CharacterConditionWithDetails]
   
   # Computed fields (only resolved when requested)
   groupedAttributes: GroupedAttributes
@@ -141,9 +141,28 @@ input CharacterInput {
   special: [String]
   inventoryIds: [ID]
   equipmentIds: [ID]
-  conditionIds: [ID]
+  characterConditions: [CharacterConditionInput]
 }
 
+type CharacterCondition {
+  conditionId: ID!
+  amount: Int!
+}
+
+type CharacterConditionWithDetails {
+  conditionId: ID!
+  name: String!
+  description: String!
+  conditionCategory: ConditionCategory!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+  amount: Int!
+}
+
+input CharacterConditionInput {
+  conditionId: ID!
+  amount: Int!
+}
 
 type Object {
   objectId: ID!
@@ -258,7 +277,6 @@ type Condition {
   conditionCategory: ConditionCategory!
   conditionType: ConditionType!
   conditionTarget: AttributeName!
-  conditionAmount: Int!
 }
 
 enum ConditionType {
@@ -283,7 +301,6 @@ input ConditionInput {
   conditionCategory: ConditionCategory!
   conditionType: ConditionType!
   conditionTarget: AttributeName!
-  conditionAmount: Int!
 }
 
 type Query {
@@ -347,8 +364,9 @@ type Mutation {
   deleteCondition(conditionId: ID!): Condition
 
   # Character-Condition relationship mutations
-  addConditionToCharacter(characterId: ID!, conditionId: ID!): Character
+  addConditionToCharacter(characterId: ID!, conditionId: ID!, amount: Int): Character
   removeConditionFromCharacter(characterId: ID!, conditionId: ID!): Character
+  updateConditionAmount(characterId: ID!, conditionId: ID!, amount: Int!): Character
 
   # Encounter mutations
   createEncounter(input: EncounterInput!): Encounter
