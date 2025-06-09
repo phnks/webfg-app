@@ -15,7 +15,15 @@ exports.handler = async (event) => {
     throw new Error('characterId, conditionId, and amount are all required');
   }
 
-  if (amount < 1) {
+  // Parse amount to number and check if it's valid
+  const parsedAmount = parseInt(amount, 10);
+  console.log(`[DEBUG-AMOUNT] amount=${amount}, parsedAmount=${parsedAmount}, type=${typeof parsedAmount}, isNaN=${isNaN(parsedAmount)}`);
+  
+  if (isNaN(parsedAmount)) {
+    throw new Error('Amount must be a valid number');
+  }
+
+  if (parsedAmount < 1) {
     throw new Error('Amount must be at least 1');
   }
   
@@ -42,8 +50,9 @@ exports.handler = async (event) => {
       throw new Error(`Condition ${conditionId} not found for character ${characterId}`);
     }
     
-    // Update the condition amount
-    currentConditions[conditionIndex].amount = amount;
+    // Update the condition amount (ensure it's stored as a number)
+    currentConditions[conditionIndex].amount = parsedAmount;
+    console.log(`[DEBUG-AMOUNT] Updated condition at index ${conditionIndex} to amount=${parsedAmount}, result:`, JSON.stringify(currentConditions[conditionIndex], null, 2));
     
     const updateParams = {
       TableName: tableName,

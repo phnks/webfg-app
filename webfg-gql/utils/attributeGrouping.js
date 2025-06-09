@@ -144,15 +144,18 @@ const calculateGroupedAttributes = (character) => {
   
   // Now apply conditions (HELP/HINDER) to the grouped values
   console.log(`[DEBUG] Starting to apply conditions for character ${character.name || 'unknown'} (${character.characterId || 'no-id'})`);
+  console.log(`[DEBUG-GROUP] Character conditions:`, JSON.stringify(character.conditions, null, 2));
   
   if (character.conditions && character.conditions.length > 0) {
     console.log(`[DEBUG] Found ${character.conditions.length} conditions to process`);
     
     character.conditions.forEach(condition => {
       console.log(`[DEBUG] Processing condition: ${JSON.stringify(condition)}`);
+      console.log(`[DEBUG-GROUP] Condition amount type: ${typeof condition.amount}, value: ${condition.amount}`);
       
       if (!condition.conditionTarget || !condition.conditionType || condition.amount === undefined) {
         console.log(`[DEBUG] Skipping invalid condition: ${condition.name || 'unnamed'} - missing required fields`);
+        console.log(`[DEBUG-GROUP] Missing fields check: target=${!!condition.conditionTarget}, type=${!!condition.conditionType}, amount=${condition.amount !== undefined}`);
         return; // Skip invalid conditions
       }
       
@@ -167,12 +170,21 @@ const calculateGroupedAttributes = (character) => {
         
         console.log(`[DEBUG] Before applying condition: ${targetAttribute} = ${currentValue}`);
         
+        // Ensure amount is a number
+        const amount = parseInt(condition.amount, 10);
+        console.log(`[DEBUG-GROUP] Parsed amount from ${condition.amount} to number: ${amount}, isNaN: ${isNaN(amount)}`);
+        
+        if (isNaN(amount)) {
+          console.log(`[DEBUG-GROUP] SKIPPING due to NaN amount for ${condition.name}`);
+          return;
+        }
+        
         if (condition.conditionType === 'HELP') {
-          newValue = currentValue + condition.amount;
-          console.log(`[DEBUG] Applying HELP condition: ${currentValue} + ${condition.amount} = ${newValue}`);
+          newValue = currentValue + amount;
+          console.log(`[DEBUG] Applying HELP condition: ${currentValue} + ${amount} = ${newValue}`);
         } else if (condition.conditionType === 'HINDER') {
-          newValue = currentValue - condition.amount;
-          console.log(`[DEBUG] Applying HINDER condition: ${currentValue} - ${condition.amount} = ${newValue}`);
+          newValue = currentValue - amount;
+          console.log(`[DEBUG] Applying HINDER condition: ${currentValue} - ${amount} = ${newValue}`);
         }
         
         // Round to 2 decimal places

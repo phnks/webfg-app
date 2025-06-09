@@ -14,6 +14,14 @@ exports.handler = async (event) => {
   if (!characterId || !conditionId) {
     throw new Error('Both characterId and conditionId are required');
   }
+  
+  // Parse amount to ensure it's a number
+  const parsedAmount = parseInt(amount, 10);
+  console.log(`[DEBUG-ADD] amount=${amount}, parsed=${parsedAmount}, type=${typeof parsedAmount}, isNaN=${isNaN(parsedAmount)}`);
+  
+  if (isNaN(parsedAmount)) {
+    throw new Error('Invalid amount: must be a number');
+  }
 
   // First get the character to check existing conditions
   const getParams = {
@@ -36,13 +44,16 @@ exports.handler = async (event) => {
     
     if (existingConditionIndex >= 0) {
       // If already exists, update the amount
-      currentConditions[existingConditionIndex].amount = amount;
+      currentConditions[existingConditionIndex].amount = parsedAmount;
+      console.log(`[DEBUG-ADD] Updated existing condition: ${JSON.stringify(currentConditions[existingConditionIndex], null, 2)}`);
     } else {
       // Add the new condition with amount
-      currentConditions.push({
+      const newCondition = {
         conditionId,
-        amount
-      });
+        amount: parsedAmount
+      };
+      currentConditions.push(newCondition);
+      console.log(`[DEBUG-ADD] Added new condition: ${JSON.stringify(newCondition, null, 2)}`);
     }
     
     const updateParams = {

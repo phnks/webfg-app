@@ -209,14 +209,19 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
   
   // Apply conditions (HELP/HINDER) at the end
   console.log(`[DEBUG] Checking for conditions to apply in attribute breakdown for ${attributeName}`);
+  console.log(`[DEBUG-ATTRS] Character conditions structure:`, JSON.stringify(character.conditions, null, 2));
+  
   if (character.conditions && character.conditions.length > 0) {
     console.log(`[DEBUG] Found ${character.conditions.length} conditions to check for attribute ${attributeName}`);
     
     character.conditions.forEach(condition => {
       console.log(`[DEBUG] Checking condition ${condition.name} (${condition.conditionType}) for ${attributeName}`);
+      console.log(`[DEBUG-ATTRS] Full condition object:`, JSON.stringify(condition, null, 2));
+      console.log(`[DEBUG-ATTRS] Amount type: ${typeof condition.amount}, value: ${condition.amount}`);
       
       if (!condition.conditionTarget || !condition.conditionType || condition.amount === undefined) {
         console.log(`[DEBUG] Skipping invalid condition: missing required fields`);
+        console.log(`[DEBUG-ATTRS] Missing fields check: conditionTarget=${!!condition.conditionTarget}, conditionType=${!!condition.conditionType}, amount=${condition.amount !== undefined}`);
         return; // Skip invalid conditions
       }
       
@@ -229,12 +234,21 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
         console.log(`[DEBUG] Condition targets current attribute - applying effect`);
         const previousValue = currentValue;
         
+        // Ensure amount is a number
+        const amount = parseInt(condition.amount, 10);
+        console.log(`[DEBUG-ATTRS] Parsed amount from ${condition.amount} to number: ${amount}, isNaN: ${isNaN(amount)}`);
+        
+        if (isNaN(amount)) {
+          console.log(`[DEBUG-ATTRS] SKIPPING due to NaN amount for ${condition.name}`);
+          return;
+        }
+        
         if (condition.conditionType === 'HELP') {
-          currentValue = currentValue + condition.amount;
-          console.log(`[DEBUG] Applied HELP: ${previousValue} + ${condition.amount} = ${currentValue}`);
+          currentValue = currentValue + amount;
+          console.log(`[DEBUG] Applied HELP: ${previousValue} + ${amount} = ${currentValue}`);
         } else if (condition.conditionType === 'HINDER') {
-          currentValue = currentValue - condition.amount;
-          console.log(`[DEBUG] Applied HINDER: ${previousValue} - ${condition.amount} = ${currentValue}`);
+          currentValue = currentValue - amount;
+          console.log(`[DEBUG] Applied HINDER: ${previousValue} - ${amount} = ${currentValue}`);
         }
         
         stepNumber++;
@@ -242,10 +256,10 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
           step: stepNumber,
           entityName: condition.name || 'Condition',
           entityType: 'condition',
-          attributeValue: condition.amount,
+          attributeValue: amount, // Use the parsed integer
           isGrouped: true,
           runningTotal: Math.round(currentValue * 100) / 100,
-          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${condition.amount}`
+          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${amount}`
         };
         
         console.log(`[DEBUG] Adding condition step to breakdown:`, JSON.stringify(breakdownStep));
