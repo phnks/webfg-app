@@ -76,7 +76,8 @@ const ConditionView = () => {
       await addConditionToCharacter({
         variables: {
           characterId: selectedCharacter.characterId,
-          conditionId: conditionId
+          conditionId: conditionId,
+          amount: 1 // Default amount is 1
         }
       });
       setAddConditionSuccess(true);
@@ -117,9 +118,6 @@ const ConditionView = () => {
             </span>
             <span className="condition-target-badge">
               {condition.conditionTarget}
-            </span>
-            <span className="condition-amount-badge">
-              {condition.conditionType === 'HELP' ? '+' : '-'}{condition.conditionAmount}
             </span>
           </div>
         </div>
@@ -172,12 +170,6 @@ const ConditionView = () => {
                   <label>Target Attribute:</label>
                   <span>{condition.conditionTarget}</span>
                 </div>
-                <div className="detail-item">
-                  <label>Amount:</label>
-                  <span className="condition-amount">
-                    {condition.conditionType === 'HELP' ? '+' : '-'}{condition.conditionAmount}
-                  </span>
-                </div>
               </div>
             </div>
           </div>
@@ -187,8 +179,7 @@ const ConditionView = () => {
               <h3>Effect</h3>
               <p className="condition-effect">
                 This condition will {condition.conditionType === 'HELP' ? 'increase' : 'decrease'} the 
-                character's <strong>{condition.conditionTarget.toLowerCase()}</strong> attribute by{' '}
-                <strong>{condition.conditionAmount}</strong> points.
+                character's <strong>{condition.conditionTarget.toLowerCase()}</strong> attribute.
               </p>
             </div>
           </div>

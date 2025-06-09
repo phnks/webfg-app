@@ -110,6 +110,18 @@ Resources:
         CharactersTableName: !Ref CharactersTableName # Added missing parameter
         ConditionsTableName: !Ref ConditionsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn # Pass down
+        
+  CharacterConditionResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: 
+      - DataSourcesStack
+      - CharacterResolversStack
+    Properties:
+      TemplateURL: ./character-condition-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        CharactersTableName: !Ref CharactersTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
   ObjectResolversStack:
     Type: AWS::CloudFormation::Stack

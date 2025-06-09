@@ -7,11 +7,19 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const tableName = process.env.CHARACTER_TABLE_NAME;
 
 exports.handler = async (event) => {
-  console.log('RemoveConditionFromCharacter input:', JSON.stringify(event, null, 2));
+  console.log('UpdateConditionAmount input:', JSON.stringify(event, null, 2));
   
-  const { characterId, conditionId } = event;
+  const { characterId, conditionId, amount } = event;
   
-  // First get the character to check existing conditions
+  if (!characterId || !conditionId || amount === undefined) {
+    throw new Error('characterId, conditionId, and amount are all required');
+  }
+
+  if (amount < 1) {
+    throw new Error('Amount must be at least 1');
+  }
+  
+  // Get the character to check existing conditions
   const getParams = {
     TableName: tableName,
     Key: { characterId }
@@ -27,29 +35,31 @@ exports.handler = async (event) => {
     const character = getResult.Item;
     const currentConditions = character.characterConditions || [];
     
-    // Remove the condition
-    const updatedConditions = currentConditions.filter(c => c.conditionId !== conditionId);
+    // Find the condition
+    const conditionIndex = currentConditions.findIndex(c => c.conditionId === conditionId);
     
-    if (updatedConditions.length === currentConditions.length) {
-      console.log('Condition not found on character');
-      return character;
+    if (conditionIndex === -1) {
+      throw new Error(`Condition ${conditionId} not found for character ${characterId}`);
     }
+    
+    // Update the condition amount
+    currentConditions[conditionIndex].amount = amount;
     
     const updateParams = {
       TableName: tableName,
       Key: { characterId },
       UpdateExpression: 'SET characterConditions = :characterConditions',
       ExpressionAttributeValues: {
-        ':characterConditions': updatedConditions
+        ':characterConditions': currentConditions
       },
       ReturnValues: 'ALL_NEW'
     };
     
     const result = await ddbDocClient.send(new UpdateCommand(updateParams));
-    console.log('Removed condition from character:', characterId);
+    console.log(`Updated condition ${conditionId} amount to ${amount} for character ${characterId}`);
     return result.Attributes;
   } catch (error) {
-    console.error('Error removing condition from character:', error);
-    throw new Error(`Failed to remove condition from character: ${error.message}`);
+    console.error('Error updating condition amount:', error);
+    throw new Error(`Failed to update condition amount: ${error.message}`);
   }
 };

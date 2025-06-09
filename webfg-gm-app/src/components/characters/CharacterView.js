@@ -9,7 +9,8 @@ import {
   REMOVE_OBJECT_FROM_INVENTORY,
   ADD_OBJECT_TO_INVENTORY,
   REMOVE_OBJECT_FROM_EQUIPMENT,
-  REMOVE_CONDITION_FROM_CHARACTER
+  REMOVE_CONDITION_FROM_CHARACTER,
+  UPDATE_CONDITION_AMOUNT
 } from "../../graphql/operations";
 import { GET_CHARACTER_WITH_GROUPED } from "../../graphql/computedOperations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
@@ -19,6 +20,7 @@ import CharacterDetails from "./CharacterDetails";
 import CharacterForm from "../forms/CharacterForm";
 import "./CharacterView.css";
 import ErrorPopup from '../common/ErrorPopup'; // Import ErrorPopup
+import QuickAdjustPopup from '../common/QuickAdjustPopup';
 
 const CharacterView = () => {
   const { characterId } = useParams();
@@ -28,6 +30,7 @@ const CharacterView = () => {
   const [currentCharacter, setCurrentCharacter] = useState(null);
   const [testAction, setTestAction] = useState(null); // State to store action being tested
   const [mutationError, setMutationError] = useState(null); // Added mutationError state
+  const [isAdjustingCondition, setIsAdjustingCondition] = useState(null); // For condition amount adjustment popup
 
   // Initial query to get character data
   const { data, loading, error, refetch } = useQuery(GET_CHARACTER_WITH_GROUPED, {
@@ -92,6 +95,16 @@ const CharacterView = () => {
       console.error("Error removing condition:", err);
       setMutationError({ 
         message: err.message || "Error removing condition", 
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  });
+
+  const [updateConditionAmount] = useMutation(UPDATE_CONDITION_AMOUNT, {
+    onError: (err) => {
+      console.error("Error updating condition amount:", err);
+      setMutationError({ 
+        message: err.message || "Error updating condition amount", 
         stack: err.stack || "No stack trace available."
       });
     }
@@ -245,6 +258,37 @@ const CharacterView = () => {
       });
     }
   };
+  
+  // Handler for showing condition amount adjustment popup
+  const handleAdjustCondition = (condition) => {
+    setIsAdjustingCondition(condition);
+  };
+  
+  // Handler for updating condition amount
+  const handleConditionAmountUpdate = async (amount) => {
+    if (!isAdjustingCondition) return;
+    
+    try {
+      await updateConditionAmount({
+        variables: {
+          characterId,
+          conditionId: isAdjustingCondition.conditionId,
+          amount
+        }
+      });
+      
+      // Refetch to update the UI
+      refetch();
+      // Close the popup
+      setIsAdjustingCondition(null);
+    } catch (err) {
+      console.error("Error updating condition amount:", err);
+      setMutationError({ 
+        message: "Failed to update condition amount. " + (err.message || ""),
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  };
 
   if (loading) return <div className="loading">Loading character details...</div>;
   if (error) return <div className="error">Error: {error.message}</div>;
@@ -261,6 +305,26 @@ const CharacterView = () => {
           character={character} 
           onClose={handleTestClose} 
         />
+      </>
+    );
+  }
+  
+  // Show condition amount adjustment popup
+  if (isAdjustingCondition) {
+    return (
+      <>
+        <QuickAdjustPopup
+          currentValue={isAdjustingCondition.amount}
+          onAdjust={handleConditionAmountUpdate}
+          onClose={() => setIsAdjustingCondition(null)}
+          min={1}
+          max={100}
+          title={`Adjust ${isAdjustingCondition.name} Amount`}
+        />
+        {/* Keep the character view in the background */}
+        <div className="character-view" style={{ pointerEvents: "none", opacity: 0.6 }}>
+          {/* Character view content */}
+        </div>
       </>
     );
   }
@@ -453,27 +517,47 @@ const CharacterView = () => {
                           {condition.conditionType}
                         </span>
                         <span className="condition-effect">
-                          {condition.conditionTarget}: {condition.conditionType === 'HELP' ? '+' : '-'}{condition.conditionAmount}
+                          {condition.conditionTarget}: {condition.conditionType === 'HELP' ? '+' : '-'}{condition.amount}
                         </span>
                       </Link>
                     </div>
-                    <button 
-                      type="button"
-                      className="remove-condition-button" 
-                      onClick={() => handleRemoveCondition(condition.conditionId)}
-                      style={{
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        padding: '4px 10px',
-                        borderRadius: '4px',
-                        border: 'none',
-                        fontSize: '0.9em',
-                        fontWeight: '500',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Remove
-                    </button>
+                    <div className="condition-actions">
+                      <button 
+                        type="button"
+                        className="adjust-condition-button" 
+                        onClick={() => handleAdjustCondition(condition)}
+                        style={{
+                          backgroundColor: '#007bff',
+                          color: 'white',
+                          padding: '4px 10px',
+                          borderRadius: '4px',
+                          border: 'none',
+                          fontSize: '0.9em',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          marginRight: '6px'
+                        }}
+                      >
+                        Adjust
+                      </button>
+                      <button 
+                        type="button"
+                        className="remove-condition-button" 
+                        onClick={() => handleRemoveCondition(condition.conditionId)}
+                        style={{
+                          backgroundColor: '#dc3545',
+                          color: 'white',
+                          padding: '4px 10px',
+                          borderRadius: '4px',
+                          border: 'none',
+                          fontSize: '0.9em',
+                          fontWeight: '500',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>

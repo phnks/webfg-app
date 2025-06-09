@@ -285,7 +285,7 @@ Resources:
           "version": "2018-05-29",
           "operation": "Invoke",
           "payload": {
-            "conditionIds": $util.toJson($context.source.conditionIds)
+            "characterConditions": $util.toJson($context.source.characterConditions)
           }
         }
       ResponseMappingTemplate: |

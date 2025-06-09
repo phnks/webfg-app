@@ -19,8 +19,7 @@ const defaultConditionForm = {
   description: '',
   conditionCategory: ConditionCategory[0],
   conditionType: ConditionType[0],
-  conditionTarget: AttributeName[0],
-  conditionAmount: 1
+  conditionTarget: AttributeName[0]
 };
 
 const stripTypename = (obj) => {
@@ -45,8 +44,7 @@ const prepareConditionInput = (data, isEditing) => {
     description: data.description || "",
     conditionCategory: data.conditionCategory,
     conditionType: data.conditionType,
-    conditionTarget: data.conditionTarget,
-    conditionAmount: parseInt(data.conditionAmount, 10)
+    conditionTarget: data.conditionTarget
   };
   if (!isEditing) {
     delete input.conditionId;
@@ -119,10 +117,6 @@ const ConditionForm = ({ condition, isEditing = false, onClose, onSuccess }) => 
       return;
     }
 
-    if (formData.conditionAmount < 1) {
-      setError("Condition amount must be at least 1");
-      return;
-    }
 
     try {
       const input = prepareConditionInput(formData, isEditing);
@@ -239,27 +233,13 @@ const ConditionForm = ({ condition, isEditing = false, onClose, onSuccess }) => 
             </select>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="conditionAmount">Amount</label>
-            <input
-              type="number"
-              id="conditionAmount"
-              name="conditionAmount"
-              value={formData.conditionAmount}
-              onChange={handleInputChange}
-              min="1"
-              max="100"
-              required
-            />
-          </div>
         </div>
 
         <div className="condition-preview">
           <h4>Effect Preview:</h4>
           <p>
             This condition will <strong>{formData.conditionType === 'HELP' ? 'increase' : 'decrease'}</strong> the 
-            character's <strong>{formData.conditionTarget.toLowerCase()}</strong> by{' '}
-            <strong>{formData.conditionAmount}</strong> point{formData.conditionAmount !== 1 ? 's' : ''}.
+            character's <strong>{formData.conditionTarget.toLowerCase()}</strong> attribute.
           </p>
         </div>
 

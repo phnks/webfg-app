@@ -5,7 +5,6 @@ type Condition {
   conditionCategory: ConditionCategory!
   conditionType: ConditionType!
   conditionTarget: AttributeName!
-  conditionAmount: Int!
 }
 
 enum ConditionType {
@@ -30,5 +29,4 @@ input ConditionInput {
   conditionCategory: ConditionCategory!
   conditionType: ConditionType!
   conditionTarget: AttributeName!
-  conditionAmount: Int!
 }

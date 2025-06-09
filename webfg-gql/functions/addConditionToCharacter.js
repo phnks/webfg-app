@@ -9,8 +9,12 @@ const tableName = process.env.CHARACTER_TABLE_NAME;
 exports.handler = async (event) => {
   console.log('AddConditionToCharacter input:', JSON.stringify(event, null, 2));
   
-  const { characterId, conditionId } = event;
+  const { characterId, conditionId, amount = 1 } = event;
   
+  if (!characterId || !conditionId) {
+    throw new Error('Both characterId and conditionId are required');
+  }
+
   // First get the character to check existing conditions
   const getParams = {
     TableName: tableName,
@@ -25,29 +29,34 @@ exports.handler = async (event) => {
     }
     
     const character = getResult.Item;
-    const currentConditionIds = character.conditionIds || [];
+    const currentConditions = character.characterConditions || [];
     
     // Check if condition is already added
-    if (currentConditionIds.includes(conditionId)) {
-      console.log('Condition already exists for character');
-      return character;
-    }
+    const existingConditionIndex = currentConditions.findIndex(c => c.conditionId === conditionId);
     
-    // Add the condition
-    const updatedConditionIds = [...currentConditionIds, conditionId];
+    if (existingConditionIndex >= 0) {
+      // If already exists, update the amount
+      currentConditions[existingConditionIndex].amount = amount;
+    } else {
+      // Add the new condition with amount
+      currentConditions.push({
+        conditionId,
+        amount
+      });
+    }
     
     const updateParams = {
       TableName: tableName,
       Key: { characterId },
-      UpdateExpression: 'SET conditionIds = :conditionIds',
+      UpdateExpression: 'SET characterConditions = :characterConditions',
       ExpressionAttributeValues: {
-        ':conditionIds': updatedConditionIds
+        ':characterConditions': currentConditions
       },
       ReturnValues: 'ALL_NEW'
     };
     
     const result = await ddbDocClient.send(new UpdateCommand(updateParams));
-    console.log('Added condition to character:', characterId);
+    console.log('Added/updated condition for character:', characterId);
     return result.Attributes;
   } catch (error) {
     console.error('Error adding condition to character:', error);

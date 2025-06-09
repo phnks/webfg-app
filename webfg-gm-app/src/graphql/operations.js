@@ -6,6 +6,19 @@ export const LIST_CHARACTERS = gql`
     listCharacters {
       characterId
       name
+      characterConditions {
+        conditionId
+        amount
+      }
+      conditions {
+        conditionId
+        name
+        description
+        conditionCategory
+        conditionType
+        conditionTarget
+        amount
+      }
       lethality { attribute { attributeValue isGrouped } }
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
@@ -60,6 +73,21 @@ export const GET_CHARACTER = gql`
       will
       fatigue
       values { valueName valueType }
+      
+      # Conditions
+      characterConditions {
+        conditionId
+        amount
+      }
+      conditions {
+        conditionId
+        name
+        description
+        conditionCategory
+        conditionType
+        conditionTarget
+        amount
+      }
       
       # Character attributes (no longer have fatigue)
       lethality { attribute { attributeValue isGrouped } }
@@ -856,7 +884,6 @@ export const CREATE_CONDITION = gql`
       conditionCategory
       conditionType
       conditionTarget
-      conditionAmount
     }
   }
 `;
@@ -870,7 +897,6 @@ export const UPDATE_CONDITION = gql`
       conditionCategory
       conditionType
       conditionTarget
-      conditionAmount
     }
   }
 `;
@@ -893,7 +919,6 @@ export const LIST_CONDITIONS = gql`
       conditionCategory
       conditionType
       conditionTarget
-      conditionAmount
     }
   }
 `;
@@ -907,7 +932,6 @@ export const GET_CONDITION = gql`
       conditionCategory
       conditionType
       conditionTarget
-      conditionAmount
     }
   }
 `;
@@ -921,17 +945,28 @@ export const GET_CONDITIONS = gql`
       conditionCategory
       conditionType
       conditionTarget
-      conditionAmount
     }
   }
 `;
 
 export const ADD_CONDITION_TO_CHARACTER = gql`
-  mutation AddConditionToCharacter($characterId: ID!, $conditionId: ID!) {
-    addConditionToCharacter(characterId: $characterId, conditionId: $conditionId) {
+  mutation AddConditionToCharacter($characterId: ID!, $conditionId: ID!, $amount: Int) {
+    addConditionToCharacter(characterId: $characterId, conditionId: $conditionId, amount: $amount) {
       characterId
       name
-      conditionIds
+      characterConditions {
+        conditionId
+        amount
+      }
+      conditions {
+        conditionId
+        name
+        description
+        conditionCategory
+        conditionType
+        conditionTarget
+        amount
+      }
     }
   }
 `;
@@ -941,7 +976,14 @@ export const REMOVE_CONDITION_FROM_CHARACTER = gql`
     removeConditionFromCharacter(characterId: $characterId, conditionId: $conditionId) {
       characterId
       name
-      conditionIds
+      characterConditions {
+        conditionId
+        amount
+      }
+      conditions {
+        conditionId
+        name
+      }
     }
   }
 `;
@@ -954,7 +996,6 @@ export const ON_CREATE_CONDITION = gql`
       name 
       conditionType 
       conditionTarget 
-      conditionAmount 
     } 
   }
 `;
@@ -968,7 +1009,6 @@ export const ON_UPDATE_CONDITION = gql`
       conditionCategory 
       conditionType 
       conditionTarget 
-      conditionAmount 
     } 
   }
 `;
@@ -979,6 +1019,28 @@ export const ON_DELETE_CONDITION = gql`
       conditionId 
       name 
     } 
+  }
+`;
+
+export const UPDATE_CONDITION_AMOUNT = gql`
+  mutation UpdateConditionAmount($characterId: ID!, $conditionId: ID!, $amount: Int!) {
+    updateConditionAmount(characterId: $characterId, conditionId: $conditionId, amount: $amount) {
+      characterId
+      name
+      characterConditions {
+        conditionId
+        amount
+      }
+      conditions {
+        conditionId
+        name
+        description
+        conditionCategory
+        conditionType
+        conditionTarget
+        amount
+      }
+    }
   }
 `;
 

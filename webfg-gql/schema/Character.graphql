@@ -29,8 +29,8 @@ type Character {
   equipmentIds: [ID]
   equipment: [Object]
   
-  conditionIds: [ID]
-  conditions: [Condition]
+  characterConditions: [CharacterCondition]
+  conditions: [CharacterConditionWithDetails]
   
   # Computed fields (only resolved when requested)
   groupedAttributes: GroupedAttributes
@@ -83,5 +83,25 @@ input CharacterInput {
   special: [String]
   inventoryIds: [ID]
   equipmentIds: [ID]
-  conditionIds: [ID]
+  characterConditions: [CharacterConditionInput]
+}
+
+type CharacterCondition {
+  conditionId: ID!
+  amount: Int!
+}
+
+type CharacterConditionWithDetails {
+  conditionId: ID!
+  name: String!
+  description: String!
+  conditionCategory: ConditionCategory!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+  amount: Int!
+}
+
+input CharacterConditionInput {
+  conditionId: ID!
+  amount: Int!
 }
