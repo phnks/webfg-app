@@ -130,7 +130,10 @@ Resources:
           "version": "2018-05-29",
           "operation": "Invoke",
           "payload": {
-            "character": $util.toJson($context.source)
+            "source": $util.toJson($context.source),
+            "info": {
+              "parentTypeName": "Character"
+            }
           }
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
@@ -147,7 +150,10 @@ Resources:
           "version": "2018-05-29",
           "operation": "Invoke",
           "payload": {
-            "object": $util.toJson($context.source)
+            "source": $util.toJson($context.source),
+            "info": {
+              "parentTypeName": "Object"
+            }
           }
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
@@ -164,8 +170,13 @@ Resources:
           "version": "2018-05-29",
           "operation": "Invoke",
           "payload": {
-            "characterId": $util.toJson($context.source.characterId),
-            "attributeName": $util.toJson($context.arguments.attributeName)
+            "source": $util.toJson($context.source),
+            "info": {
+              "parentTypeName": "Character"
+            },
+            "arguments": {
+              "attributeName": $util.toJson($context.arguments.attributeName)
+            }
           }
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
@@ -182,8 +193,13 @@ Resources:
           "version": "2018-05-29",
           "operation": "Invoke",
           "payload": {
-            "objectId": $util.toJson($context.source.objectId),
-            "attributeName": $util.toJson($context.arguments.attributeName)
+            "source": $util.toJson($context.source),
+            "info": {
+              "parentTypeName": "Object"
+            },
+            "arguments": {
+              "attributeName": $util.toJson($context.arguments.attributeName)
+            }
           }
         }
       ResponseMappingTemplate: '$util.toJson($context.result)'
