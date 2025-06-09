@@ -1,5 +1,4 @@
 {
-  "model": "us.anthropic.claude-opus-4-20250514-v1:0",
   "permissions": {
     "allow": [
       "Edit",
@@ -47,9 +46,18 @@
       "Bash(gh pr view:*)",
       "WebFetch(domain:webfg-gm-app-qa43.phnks.com)",
       "Bash(rg:*)",
-      "mcp__discord__discord_send_message"
+      "mcp__puppeteer__puppeteer_navigate",
+      "mcp__puppeteer__puppeteer_screenshot",
+      "mcp__puppeteer__puppeteer_fill",
+      "mcp__puppeteer__puppeteer_click",
+      "mcp__puppeteer__puppeteer_evaluate",
+      "mcp__discord"
     ]
   },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "puppeteer"
+  ],
   "env": {
     "AWS_MAX_ATTEMPTS": "25",
     "AWS_RETRY_MODE": "adaptive",

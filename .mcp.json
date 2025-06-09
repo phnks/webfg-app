@@ -1,0 +1,23 @@
+{
+    "mcpServers": {
+        "puppeteer": {
+            "type": "stdio",
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+            "env": {}
+        },
+        "discord": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "@smithery/cli",
+                "install",
+                "@hanweg/mcp-discord",
+                "--client",
+                "claude"
+            ],
+            "env": { "DISCORD_TOKEN": "${env:DISCORD_TOKEN}" }
+        }
+    }
+}
