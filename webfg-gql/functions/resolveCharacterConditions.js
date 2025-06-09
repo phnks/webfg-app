@@ -1,5 +1,6 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, BatchGetCommand } = require('@aws-sdk/lib-dynamodb');
+const { toInt } = require('../utils/stringToNumber');
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
@@ -21,7 +22,10 @@ exports.handler = async (event) => {
   const conditionIds = characterConditions.map(c => c.conditionId);
   console.log("[DEBUG-CONDITIONS] Extracted conditionIds:", conditionIds);
   
-  const conditionIdToAmountMap = new Map(characterConditions.map(c => [c.conditionId, c.amount]));
+  // Create a map of conditionId to amount, ensuring amounts are numbers
+  const conditionIdToAmountMap = new Map(
+    characterConditions.map(c => [c.conditionId, toInt(c.amount, 1)])
+  );
   console.log("[DEBUG-CONDITIONS] Created conditionIdToAmountMap:", 
     JSON.stringify(Array.from(conditionIdToAmountMap.entries()), null, 2));
   
@@ -51,9 +55,12 @@ exports.handler = async (event) => {
         console.log(`[DEBUG-CONDITIONS] Processing id=${id}, found condition=${!!condition}, amount=${amount}`);
         
         if (condition) {
+          // Ensure amount is a number - use our helper for guaranteed number
+          const amountValue = toInt(amount, 1); // Default to 1 if amount is undefined or NaN
+          
           const enhancedCondition = {
             ...condition,
-            amount: amount !== undefined ? amount : 1 // Use the amount from the character, default to 1
+            amount: amountValue // Store as a number
           };
           console.log(`[DEBUG-CONDITIONS] Enhanced condition: ${JSON.stringify(enhancedCondition, null, 2)}`);
           return enhancedCondition;

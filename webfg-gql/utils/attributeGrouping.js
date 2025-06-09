@@ -3,6 +3,7 @@
  * between characters and their equipped objects.
  * This is the backend version - shared across all resolvers.
  */
+const { toInt } = require('./stringToNumber');
 
 // All available attribute names
 const ATTRIBUTE_NAMES = [
@@ -170,12 +171,13 @@ const calculateGroupedAttributes = (character) => {
         
         console.log(`[DEBUG] Before applying condition: ${targetAttribute} = ${currentValue}`);
         
-        // Ensure amount is a number
-        const amount = parseInt(condition.amount, 10);
-        console.log(`[DEBUG-GROUP] Parsed amount from ${condition.amount} to number: ${amount}, isNaN: ${isNaN(amount)}`);
+        // Ensure amount is a number - use our helper for guaranteed numeric value
+        const amount = toInt(condition.amount, 0); // If amount is missing/invalid, use 0 (no effect)
+        console.log(`[DEBUG-GROUP] Using amount: ${amount} (original value: ${condition.amount}, type: ${typeof condition.amount})`);
         
-        if (isNaN(amount)) {
-          console.log(`[DEBUG-GROUP] SKIPPING due to NaN amount for ${condition.name}`);
+        // Skip conditions with zero amount (no effect)
+        if (amount === 0) {
+          console.log(`[DEBUG-GROUP] SKIPPING due to zero amount for ${condition.name}`);
           return;
         }
         

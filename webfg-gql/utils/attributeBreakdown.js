@@ -10,6 +10,8 @@ const {
   calculateObjectGroupedAttributes 
 } = require('./attributeGrouping');
 
+const { toInt } = require('./stringToNumber');
+
 /**
  * Calculates step-by-step breakdown of how each equipment affects the final grouped value
  * @param {Object} character - Character object with attributes and equipment
@@ -234,12 +236,12 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
         console.log(`[DEBUG] Condition targets current attribute - applying effect`);
         const previousValue = currentValue;
         
-        // Ensure amount is a number
-        const amount = parseInt(condition.amount, 10);
-        console.log(`[DEBUG-ATTRS] Parsed amount from ${condition.amount} to number: ${amount}, isNaN: ${isNaN(amount)}`);
+        // Ensure amount is a number using our helper
+        const amount = toInt(condition.amount, 0); // Use 0 as default for invalid values
+        console.log(`[DEBUG-ATTRS] Using amount: ${amount} (original value: ${condition.amount}, type: ${typeof condition.amount})`);
         
-        if (isNaN(amount)) {
-          console.log(`[DEBUG-ATTRS] SKIPPING due to NaN amount for ${condition.name}`);
+        if (amount === 0) {
+          console.log(`[DEBUG-ATTRS] SKIPPING due to zero amount for ${condition.name}`);
           return;
         }
         

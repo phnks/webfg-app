@@ -1,5 +1,6 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, UpdateCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
+const { toInt } = require('../utils/stringToNumber');
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
@@ -15,12 +16,13 @@ exports.handler = async (event) => {
     throw new Error('Both characterId and conditionId are required');
   }
   
-  // Parse amount to ensure it's a number
-  const parsedAmount = parseInt(amount, 10);
-  console.log(`[DEBUG-ADD] amount=${amount}, parsed=${parsedAmount}, type=${typeof parsedAmount}, isNaN=${isNaN(parsedAmount)}`);
+  // Parse amount to ensure it's a number using our helper
+  const parsedAmount = toInt(amount, 1); // Default to 1 if value is invalid
+  console.log(`[DEBUG-ADD] amount=${amount}, parsed=${parsedAmount}, type=${typeof parsedAmount}`);
   
-  if (isNaN(parsedAmount)) {
-    throw new Error('Invalid amount: must be a number');
+  // Validate the amount (0 is not allowed for new conditions)
+  if (parsedAmount <= 0) {
+    throw new Error('Amount must be at least 1');
   }
 
   // First get the character to check existing conditions

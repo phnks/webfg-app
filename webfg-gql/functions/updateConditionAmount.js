@@ -1,5 +1,6 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, UpdateCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
+const { toInt } = require('../utils/stringToNumber');
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
@@ -15,14 +16,11 @@ exports.handler = async (event) => {
     throw new Error('characterId, conditionId, and amount are all required');
   }
 
-  // Parse amount to number and check if it's valid
-  const parsedAmount = parseInt(amount, 10);
-  console.log(`[DEBUG-AMOUNT] amount=${amount}, parsedAmount=${parsedAmount}, type=${typeof parsedAmount}, isNaN=${isNaN(parsedAmount)}`);
+  // Parse amount to number using our helper - guaranteed to be a number
+  const parsedAmount = toInt(amount, 1); // Default to 1 for invalid values
+  console.log(`[DEBUG-AMOUNT] amount=${amount}, parsedAmount=${parsedAmount}, type=${typeof parsedAmount}`);
   
-  if (isNaN(parsedAmount)) {
-    throw new Error('Amount must be a valid number');
-  }
-
+  // Validate amount (must be at least 1)
   if (parsedAmount < 1) {
     throw new Error('Amount must be at least 1');
   }
