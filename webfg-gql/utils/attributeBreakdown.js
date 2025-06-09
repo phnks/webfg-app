@@ -215,7 +215,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     character.conditions.forEach(condition => {
       console.log(`[DEBUG] Checking condition ${condition.name} (${condition.conditionType}) for ${attributeName}`);
       
-      if (!condition.conditionTarget || !condition.conditionType || condition.conditionAmount === undefined) {
+      if (!condition.conditionTarget || !condition.conditionType || condition.amount === undefined) {
         console.log(`[DEBUG] Skipping invalid condition: missing required fields`);
         return; // Skip invalid conditions
       }
@@ -230,11 +230,11 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
         const previousValue = currentValue;
         
         if (condition.conditionType === 'HELP') {
-          currentValue = currentValue + condition.conditionAmount;
-          console.log(`[DEBUG] Applied HELP: ${previousValue} + ${condition.conditionAmount} = ${currentValue}`);
+          currentValue = currentValue + condition.amount;
+          console.log(`[DEBUG] Applied HELP: ${previousValue} + ${condition.amount} = ${currentValue}`);
         } else if (condition.conditionType === 'HINDER') {
-          currentValue = currentValue - condition.conditionAmount;
-          console.log(`[DEBUG] Applied HINDER: ${previousValue} - ${condition.conditionAmount} = ${currentValue}`);
+          currentValue = currentValue - condition.amount;
+          console.log(`[DEBUG] Applied HINDER: ${previousValue} - ${condition.amount} = ${currentValue}`);
         }
         
         stepNumber++;
@@ -242,10 +242,10 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
           step: stepNumber,
           entityName: condition.name || 'Condition',
           entityType: 'condition',
-          attributeValue: condition.conditionAmount,
+          attributeValue: condition.amount,
           isGrouped: true,
           runningTotal: Math.round(currentValue * 100) / 100,
-          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${condition.conditionAmount}`
+          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${condition.amount}`
         };
         
         console.log(`[DEBUG] Adding condition step to breakdown:`, JSON.stringify(breakdownStep));

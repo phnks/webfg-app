@@ -19,8 +19,7 @@ exports.handler = async (event) => {
     description: input.description,
     conditionCategory: input.conditionCategory,
     conditionType: input.conditionType,
-    conditionTarget: input.conditionTarget,
-    conditionAmount: input.conditionAmount
+    conditionTarget: input.conditionTarget
   };
   
   const params = {

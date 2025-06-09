@@ -15,7 +15,7 @@ exports.handler = async (event) => {
   const expressionAttributeNames = {};
   const expressionAttributeValues = {};
   
-  const fields = ['name', 'description', 'conditionCategory', 'conditionType', 'conditionTarget', 'conditionAmount'];
+  const fields = ['name', 'description', 'conditionCategory', 'conditionType', 'conditionTarget'];
   
   fields.forEach(field => {
     if (input[field] !== undefined) {

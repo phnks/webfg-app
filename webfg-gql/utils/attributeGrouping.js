@@ -151,7 +151,7 @@ const calculateGroupedAttributes = (character) => {
     character.conditions.forEach(condition => {
       console.log(`[DEBUG] Processing condition: ${JSON.stringify(condition)}`);
       
-      if (!condition.conditionTarget || !condition.conditionType || condition.conditionAmount === undefined) {
+      if (!condition.conditionTarget || !condition.conditionType || condition.amount === undefined) {
         console.log(`[DEBUG] Skipping invalid condition: ${condition.name || 'unnamed'} - missing required fields`);
         return; // Skip invalid conditions
       }
@@ -168,11 +168,11 @@ const calculateGroupedAttributes = (character) => {
         console.log(`[DEBUG] Before applying condition: ${targetAttribute} = ${currentValue}`);
         
         if (condition.conditionType === 'HELP') {
-          newValue = currentValue + condition.conditionAmount;
-          console.log(`[DEBUG] Applying HELP condition: ${currentValue} + ${condition.conditionAmount} = ${newValue}`);
+          newValue = currentValue + condition.amount;
+          console.log(`[DEBUG] Applying HELP condition: ${currentValue} + ${condition.amount} = ${newValue}`);
         } else if (condition.conditionType === 'HINDER') {
-          newValue = currentValue - condition.conditionAmount;
-          console.log(`[DEBUG] Applying HINDER condition: ${currentValue} - ${condition.conditionAmount} = ${newValue}`);
+          newValue = currentValue - condition.amount;
+          console.log(`[DEBUG] Applying HINDER condition: ${currentValue} - ${condition.amount} = ${newValue}`);
         }
         
         // Round to 2 decimal places

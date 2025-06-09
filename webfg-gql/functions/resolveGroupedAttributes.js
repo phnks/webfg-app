@@ -13,8 +13,8 @@ exports.handler = async (event) => {
   const typeName = event.info.parentTypeName; // 'Character' or 'Object'
   
   // Log if character has conditions
-  if (typeName === 'Character' && entity.conditionIds && entity.conditionIds.length > 0) {
-    console.log(`[DEBUG] Character ${entity.name || 'unknown'} has ${entity.conditionIds.length} condition IDs:`, entity.conditionIds);
+  if (typeName === 'Character' && entity.characterConditions && entity.characterConditions.length > 0) {
+    console.log(`[DEBUG] Character ${entity.name || 'unknown'} has ${entity.characterConditions.length} conditions:`, entity.characterConditions);
   }
 
   if (!entity) {
@@ -77,20 +77,20 @@ exports.handler = async (event) => {
     console.log("Calculated grouped attributes:", JSON.stringify(result, null, 2));
     
     // Debug: Check for expected attribute changes due to conditions
-    if (typeName === 'Character' && entity.conditionIds && entity.conditionIds.length > 0) {
+    if (typeName === 'Character' && entity.characterConditions && entity.characterConditions.length > 0) {
       console.log(`[DEBUG] Checking for expected condition effects:`);
       const enrichedCharacter = await enrichCharacterWithEquipment(entity);
       
       if (enrichedCharacter.conditions) {
         enrichedCharacter.conditions.forEach(condition => {
-          if (condition.conditionTarget && condition.conditionAmount) {
+          if (condition.conditionTarget && condition.amount) {
             const targetAttr = condition.conditionTarget.toLowerCase();
             const baseValue = entity[targetAttr]?.attribute?.attributeValue;
             const groupedValue = result[targetAttr];
             
             console.log(`[DEBUG] Condition '${condition.name}' targeting ${targetAttr}:`);
             console.log(`  - Base value: ${baseValue}`);
-            console.log(`  - Expected ${condition.conditionType === 'HELP' ? '+' : '-'}${condition.conditionAmount}`);
+            console.log(`  - Expected ${condition.conditionType === 'HELP' ? '+' : '-'}${condition.amount}`);
             console.log(`  - Grouped value: ${groupedValue}`);
           }
         });
@@ -127,19 +127,24 @@ async function enrichCharacterWithEquipment(character) {
 
   // Enrich with conditions
   let conditions = [];
-  if (character.conditionIds && character.conditionIds.length > 0) {
-    for (const conditionId of character.conditionIds) {
+  if (character.characterConditions && character.characterConditions.length > 0) {
+    for (const characterCondition of character.characterConditions) {
       try {
+        const conditionId = characterCondition.conditionId;
         const result = await docClient.send(new GetCommand({
           TableName: process.env.CONDITIONS_TABLE,
           Key: { conditionId }
         }));
         
         if (result.Item) {
-          conditions.push(result.Item);
+          // Add the amount from characterCondition to the condition object
+          conditions.push({
+            ...result.Item,
+            amount: characterCondition.amount
+          });
         }
       } catch (error) {
-        console.error(`Error fetching condition ${conditionId}:`, error);
+        console.error(`Error fetching condition ${characterCondition.conditionId}:`, error);
       }
     }
   }
