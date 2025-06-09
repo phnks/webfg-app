@@ -59,8 +59,9 @@ type Mutation {
   deleteCondition(conditionId: ID!): Condition
 
   # Character-Condition relationship mutations
-  addConditionToCharacter(characterId: ID!, conditionId: ID!): Character
+  addConditionToCharacter(characterId: ID!, conditionId: ID!, amount: Int): Character
   removeConditionFromCharacter(characterId: ID!, conditionId: ID!): Character
+  updateConditionAmount(characterId: ID!, conditionId: ID!, amount: Int!): Character
 
   # Encounter mutations
   createEncounter(input: EncounterInput!): Encounter
