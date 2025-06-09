@@ -100,7 +100,10 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
         }
       }
       
-      conditionIds
+      characterConditions {
+        conditionId
+        amount
+      }
       conditions {
         conditionId
         name
@@ -108,7 +111,7 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
         conditionCategory
         conditionType
         conditionTarget
-        conditionAmount
+        amount
       }
     }
   }
@@ -287,6 +290,20 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
       }
       actionIds
       actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType }
+      
+      characterConditions {
+        conditionId
+        amount
+      }
+      conditions {
+        conditionId
+        name
+        description
+        conditionCategory
+        conditionType
+        conditionTarget
+        amount
+      }
     }
   }
 `;
