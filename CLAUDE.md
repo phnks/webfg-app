@@ -62,6 +62,25 @@ sam build                  # Build SAM template
 sam deploy                 # Deploy SAM template
 ```
 
+### AWS Authentication
+
+When running AWS commands (including deployment scripts), you might encounter authentication issues depending on your environment:
+
+1. First try with default profile (no AWS_PROFILE specified)
+2. If authentication fails, use the `personal` profile:
+
+```bash
+# Example using personal profile
+AWS_PROFILE=personal npm run deploy:qa ${DEPLOYMENT_ID}
+AWS_PROFILE=personal npm run check-deploy:qa ${DEPLOYMENT_ID}
+AWS_PROFILE=personal aws s3 ls
+
+# Direct AWS CLI commands
+AWS_PROFILE=personal aws cloudformation describe-stacks --stack-name webfg-gql-qa${DEPLOYMENT_ID}
+```
+
+Different development machines may require different authentication methods, so be prepared to try both approaches.
+
 ## Architecture
 
 ### Frontend Architecture (webfg-gm-app)
