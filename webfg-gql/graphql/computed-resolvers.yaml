@@ -18,6 +18,9 @@ Parameters:
   ActionsTableName:
     Type: String
     Description: 'Name of Actions table'
+  ConditionsTableName:
+    Type: String
+    Description: 'Name of Conditions table'
 
 Resources:
   # Lambda function for grouped attributes
@@ -32,9 +35,12 @@ Resources:
       Environment:
         Variables:
           OBJECTS_TABLE: !Ref ObjectsTableName
+          CONDITIONS_TABLE: !Ref ConditionsTableName
       Policies:
         - DynamoDBReadPolicy: 
             TableName: !Ref ObjectsTableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref ConditionsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   # Lambda function for attribute breakdown
@@ -49,9 +55,12 @@ Resources:
       Environment:
         Variables:
           OBJECTS_TABLE: !Ref ObjectsTableName
+          CONDITIONS_TABLE: !Ref ConditionsTableName
       Policies:
         - DynamoDBReadPolicy: 
             TableName: !Ref ObjectsTableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref ConditionsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   # Lambda function for action test calculation
@@ -116,6 +125,18 @@ Resources:
       TypeName: Character
       FieldName: groupedAttributes
       DataSourceName: !GetAtt ResolveGroupedAttributesDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "source": $util.toJson($context.source),
+            "info": {
+              "parentTypeName": "Character"
+            }
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   ObjectGroupedAttributesResolver:
     Type: AWS::AppSync::Resolver
@@ -124,6 +145,18 @@ Resources:
       TypeName: Object
       FieldName: groupedAttributes
       DataSourceName: !GetAtt ResolveGroupedAttributesDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "source": $util.toJson($context.source),
+            "info": {
+              "parentTypeName": "Object"
+            }
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   CharacterAttributeBreakdownResolver:
     Type: AWS::AppSync::Resolver
@@ -132,6 +165,21 @@ Resources:
       TypeName: Character
       FieldName: attributeBreakdown
       DataSourceName: !GetAtt ResolveAttributeBreakdownDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "source": $util.toJson($context.source),
+            "info": {
+              "parentTypeName": "Character"
+            },
+            "arguments": {
+              "attributeName": $util.toJson($context.arguments.attributeName)
+            }
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   ObjectAttributeBreakdownResolver:
     Type: AWS::AppSync::Resolver
@@ -140,6 +188,21 @@ Resources:
       TypeName: Object
       FieldName: attributeBreakdown
       DataSourceName: !GetAtt ResolveAttributeBreakdownDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "source": $util.toJson($context.source),
+            "info": {
+              "parentTypeName": "Object"
+            },
+            "arguments": {
+              "attributeName": $util.toJson($context.arguments.attributeName)
+            }
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   CalculateActionTestResolver:
     Type: AWS::AppSync::Resolver
@@ -148,6 +211,15 @@ Resources:
       TypeName: Query
       FieldName: calculateActionTest
       DataSourceName: !GetAtt CalculateActionTestDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "input": $util.toJson($context.arguments.input)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
 Outputs:
   ResolveGroupedAttributesFunctionArn:

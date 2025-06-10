@@ -3,6 +3,7 @@
  * between characters and their equipped objects.
  * This is the backend version - shared across all resolvers.
  */
+const { toInt } = require('./stringToNumber');
 
 // All available attribute names
 const ATTRIBUTE_NAMES = [
@@ -67,8 +68,9 @@ const extractAttributeInfo = (attributeData) => {
 
 /**
  * Groups attributes from a character and their equipped objects using weighted average formula
+ * Then applies conditions (HELP/HINDER) to the final values
  * Note: Fatigue is no longer applied here - it's handled at the action test level
- * @param {Object} character - Character object with attributes and equipment
+ * @param {Object} character - Character object with attributes, equipment, and conditions
  * @returns {Object} Object containing grouped values for each attribute
  */
 const calculateGroupedAttributes = (character) => {
@@ -76,6 +78,7 @@ const calculateGroupedAttributes = (character) => {
   
   if (!character) return groupedAttributes;
   
+  // First calculate base grouped attributes from character and equipment
   ATTRIBUTE_NAMES.forEach(attributeName => {
     const charAttrInfo = extractAttributeInfo(character[attributeName]);
     
@@ -139,6 +142,65 @@ const calculateGroupedAttributes = (character) => {
     // No fatigue applied here anymore - it's handled at action test level
     groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
   });
+  
+  // Now apply conditions (HELP/HINDER) to the grouped values
+  console.log(`[DEBUG] Starting to apply conditions for character ${character.name || 'unknown'} (${character.characterId || 'no-id'})`);
+  console.log(`[DEBUG-GROUP] Character conditions:`, JSON.stringify(character.conditions, null, 2));
+  
+  if (character.conditions && character.conditions.length > 0) {
+    console.log(`[DEBUG] Found ${character.conditions.length} conditions to process`);
+    
+    character.conditions.forEach(condition => {
+      console.log(`[DEBUG] Processing condition: ${JSON.stringify(condition)}`);
+      console.log(`[DEBUG-GROUP] Condition amount type: ${typeof condition.amount}, value: ${condition.amount}`);
+      
+      if (!condition.conditionTarget || !condition.conditionType || condition.amount === undefined) {
+        console.log(`[DEBUG] Skipping invalid condition: ${condition.name || 'unnamed'} - missing required fields`);
+        console.log(`[DEBUG-GROUP] Missing fields check: target=${!!condition.conditionTarget}, type=${!!condition.conditionType}, amount=${condition.amount !== undefined}`);
+        return; // Skip invalid conditions
+      }
+      
+      // Convert condition target to lowercase to match attribute names
+      const targetAttribute = condition.conditionTarget.toLowerCase();
+      console.log(`[DEBUG] Condition target attribute: ${targetAttribute}`);
+      
+      // Only apply if this is a valid attribute and we have a value for it
+      if (ATTRIBUTE_NAMES.includes(targetAttribute) && groupedAttributes[targetAttribute] !== undefined) {
+        const currentValue = groupedAttributes[targetAttribute];
+        let newValue = currentValue;
+        
+        console.log(`[DEBUG] Before applying condition: ${targetAttribute} = ${currentValue}`);
+        
+        // Ensure amount is a number - use our helper for guaranteed numeric value
+        const amount = toInt(condition.amount, 0); // If amount is missing/invalid, use 0 (no effect)
+        console.log(`[DEBUG-GROUP] Using amount: ${amount} (original value: ${condition.amount}, type: ${typeof condition.amount})`);
+        
+        // Skip conditions with zero amount (no effect)
+        if (amount === 0) {
+          console.log(`[DEBUG-GROUP] SKIPPING due to zero amount for ${condition.name}`);
+          return;
+        }
+        
+        if (condition.conditionType === 'HELP') {
+          newValue = currentValue + amount;
+          console.log(`[DEBUG] Applying HELP condition: ${currentValue} + ${amount} = ${newValue}`);
+        } else if (condition.conditionType === 'HINDER') {
+          newValue = currentValue - amount;
+          console.log(`[DEBUG] Applying HINDER condition: ${currentValue} - ${amount} = ${newValue}`);
+        }
+        
+        // Round to 2 decimal places
+        groupedAttributes[targetAttribute] = Math.round(newValue * 100) / 100;
+        console.log(`[DEBUG] After applying condition (rounded): ${targetAttribute} = ${groupedAttributes[targetAttribute]}`);
+      } else {
+        console.log(`[DEBUG] Cannot apply condition: target=${targetAttribute}, valid=${ATTRIBUTE_NAMES.includes(targetAttribute)}, hasValue=${groupedAttributes[targetAttribute] !== undefined}`);
+      }
+    });
+  } else {
+    console.log('[DEBUG] No conditions to apply');
+  }
+  
+  console.log('[DEBUG] Final grouped attributes after conditions:', JSON.stringify(groupedAttributes));
   
   return groupedAttributes;
 };

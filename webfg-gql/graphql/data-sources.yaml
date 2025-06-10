@@ -14,6 +14,9 @@ Parameters:
   ActionsDataSourceName:
     Type: String
     Description: 'Name of db data source'
+  ConditionsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
   EncountersDataSourceName:
     Type: String
     Description: 'Name of db data source'
@@ -24,6 +27,9 @@ Parameters:
     Type: String
     Description: 'Name of table'
   ActionsTableName:
+    Type: String
+    Description: 'Name of table'
+  ConditionsTableName:
     Type: String
     Description: 'Name of table'
   EncountersTableName:
@@ -59,6 +65,7 @@ Resources:
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${CharactersTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ObjectsTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ActionsTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConditionsTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EncountersTableName}
 
   AppSyncLambdaServiceRole:
@@ -116,6 +123,17 @@ Resources:
         TableName: !Ref ActionsTableName
         AwsRegion: !Sub ${AWS::Region}
 
+  ConditionsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref ConditionsDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref ConditionsTableName
+        AwsRegion: !Sub ${AWS::Region}
+
   EncountersDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
@@ -146,6 +164,9 @@ Outputs:
   ActionsDataSourceName:
     Description: 'Name of the Actions DynamoDB Data Source'
     Value: !Ref ActionsDataSource
+  ConditionsDataSourceName:
+    Description: 'Name of the Conditions DynamoDB Data Source'
+    Value: !Ref ConditionsDataSource
   EncountersDataSourceName:
     Description: 'Name of the Encounters DynamoDB Data Source'
     Value: !Ref EncountersDataSource

@@ -43,4 +43,4 @@ Thumbs.db
 # Background process artifacts
 *.log
 *.pid
-.claude/
+.claude/settings.local.json

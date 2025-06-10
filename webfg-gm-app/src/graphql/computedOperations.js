@@ -99,6 +99,20 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
           morale { attributeValue isGrouped }
         }
       }
+      
+      characterConditions {
+        conditionId
+        amount
+      }
+      conditions {
+        conditionId
+        name
+        description
+        conditionCategory
+        conditionType
+        conditionTarget
+        amount
+      }
     }
   }
 `;
@@ -276,6 +290,20 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
       }
       actionIds
       actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType }
+      
+      characterConditions {
+        conditionId
+        amount
+      }
+      conditions {
+        conditionId
+        name
+        description
+        conditionCategory
+        conditionType
+        conditionTarget
+        amount
+      }
     }
   }
 `;

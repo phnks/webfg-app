@@ -1,0 +1,93 @@
+/* Remove most styles - they're now in App.css */
+/* Only keep condition-specific overrides */
+
+/* Condition-specific styling overrides */
+.condition-card.help {
+  border-left: 4px solid #28a745;
+}
+
+.condition-card.hinder {
+  border-left: 4px solid #dc3545;
+}
+
+.condition-meta {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.condition-type {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.condition-type.help {
+  background: #d4edda;
+  color: #155724;
+}
+
+.condition-type.hinder {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.condition-target {
+  background: #e9ecef;
+  color: #495057;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.condition-amount {
+  background: #fff3cd;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.condition-description {
+  color: #666;
+  font-size: 0.9em;
+  margin: 10px 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.condition-category {
+  color: #6c757d;
+  font-size: 0.8em;
+  font-style: italic;
+  margin-top: 10px;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .condition-page {
+    padding: 10px;
+  }
+
+  .condition-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .condition-card {
+    padding: 15px;
+  }
+  
+  .condition-card h3 {
+    font-size: 1.1em;
+  }
+}

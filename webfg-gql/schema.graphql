@@ -87,6 +87,9 @@ type Character {
   equipmentIds: [ID]
   equipment: [Object]
   
+  characterConditions: [CharacterCondition]
+  conditions: [CharacterConditionWithDetails]
+  
   # Computed fields (only resolved when requested)
   groupedAttributes: GroupedAttributes
   attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]
@@ -138,8 +141,28 @@ input CharacterInput {
   special: [String]
   inventoryIds: [ID]
   equipmentIds: [ID]
+  characterConditions: [CharacterConditionInput]
 }
 
+type CharacterCondition {
+  conditionId: ID!
+  amount: Int!
+}
+
+type CharacterConditionWithDetails {
+  conditionId: ID!
+  name: String!
+  description: String!
+  conditionCategory: ConditionCategory!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+  amount: Int!
+}
+
+input CharacterConditionInput {
+  conditionId: ID!
+  amount: Int!
+}
 
 type Object {
   objectId: ID!
@@ -247,6 +270,39 @@ input ActionInput {
   triggeredActionId: ID
 }
 
+type Condition {
+  conditionId: ID!
+  name: String!
+  description: String!
+  conditionCategory: ConditionCategory!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+}
+
+enum ConditionType {
+  HELP
+  HINDER
+}
+
+enum ConditionCategory {
+  PHYSICAL
+  MENTAL
+  ENVIRONMENTAL
+  MAGICAL
+  DISEASE
+  BUFF
+  DEBUFF
+  STATUS
+}
+
+input ConditionInput {
+  name: String!
+  description: String!
+  conditionCategory: ConditionCategory!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+}
+
 type Query {
   # Character queries
   getCharacter(characterId: ID!): Character
@@ -261,6 +317,11 @@ type Query {
   getAction(actionId: ID!): Action
   getActions(actionIds: [ID!]!): [Action]
   listActions(filter: ActionFilterInput): [Action]
+
+  # Condition queries
+  getCondition(conditionId: ID!): Condition
+  getConditions(conditionIds: [ID!]!): [Condition]
+  listConditions(filter: ConditionFilterInput): [Condition]
 
   # Encounter queries
   getEncounter(encounterId: ID!): Encounter
@@ -296,6 +357,16 @@ type Mutation {
   # Character-Action relationship mutations
   addActionToCharacter(characterId: ID!, actionId: ID!): Character
   removeActionFromCharacter(characterId: ID!, actionId: ID!): Character
+
+  # Condition mutations
+  createCondition(input: ConditionInput!): Condition
+  updateCondition(conditionId: ID!, input: ConditionInput!): Condition
+  deleteCondition(conditionId: ID!): Condition
+
+  # Character-Condition relationship mutations
+  addConditionToCharacter(characterId: ID!, conditionId: ID!, amount: Int): Character
+  removeConditionFromCharacter(characterId: ID!, conditionId: ID!): Character
+  updateConditionAmount(characterId: ID!, conditionId: ID!, amount: Int!): Character
 
   # Encounter mutations
   createEncounter(input: EncounterInput!): Encounter
@@ -358,6 +429,14 @@ type Subscription {
   onDeleteAction: Action
       @aws_subscribe(mutations: ["deleteAction"])
 
+  # Condition subscriptions
+  onCreateCondition: Condition
+      @aws_subscribe(mutations: ["createCondition"])
+  onUpdateCondition: Condition
+      @aws_subscribe(mutations: ["updateCondition"])
+  onDeleteCondition: Condition
+      @aws_subscribe(mutations: ["deleteCondition"])
+
   # Encounter subscriptions
   onCreateEncounter: Encounter
       @aws_subscribe(mutations: ["createEncounter"])
@@ -401,6 +480,12 @@ input CharacterFilterInput {
    name: StringFilterInput
    actionCategory: ActionCategory # Changed from 'type: ActionType'
  }
+
+input ConditionFilterInput {
+  name: StringFilterInput
+  conditionType: ConditionType
+  conditionTarget: AttributeName
+}
 
 input StringFilterInput {
   eq: String

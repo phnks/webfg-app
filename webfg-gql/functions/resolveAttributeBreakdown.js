@@ -1,6 +1,7 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, GetCommand } = require('@aws-sdk/lib-dynamodb');
 const { calculateAttributeBreakdown, calculateObjectAttributeBreakdown } = require('../utils/attributeBreakdown');
+const { toInt } = require('../utils/stringToNumber');
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -50,30 +51,57 @@ exports.handler = async (event) => {
 };
 
 async function enrichCharacterWithEquipment(character) {
-  if (!character.equipmentIds || character.equipmentIds.length === 0) {
-    return { ...character, equipment: [] };
-  }
-
+  // Enrich with equipment
   const equipment = [];
-  
-  for (const objectId of character.equipmentIds) {
-    try {
-      const result = await docClient.send(new GetCommand({
-        TableName: process.env.OBJECTS_TABLE,
-        Key: { objectId }
-      }));
-      
-      if (result.Item) {
-        // Recursively enrich equipment if they have their own equipment
-        const enrichedEquipment = await enrichObjectWithEquipment(result.Item);
-        equipment.push(enrichedEquipment);
+  if (character.equipmentIds && character.equipmentIds.length > 0) {
+    for (const objectId of character.equipmentIds) {
+      try {
+        const result = await docClient.send(new GetCommand({
+          TableName: process.env.OBJECTS_TABLE,
+          Key: { objectId }
+        }));
+        
+        if (result.Item) {
+          // Recursively enrich equipment if they have their own equipment
+          const enrichedEquipment = await enrichObjectWithEquipment(result.Item);
+          equipment.push(enrichedEquipment);
+        }
+      } catch (error) {
+        console.error(`Error fetching object ${objectId}:`, error);
       }
-    } catch (error) {
-      console.error(`Error fetching object ${objectId}:`, error);
     }
   }
 
-  return { ...character, equipment };
+  // Enrich with conditions
+  const conditions = [];
+  if (character.characterConditions && character.characterConditions.length > 0) {
+    console.log("[DEBUG] Character has characterConditions:", JSON.stringify(character.characterConditions));
+    
+    for (const charCondition of character.characterConditions) {
+      try {
+        const result = await docClient.send(new GetCommand({
+          TableName: process.env.CONDITIONS_TABLE,
+          Key: { conditionId: charCondition.conditionId }
+        }));
+        
+        if (result.Item) {
+          // Include the amount from the character-condition relationship
+          const conditionWithAmount = {
+            ...result.Item,
+            amount: toInt(charCondition.amount, 1)
+          };
+          console.log(`[DEBUG] Added condition with amount:`, JSON.stringify(conditionWithAmount));
+          conditions.push(conditionWithAmount);
+        }
+      } catch (error) {
+        console.error(`Error fetching condition ${charCondition.conditionId}:`, error);
+      }
+    }
+  } else {
+    console.log("[DEBUG] Character has no characterConditions");
+  }
+
+  return { ...character, equipment, conditions };
 }
 
 async function enrichObjectWithEquipment(object) {

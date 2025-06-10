@@ -1,0 +1,280 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Resolver stack for Condition type'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  ConditionsDataSourceName:
+    Type: String
+    Description: 'Name of Conditions DynamoDB Data Source'
+  ConditionsTableName:
+    Type: String
+    Description: 'Name of Conditions table'
+  AppSyncLambdaServiceRoleArn:
+    Type: String
+    Description: 'ARN of the IAM role for AppSync to invoke Lambda functions'
+
+Resources:
+  # Lambda Functions
+  CreateConditionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/createCondition.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CONDITION_TABLE_NAME: !Ref ConditionsTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConditionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  UpdateConditionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/updateCondition.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CONDITION_TABLE_NAME: !Ref ConditionsTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConditionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  DeleteConditionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/deleteCondition.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CONDITION_TABLE_NAME: !Ref ConditionsTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConditionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  GetConditionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/getConditions.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CONDITION_TABLE_NAME: !Ref ConditionsTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConditionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # Lambda Data Sources
+  CreateConditionLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: CreateConditionLambdaSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt CreateConditionFunction.Arn
+
+  UpdateConditionLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: UpdateConditionLambdaSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt UpdateConditionFunction.Arn
+
+  DeleteConditionLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: DeleteConditionLambdaSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DeleteConditionFunction.Arn
+
+  GetConditionsLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: GetConditionsLambdaSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt GetConditionsFunction.Arn
+
+  # Resolvers
+  GetConditionResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Query
+      FieldName: getCondition
+      DataSourceName: !Ref ConditionsDataSourceName
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "conditionId": $util.dynamodb.toDynamoDBJson($ctx.args.conditionId)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  GetConditionsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Query
+      FieldName: getConditions
+      DataSourceName: !GetAtt GetConditionsLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "conditionIds": $util.toJson($ctx.args.conditionIds)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  ListConditionsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Query
+      FieldName: listConditions
+      DataSourceName: !Ref ConditionsDataSourceName
+      RequestMappingTemplate: |
+        #set($filter = {})
+        #if($ctx.args.filter)
+          #if($ctx.args.filter.name)
+            #set($nameFilter = {})
+            #if($ctx.args.filter.name.eq)
+              #set($nameFilter.ComparisonOperator = "EQ")
+              #set($nameFilter.AttributeValueList = [$util.dynamodb.toStringJson($ctx.args.filter.name.eq)])
+            #elseif($ctx.args.filter.name.contains)
+              #set($nameFilter.ComparisonOperator = "CONTAINS")
+              #set($nameFilter.AttributeValueList = [$util.dynamodb.toStringJson($ctx.args.filter.name.contains)])
+            #elseif($ctx.args.filter.name.beginsWith)
+              #set($nameFilter.ComparisonOperator = "BEGINS_WITH")
+              #set($nameFilter.AttributeValueList = [$util.dynamodb.toStringJson($ctx.args.filter.name.beginsWith)])
+            #end
+            $util.qr($filter.put("name", $nameFilter))
+          #end
+          #if($ctx.args.filter.conditionType)
+            #set($typeFilter = {
+              "ComparisonOperator": "EQ",
+              "AttributeValueList": [$util.dynamodb.toStringJson($ctx.args.filter.conditionType)]
+            })
+            $util.qr($filter.put("conditionType", $typeFilter))
+          #end
+          #if($ctx.args.filter.conditionTarget)
+            #set($targetFilter = {
+              "ComparisonOperator": "EQ",
+              "AttributeValueList": [$util.dynamodb.toStringJson($ctx.args.filter.conditionTarget)]
+            })
+            $util.qr($filter.put("conditionTarget", $targetFilter))
+          #end
+        #end
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          #if($filter.size() > 0)
+            "filter": $util.toJson($filter),
+          #end
+          "limit": $util.defaultIfNull($ctx.args.limit, 100),
+          "nextToken": $util.toJson($util.defaultIfNullOrBlank($ctx.args.nextToken, null))
+        }
+      ResponseMappingTemplate: |
+        #if($context.result.items)
+          $util.toJson($context.result.items)
+        #else
+          []
+        #end
+
+  CreateConditionResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: createCondition
+      DataSourceName: !GetAtt CreateConditionLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "input": $util.toJson($ctx.args.input)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  UpdateConditionResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: updateCondition
+      DataSourceName: !GetAtt UpdateConditionLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "conditionId": $util.toJson($ctx.args.conditionId),
+            "input": $util.toJson($ctx.args.input)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  DeleteConditionResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: deleteCondition
+      DataSourceName: !GetAtt DeleteConditionLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "conditionId": $util.toJson($ctx.args.conditionId)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+Outputs:
+  CreateConditionFunctionArn:
+    Description: 'ARN of the CreateCondition Lambda function'
+    Value: !GetAtt CreateConditionFunction.Arn
+  UpdateConditionFunctionArn:
+    Description: 'ARN of the UpdateCondition Lambda function'
+    Value: !GetAtt UpdateConditionFunction.Arn
+  DeleteConditionFunctionArn:
+    Description: 'ARN of the DeleteCondition Lambda function'
+    Value: !GetAtt DeleteConditionFunction.Arn
+  GetConditionsFunctionArn:
+    Description: 'ARN of the GetConditions Lambda function'
+    Value: !GetAtt GetConditionsFunction.Arn

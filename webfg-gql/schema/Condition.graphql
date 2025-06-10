@@ -1,0 +1,32 @@
+type Condition {
+  conditionId: ID!
+  name: String!
+  description: String!
+  conditionCategory: ConditionCategory!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+}
+
+enum ConditionType {
+  HELP
+  HINDER
+}
+
+enum ConditionCategory {
+  PHYSICAL
+  MENTAL
+  ENVIRONMENTAL
+  MAGICAL
+  DISEASE
+  BUFF
+  DEBUFF
+  STATUS
+}
+
+input ConditionInput {
+  name: String!
+  description: String!
+  conditionCategory: ConditionCategory!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+}

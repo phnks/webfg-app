@@ -15,6 +15,9 @@ Parameters:
   CharactersTableName: 
     Type: String
     Description: 'Name of Characters table'
+  ConditionsTableName:
+    Type: String
+    Description: 'Name of Conditions table'
 
 Resources:
   # --- Lambda Functions for Mutations ---
@@ -172,5 +175,134 @@ Resources:
           "version": "2018-05-29",
           "operation": "Invoke",
           "payload": $util.toJson($ctx.arguments) 
+        }
+      ResponseMappingTemplate: '$util.toJson($ctx.result)'
+
+  # --- Character-Condition Lambda Functions ---
+  AddConditionToCharacterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/addConditionToCharacter.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTER_TABLE_NAME: !Ref CharactersTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  RemoveConditionFromCharacterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/removeConditionFromCharacter.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTER_TABLE_NAME: !Ref CharactersTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # --- Character-Condition Data Sources ---
+  AddConditionToCharacterLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: AddConditionToCharacterLambdaSource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt AddConditionToCharacterFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  RemoveConditionFromCharacterLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: RemoveConditionFromCharacterLambdaSource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt RemoveConditionFromCharacterFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  # --- Character-Condition Resolvers ---
+  AddConditionToCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AddConditionToCharacterLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Mutation'
+      FieldName: 'addConditionToCharacter'
+      DataSourceName: AddConditionToCharacterLambdaSource
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($ctx.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($ctx.result)'
+
+  # --- Resolver for Character.conditions field ---
+  ResolveCharacterConditionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/resolveCharacterConditions.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CONDITIONS_TABLE: !Ref ConditionsTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ConditionsTableName
+
+  ResolveCharacterConditionsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ResolveCharacterConditions
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ResolveCharacterConditionsFunction.Arn
+
+  CharacterConditionsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Character
+      FieldName: conditions
+      DataSourceName: !GetAtt ResolveCharacterConditionsDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "characterConditions": $util.toJson($context.source.characterConditions)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  RemoveConditionFromCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: RemoveConditionFromCharacterLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Mutation'
+      FieldName: 'removeConditionFromCharacter'
+      DataSourceName: RemoveConditionFromCharacterLambdaSource
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($ctx.arguments)
         }
       ResponseMappingTemplate: '$util.toJson($ctx.result)'

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'; // Keep useEffect import
 // Added useNavigate import
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'; 
 import { useQuery } from '@apollo/client';
-import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS } from './graphql/operations';
+import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, LIST_CONDITIONS } from './graphql/operations';
 import NavBar from './components/nav/NavBar';
 import CharacterList from './components/characters/CharacterList';
 import CharacterView from './components/characters/CharacterView';
@@ -13,6 +13,9 @@ import ObjectForm from './components/forms/ObjectForm';
 import ActionList from './components/actions/ActionList';
 import ActionView from './components/actions/ActionView';
 import ActionForm from './components/forms/ActionForm';
+import ConditionsList from './components/conditions/ConditionsList';
+import ConditionView from './components/conditions/ConditionView';
+import ConditionForm from './components/forms/ConditionForm';
 import Home from './components/Home';
 import { SelectedCharacterProvider, useSelectedCharacter } from './context/SelectedCharacterContext';
 import SelectedCharacterBanner from './components/common/SelectedCharacterBanner';
@@ -27,6 +30,7 @@ function AppContent() {
   // Corrected useQuery for objects: restore default fetchPolicy, keep error handling
   const { data: objectData, error: objectError } = useQuery(LIST_OBJECTS); 
   const { data: actionData } = useQuery(LIST_ACTIONS);
+  const { data: conditionData } = useQuery(LIST_CONDITIONS);
   const { selectedCharacter } = useSelectedCharacter();
 
   // Correctly formatted logging for NavBar object data/error
@@ -50,6 +54,7 @@ function AppContent() {
           characterList={characterData?.listCharacters || []}
           objectList={objectData?.listObjects || []} // Pass potentially null/error data; NavBar handles empty list
           actionList={actionData?.listActions || []}
+          conditionList={conditionData?.listConditions || []}
         />
         <SelectedCharacterBanner />
         <div className={`content ${selectedCharacter ? 'with-banner' : ''}`}>
@@ -76,6 +81,13 @@ function AppContent() {
             <Route path="/actions/new" element={<ActionForm onSuccess={(id) => navigate(`/actions/${id}`)} />} />
             <Route path="/actions/:actionId" element={<ActionView />} />
             {/* Edit is usually triggered from ActionView */}
+
+            {/* Condition routes */}
+            <Route path="/conditions" element={<ConditionsList />} />
+             {/* Use navigate in onSuccess */}
+            <Route path="/conditions/new" element={<ConditionForm onSuccess={(id) => navigate(`/conditions/${id}`)} />} />
+            <Route path="/conditions/:conditionId" element={<ConditionView />} />
+            {/* Edit is usually triggered from ConditionView */}
 
             {/* Encounter routes */}
             <Route path="/encounters" element={<EncountersList />} />

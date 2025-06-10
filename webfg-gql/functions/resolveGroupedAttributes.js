@@ -11,6 +11,11 @@ exports.handler = async (event) => {
   // Source contains the parent Character or Object
   const entity = event.source;
   const typeName = event.info.parentTypeName; // 'Character' or 'Object'
+  
+  // Log if character has conditions
+  if (typeName === 'Character' && entity.characterConditions && entity.characterConditions.length > 0) {
+    console.log(`[DEBUG] Character ${entity.name || 'unknown'} has ${entity.characterConditions.length} conditions:`, entity.characterConditions);
+  }
 
   if (!entity) {
     console.log("No entity found, returning empty grouped attributes.");
@@ -36,6 +41,14 @@ exports.handler = async (event) => {
       // For characters, we need to ensure we have full equipment data
       const enrichedCharacter = await enrichCharacterWithEquipment(entity);
       console.log("Enriched character equipment:", JSON.stringify(enrichedCharacter.equipment, null, 2));
+      
+      // Log if we found conditions during enrichment
+      if (enrichedCharacter.conditions && enrichedCharacter.conditions.length > 0) {
+        console.log(`[DEBUG] Enriched character with ${enrichedCharacter.conditions.length} conditions:`, JSON.stringify(enrichedCharacter.conditions, null, 2));
+      } else {
+        console.log(`[DEBUG] Enriched character has NO conditions`); 
+      }
+      
       groupedAttributes = calculateGroupedAttributes(enrichedCharacter);
     } else if (typeName === 'Object') {
       // For objects, we need to ensure we have full equipment data
@@ -62,6 +75,28 @@ exports.handler = async (event) => {
     };
 
     console.log("Calculated grouped attributes:", JSON.stringify(result, null, 2));
+    
+    // Debug: Check for expected attribute changes due to conditions
+    if (typeName === 'Character' && entity.characterConditions && entity.characterConditions.length > 0) {
+      console.log(`[DEBUG] Checking for expected condition effects:`);
+      const enrichedCharacter = await enrichCharacterWithEquipment(entity);
+      
+      if (enrichedCharacter.conditions) {
+        enrichedCharacter.conditions.forEach(condition => {
+          if (condition.conditionTarget && condition.amount) {
+            const targetAttr = condition.conditionTarget.toLowerCase();
+            const baseValue = entity[targetAttr]?.attribute?.attributeValue;
+            const groupedValue = result[targetAttr];
+            
+            console.log(`[DEBUG] Condition '${condition.name}' targeting ${targetAttr}:`);
+            console.log(`  - Base value: ${baseValue}`);
+            console.log(`  - Expected ${condition.conditionType === 'HELP' ? '+' : '-'}${condition.amount}`);
+            console.log(`  - Grouped value: ${groupedValue}`);
+          }
+        });
+      }
+    }
+    
     return result;
 
   } catch (error) {
@@ -71,28 +106,50 @@ exports.handler = async (event) => {
 };
 
 async function enrichCharacterWithEquipment(character) {
-  if (!character.equipmentIds || character.equipmentIds.length === 0) {
-    return { ...character, equipment: [] };
-  }
-
-  const equipment = [];
-  
-  for (const objectId of character.equipmentIds) {
-    try {
-      const result = await docClient.send(new GetCommand({
-        TableName: process.env.OBJECTS_TABLE,
-        Key: { objectId }
-      }));
-      
-      if (result.Item) {
-        equipment.push(result.Item);
+  // Enrich with equipment
+  let equipment = [];
+  if (character.equipmentIds && character.equipmentIds.length > 0) {
+    for (const objectId of character.equipmentIds) {
+      try {
+        const result = await docClient.send(new GetCommand({
+          TableName: process.env.OBJECTS_TABLE,
+          Key: { objectId }
+        }));
+        
+        if (result.Item) {
+          equipment.push(result.Item);
+        }
+      } catch (error) {
+        console.error(`Error fetching object ${objectId}:`, error);
       }
-    } catch (error) {
-      console.error(`Error fetching object ${objectId}:`, error);
     }
   }
 
-  return { ...character, equipment };
+  // Enrich with conditions
+  let conditions = [];
+  if (character.characterConditions && character.characterConditions.length > 0) {
+    for (const characterCondition of character.characterConditions) {
+      try {
+        const conditionId = characterCondition.conditionId;
+        const result = await docClient.send(new GetCommand({
+          TableName: process.env.CONDITIONS_TABLE,
+          Key: { conditionId }
+        }));
+        
+        if (result.Item) {
+          // Add the amount from characterCondition to the condition object
+          conditions.push({
+            ...result.Item,
+            amount: characterCondition.amount
+          });
+        }
+      } catch (error) {
+        console.error(`Error fetching condition ${characterCondition.conditionId}:`, error);
+      }
+    }
+  }
+
+  return { ...character, equipment, conditions };
 }
 
 async function enrichObjectWithEquipment(object) {

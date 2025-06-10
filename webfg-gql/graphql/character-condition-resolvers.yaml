@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Character-Condition Relationship Resolvers'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  AppSyncLambdaServiceRoleArn:
+    Type: String
+    Description: 'ARN of the IAM role for AppSync to invoke Lambda functions'
+  CharactersTableName:
+    Type: String
+    Description: 'Name of the Character table'
+
+Resources:
+  # Lambda function to update condition amount 
+  UpdateConditionAmountFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/updateConditionAmount.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTER_TABLE_NAME: !Ref CharactersTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # Data source for update condition amount function
+  UpdateConditionAmountDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: UpdateConditionAmountSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt UpdateConditionAmountFunction.Arn
+
+  # Resolver for updating condition amount
+  UpdateConditionAmountResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: updateConditionAmount
+      DataSourceName: !GetAtt UpdateConditionAmountDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($ctx.arguments)
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+Outputs:
+  UpdateConditionAmountFunctionArn:
+    Description: 'ARN of the UpdateConditionAmount Lambda function'
+    Value: !GetAtt UpdateConditionAmountFunction.Arn
