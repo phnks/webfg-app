@@ -5,11 +5,22 @@
  */
 const { toInt } = require('./stringToNumber');
 
-// All available attribute names
+// All available attribute names organized by group
 const ATTRIBUTE_NAMES = [
-  'lethality', 'armour', 'endurance', 'strength', 'dexterity', 
-  'agility', 'perception', 'intelligence', 'charisma', 'resolve', 'morale'
+  // BODY attributes
+  'speed', 'weight', 'size', 'armour', 'endurance',
+  // MARTIAL attributes  
+  'lethality', 'strength', 'dexterity', 'agility', 'perception',
+  // MENTAL attributes
+  'intensity', 'resolve', 'morale', 'intelligence', 'charisma'
 ];
+
+// Attribute groupings for frontend display
+const ATTRIBUTE_GROUPS = {
+  BODY: ['speed', 'weight', 'size', 'armour', 'endurance'],
+  MARTIAL: ['lethality', 'strength', 'dexterity', 'agility', 'perception'],
+  MENTAL: ['intensity', 'resolve', 'morale', 'intelligence', 'charisma']
+};
 
 /**
  * Calculate the grouped value using the new weighted average formula
@@ -263,6 +274,7 @@ const calculateObjectGroupedAttributes = (object) => {
 
 module.exports = {
   ATTRIBUTE_NAMES,
+  ATTRIBUTE_GROUPS,
   calculateGroupingFormula,
   extractAttributeInfo,
   calculateGroupedAttributes,
