@@ -22,7 +22,7 @@ const ConditionsList = () => {
       <div className="page-content">
         <h1>Conditions</h1>
                 
-        {conditions.length === 0 ? (
+{conditions.length === 0 ? (
           <div className="empty-state">
             <p>No conditions have been created yet.</p>
             <button 
@@ -33,7 +33,7 @@ const ConditionsList = () => {
             </button>
           </div>
         ) : (
-          <div className="condition-grid">
+          <div className={`condition-grid ${conditions.length > 0 ? 'with-add-card' : ''}`}>
             {conditions.map(condition => (
               <div 
                 key={condition.conditionId} 
@@ -47,7 +47,7 @@ const ConditionsList = () => {
                   </span>
                   <span className="condition-target">{condition.conditionTarget}</span>
                   <span className="condition-amount">
-                    {condition.conditionType === 'HELP' ? '+' : '-'}{condition.conditionAmount}
+                    {condition.conditionType === 'HELP' ? '+' : '-'}{condition.conditionAmount || 1}
                   </span>
                 </div>
                 <p className="condition-description">{condition.description}</p>
@@ -56,17 +56,15 @@ const ConditionsList = () => {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-        
-        {/* Add a 'Create New Condition' card at the end when conditions exist */}
-        {conditions.length > 0 && (
-          <div 
-            className="condition-card add-card"
-            onClick={() => navigate("/conditions/new")}
-          >
-            <div className="add-icon">+</div>
-            <h3>Create New Condition</h3>
+            
+            {/* Add a 'Create New Condition' card at the end when conditions exist */}
+            <div 
+              className="condition-card add-card"
+              onClick={() => navigate("/conditions/new")}
+            >
+              <div className="add-icon">+</div>
+              <h3>Create New Condition</h3>
+            </div>
           </div>
         )}
       </div>

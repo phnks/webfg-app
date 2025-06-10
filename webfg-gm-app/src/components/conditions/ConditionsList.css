@@ -3,11 +3,13 @@
   flex-direction: column;
   padding: 20px;
   box-sizing: border-box;
+  background-color: #f8f9fa;
+  min-height: 100vh;
 }
 
 .condition-page h1 {
   margin: 0 0 20px 0;
-  font-size: 2em;
+  font-size: 32px;
   color: #333;
 }
 
@@ -24,6 +26,10 @@
   margin-top: 20px;
 }
 
+.condition-grid.with-add-card {
+  margin-bottom: 20px;
+}
+
 .condition-card {
   background: #ffffff;
   border: 1px solid #e0e0e0;
@@ -32,11 +38,15 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
 }
 
 .condition-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #007bff;
 }
 
 .condition-card.help {
@@ -48,9 +58,10 @@
 }
 
 .condition-card h3 {
-  margin: 0 0 10px 0;
+  margin: 0 0 15px 0;
   color: #333;
-  font-size: 1.3em;
+  font-size: 1.25em;
+  font-weight: 600;
 }
 
 .condition-meta {
@@ -101,13 +112,20 @@
   color: #666;
   font-size: 0.9em;
   margin: 10px 0;
-  line-height: 1.4;
+  line-height: 1.5;
+  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .condition-category {
   color: #6c757d;
   font-size: 0.8em;
   font-style: italic;
+  margin-top: auto;
+  padding-top: 10px;
 }
 
 .empty-state {
@@ -156,22 +174,35 @@
   background-color: #f8f9fa;
   border: 2px dashed #dee2e6;
   transition: all 0.2s;
+  min-height: 180px;
 }
 
 .add-card:hover {
-  border-color: #adb5bd;
-  background-color: #e9ecef;
+  border-color: #007bff;
+  background-color: #e7f3ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
 }
 
 .add-icon {
-  font-size: 2em;
+  font-size: 2.5em;
   margin-bottom: 10px;
   color: #6c757d;
+  transition: color 0.2s;
+}
+
+.add-card:hover .add-icon {
+  color: #007bff;
 }
 
 .add-card h3 {
   color: #6c757d;
   margin-top: 0;
+  transition: color 0.2s;
+}
+
+.add-card:hover h3 {
+  color: #007bff;
 }
 
 /* Mobile Responsive Styles */
