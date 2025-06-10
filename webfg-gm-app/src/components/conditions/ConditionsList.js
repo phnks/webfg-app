@@ -33,7 +33,7 @@ const ConditionsList = () => {
             </button>
           </div>
         ) : (
-          <div className={`condition-grid ${conditions.length > 0 ? 'with-add-card' : ''}`}>
+          <div className="condition-grid">
             {conditions.map(condition => (
               <div 
                 key={condition.conditionId} 
