@@ -9,21 +9,16 @@ input AttributeInput {
 }
 
 enum AttributeName {
-  # BODY attributes
   SPEED
   WEIGHT
   SIZE
   ARMOUR
   ENDURANCE
-  
-  # MARTIAL attributes
   LETHALITY
   STRENGTH
   DEXTERITY
   AGILITY
   PERCEPTION
-  
-  # MENTAL attributes
   INTENSITY
   RESOLVE
   MORALE

@@ -29,9 +29,7 @@ enum AttributeName {
   MORALE
   INTELLIGENCE
   CHARISMA
-}
-
-type Value {
+}type Value {
   valueName: ValueName!
   valueType: ValueType!
 }
@@ -63,8 +61,6 @@ enum ValueType {
   GOOD
   BAD
 }
-
-
 type Character {
   characterId: ID!
   name: String!
@@ -189,9 +185,7 @@ type CharacterConditionWithDetails {
 input CharacterConditionInput {
   conditionId: ID!
   amount: Int!
-}
-
-type Object {
+}type Object {
   objectId: ID!
   name: String!
   objectCategory: ObjectCategory!
@@ -266,8 +260,6 @@ input ObjectInput {
   special: [String]
   equipmentIds: [ID]
 }
-
-
 type Action {
   actionId: ID!
   name: String!
@@ -313,9 +305,7 @@ input ActionInput {
   targetType: TargetType!
   effectType: EffectType!
   triggeredActionId: ID
-}
-
-type Condition {
+}type Condition {
   conditionId: ID!
   name: String!
   description: String!
@@ -346,9 +336,7 @@ input ConditionInput {
   conditionCategory: ConditionCategory!
   conditionType: ConditionType!
   conditionTarget: AttributeName!
-}
-
-type Query {
+}type Query {
   # Character queries
   getCharacter(characterId: ID!): Character
   listCharacters(filter: CharacterFilterInput): [Character]
@@ -552,8 +540,6 @@ schema {
   mutation: Mutation
   subscription: Subscription
 }
-
-
 # Computed field types for grouped attributes and action calculations
 
 type GroupedAttributes {
@@ -618,9 +604,7 @@ input ActionTestInput {
 }
 
 # Computed fields are now directly in Character and Object types
-# Query extension for calculateActionTest is now in Schema.graphql
-
-type Encounter {
+# Query extension for calculateActionTest is now in Schema.graphqltype Encounter {
   encounterId: ID!
   name: String!
   description: String
@@ -693,5 +677,3 @@ input UpdateTerrainPositionInput {
   x: Int!
   y: Int!
 }
-
-

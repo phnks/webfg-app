@@ -7,21 +7,16 @@ type Character {
 
   values: [Value]      
 
-  # BODY attributes
   speed: CharacterAttribute!
   weight: CharacterAttribute!
   size: CharacterAttribute!
   armour: CharacterAttribute!
   endurance: CharacterAttribute!
-  
-  # MARTIAL attributes
   lethality: CharacterAttribute!
   strength: CharacterAttribute!
   dexterity: CharacterAttribute!
   agility: CharacterAttribute!
   perception: CharacterAttribute!
-  
-  # MENTAL attributes
   intensity: CharacterAttribute!
   resolve: CharacterAttribute!
   morale: CharacterAttribute!
@@ -77,21 +72,16 @@ input CharacterInput {
   will: Int!
   fatigue: Int!
   values: [ValueInput]
-  # BODY attributes
   speed: CharacterAttributeInput!
   weight: CharacterAttributeInput!
   size: CharacterAttributeInput!
   armour: CharacterAttributeInput!
   endurance: CharacterAttributeInput!
-  
-  # MARTIAL attributes
   lethality: CharacterAttributeInput!
   strength: CharacterAttributeInput!
   dexterity: CharacterAttributeInput!
   agility: CharacterAttributeInput!
   perception: CharacterAttributeInput!
-  
-  # MENTAL attributes
   intensity: CharacterAttributeInput!
   resolve: CharacterAttributeInput!
   morale: CharacterAttributeInput!
