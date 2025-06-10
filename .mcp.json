@@ -1,0 +1,16 @@
+{
+    "mcpServers": {
+        "puppeteer": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+          "env": {}
+        },
+	"discord": {
+  	  "type": "stdio",
+  	  "command": "npx",
+  	  "args": ["-y", "v-3/discordmcp"],
+	  "env": { "DISCORD_TOKEN": "${env:DISCORD_BOT_TOKEN}" }
+	}
+    }
+}

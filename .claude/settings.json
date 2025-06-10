@@ -46,15 +46,29 @@
       "Bash(gh pr view:*)",
       "WebFetch(domain:webfg-gm-app-qa43.phnks.com)",
       "Bash(rg:*)",
-      "mcp__discord__discord_send_message"
+      "mcp__puppeteer__puppeteer_navigate",
+      "mcp__puppeteer__puppeteer_screenshot",
+      "mcp__puppeteer__puppeteer_fill",
+      "mcp__puppeteer__puppeteer_click",
+      "mcp__puppeteer__puppeteer_evaluate",
+      "mcp__discord"
     ]
   },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "puppeteer"
+  ],
   "env": {
     "AWS_MAX_ATTEMPTS": "25",
     "AWS_RETRY_MODE": "adaptive",
     "DISCORD_BOT_TOKEN": "",
-    "GIT_USERNAME": "phnks",
-    "GIT_TOKEN": "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",
-    "GH_TOKEN": "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"
+    "GIT_USERNAME": "",
+    "GIT_TOKEN": "",
+    "GH_TOKEN": "",
+    "AWS_ACCESS_KEY_ID": "",
+    "AWS_SECRET_ACCESS_KEY": "",
+    "AWS_REGION": "",
+    "AWS_ACCOUNT_ID": "",
+    "AWS_DEFAULT_REGION": ""
   }
 }

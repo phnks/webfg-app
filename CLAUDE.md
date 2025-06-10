@@ -139,10 +139,63 @@ The application revolves around these primary entities:
 14. If you ever has questions during your task, you can message the user on discord via the discord MCP. The user's channel id is: 538552940303220750. The user will see your message then com
 e back to answer your question. You may have to wait a while depending on how busy the user is with other tasks
 
+## Frontend Testing with Puppeteer
+
+**WHEN TO TEST**: Always test frontend changes after deploying to QA environment. This ensures your changes work correctly in the deployed environment.
+
+### Basic Puppeteer Testing Flow
+
+1. **Navigate to QA Environment**: 
+```javascript
+mcp__puppeteer__puppeteer_navigate("https://webfg-gm-app-qa{DEPLOYMENT_ID}.com")
+```
+
+2. **Take Initial Screenshot**:
+```javascript
+mcp__puppeteer__puppeteer_screenshot({name: "homepage", width: 1200, height: 800})
+```
+
+3. **Test Navigation** (click nav links):
+```javascript
+mcp__puppeteer__puppeteer_click("a[href='/characters']")  // Characters page
+mcp__puppeteer__puppeteer_click("a[href='/objects']")     // Objects page  
+mcp__puppeteer__puppeteer_click("a[href='/actions']")     // Actions page
+mcp__puppeteer__puppeteer_click("a[href='/encounters']")  // Encounters page
+```
+
+4. **Test Forms** (character creation example):
+```javascript
+mcp__puppeteer__puppeteer_click("button:contains('Create Character')")
+mcp__puppeteer__puppeteer_fill("input[name='name']", "Test Character")
+mcp__puppeteer__puppeteer_fill("textarea[name='description']", "Test description")
+mcp__puppeteer__puppeteer_click("button[type='submit']")
+```
+
+5. **Verify Changes** (take screenshots after interactions):
+```javascript
+mcp__puppeteer__puppeteer_screenshot({name: "after_form_submit"})
+```
+
+6. **Check for Errors** (look for error messages):
+```javascript
+mcp__puppeteer__puppeteer_evaluate("document.querySelector('.error-message')?.textContent || 'No errors'")
+```
+
+### Key Testing Areas
+
+- **Character Management**: Create, edit, view characters
+- **Object Management**: Create, edit, view objects  
+- **Action System**: Test action creation and execution
+- **Encounter/VTT**: Virtual table top functionality
+- **Form Validation**: Test required fields and error handling
+- **Responsive Design**: Test different screen sizes
+
+Replace `{DEPLOYMENT_ID}` with your PR number (e.g., `https://webfg-gm-app-qa69.com` for PR #69).
+
 ## Completing a Task
 
 1. In this project, whenever you finish a task, please run the necessary commands in terminal to test your code changes by running the deploy:qa commands as already stated, then confirming they worked using the check-deploy:qa commands as also previously stated.
-2. Then you must take the role of the user and test your code changes, simulating a real user of the application. You can use your web fetch, search, and web scraping tools such as puppeteer to do so
+2. Then you must take the role of the user and test your code changes, simulating a real user of the application. Use the Puppeteer testing instructions above to thoroughly test your frontend changes.
 3. When you have confirmed that your changes are working then do the following
     1. Update the PR for your feature branch to include any additional code changes you made for this task, use the `gh` cli for this
     2. On the PR make sure to include a detailed description of all the changes you made and in which files, why you made those changes, and then also describe any uncertainties or issues you encountered. If the PR description already exists make sure to update it and not overwrite what is already there
