@@ -27,17 +27,21 @@ exports.handler = async (event) => {
     // Initialize attributes with default values if not provided
     const defaultAttribute = { current: 0, max: 0, base: 0 };
     
-    if (!item.lethality) item.lethality = defaultAttribute;
+    if (!item.speed) item.speed = defaultAttribute;
+    if (!item.weight) item.weight = defaultAttribute;
+    if (!item.size) item.size = defaultAttribute;
     if (!item.armour) item.armour = defaultAttribute;
     if (!item.endurance) item.endurance = defaultAttribute;
+    if (!item.lethality) item.lethality = defaultAttribute;
     if (!item.strength) item.strength = defaultAttribute;
     if (!item.dexterity) item.dexterity = defaultAttribute;
     if (!item.agility) item.agility = defaultAttribute;
     if (!item.perception) item.perception = defaultAttribute;
-    if (!item.charisma) item.charisma = defaultAttribute;
-    if (!item.intelligence) item.intelligence = defaultAttribute;
+    if (!item.intensity) item.intensity = defaultAttribute;
     if (!item.resolve) item.resolve = defaultAttribute;
     if (!item.morale) item.morale = defaultAttribute;
+    if (!item.intelligence) item.intelligence = defaultAttribute;
+    if (!item.charisma) item.charisma = defaultAttribute;
     
     // Handle arrays
     if (item.special === undefined || item.special === null) item.special = [];
