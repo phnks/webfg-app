@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ErrorPopup from '../common/ErrorPopup';
 import MobileNumberInput from '../common/MobileNumberInput';
+import AttributeGroups, { ATTRIBUTE_GROUPS } from '../common/AttributeGroups';
 import { useQuery, useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
@@ -36,75 +37,41 @@ const defaultAttribute = {
   isGrouped: true
 };
 
-const defaultObjectForm = {
-  name: "",
-  objectCategory: ObjectCategoryEnum[0],
-  lethality: defaultAttribute,
-  armour: defaultAttribute,
-  endurance: defaultAttribute,
-  strength: defaultAttribute,
-  dexterity: defaultAttribute,
-  agility: defaultAttribute,
-  perception: defaultAttribute,
-  charisma: defaultAttribute,
-  intelligence: defaultAttribute,
-  resolve: defaultAttribute,
-  morale: defaultAttribute,
-  special: [],
-  equipmentIds: []
+// Create default object form with all attributes
+const createDefaultObjectForm = () => {
+  const form = {
+    name: "",
+    objectCategory: ObjectCategoryEnum[0],
+    special: [],
+    equipmentIds: []
+  };
+  
+  // Add all attributes from the new grouping
+  Object.values(ATTRIBUTE_GROUPS).flat().forEach(attr => {
+    form[attr] = { ...defaultAttribute };
+  });
+  
+  return form;
 };
+
+const defaultObjectForm = createDefaultObjectForm();
 
 const prepareObjectInput = (data) => {
   const input = {
     name: data.name,
     objectCategory: data.objectCategory || ObjectCategoryEnum[0],
-    lethality: {
-      attributeValue: parseFloat(data.lethality.attributeValue) || 0,
-      isGrouped: data.lethality.isGrouped !== undefined ? data.lethality.isGrouped : true
-    },
-    armour: {
-      attributeValue: parseFloat(data.armour.attributeValue) || 0,
-      isGrouped: data.armour.isGrouped !== undefined ? data.armour.isGrouped : true
-    },
-    endurance: {
-      attributeValue: parseFloat(data.endurance.attributeValue) || 0,
-      isGrouped: data.endurance.isGrouped !== undefined ? data.endurance.isGrouped : true
-    },
-    strength: {
-      attributeValue: parseFloat(data.strength.attributeValue) || 0,
-      isGrouped: data.strength.isGrouped !== undefined ? data.strength.isGrouped : true
-    },
-    dexterity: {
-      attributeValue: parseFloat(data.dexterity.attributeValue) || 0,
-      isGrouped: data.dexterity.isGrouped !== undefined ? data.dexterity.isGrouped : true
-    },
-    agility: {
-      attributeValue: parseFloat(data.agility.attributeValue) || 0,
-      isGrouped: data.agility.isGrouped !== undefined ? data.agility.isGrouped : true
-    },
-    perception: {
-      attributeValue: parseFloat(data.perception.attributeValue) || 0,
-      isGrouped: data.perception.isGrouped !== undefined ? data.perception.isGrouped : true
-    },
-    charisma: {
-      attributeValue: parseFloat(data.charisma.attributeValue) || 0,
-      isGrouped: data.charisma.isGrouped !== undefined ? data.charisma.isGrouped : true
-    },
-    intelligence: {
-      attributeValue: parseFloat(data.intelligence.attributeValue) || 0,
-      isGrouped: data.intelligence.isGrouped !== undefined ? data.intelligence.isGrouped : true
-    },
-    resolve: {
-      attributeValue: parseFloat(data.resolve.attributeValue) || 0,
-      isGrouped: data.resolve.isGrouped !== undefined ? data.resolve.isGrouped : true
-    },
-    morale: {
-      attributeValue: parseFloat(data.morale.attributeValue) || 0,
-      isGrouped: data.morale.isGrouped !== undefined ? data.morale.isGrouped : true
-    },
     special: data.special || [],
     equipmentIds: data.equipmentIds || []
   };
+  
+  // Add all attributes dynamically
+  Object.values(ATTRIBUTE_GROUPS).flat().forEach(attr => {
+    input[attr] = {
+      attributeValue: parseFloat(data[attr]?.attributeValue) || 0,
+      isGrouped: data[attr]?.isGrouped !== undefined ? data[attr].isGrouped : true
+    };
+  });
+  
   return input;
 };
 
@@ -258,7 +225,33 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
   if (allObjectsLoading) return <p>Loading available objects...</p>;
   if (allObjectsError) return <p>Error loading object list: {allObjectsError.message}</p>;
 
-  const attributeFields = ['lethality', 'armour', 'endurance', 'strength', 'dexterity', 'agility', 'perception', 'charisma', 'intelligence', 'resolve', 'morale'];
+  // Render function for individual attributes in the form
+  const renderAttributeForForm = (attributeName, attribute, displayName) => {
+    return (
+      <div key={attributeName} className="attribute-item">
+        <label>{displayName}</label>
+        <div className="attribute-controls">
+          <MobileNumberInput
+            step="0.1"
+            value={formData[attributeName]?.attributeValue || 0}
+            onChange={(e) => handleChange({
+              target: { name: `${attributeName}.attributeValue`, value: e.target.value }
+            })}
+          />
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={formData[attributeName]?.isGrouped !== false}
+              onChange={(e) => handleChange({
+                target: { name: `${attributeName}.isGrouped`, type: 'checkbox', checked: e.target.checked }
+              })}
+            />
+            Group
+          </label>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="form-container">
@@ -276,37 +269,14 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
           </select>
         </div>
 
-        <h3>Attributes</h3>
-        {attributeFields.map(attr => (
-          <div key={attr} className="attribute-group" style={{ marginBottom: '15px', border: '1px solid #ddd', padding: '10px', borderRadius: '5px' }}>
-            <h4 style={{ marginTop: 0, textTransform: 'capitalize' }}>{attr}</h4>
-            <div style={{ display: 'flex', gap: '15px' }}>
-              <div className="form-group" style={{ flex: 1 }}>
-                <label htmlFor={`${attr}.attributeValue`}>Value</label>
-                <MobileNumberInput 
-                  id={`${attr}.attributeValue`} 
-                  name={`${attr}.attributeValue`} 
-                  value={formData[attr].attributeValue} 
-                  onChange={handleChange} 
-                  step="0.1" 
-                  placeholder="0.0"
-                />
-              </div>
-              <div className="form-group" style={{ flex: 1 }}>
-                <label htmlFor={`${attr}.isGrouped`}>
-                  <input
-                    type="checkbox"
-                    id={`${attr}.isGrouped`}
-                    name={`${attr}.isGrouped`}
-                    checked={formData[attr].isGrouped !== false}
-                    onChange={handleChange}
-                  />
-                  Include in Grouping
-                </label>
-              </div>
-            </div>
-          </div>
-        ))}
+        <div className="form-group">
+          <AttributeGroups
+            attributes={formData}
+            renderAttribute={renderAttributeForForm}
+            title="Attributes"
+            defaultExpandedGroups={['BODY']}
+          />
+        </div>
 
         <h3>Special Properties</h3>
         <div className="form-group">
