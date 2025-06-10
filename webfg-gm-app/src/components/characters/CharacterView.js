@@ -360,20 +360,8 @@ const CharacterView = () => {
 
         <div className="section-row">
           <CharacterAttributesBackend 
-            lethality={character.lethality}
-            armour={character.armour}
-            endurance={character.endurance}
-            strength={character.strength}
-            dexterity={character.dexterity}
-            agility={character.agility}
-            perception={character.perception}
-            charisma={character.charisma}
-            intelligence={character.intelligence}
-            resolve={character.resolve}
-            morale={character.morale}
             character={character}
             groupedAttributes={character.groupedAttributes}
-            onUpdate={refetch}
           />
         </div>
 

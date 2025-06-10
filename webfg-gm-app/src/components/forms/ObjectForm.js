@@ -84,23 +84,19 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
   const getInitialFormData = useCallback(() => {
     if (isEditing && object) {
       const base = stripTypename(object);
-      return {
+      const form = {
         name: base.name || "",
         objectCategory: base.objectCategory || ObjectCategoryEnum[0],
-        lethality: base.lethality || defaultAttribute,
-        armour: base.armour || defaultAttribute,
-        endurance: base.endurance || defaultAttribute,
-        strength: base.strength || defaultAttribute,
-        dexterity: base.dexterity || defaultAttribute,
-        agility: base.agility || defaultAttribute,
-        perception: base.perception || defaultAttribute,
-        charisma: base.charisma || defaultAttribute,
-        intelligence: base.intelligence || defaultAttribute,
-        resolve: base.resolve || defaultAttribute,
-        morale: base.morale || defaultAttribute,
         special: base.special || [],
         equipmentIds: base.equipmentIds || []
       };
+      
+      // Add all attributes from the new grouping
+      Object.values(ATTRIBUTE_GROUPS).flat().forEach(attr => {
+        form[attr] = base[attr] || defaultAttribute;
+      });
+      
+      return form;
     }
     return { ...defaultObjectForm };
   }, [isEditing, object]);

@@ -2,29 +2,14 @@ import React, { useState, useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_CHARACTER_ATTRIBUTE_BREAKDOWN } from "../../graphql/computedOperations";
 import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
+import AttributeGroups, { ATTRIBUTE_GROUPS } from "../common/AttributeGroups";
 import "./CharacterAttributes.css";
 
 // Version that uses backend computed fields
 const CharacterAttributesBackend = ({ 
-  lethality, armour, endurance, strength, dexterity, agility,
-  perception, charisma, intelligence, resolve, morale,
-  character, // Added character prop for breakdown queries
+  character, // Full character object with all attributes
   groupedAttributes // New prop from backend
 }) => {
-  
-  const attributes = [
-    { name: "Lethality", key: "lethality", data: lethality },
-    { name: "Armour", key: "armour", data: armour },
-    { name: "Endurance", key: "endurance", data: endurance },
-    { name: "Strength", key: "strength", data: strength },
-    { name: "Dexterity", key: "dexterity", data: dexterity },
-    { name: "Agility", key: "agility", data: agility },
-    { name: "Perception", key: "perception", data: perception },
-    { name: "Charisma", key: "charisma", data: charisma },
-    { name: "Intelligence", key: "intelligence", data: intelligence },
-    { name: "Resolve", key: "resolve", data: resolve },
-    { name: "Morale", key: "morale", data: morale }
-  ].filter(attr => attr.data); // Only show attributes that have data
 
   // State for breakdown popup
   const [showBreakdown, setShowBreakdown] = useState(false);
@@ -62,23 +47,23 @@ const CharacterAttributesBackend = ({
     const steps = [];
     let stepCount = 1;
     
-    // Find the attribute in our attributes array
-    const attribute = attributes.find(attr => attr.key === attributeKey);
-    if (!attribute) {
+    // Find the attribute in character or use effectiveGroupedAttributes
+    const originalValue = character?.[attributeKey]?.attribute?.attributeValue || 0;
+    if (!originalValue && originalValue !== 0) {
       return steps;
     }
     
     // Get original value
-    const originalValue = Number(attribute.data.attribute.attributeValue);
+    const numOriginalValue = Number(originalValue);
     
     // Add base value as first step
     steps.push({
       step: stepCount++,
       entityName: character?.name || 'Character',
       entityType: 'character',
-      attributeValue: originalValue,
-      isGrouped: attribute.data.attribute.isGrouped,
-      runningTotal: originalValue,
+      attributeValue: numOriginalValue,
+      isGrouped: character?.[attributeKey]?.attribute?.isGrouped || true,
+      runningTotal: numOriginalValue,
       formula: null
     });
     
@@ -98,7 +83,7 @@ const CharacterAttributesBackend = ({
     
     
     // Add steps for each condition
-    let runningTotal = originalValue;
+    let runningTotal = numOriginalValue;
     relevantConditions.forEach(condition => {
       const conditionAmount = Number(condition.conditionAmount);
       const previousValue = runningTotal;
@@ -131,10 +116,10 @@ const CharacterAttributesBackend = ({
     // If the backend didn't provide groupedAttributes, create our own version
     const fallbackAttributes = {};
     
-    // Initialize with base attribute values
-    attributes.forEach(attr => {
-      if (attr.data?.attribute?.attributeValue) {
-        fallbackAttributes[attr.key] = Number(attr.data.attribute.attributeValue);
+    // Initialize with base attribute values from character
+    Object.values(ATTRIBUTE_GROUPS).flat().forEach(attrName => {
+      if (character?.[attrName]?.attribute?.attributeValue !== undefined) {
+        fallbackAttributes[attrName] = Number(character[attrName].attribute.attributeValue);
       }
     });
     
@@ -157,7 +142,7 @@ const CharacterAttributesBackend = ({
     }
     
     return fallbackAttributes;
-  }, [attributes, character?.conditions, groupedAttributes]);
+  }, [character, groupedAttributes]);
 
   // Helper function to get color style for grouped value
   const getGroupedValueStyle = (originalValue, groupedValue) => {
@@ -187,11 +172,82 @@ const CharacterAttributesBackend = ({
     return { fontWeight: 'bold' }; // Normal color for same
   };
 
-  if (attributes.length === 0) {
+  // Render function for individual attributes in the view
+  const renderAttributeForView = (attributeName, attribute, displayName) => {
+    const originalValue = character?.[attributeName]?.attribute?.attributeValue || 0;
+    const groupedValue = effectiveGroupedAttributes?.[attributeName];
+    const hasEquipment = character && character.equipment && character.equipment.length > 0;
+    const hasConditions = character && character.conditions && character.conditions.length > 0;
+    
+    // Check if there are conditions that affect this attribute
+    const hasConditionForThisAttribute = hasConditions && character.conditions.some(c => 
+      c.conditionTarget && c.conditionTarget.toLowerCase() === attributeName.toLowerCase()
+    );
+    
+    // Convert values to numbers for accurate comparison
+    const numOriginal = typeof originalValue === 'string' ? parseFloat(originalValue) : Number(originalValue);
+    const numGrouped = typeof groupedValue === 'string' ? parseFloat(groupedValue) : Number(groupedValue);
+    
+    // Check if we have valid numbers before computing difference
+    const canComputeDifference = !isNaN(numOriginal) && !isNaN(numGrouped);
+    const difference = canComputeDifference ? Math.abs(numGrouped - numOriginal) : 0;
+    const isDifferent = canComputeDifference && difference >= 0.01;
+    
+    // Determine if we should show grouped value
+    const shouldShowGroupedValue = 
+      ((groupedValue !== undefined && groupedValue !== null) && 
+       (hasEquipment || hasConditionForThisAttribute || isDifferent)) ||
+      (hasConditionForThisAttribute && effectiveGroupedAttributes && 
+       effectiveGroupedAttributes[attributeName] !== undefined);
+    
+    return (
+      <div key={attributeName} className="attribute-item">
+        <label>{displayName}</label>
+        <span>
+          {originalValue} 
+          <span 
+            className="grouping-indicator" 
+            title={character?.[attributeName]?.attribute?.isGrouped ? 'This attribute participates in grouping' : 'This attribute does not participate in grouping'}
+            style={{ marginLeft: '6px', fontSize: '0.8em', opacity: 0.7 }}
+          >
+            {character?.[attributeName]?.attribute?.isGrouped !== false ? '☑️' : '❌'}
+          </span>
+          {shouldShowGroupedValue && (
+            <span 
+              className="grouped-value" 
+              style={getGroupedValueStyle(originalValue, effectiveGroupedAttributes[attributeName])}
+              title="Final grouped value with equipment and conditions"
+            >
+              {' → '}{
+                effectiveGroupedAttributes[attributeName] !== undefined && 
+                !isNaN(Number(effectiveGroupedAttributes[attributeName])) ? 
+                  Math.round(Number(effectiveGroupedAttributes[attributeName])) : 
+                  originalValue
+              }
+              {(hasEquipment || hasConditions) && (
+                <button
+                  className="info-icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleShowBreakdown(attributeName, displayName);
+                  }}
+                  title="Show detailed breakdown"
+                >
+                  ℹ️
+                </button>
+              )}
+            </span>
+          )}
+        </span>
+      </div>
+    );
+  };
+  
+  if (!character) {
     return (
       <div className="section character-attributes">
         <h3>Attributes</h3>
-        <p>No attributes defined.</p>
+        <p>No character data available.</p>
       </div>
     );
   }
@@ -199,96 +255,12 @@ const CharacterAttributesBackend = ({
   return (
     <>
       <div className="section character-attributes">
-        <h3>Attributes</h3>
-        <div className="attributes-grid">
-          {attributes.map(attr => {
-            const originalValue = attr.data.attribute.attributeValue;
-            const groupedValue = effectiveGroupedAttributes?.[attr.key];
-            const hasEquipment = character && character.equipment && character.equipment.length > 0;
-            const hasConditions = character && character.conditions && character.conditions.length > 0;
-            
-            
-            // Show grouped value if:
-            // 1. There's equipment that could affect it, OR
-            // 2. There are conditions that could affect it, OR
-            // 3. The grouped value is different from original
-            
-            // Make sure we handle conditions properly - we want to show the difference even if very small
-            // Fixed issue: Always show the grouped value if there are conditions that might affect this attribute
-            const hasConditionForThisAttribute = hasConditions && character.conditions.some(c => 
-              c.conditionTarget && c.conditionTarget.toLowerCase() === attr.key.toLowerCase()
-            );
-            
-            
-            
-            // Convert values to numbers for accurate comparison and ensure we're comparing numeric values
-            const numOriginal = typeof originalValue === 'string' ? parseFloat(originalValue) : Number(originalValue);
-            const numGrouped = typeof groupedValue === 'string' ? parseFloat(groupedValue) : Number(groupedValue);
-            
-            // Check if we have valid numbers before computing difference
-            const canComputeDifference = !isNaN(numOriginal) && !isNaN(numGrouped);
-            const difference = canComputeDifference ? Math.abs(numGrouped - numOriginal) : 0;
-            
-            const isDifferent = canComputeDifference && difference >= 0.01;
-            console.log(`  - Values are different: ${isDifferent} (diff: ${difference})`);
-            
-            // Improved condition to show grouped value
-            // Now includes a fallback for undefined groupedValue but with conditions
-            const shouldShowGroupedValue = 
-              // Regular case - we have a grouped value and some reason to show it
-              ((groupedValue !== undefined && groupedValue !== null) && 
-               (hasEquipment || hasConditionForThisAttribute || isDifferent)) ||
-              // Special case - no grouped value but we have conditions that should affect this attribute
-              (hasConditionForThisAttribute && effectiveGroupedAttributes && 
-               effectiveGroupedAttributes[attr.key] !== undefined);
-            
-            
-            return (
-              <div key={attr.name} className="attribute-item">
-                <div className="attribute-name">{attr.name}</div>
-                <div className="attribute-info">
-                  <div className="attribute-value">
-                    {originalValue} 
-                    <span 
-                      className="grouping-indicator" 
-                      title={attr.data.attribute.isGrouped ? 'This attribute participates in grouping' : 'This attribute does not participate in grouping'}
-                      style={{ marginLeft: '6px', fontSize: '0.8em', opacity: 0.7 }}
-                    >
-                      {attr.data.attribute.isGrouped ? '☑️' : '❌'}
-                    </span>
-                    {shouldShowGroupedValue && (
-                      <span 
-                        className="grouped-value" 
-                        style={getGroupedValueStyle(originalValue, effectiveGroupedAttributes[attr.key])}
-                        title="Final grouped value with equipment and conditions"
-                      >
-                        {' → '}{
-                          // Use either the actual groupedValue or our computed fallback value
-                          effectiveGroupedAttributes[attr.key] !== undefined && 
-                          !isNaN(Number(effectiveGroupedAttributes[attr.key])) ? 
-                            Math.round(Number(effectiveGroupedAttributes[attr.key])) : 
-                            originalValue
-                        }
-                        {(hasEquipment || hasConditions) && (
-                          <button
-                            className="info-icon"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent event bubbling
-                              handleShowBreakdown(attr.key, attr.name);
-                            }}
-                            title="Show detailed breakdown"
-                          >
-                            ℹ️
-                          </button>
-                        )}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <AttributeGroups
+          attributes={character}
+          renderAttribute={renderAttributeForView}
+          title="Attributes"
+          defaultExpandedGroups={['BODY', 'MARTIAL', 'MENTAL']}
+        />
       </div>
       
       {showBreakdown && (
