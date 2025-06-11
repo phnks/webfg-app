@@ -30,14 +30,14 @@ const adjustDicePools = (sourceDice, targetDice) => {
   let adjustedTarget = targetDice;
   
   while (adjustedSource + adjustedTarget > 20) {
-    // Halve both pools, rounding down, but minimum 0 dice
-    adjustedSource = Math.max(0, Math.floor(adjustedSource / 2));
-    adjustedTarget = Math.max(0, Math.floor(adjustedTarget / 2));
+    // Halve both pools, rounding to nearest integer, but minimum 0 dice
+    adjustedSource = Math.max(0, Math.round(adjustedSource / 2));
+    adjustedTarget = Math.max(0, Math.round(adjustedTarget / 2));
     
     // If either pool is now 0 and total still > 20, do one more halving and stop
     if ((adjustedSource === 0 || adjustedTarget === 0) && adjustedSource + adjustedTarget > 20) {
-      adjustedSource = Math.max(0, Math.floor(adjustedSource / 2));
-      adjustedTarget = Math.max(0, Math.floor(adjustedTarget / 2));
+      adjustedSource = Math.max(0, Math.round(adjustedSource / 2));
+      adjustedTarget = Math.max(0, Math.round(adjustedTarget / 2));
       break;
     }
   }
@@ -260,13 +260,6 @@ const calculateActionTest = (params) => {
     sourceValue = groupSourceAttributes(sourceCharacters, sourceLower);
   }
   
-  // Debug logging
-  console.log('Action test calculation debug:', {
-    sourceAttribute: sourceLower,
-    sourceValue: sourceValue,
-    sourceCharacterCount: sourceCharacters.length
-  });
-  
   // Calculate target value (without fatigue for characters)
   let targetValue = 0;
   
@@ -279,9 +272,21 @@ const calculateActionTest = (params) => {
     targetValue = groupTargetAttributes(targetEntities, targetLower, targetType);
   }
   
+  // Debug logging
+  console.log('Action test calculation debug:', {
+    sourceAttribute: sourceLower,
+    targetAttribute: targetLower,
+    sourceValue: sourceValue,
+    targetValue: targetValue,
+    sourceCharacterCount: sourceCharacters.length,
+    targetEntityCount: targetEntities.length,
+    sourceCharacters: sourceCharacters.map(c => ({ name: c.name, [sourceLower]: c[sourceLower] })),
+    targetEntities: targetEntities.map(t => ({ name: t.name, [targetLower]: t[targetLower] }))
+  });
+  
   // Calculate dice pool information before fatigue
-  const sourceDice = Math.max(1, Math.floor(sourceValue));
-  const targetDice = Math.max(1, Math.floor(targetValue));
+  const sourceDice = Math.max(1, Math.round(sourceValue));
+  const targetDice = Math.max(1, Math.round(targetValue));
   
   // Apply dice pool halving if needed
   const { adjustedSource, adjustedTarget } = adjustDicePools(sourceDice, targetDice);

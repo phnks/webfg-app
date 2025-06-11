@@ -10,11 +10,12 @@ const docClient = DynamoDBDocumentClient.from(client, {
 const charactersTable = process.env.CHARACTERS_TABLE;
 const objectsTable = process.env.OBJECTS_TABLE;
 const actionsTable = process.env.ACTIONS_TABLE;
+const conditionsTable = process.env.CONDITIONS_TABLE;
 
 exports.handler = async (event) => {
   console.log("Received event for calculateActionTest:", JSON.stringify(event, null, 2));
 
-  const input = event.arguments.input;
+  const input = event.input || event.arguments?.input;
   const {
     actionId,
     sourceCharacterIds,
@@ -76,6 +77,44 @@ exports.handler = async (event) => {
         } else {
           source.equipment = [];
         }
+
+        // Fetch conditions for each source character
+        console.log(`Fetching conditions for source character ${source.name} (${source.characterId}):`, {
+          hasCharacterConditions: !!source.characterConditions,
+          characterConditionsLength: source.characterConditions?.length,
+          characterConditions: source.characterConditions
+        });
+        source.conditions = [];
+        if (source.characterConditions && source.characterConditions.length > 0) {
+          for (const characterCondition of source.characterConditions) {
+            try {
+              const conditionId = characterCondition.conditionId;
+              const result = await docClient.send(new GetCommand({
+                TableName: conditionsTable,
+                Key: { conditionId }
+              }));
+              
+              if (result.Item) {
+                console.log(`Successfully fetched condition ${conditionId}:`, {
+                  conditionName: result.Item.name,
+                  conditionType: result.Item.conditionType,
+                  conditionTarget: result.Item.conditionTarget,
+                  amountFromCharacterCondition: characterCondition.amount
+                });
+                // Add the amount from characterCondition to the condition object
+                source.conditions.push({
+                  ...result.Item,
+                  amount: characterCondition.amount
+                });
+              } else {
+                console.warn(`Condition ${conditionId} not found in database`);
+              }
+            } catch (error) {
+              console.error(`Error fetching condition ${characterCondition.conditionId}:`, error);
+            }
+          }
+        }
+
         sourceCharacters.push(source);
       }
     }
@@ -111,6 +150,44 @@ exports.handler = async (event) => {
           } else {
             target.equipment = [];
           }
+
+          // Fetch conditions for each target character
+          console.log(`Fetching conditions for target character ${target.name} (${target.characterId}):`, {
+            hasCharacterConditions: !!target.characterConditions,
+            characterConditionsLength: target.characterConditions?.length,
+            characterConditions: target.characterConditions
+          });
+          target.conditions = [];
+          if (target.characterConditions && target.characterConditions.length > 0) {
+            for (const characterCondition of target.characterConditions) {
+              try {
+                const conditionId = characterCondition.conditionId;
+                const result = await docClient.send(new GetCommand({
+                  TableName: conditionsTable,
+                  Key: { conditionId }
+                }));
+                
+                if (result.Item) {
+                  console.log(`Successfully fetched TARGET condition ${conditionId}:`, {
+                    conditionName: result.Item.name,
+                    conditionType: result.Item.conditionType,
+                    conditionTarget: result.Item.conditionTarget,
+                    amountFromCharacterCondition: characterCondition.amount
+                  });
+                  // Add the amount from characterCondition to the condition object
+                  target.conditions.push({
+                    ...result.Item,
+                    amount: characterCondition.amount
+                  });
+                } else {
+                  console.warn(`TARGET condition ${conditionId} not found in database`);
+                }
+              } catch (error) {
+                console.error(`Error fetching condition ${characterCondition.conditionId}:`, error);
+              }
+            }
+          }
+
           targetEntities.push(target);
         }
       } else if (targetType === 'OBJECT') {
@@ -146,6 +223,26 @@ exports.handler = async (event) => {
       }
       // ACTION type targets not implemented yet
     }
+
+    // Debug: Log target entities before calculation
+    console.log("=== PRE-CALCULATION DEBUG ===");
+    console.log("Target entities summary:", targetEntities.map(target => ({
+      name: target.name,
+      characterId: target.characterId,
+      hasConditions: !!target.conditions,
+      conditionsCount: target.conditions?.length || 0,
+      conditions: target.conditions?.map(c => ({
+        name: c.name,
+        type: c.conditionType,
+        target: c.conditionTarget,
+        amount: c.amount
+      })) || []
+    })));
+    console.log("Action details:", {
+      sourceAttribute: action.sourceAttribute,
+      targetAttribute: action.targetAttribute,
+      targetType: targetType
+    });
 
     // Calculate the action test
     const result = calculateActionTest({
