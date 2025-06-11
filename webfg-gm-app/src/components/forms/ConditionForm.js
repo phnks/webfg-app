@@ -12,7 +12,14 @@ import "./ConditionForm.css";
 
 const ConditionType = ["HELP", "HINDER"];
 const ConditionCategory = ["PHYSICAL", "MENTAL", "ENVIRONMENTAL", "MAGICAL", "DISEASE", "BUFF", "DEBUFF", "STATUS"];
-const AttributeName = ["LETHALITY", "ARMOUR", "ENDURANCE", "STRENGTH", "DEXTERITY", "AGILITY", "PERCEPTION", "CHARISMA", "INTELLIGENCE", "RESOLVE", "MORALE"];
+const AttributeName = [
+  // BODY attributes
+  "SPEED", "WEIGHT", "SIZE", "ARMOUR", "ENDURANCE",
+  // MARTIAL attributes  
+  "LETHALITY", "STRENGTH", "DEXTERITY", "AGILITY", "PERCEPTION",
+  // MENTAL attributes
+  "INTENSITY", "RESOLVE", "MORALE", "INTELLIGENCE", "CHARISMA"
+];
 
 const defaultConditionForm = {
   name: '',

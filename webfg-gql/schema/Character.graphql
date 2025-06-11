@@ -7,17 +7,21 @@ type Character {
 
   values: [Value]      
 
-  lethality: CharacterAttribute!
+  speed: CharacterAttribute!
+  weight: CharacterAttribute!
+  size: CharacterAttribute!
   armour: CharacterAttribute!
   endurance: CharacterAttribute!
+  lethality: CharacterAttribute!
   strength: CharacterAttribute!
   dexterity: CharacterAttribute!
   agility: CharacterAttribute!
   perception: CharacterAttribute!
-  charisma: CharacterAttribute!
-  intelligence: CharacterAttribute!
+  intensity: CharacterAttribute!
   resolve: CharacterAttribute!
   morale: CharacterAttribute!
+  intelligence: CharacterAttribute!
+  charisma: CharacterAttribute!
 
   actionIds: [ID]
   actions: [Action]
@@ -68,17 +72,21 @@ input CharacterInput {
   will: Int!
   fatigue: Int!
   values: [ValueInput]
-  lethality: CharacterAttributeInput!
+  speed: CharacterAttributeInput!
+  weight: CharacterAttributeInput!
+  size: CharacterAttributeInput!
   armour: CharacterAttributeInput!
   endurance: CharacterAttributeInput!
+  lethality: CharacterAttributeInput!
   strength: CharacterAttributeInput!
   dexterity: CharacterAttributeInput!
   agility: CharacterAttributeInput!
   perception: CharacterAttributeInput!
-  charisma: CharacterAttributeInput!
-  intelligence: CharacterAttributeInput!
+  intensity: CharacterAttributeInput!
   resolve: CharacterAttributeInput!
   morale: CharacterAttributeInput!
+  intelligence: CharacterAttributeInput!
+  charisma: CharacterAttributeInput!
   actionIds: [ID]
   special: [String]
   inventoryIds: [ID]

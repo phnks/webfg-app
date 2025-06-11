@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ErrorPopup from '../common/ErrorPopup';
 import MobileNumberInput from '../common/MobileNumberInput';
+import AttributeGroups, { ATTRIBUTE_GROUPS } from '../common/AttributeGroups';
 import { useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
@@ -54,54 +55,56 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const [selectedValueName, setSelectedValueName] = useState("");
   const [selectedValueType, setSelectedValueType] = useState("GOOD");
   
-  const [formData, setFormData] = useState({
-    name: "",
-    characterCategory: "HUMAN",
-    will: 10,
-    fatigue: 0,
-    values: [],
-    lethality: { attribute: { attributeValue: 0, isGrouped: true } },
-    armour: { attribute: { attributeValue: 0, isGrouped: true } },
-    endurance: { attribute: { attributeValue: 0, isGrouped: true } },
-    strength: { attribute: { attributeValue: 0, isGrouped: true } },
-    dexterity: { attribute: { attributeValue: 0, isGrouped: true } },
-    agility: { attribute: { attributeValue: 0, isGrouped: true } },
-    perception: { attribute: { attributeValue: 0, isGrouped: true } },
-    charisma: { attribute: { attributeValue: 0, isGrouped: true } },
-    intelligence: { attribute: { attributeValue: 0, isGrouped: true } },
-    resolve: { attribute: { attributeValue: 0, isGrouped: true } },
-    morale: { attribute: { attributeValue: 0, isGrouped: true } },
-    special: [],
-    actionIds: [],
-    inventoryIds: [],
-    equipmentIds: []
-  });
+  // Get all attribute names from the new grouping
+  const getAllAttributeNames = () => {
+    return Object.values(ATTRIBUTE_GROUPS).flat();
+  };
+
+  // Create initial form data with all attributes
+  const createInitialFormData = () => {
+    const initialData = {
+      name: "",
+      characterCategory: "HUMAN",
+      will: 10,
+      fatigue: 0,
+      values: [],
+      special: [],
+      actionIds: [],
+      inventoryIds: [],
+      equipmentIds: []
+    };
+    
+    // Add all attributes with default values
+    getAllAttributeNames().forEach(attr => {
+      initialData[attr] = { attribute: { attributeValue: 0, isGrouped: true } };
+    });
+    
+    return initialData;
+  };
+
+  const [formData, setFormData] = useState(createInitialFormData());
 
   // Effect to populate form data when character prop changes (for editing)
   useEffect(() => {
     if (isEditing && character) {
-      setFormData({
+      const updatedFormData = {
         name: character.name || "",
         characterCategory: character.characterCategory || "HUMAN",
         will: character.will !== null && character.will !== undefined ? character.will : 10,
         fatigue: character.fatigue || 0,
         values: (character.values || []).map(v => ({ ...v })),
-        lethality: character.lethality || { attribute: { attributeValue: 0, isGrouped: true } },
-        armour: character.armour || { attribute: { attributeValue: 0, isGrouped: true } },
-        endurance: character.endurance || { attribute: { attributeValue: 0, isGrouped: true } },
-        strength: character.strength || { attribute: { attributeValue: 0, isGrouped: true } },
-        dexterity: character.dexterity || { attribute: { attributeValue: 0, isGrouped: true } },
-        agility: character.agility || { attribute: { attributeValue: 0, isGrouped: true } },
-        perception: character.perception || { attribute: { attributeValue: 0, isGrouped: true } },
-        charisma: character.charisma || { attribute: { attributeValue: 0, isGrouped: true } },
-        intelligence: character.intelligence || { attribute: { attributeValue: 0, isGrouped: true } },
-        resolve: character.resolve || { attribute: { attributeValue: 0, isGrouped: true } },
-        morale: character.morale || { attribute: { attributeValue: 0, isGrouped: true } },
         special: character.special || [],
         actionIds: character.actionIds || [],
         inventoryIds: character.inventoryIds || [],
         equipmentIds: character.equipmentIds || []
+      };
+      
+      // Add all attributes from character or default values
+      getAllAttributeNames().forEach(attr => {
+        updatedFormData[attr] = character[attr] || { attribute: { attributeValue: 0, isGrouped: true } };
       });
+      
+      setFormData(updatedFormData);
     }
   }, [isEditing, character]);
 
@@ -216,77 +219,21 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         will: formData.will !== null && formData.will !== undefined && formData.will !== '' ? parseInt(formData.will) : 10,
         fatigue: formData.fatigue !== null && formData.fatigue !== undefined && formData.fatigue !== '' ? parseInt(formData.fatigue) : 0,
         values: formData.values.map(v => ({ valueName: v.valueName, valueType: v.valueType })),
-        lethality: {
-          attribute: { 
-            attributeValue: parseFloat(formData.lethality.attribute.attributeValue) || 0,
-            isGrouped: formData.lethality.attribute.isGrouped
-          }
-        },
-        armour: {
-          attribute: { 
-            attributeValue: parseFloat(formData.armour.attribute.attributeValue) || 0,
-            isGrouped: formData.armour.attribute.isGrouped
-          }
-        },
-        endurance: {
-          attribute: { 
-            attributeValue: parseFloat(formData.endurance.attribute.attributeValue) || 0,
-            isGrouped: formData.endurance.attribute.isGrouped
-          }
-        },
-        strength: {
-          attribute: { 
-            attributeValue: parseFloat(formData.strength.attribute.attributeValue) || 0,
-            isGrouped: formData.strength.attribute.isGrouped
-          }
-        },
-        dexterity: {
-          attribute: { 
-            attributeValue: parseFloat(formData.dexterity.attribute.attributeValue) || 0,
-            isGrouped: formData.dexterity.attribute.isGrouped
-          }
-        },
-        agility: {
-          attribute: { 
-            attributeValue: parseFloat(formData.agility.attribute.attributeValue) || 0,
-            isGrouped: formData.agility.attribute.isGrouped
-          }
-        },
-        perception: {
-          attribute: { 
-            attributeValue: parseFloat(formData.perception.attribute.attributeValue) || 0,
-            isGrouped: formData.perception.attribute.isGrouped
-          }
-        },
-        charisma: {
-          attribute: { 
-            attributeValue: parseFloat(formData.charisma.attribute.attributeValue) || 0,
-            isGrouped: formData.charisma.attribute.isGrouped
-          }
-        },
-        intelligence: {
-          attribute: { 
-            attributeValue: parseFloat(formData.intelligence.attribute.attributeValue) || 0,
-            isGrouped: formData.intelligence.attribute.isGrouped
-          }
-        },
-        resolve: {
-          attribute: { 
-            attributeValue: parseFloat(formData.resolve.attribute.attributeValue) || 0,
-            isGrouped: formData.resolve.attribute.isGrouped
-          }
-        },
-        morale: {
-          attribute: { 
-            attributeValue: parseFloat(formData.morale.attribute.attributeValue) || 0,
-            isGrouped: formData.morale.attribute.isGrouped
-          }
-        },
         special: formData.special,
         actionIds: formData.actionIds,
         inventoryIds: formData.inventoryIds,
         equipmentIds: formData.equipmentIds
       };
+      
+      // Add all attributes dynamically
+      getAllAttributeNames().forEach(attr => {
+        input[attr] = {
+          attribute: { 
+            attributeValue: parseFloat(formData[attr]?.attribute?.attributeValue) || 0,
+            isGrouped: formData[attr]?.attribute?.isGrouped !== false
+          }
+        };
+      });
 
       if (isEditing) {
         await updateCharacter({
@@ -316,10 +263,29 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     }
   };
 
-  const attributes = [
-    'lethality', 'armour', 'endurance', 'strength', 'dexterity',
-    'agility', 'perception', 'charisma', 'intelligence', 'resolve', 'morale'
-  ];
+  // Render function for individual attributes in the form
+  const renderAttributeForForm = (attributeName, attribute, displayName) => {
+    return (
+      <div key={attributeName} className="attribute-item">
+        <label>{displayName}</label>
+        <div className="attribute-controls">
+          <MobileNumberInput
+            step="0.1"
+            value={formData[attributeName]?.attribute?.attributeValue || 0}
+            onChange={(e) => handleNestedAttributeChange(attributeName, 'attributeValue', e.target.value)}
+          />
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={formData[attributeName]?.attribute?.isGrouped !== false}
+              onChange={(e) => handleNestedAttributeChange(attributeName, 'isGrouped', e.target.checked)}
+            />
+            Group
+          </label>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="form-container">
@@ -367,33 +333,13 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         </div>
 
         <div className="form-section">
-          <h3>Attributes</h3>
-          <div className="attributes-grid">
-            {attributes.map(attr => (
-              <div key={attr} className="attribute-group">
-                <h4>{attr.charAt(0).toUpperCase() + attr.slice(1)}</h4>
-                <div className="attribute-fields">
-                  <div className="form-field">
-                    <label>Value</label>
-                    <MobileNumberInput
-                      step="0.1"
-                      value={formData[attr]?.attribute?.attributeValue || 0}
-                      onChange={(e) => handleNestedAttributeChange(attr, 'attributeValue', e.target.value)}
-                    />
-                  </div>
-                  <div className="form-field">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={formData[attr]?.attribute?.isGrouped !== false}
-                        onChange={(e) => handleNestedAttributeChange(attr, 'isGrouped', e.target.checked)}
-                      />
-                      Include in Grouping
-                    </label>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="form-group">
+            <AttributeGroups
+              attributes={formData}
+              renderAttribute={renderAttributeForForm}
+              title="Attributes"
+              defaultExpandedGroups={['BODY']}
+            />
           </div>
         </div>
 

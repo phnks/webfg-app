@@ -8,10 +8,11 @@ import {
   ON_UPDATE_OBJECT,
   ON_DELETE_OBJECT
 } from "../../graphql/operations";
-import { GET_OBJECT_WITH_GROUPED } from "../../graphql/computedOperations";
+import { GET_OBJECT_WITH_GROUPED, GET_OBJECT_ATTRIBUTE_BREAKDOWN } from "../../graphql/computedOperations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import ObjectForm from "../forms/ObjectForm";
-import ObjectAttributesBackend from "./ObjectAttributesBackend";
+import AttributeGroups from "../common/AttributeGroups";
+import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
 import "./ObjectView.css";
 
 const ObjectView = () => {
@@ -24,6 +25,12 @@ const ObjectView = () => {
   const [mutationError, setMutationError] = useState(null);
   const location = useLocation();
   const [breadcrumbs, setBreadcrumbs] = useState([]);
+  
+  // State for attribute breakdown popup
+  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [breakdownData, setBreakdownData] = useState([]);
+  const [breakdownAttributeName, setBreakdownAttributeName] = useState('');
+  const [selectedAttributeKey, setSelectedAttributeKey] = useState(null);
 
   // Initial query to get object data
   const { data, loading, error, refetch } = useQuery(GET_OBJECT_WITH_GROUPED, {
@@ -37,6 +44,24 @@ const ObjectView = () => {
 
   const [deleteObject] = useMutation(DELETE_OBJECT);
   const [addObjectToInventory] = useMutation(ADD_OBJECT_TO_INVENTORY);
+  
+  // Query for attribute breakdown (only when needed)
+  useQuery(
+    GET_OBJECT_ATTRIBUTE_BREAKDOWN,
+    {
+      variables: { 
+        objectId: currentObject?.objectId,
+        attributeName: selectedAttributeKey 
+      },
+      skip: !selectedAttributeKey || !currentObject?.objectId,
+      onCompleted: (data) => {
+        if (data?.getObject?.attributeBreakdown) {
+          setBreakdownData(data.getObject.attributeBreakdown);
+          setShowBreakdown(true);
+        }
+      }
+    }
+  );
 
   // Subscribe to object updates
   useSubscription(ON_UPDATE_OBJECT, {
@@ -228,7 +253,70 @@ const ObjectView = () => {
             <span>{currentObject.objectCategory || "N/A"}</span>
           </div>
 
-          <ObjectAttributesBackend object={currentObject} />
+          <AttributeGroups
+            attributes={currentObject}
+            title="Attributes"
+            defaultExpandedGroups={['BODY', 'MARTIAL', 'MENTAL']}
+            renderAttribute={(attributeName, attribute, displayName) => {
+              // Get the original value and grouped value
+              const originalValue = attribute?.attributeValue || 0;
+              const groupedValue = currentObject.groupedAttributes?.[attributeName];
+              const hasGroupedValue = groupedValue !== undefined && groupedValue !== originalValue;
+              const hasEquipment = currentObject?.equipment?.length > 0;
+              
+              // Function to get color style for grouped value
+              const getGroupedValueStyle = (originalValue, groupedValue) => {
+                if (groupedValue > originalValue) {
+                  return { color: '#28a745', fontWeight: 'bold' }; // Green for higher
+                } else if (groupedValue < originalValue) {
+                  return { color: '#dc3545', fontWeight: 'bold' }; // Red for lower
+                }
+                return { fontWeight: 'bold' }; // Normal color for same
+              };
+              
+              // Handler for showing breakdown
+              const handleShowBreakdown = () => {
+                if (hasEquipment) {
+                  setBreakdownAttributeName(displayName);
+                  setSelectedAttributeKey(attributeName);
+                }
+              };
+              
+              return (
+                <div key={attributeName} className="detail-row">
+                  <span>{displayName}:</span>
+                  <span>
+                    {originalValue}
+                    <span 
+                      className="grouping-indicator" 
+                      title={attribute?.isGrouped ? 'This attribute participates in grouping' : 'This attribute does not participate in grouping'}
+                      style={{ marginLeft: '6px', fontSize: '0.8em', opacity: 0.7 }}
+                    >
+                      {attribute?.isGrouped ? '☑️' : '❌'}
+                    </span>
+                    {hasGroupedValue && (
+                      <span 
+                        className="grouped-value" 
+                        style={getGroupedValueStyle(originalValue, Math.round(groupedValue))}
+                        title="Grouped value with equipment"
+                      >
+                        {' → '}{Math.round(groupedValue)}
+                        {hasEquipment && (
+                          <button
+                            className="info-icon"
+                            onClick={handleShowBreakdown}
+                            title="Show detailed breakdown"
+                          >
+                            ℹ️
+                          </button>
+                        )}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              );
+            }}
+          />
 
           {currentObject.special && currentObject.special.length > 0 && (
             <>
@@ -273,6 +361,17 @@ const ObjectView = () => {
         </div>
       </div>
       <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} />
+      
+      {showBreakdown && (
+        <AttributeBreakdownPopup
+          breakdown={breakdownData}
+          attributeName={breakdownAttributeName}
+          onClose={() => {
+            setShowBreakdown(false);
+            setSelectedAttributeKey(null);
+          }}
+        />
+      )}
     </div>
   );
 };

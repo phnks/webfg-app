@@ -9,24 +9,27 @@ input AttributeInput {
 }
 
 enum AttributeName {
+  # BODY attributes
   SPEED
   WEIGHT
   SIZE
   ARMOUR
   ENDURANCE
+  
+  # MARTIAL attributes
   LETHALITY
   STRENGTH
   DEXTERITY
   AGILITY
   PERCEPTION
+  
+  # MENTAL attributes
   INTENSITY
   RESOLVE
   MORALE
   INTELLIGENCE
   CHARISMA
-}
-
-type Value {
+}type Value {
   valueName: ValueName!
   valueType: ValueType!
 }
@@ -58,8 +61,6 @@ enum ValueType {
   GOOD
   BAD
 }
-
-
 type Character {
   characterId: ID!
   name: String!
@@ -69,16 +70,21 @@ type Character {
 
   values: [Value]      
 
+  # BODY attributes
   speed: CharacterAttribute!
   weight: CharacterAttribute!
   size: CharacterAttribute!
   armour: CharacterAttribute!
   endurance: CharacterAttribute!
+  
+  # MARTIAL attributes
   lethality: CharacterAttribute!
   strength: CharacterAttribute!
   dexterity: CharacterAttribute!
   agility: CharacterAttribute!
   perception: CharacterAttribute!
+  
+  # MENTAL attributes
   intensity: CharacterAttribute!
   resolve: CharacterAttribute!
   morale: CharacterAttribute!
@@ -134,16 +140,21 @@ input CharacterInput {
   will: Int!
   fatigue: Int!
   values: [ValueInput]
+  # BODY attributes
   speed: CharacterAttributeInput!
   weight: CharacterAttributeInput!
   size: CharacterAttributeInput!
   armour: CharacterAttributeInput!
   endurance: CharacterAttributeInput!
+  
+  # MARTIAL attributes
   lethality: CharacterAttributeInput!
   strength: CharacterAttributeInput!
   dexterity: CharacterAttributeInput!
   agility: CharacterAttributeInput!
   perception: CharacterAttributeInput!
+  
+  # MENTAL attributes
   intensity: CharacterAttributeInput!
   resolve: CharacterAttributeInput!
   morale: CharacterAttributeInput!
@@ -174,22 +185,25 @@ type CharacterConditionWithDetails {
 input CharacterConditionInput {
   conditionId: ID!
   amount: Int!
-}
-
-type Object {
+}type Object {
   objectId: ID!
   name: String!
   objectCategory: ObjectCategory!
+  # BODY attributes
   speed: Attribute!
   weight: Attribute!
   size: Attribute!
   armour: Attribute!
   endurance: Attribute!
+  
+  # MARTIAL attributes
   lethality: Attribute!
   strength: Attribute!
   dexterity: Attribute!
   agility: Attribute!
   perception: Attribute!
+  
+  # MENTAL attributes
   intensity: Attribute!
   resolve: Attribute!
   morale: Attribute!
@@ -223,16 +237,21 @@ enum ObjectCategory {
 input ObjectInput {
   name: String
   objectCategory: ObjectCategory
+  # BODY attributes
   speed: AttributeInput
   weight: AttributeInput
   size: AttributeInput
   armour: AttributeInput
   endurance: AttributeInput
+  
+  # MARTIAL attributes
   lethality: AttributeInput
   strength: AttributeInput
   dexterity: AttributeInput
   agility: AttributeInput
   perception: AttributeInput
+  
+  # MENTAL attributes
   intensity: AttributeInput
   resolve: AttributeInput
   morale: AttributeInput
@@ -241,8 +260,6 @@ input ObjectInput {
   special: [String]
   equipmentIds: [ID]
 }
-
-
 type Action {
   actionId: ID!
   name: String!
@@ -288,9 +305,7 @@ input ActionInput {
   targetType: TargetType!
   effectType: EffectType!
   triggeredActionId: ID
-}
-
-type Condition {
+}type Condition {
   conditionId: ID!
   name: String!
   description: String!
@@ -321,9 +336,7 @@ input ConditionInput {
   conditionCategory: ConditionCategory!
   conditionType: ConditionType!
   conditionTarget: AttributeName!
-}
-
-type Query {
+}type Query {
   # Character queries
   getCharacter(characterId: ID!): Character
   listCharacters(filter: CharacterFilterInput): [Character]
@@ -527,8 +540,6 @@ schema {
   mutation: Mutation
   subscription: Subscription
 }
-
-
 # Computed field types for grouped attributes and action calculations
 
 type GroupedAttributes {
@@ -593,9 +604,7 @@ input ActionTestInput {
 }
 
 # Computed fields are now directly in Character and Object types
-# Query extension for calculateActionTest is now in Schema.graphql
-
-type Encounter {
+# Query extension for calculateActionTest is now in Schema.graphqltype Encounter {
   encounterId: ID!
   name: String!
   description: String
@@ -668,5 +677,3 @@ input UpdateTerrainPositionInput {
   x: Int!
   y: Int!
 }
-
-

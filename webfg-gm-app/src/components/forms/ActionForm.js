@@ -10,7 +10,14 @@ import {
 import "./Form.css";
 
 const ActionCategory = ["MOVE", "ATTACK", "DEFEND", "RECOVER", "INTERACT", "MANIPULATE", "ASSIST"];
-const AttributeName = ["LETHALITY", "ARMOUR", "ENDURANCE", "STRENGTH", "DEXTERITY", "AGILITY", "PERCEPTION", "CHARISMA", "INTELLIGENCE", "RESOLVE", "MORALE"];
+const AttributeName = [
+  // BODY attributes
+  "SPEED", "WEIGHT", "SIZE", "ARMOUR", "ENDURANCE",
+  // MARTIAL attributes  
+  "LETHALITY", "STRENGTH", "DEXTERITY", "AGILITY", "PERCEPTION",
+  // MENTAL attributes
+  "INTENSITY", "RESOLVE", "MORALE", "INTELLIGENCE", "CHARISMA"
+];
 const TargetType = ["OBJECT", "CHARACTER", "ACTION"];
 const EffectType = ["HELP", "HINDER", "DESTROY", "TRIGGER_ACTION"];
 

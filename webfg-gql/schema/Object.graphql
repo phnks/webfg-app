@@ -2,17 +2,21 @@ type Object {
   objectId: ID!
   name: String!
   objectCategory: ObjectCategory!
-  lethality: Attribute!
+  speed: Attribute!
+  weight: Attribute!
+  size: Attribute!
   armour: Attribute!
   endurance: Attribute!
+  lethality: Attribute!
   strength: Attribute!
   dexterity: Attribute!
   agility: Attribute!
   perception: Attribute!
-  charisma: Attribute!
-  intelligence: Attribute!
+  intensity: Attribute!
   resolve: Attribute!
   morale: Attribute!
+  intelligence: Attribute!
+  charisma: Attribute!
   special: [String]
   equipmentIds: [ID]
   equipment: [Object]
@@ -41,17 +45,21 @@ enum ObjectCategory {
 input ObjectInput {
   name: String
   objectCategory: ObjectCategory
-  lethality: AttributeInput
+  speed: AttributeInput
+  weight: AttributeInput
+  size: AttributeInput
   armour: AttributeInput
   endurance: AttributeInput
+  lethality: AttributeInput
   strength: AttributeInput
   dexterity: AttributeInput
   agility: AttributeInput
   perception: AttributeInput
-  charisma: AttributeInput
-  intelligence: AttributeInput
+  intensity: AttributeInput
   resolve: AttributeInput
   morale: AttributeInput
+  intelligence: AttributeInput
+  charisma: AttributeInput
   special: [String]
   equipmentIds: [ID]
 }
