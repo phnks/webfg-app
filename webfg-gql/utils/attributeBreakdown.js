@@ -282,16 +282,18 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     
     for (let j = 1; j < valuesUpToHere.length; j++) {
       const Ai = valuesUpToHere[j];
+      const scalingFactor = j + 1; // Group count when this item was added (2, 3, 4, ...)
       if (A1 > 0) {
-        sum += Ai * (0.1 + Ai / A1);
+        sum += Ai * (scalingFactor + Ai / A1);
       } else {
-        sum += Ai * 0.1;
+        sum += Ai * scalingFactor;
       }
     }
     
     currentValue = sum / valuesUpToHere.length;
     
     stepNumber++;
+    const scalingFactorForDisplay = i + 1; // Group count when this item was added
     breakdown.push({
       step: stepNumber,
       entityName: entity.name,
@@ -299,7 +301,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
       attributeValue: entity.groupedValue,
       isGrouped: entity.isGrouped,
       runningTotal: Math.round(currentValue * 100) / 100,
-      formula: `Weighted Average: (${A1} + ${entity.groupedValue}*(0.1+${entity.groupedValue}/${A1})) / ${valuesUpToHere.length}`
+      formula: `Weighted Average: (${A1} + ${entity.groupedValue}*(${scalingFactorForDisplay}+${entity.groupedValue}/${A1})) / ${valuesUpToHere.length}`
     });
   }
   
@@ -411,16 +413,18 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
     
     for (let j = 1; j < valuesUpToHere.length; j++) {
       const Ai = valuesUpToHere[j];
+      const scalingFactor = j + 1; // Group count when this item was added (2, 3, 4, ...)
       if (A1 > 0) {
-        sum += Ai * (0.1 + Ai / A1);
+        sum += Ai * (scalingFactor + Ai / A1);
       } else {
-        sum += Ai * 0.1;
+        sum += Ai * scalingFactor;
       }
     }
     
     currentValue = sum / valuesUpToHere.length;
     
     stepNumber++;
+    const scalingFactorForDisplay = i + 1; // Group count when this item was added
     breakdown.push({
       step: stepNumber,
       entityName: entity.name,
@@ -428,7 +432,7 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
       attributeValue: entity.groupedValue,
       isGrouped: entity.isGrouped,
       runningTotal: Math.round(currentValue * 100) / 100,
-      formula: `Weighted Average: (${A1} + ${entity.groupedValue}*(0.1+${entity.groupedValue}/${A1})) / ${valuesUpToHere.length}`
+      formula: `Weighted Average: (${A1} + ${entity.groupedValue}*(${scalingFactorForDisplay}+${entity.groupedValue}/${A1})) / ${valuesUpToHere.length}`
     });
   }
   
