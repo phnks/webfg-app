@@ -1,25 +1,25 @@
 import { gql } from "@apollo/client";
 
-// COMPUTED FIELD FRAGMENTS - TEMPORARILY DISABLED
-// export const GROUPED_ATTRIBUTES_FRAGMENT = gql`
-//   fragment GroupedAttributesFields on GroupedAttributes {
-//     speed
-//     weight
-//     size
-//     intensity
-//     lethality
-//     armour
-//     endurance
-//     strength
-//     dexterity
-//     agility
-//     perception
-//     charisma
-//     intelligence
-//     resolve
-//     morale
-//   }
-// `;
+// COMPUTED FIELD FRAGMENTS
+export const GROUPED_ATTRIBUTES_FRAGMENT = gql`
+  fragment GroupedAttributesFields on GroupedAttributes {
+    speed
+    weight
+    size
+    intensity
+    lethality
+    armour
+    endurance
+    strength
+    dexterity
+    agility
+    perception
+    charisma
+    intelligence
+    resolve
+    morale
+  }
+`;
 
 export const ATTRIBUTE_BREAKDOWN_FRAGMENT = gql`
   fragment AttributeBreakdownFields on AttributeBreakdownStep {
@@ -35,6 +35,7 @@ export const ATTRIBUTE_BREAKDOWN_FRAGMENT = gql`
 
 // CHARACTER QUERIES WITH COMPUTED FIELDS
 export const GET_CHARACTER_WITH_GROUPED = gql`
+  ${GROUPED_ATTRIBUTES_FRAGMENT}
   query GetCharacterWithGrouped($characterId: ID!) {
     getCharacter(characterId: $characterId) {
       characterId
@@ -61,10 +62,10 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
       
-      # Temporarily disabled to test basic attributes  
-      # groupedAttributes {
-      #   ...GroupedAttributesFields
-      # }
+      # Computed grouped attributes
+      groupedAttributes {
+        ...GroupedAttributesFields
+      }
       
       special
       actionIds
@@ -90,10 +91,10 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
         
-        # Temporarily disabled
-        # groupedAttributes {
-        #   ...GroupedAttributesFields
-        # }
+        # Equipment can also have grouped attributes
+        groupedAttributes {
+          ...GroupedAttributesFields
+        }
         
         equipment { 
           objectId name objectCategory
@@ -144,6 +145,7 @@ export const GET_CHARACTER_ATTRIBUTE_BREAKDOWN = gql`
 
 // OBJECT QUERIES WITH COMPUTED FIELDS
 export const GET_OBJECT_WITH_GROUPED = gql`
+  ${GROUPED_ATTRIBUTES_FRAGMENT}
   query GetObjectWithGrouped($objectId: ID!) {
     getObject(objectId: $objectId) {
       objectId
@@ -167,10 +169,10 @@ export const GET_OBJECT_WITH_GROUPED = gql`
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
       
-      # Temporarily disabled
-      # groupedAttributes {
-      #   ...GroupedAttributesFields
-      # }
+      # Computed grouped attributes
+      groupedAttributes {
+        ...GroupedAttributesFields
+      }
       
       special
       equipmentIds
@@ -192,10 +194,10 @@ export const GET_OBJECT_WITH_GROUPED = gql`
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
         
-        # Temporarily disabled
-        # groupedAttributes {
-        #   ...GroupedAttributesFields
-        # }
+        # Equipment can also have grouped attributes
+        groupedAttributes {
+          ...GroupedAttributesFields
+        }
       }
     }
   }
@@ -250,6 +252,7 @@ export const CALCULATE_ACTION_TEST = gql`
 
 // LIST CHARACTERS WITH GROUPED ATTRIBUTES
 export const LIST_CHARACTERS_WITH_GROUPED = gql`
+  ${GROUPED_ATTRIBUTES_FRAGMENT}
   query ListCharactersWithGrouped {
     listCharacters {
       characterId
@@ -271,10 +274,10 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
       
-      # Temporarily disabled
-      # groupedAttributes {
-      #   ...GroupedAttributesFields
-      # }
+      # Computed grouped attributes
+      groupedAttributes {
+        ...GroupedAttributesFields
+      }
       
       equipment { 
         objectId name objectCategory
@@ -335,6 +338,7 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
 
 // LIST OBJECTS WITH GROUPED ATTRIBUTES
 export const LIST_OBJECTS_WITH_GROUPED = gql`
+  ${GROUPED_ATTRIBUTES_FRAGMENT}
   query ListObjectsWithGrouped {
     listObjects {
       objectId
@@ -358,10 +362,10 @@ export const LIST_OBJECTS_WITH_GROUPED = gql`
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
       
-      # Temporarily disabled
-      # groupedAttributes {
-      #   ...GroupedAttributesFields
-      # }
+      # Computed grouped attributes
+      groupedAttributes {
+        ...GroupedAttributesFields
+      }
     }
   }
 `;
