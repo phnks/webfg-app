@@ -128,7 +128,13 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   });
 
   const [updateCharacter] = useMutation(UPDATE_CHARACTER, {
+    refetchQueries: [
+      {
+        query: LIST_CHARACTERS
+      }
+    ],
     onCompleted: (data) => {
+      console.log('Update character response:', data);
       if (onSuccess) {
         onSuccess(data.updateCharacter.characterId);
       }
