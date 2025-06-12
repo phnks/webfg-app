@@ -23,9 +23,10 @@ const ATTRIBUTE_GROUPS = {
 };
 
 /**
- * Calculate the grouped value using the new weighted average formula
- * Formula: (A1 + A2*(0.1+A2/A1) + A3*(0.1+A3/A1) + ...) / N
+ * Calculate the grouped value using the dynamic scaling factor weighted average formula
+ * Formula: (A1 + A2*(2+A2/A1) + A3*(3+A3/A1) + ...) / N
  * Where A1 is the highest value, A2, A3... are other values, N is total count
+ * The scaling factor for each item equals the count when that item was added to the group
  * @param {Array} values - Array of attribute values, sorted highest first
  * @returns {number} The calculated grouped value
  */
@@ -37,13 +38,16 @@ const calculateGroupingFormula = (values) => {
   let sum = A1; // Start with the highest value
   
   // Add weighted values for all other attributes
+  // The scaling factor for each Ai is (i+1) representing the group count when it was added
   for (let i = 1; i < values.length; i++) {
     const Ai = values[i];
+    const scalingFactor = i + 1; // Group count when this item was added (2, 3, 4, ...)
+    
     if (A1 > 0) {
-      sum += Ai * (0.1 + Ai / A1);
+      sum += Ai * (scalingFactor + Ai / A1);
     } else {
       // Handle edge case where A1 is 0
-      sum += Ai * 0.1;
+      sum += Ai * scalingFactor;
     }
   }
   

@@ -57,19 +57,19 @@ const calculateActionDifficulty = (sourceValue, targetValue) => {
     return 0.5; // Default to 50% if both values are 0
   }
   
-  // If only source has value (no opposition), very high success chance
+  // If only source has value (no opposition), guaranteed success
   if (targetValue === 0) {
-    return 0.95; // 95% success chance when unopposed
+    return 1.0; // 100% success chance when unopposed (0 target dice)
   }
   
-  // If only target has value (no source), very low success chance
+  // If only target has value (no source), guaranteed failure
   if (sourceValue === 0) {
-    return 0.05; // 5% success chance with no source attribute
+    return 0.0; // 0% success chance with no source attribute (0 source dice)
   }
   
-  // Ensure minimum 1 die for both sides
-  let sourceDice = Math.max(1, Math.floor(sourceValue));
-  let targetDice = Math.max(1, Math.floor(targetValue));
+  // Calculate dice pools (allow 0 dice for guaranteed actions)
+  let sourceDice = Math.max(0, Math.floor(sourceValue));
+  let targetDice = Math.max(0, Math.floor(targetValue));
   
   // Adjust dice pools if total exceeds 20
   const { adjustedSource, adjustedTarget } = adjustDicePools(sourceDice, targetDice);
@@ -284,9 +284,9 @@ const calculateActionTest = (params) => {
     targetEntities: targetEntities.map(t => ({ name: t.name, [targetLower]: t[targetLower] }))
   });
   
-  // Calculate dice pool information before fatigue
-  const sourceDice = Math.max(1, Math.round(sourceValue));
-  const targetDice = Math.max(1, Math.round(targetValue));
+  // Calculate dice pool information before fatigue (allow 0 dice for guaranteed actions)
+  const sourceDice = Math.max(0, Math.round(sourceValue));
+  const targetDice = Math.max(0, Math.round(targetValue));
   
   // Apply dice pool halving if needed
   const { adjustedSource, adjustedTarget } = adjustDicePools(sourceDice, targetDice);

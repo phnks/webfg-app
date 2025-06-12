@@ -19,43 +19,55 @@ export const LIST_CHARACTERS = gql`
         conditionTarget
         amount
       }
-      lethality { attribute { attributeValue isGrouped } }
+      speed { attribute { attributeValue isGrouped } }
+      weight { attribute { attributeValue isGrouped } }
+      size { attribute { attributeValue isGrouped } }
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
+      lethality { attribute { attributeValue isGrouped } }
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
       agility { attribute { attributeValue isGrouped } }
       perception { attribute { attributeValue isGrouped } }
-      charisma { attribute { attributeValue isGrouped } }
-      intelligence { attribute { attributeValue isGrouped } }
+      intensity { attribute { attributeValue isGrouped } }
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
       equipment { 
         objectId name objectCategory
-        lethality { attributeValue isGrouped }
+        speed { attributeValue isGrouped }
+        weight { attributeValue isGrouped }
+        size { attributeValue isGrouped }
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
+        lethality { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
         perception { attributeValue isGrouped }
-        charisma { attributeValue isGrouped }
-        intelligence { attributeValue isGrouped }
+        intensity { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
+        intelligence { attributeValue isGrouped }
+        charisma { attributeValue isGrouped }
         equipment { 
           objectId name objectCategory
-          lethality { attributeValue isGrouped }
+          speed { attributeValue isGrouped }
+          weight { attributeValue isGrouped }
+          size { attributeValue isGrouped }
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
+          lethality { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
           agility { attributeValue isGrouped }
           perception { attributeValue isGrouped }
-          charisma { attributeValue isGrouped }
-          intelligence { attributeValue isGrouped }
+          intensity { attributeValue isGrouped }
           resolve { attributeValue isGrouped }
           morale { attributeValue isGrouped }
+          intelligence { attributeValue isGrouped }
+          charisma { attributeValue isGrouped }
         }
       }
       actionIds
@@ -90,17 +102,21 @@ export const GET_CHARACTER = gql`
       }
       
       # Character attributes (no longer have fatigue)
-      lethality { attribute { attributeValue isGrouped } }
+      speed { attribute { attributeValue isGrouped } }
+      weight { attribute { attributeValue isGrouped } }
+      size { attribute { attributeValue isGrouped } }
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
+      lethality { attribute { attributeValue isGrouped } }
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
       agility { attribute { attributeValue isGrouped } }
       perception { attribute { attributeValue isGrouped } }
-      charisma { attribute { attributeValue isGrouped } }
-      intelligence { attribute { attributeValue isGrouped } }
+      intensity { attribute { attributeValue isGrouped } }
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -110,30 +126,38 @@ export const GET_CHARACTER = gql`
       equipmentIds
       equipment { 
         objectId name objectCategory
-        lethality { attributeValue isGrouped }
+        speed { attributeValue isGrouped }
+        weight { attributeValue isGrouped }
+        size { attributeValue isGrouped }
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
+        lethality { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
         perception { attributeValue isGrouped }
-        charisma { attributeValue isGrouped }
-        intelligence { attributeValue isGrouped }
+        intensity { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
+        intelligence { attributeValue isGrouped }
+        charisma { attributeValue isGrouped }
         equipment { 
           objectId name objectCategory
-          lethality { attributeValue isGrouped }
+          speed { attributeValue isGrouped }
+          weight { attributeValue isGrouped }
+          size { attributeValue isGrouped }
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
+          lethality { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
           agility { attributeValue isGrouped }
           perception { attributeValue isGrouped }
-          charisma { attributeValue isGrouped }
-          intelligence { attributeValue isGrouped }
+          intensity { attributeValue isGrouped }
           resolve { attributeValue isGrouped }
           morale { attributeValue isGrouped }
+          intelligence { attributeValue isGrouped }
+          charisma { attributeValue isGrouped }
         }
       }
     }
@@ -147,32 +171,40 @@ export const LIST_OBJECTS = gql`
       objectId
       name
       objectCategory
-      lethality { attributeValue isGrouped }
+      speed { attributeValue isGrouped }
+      weight { attributeValue isGrouped }
+      size { attributeValue isGrouped }
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
+      lethality { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
       perception { attributeValue isGrouped }
-      charisma { attributeValue isGrouped }
-      intelligence { attributeValue isGrouped }
+      intensity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
+      intelligence { attributeValue isGrouped }
+      charisma { attributeValue isGrouped }
       special
       equipmentIds
       equipment { 
         objectId name objectCategory
-        lethality { attributeValue isGrouped }
+        speed { attributeValue isGrouped }
+        weight { attributeValue isGrouped }
+        size { attributeValue isGrouped }
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
+        lethality { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
         perception { attributeValue isGrouped }
-        charisma { attributeValue isGrouped }
-        intelligence { attributeValue isGrouped }
+        intensity { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
+        intelligence { attributeValue isGrouped }
+        charisma { attributeValue isGrouped }
       }
     }
   }
@@ -184,17 +216,21 @@ export const GET_OBJECT = gql`
       objectId
       name
       objectCategory
-      lethality { attributeValue isGrouped }
+      speed { attributeValue isGrouped }
+      weight { attributeValue isGrouped }
+      size { attributeValue isGrouped }
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
+      lethality { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
       perception { attributeValue isGrouped }
-      charisma { attributeValue isGrouped }
-      intelligence { attributeValue isGrouped }
+      intensity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
+      intelligence { attributeValue isGrouped }
+      charisma { attributeValue isGrouped }
       special
       equipmentIds
       equipment { 
@@ -202,17 +238,21 @@ export const GET_OBJECT = gql`
         name
         objectCategory
         equipmentIds
-        lethality { attributeValue isGrouped }
+        speed { attributeValue isGrouped }
+        weight { attributeValue isGrouped }
+        size { attributeValue isGrouped }
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
+        lethality { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
         perception { attributeValue isGrouped }
-        charisma { attributeValue isGrouped }
-        intelligence { attributeValue isGrouped }
+        intensity { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
+        intelligence { attributeValue isGrouped }
+        charisma { attributeValue isGrouped }
       }
     }
   }
@@ -357,17 +397,21 @@ export const CREATE_CHARACTER = gql`
       values { valueName valueType }
       
       # Character attributes (no longer have fatigue)
-      lethality { attribute { attributeValue isGrouped } }
+      speed { attribute { attributeValue isGrouped } }
+      weight { attribute { attributeValue isGrouped } }
+      size { attribute { attributeValue isGrouped } }
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
+      lethality { attribute { attributeValue isGrouped } }
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
       agility { attribute { attributeValue isGrouped } }
       perception { attribute { attributeValue isGrouped } }
-      charisma { attribute { attributeValue isGrouped } }
-      intelligence { attribute { attributeValue isGrouped } }
+      intensity { attribute { attributeValue isGrouped } }
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -388,17 +432,21 @@ export const UPDATE_CHARACTER = gql`
       values { valueName valueType }
       
       # Character attributes (no longer have fatigue)
-      lethality { attribute { attributeValue isGrouped } }
+      speed { attribute { attributeValue isGrouped } }
+      weight { attribute { attributeValue isGrouped } }
+      size { attribute { attributeValue isGrouped } }
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
+      lethality { attribute { attributeValue isGrouped } }
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
       agility { attribute { attributeValue isGrouped } }
       perception { attribute { attributeValue isGrouped } }
-      charisma { attribute { attributeValue isGrouped } }
-      intelligence { attribute { attributeValue isGrouped } }
+      intensity { attribute { attributeValue isGrouped } }
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -421,17 +469,21 @@ export const CREATE_OBJECT = gql`
       objectId
       name
       objectCategory
-      lethality { attributeValue isGrouped }
+      speed { attributeValue isGrouped }
+      weight { attributeValue isGrouped }
+      size { attributeValue isGrouped }
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
+      lethality { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
       perception { attributeValue isGrouped }
-      charisma { attributeValue isGrouped }
-      intelligence { attributeValue isGrouped }
+      intensity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
+      intelligence { attributeValue isGrouped }
+      charisma { attributeValue isGrouped }
       special
       equipmentIds
       equipment { objectId name }
@@ -444,17 +496,21 @@ export const UPDATE_OBJECT = gql`
       objectId
       name
       objectCategory
-      lethality { attributeValue isGrouped }
+      speed { attributeValue isGrouped }
+      weight { attributeValue isGrouped }
+      size { attributeValue isGrouped }
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
+      lethality { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
       perception { attributeValue isGrouped }
-      charisma { attributeValue isGrouped }
-      intelligence { attributeValue isGrouped }
+      intensity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
+      intelligence { attributeValue isGrouped }
+      charisma { attributeValue isGrouped }
       special
       equipmentIds
       equipment { objectId name }
@@ -779,18 +835,22 @@ export const ON_UPDATE_CHARACTER = gql`
       will
       values { valueName valueType }
       
-      # Character attributes with fatigue
-      lethality { attribute { attributeValue isGrouped } fatigue }
-      armour { attribute { attributeValue isGrouped } fatigue }
-      endurance { attribute { attributeValue isGrouped } fatigue }
-      strength { attribute { attributeValue isGrouped } fatigue }
-      dexterity { attribute { attributeValue isGrouped } fatigue }
-      agility { attribute { attributeValue isGrouped } fatigue }
-      perception { attribute { attributeValue isGrouped } fatigue }
-      charisma { attribute { attributeValue isGrouped } fatigue }
-      intelligence { attribute { attributeValue isGrouped } fatigue }
-      resolve { attribute { attributeValue isGrouped } fatigue }
-      morale { attribute { attributeValue isGrouped } fatigue }
+      # Character attributes (no longer have fatigue)
+      speed { attribute { attributeValue isGrouped } }
+      weight { attribute { attributeValue isGrouped } }
+      size { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      lethality { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      perception { attribute { attributeValue isGrouped } }
+      intensity { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -808,17 +868,21 @@ export const ON_CREATE_OBJECT = gql`
       objectId
       name
       objectCategory
-      lethality { attributeValue isGrouped }
+      speed { attributeValue isGrouped }
+      weight { attributeValue isGrouped }
+      size { attributeValue isGrouped }
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
+      lethality { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
       perception { attributeValue isGrouped }
-      charisma { attributeValue isGrouped }
-      intelligence { attributeValue isGrouped }
+      intensity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
+      intelligence { attributeValue isGrouped }
+      charisma { attributeValue isGrouped }
       special
       equipmentIds
     }
@@ -830,17 +894,21 @@ export const ON_UPDATE_OBJECT = gql`
       objectId
       name
       objectCategory
-      lethality { attributeValue isGrouped }
+      speed { attributeValue isGrouped }
+      weight { attributeValue isGrouped }
+      size { attributeValue isGrouped }
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
+      lethality { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
       perception { attributeValue isGrouped }
-      charisma { attributeValue isGrouped }
-      intelligence { attributeValue isGrouped }
+      intensity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
+      intelligence { attributeValue isGrouped }
+      charisma { attributeValue isGrouped }
       special
       equipmentIds
     }

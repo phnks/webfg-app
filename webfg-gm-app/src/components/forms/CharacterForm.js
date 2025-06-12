@@ -118,7 +118,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const [createCharacter] = useMutation(CREATE_CHARACTER, {
     refetchQueries: [{ query: LIST_CHARACTERS }],
     onCompleted: (data) => {
-      console.log('Create character response:', data);
       if (onSuccess) {
         onSuccess(data.createCharacter.characterId);
       } else {
@@ -128,6 +127,11 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   });
 
   const [updateCharacter] = useMutation(UPDATE_CHARACTER, {
+    refetchQueries: [
+      {
+        query: LIST_CHARACTERS
+      }
+    ],
     onCompleted: (data) => {
       if (onSuccess) {
         onSuccess(data.updateCharacter.characterId);
@@ -212,6 +216,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     setError(null);
 
     try {
+      
       // Prepare the input data for mutation
       const input = {
         name: formData.name,
@@ -225,6 +230,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         equipmentIds: formData.equipmentIds
       };
       
+      
       // Add all attributes dynamically
       getAllAttributeNames().forEach(attr => {
         input[attr] = {
@@ -235,17 +241,19 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         };
       });
 
+      const finalInput = stripTypename(input);
+
       if (isEditing) {
         await updateCharacter({
           variables: {
             characterId: character.characterId,
-            input: stripTypename(input)
+            input: finalInput
           }
         });
       } else {
         await createCharacter({
           variables: {
-            input: stripTypename(input)
+            input: finalInput
           }
         });
       }

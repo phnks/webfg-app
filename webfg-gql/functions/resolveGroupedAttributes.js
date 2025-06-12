@@ -20,6 +20,10 @@ exports.handler = async (event) => {
   if (!entity) {
     console.log("No entity found, returning empty grouped attributes.");
     return {
+      speed: null,
+      weight: null,
+      size: null,
+      intensity: null,
       lethality: null,
       armour: null,
       endurance: null,
@@ -61,6 +65,10 @@ exports.handler = async (event) => {
 
     // Ensure all fields are present even if null
     const result = {
+      speed: groupedAttributes.speed || null,
+      weight: groupedAttributes.weight || null,
+      size: groupedAttributes.size || null,
+      intensity: groupedAttributes.intensity || null,
       lethality: groupedAttributes.lethality || null,
       armour: groupedAttributes.armour || null,
       endurance: groupedAttributes.endurance || null,
