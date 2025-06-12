@@ -20,9 +20,25 @@ exports.handler = async (event) => {
     return [];
   }
 
-  // Determine if we're resolving inventory or equipment
+  // Determine which field we're resolving
   const fieldName = event.field || 'inventory';
-  const idFieldName = fieldName === 'inventory' ? 'inventoryIds' : 'equipmentIds';
+  let idFieldName;
+  
+  switch (fieldName) {
+    case 'stash':
+      idFieldName = 'stashIds';
+      break;
+    case 'equipment':
+      idFieldName = 'equipmentIds';
+      break;
+    case 'ready':
+      idFieldName = 'readyIds';
+      break;
+    case 'inventory':
+    default:
+      idFieldName = 'inventoryIds';
+      break;
+  }
   
   // Get object IDs from the character
   const objectIds = character[idFieldName];

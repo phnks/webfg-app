@@ -28,10 +28,12 @@ type Character {
 
   special: [String]
 
-  inventoryIds: [ID]
-  inventory: [Object]
+  stashIds: [ID]
+  stash: [Object]
   equipmentIds: [ID]
   equipment: [Object]
+  readyIds: [ID]
+  ready: [Object]
   
   characterConditions: [CharacterCondition]
   conditions: [CharacterConditionWithDetails]
@@ -89,8 +91,9 @@ input CharacterInput {
   charisma: CharacterAttributeInput!
   actionIds: [ID]
   special: [String]
-  inventoryIds: [ID]
+  stashIds: [ID]
   equipmentIds: [ID]
+  readyIds: [ID]
   characterConditions: [CharacterConditionInput]
 }
 

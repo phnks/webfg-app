@@ -4,7 +4,7 @@ import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useSubscription } from "@apollo/client";
 import {
   DELETE_OBJECT,
-  ADD_OBJECT_TO_INVENTORY,
+  ADD_OBJECT_TO_STASH,
   ON_UPDATE_OBJECT,
   ON_DELETE_OBJECT
 } from "../../graphql/operations";
@@ -43,7 +43,7 @@ const ObjectView = () => {
   });
 
   const [deleteObject] = useMutation(DELETE_OBJECT);
-  const [addObjectToInventory] = useMutation(ADD_OBJECT_TO_INVENTORY);
+  const [addObjectToStash] = useMutation(ADD_OBJECT_TO_STASH);
   
   // Query for attribute breakdown (only when needed)
   useQuery(
@@ -152,14 +152,14 @@ const ObjectView = () => {
   };
 
   // Handle adding object to selected character's inventory
-  const handleAddToInventory = async () => {
+  const handleAddToStash = async () => {
     if (!selectedCharacter) {
       setMutationError({ message: "Please select a character first.", stack: null });
       return;
     }
 
     try {
-      const result = await addObjectToInventory({
+      const result = await addObjectToStash({
         variables: {
           characterId: selectedCharacter.characterId,
           objectId
@@ -172,8 +172,8 @@ const ObjectView = () => {
       setAddObjectSuccess(true);
       setTimeout(() => setAddObjectSuccess(false), 3000);
     } catch (err) {
-      console.error("Error adding object to inventory:", err);
-      let errorMessage = "An unexpected error occurred while adding object to inventory.";
+      console.error("Error adding object to stash:", err);
+      let errorMessage = "An unexpected error occurred while adding object to stash.";
       let errorStack = err.stack || "No stack trace available.";
       if (err.graphQLErrors && err.graphQLErrors.length > 0) {
         errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
@@ -233,11 +233,11 @@ const ObjectView = () => {
         <div className="object-actions">
           {selectedCharacter && (
             <button
-              onClick={handleAddToInventory}
+              onClick={handleAddToStash}
               className={`add-to-inventory-btn ${addObjectSuccess ? 'success' : ''}`}
               disabled={addObjectSuccess}
             >
-              {addObjectSuccess ? 'Added!' : selectedCharacter ? `Add to ${selectedCharacter.name}'s Inventory` : 'Add to Inventory'}
+              {addObjectSuccess ? 'Added!' : selectedCharacter ? `Add to ${selectedCharacter.name}'s Stash` : 'Add to Stash'}
             </button>
           )}
           <button onClick={handleEdit}>Edit</button>
