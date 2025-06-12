@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: 'AppSync Object Character Resolvers' # Updated Description
+Description: 'AppSync Object Character Resolvers'
 
 Parameters:
   ApiId:
@@ -17,11 +17,12 @@ Parameters:
     Description: 'Shared lambda service role'
 
 Resources:
-  AddObjectToInventoryFunction: # Keep for now
+  # New stash management functions
+  AddObjectToStashFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
-      Handler: ./functions/addObjectToInventory.handler
+      Handler: ./functions/addObjectToStash.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 30
@@ -34,11 +35,11 @@ Resources:
         - DynamoDBWritePolicy:
             TableName: !Ref CharactersTableName
   
-  RemoveObjectFromInventoryFunction:
+  RemoveObjectFromStashFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
-      Handler: ./functions/removeObjectFromInventory.handler
+      Handler: ./functions/removeObjectFromStash.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 30
@@ -51,11 +52,12 @@ Resources:
         - DynamoDBWritePolicy:
             TableName: !Ref CharactersTableName
   
-  AddObjectToEquipmentFunction:
+  # New movement functions
+  MoveObjectToEquipmentFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
-      Handler: ./functions/addObjectToEquipment.handler
+      Handler: ./functions/moveObjectToEquipment.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 30
@@ -68,11 +70,11 @@ Resources:
         - DynamoDBWritePolicy:
             TableName: !Ref CharactersTableName
   
-  RemoveObjectFromEquipmentFunction:
+  MoveObjectToReadyFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
-      Handler: ./functions/removeObjectFromEquipment.handler
+      Handler: ./functions/moveObjectToReady.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 30
@@ -85,54 +87,109 @@ Resources:
         - DynamoDBWritePolicy:
             TableName: !Ref CharactersTableName
 
-  AddObjectToInventoryDataSource: # Keep for now
-    Type: AWS::AppSync::DataSource
+  MoveObjectFromReadyToEquipmentFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      ApiId: !Ref ApiId
-      Name: AddObjectToInventory
-      Type: AWS_LAMBDA
-      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
-      LambdaConfig:
-        LambdaFunctionArn: !GetAtt AddObjectToInventoryFunction.Arn
+      CodeUri: ../
+      Handler: ./functions/moveObjectFromReadyToEquipment.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
 
-  RemoveObjectFromInventoryDataSource:
+  MoveObjectFromEquipmentToStashFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/moveObjectFromEquipmentToStash.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
+
+  # Data sources for new functions
+  AddObjectToStashDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !Ref ApiId
-      Name: RemoveObjectFromInventory
+      Name: AddObjectToStash
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt RemoveObjectFromInventoryFunction.Arn
+        LambdaFunctionArn: !GetAtt AddObjectToStashFunction.Arn
+
+  RemoveObjectFromStashDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: RemoveObjectFromStash
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt RemoveObjectFromStashFunction.Arn
   
-  AddObjectToEquipmentDataSource:
+  MoveObjectToEquipmentDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !Ref ApiId
-      Name: AddObjectToEquipment
+      Name: MoveObjectToEquipment
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt AddObjectToEquipmentFunction.Arn
+        LambdaFunctionArn: !GetAtt MoveObjectToEquipmentFunction.Arn
   
-  RemoveObjectFromEquipmentDataSource:
+  MoveObjectToReadyDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !Ref ApiId
-      Name: RemoveObjectFromEquipment
+      Name: MoveObjectToReady
       Type: AWS_LAMBDA
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt RemoveObjectFromEquipmentFunction.Arn
+        LambdaFunctionArn: !GetAtt MoveObjectToReadyFunction.Arn
 
+  MoveObjectFromReadyToEquipmentDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: MoveObjectFromReadyToEquipment
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt MoveObjectFromReadyToEquipmentFunction.Arn
 
-  AddObjectToInventoryResolver: # Keep for now
+  MoveObjectFromEquipmentToStashDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: MoveObjectFromEquipmentToStash
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt MoveObjectFromEquipmentToStashFunction.Arn
+
+  # Resolvers for new mutations
+  AddObjectToStashResolver:
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
-      FieldName: addObjectToInventory
-      DataSourceName: !GetAtt AddObjectToInventoryDataSource.Name
+      FieldName: addObjectToStash
+      DataSourceName: !GetAtt AddObjectToStashDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -144,13 +201,13 @@ Resources:
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
   
-  RemoveObjectFromInventoryResolver:
+  RemoveObjectFromStashResolver:
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
-      FieldName: removeObjectFromInventory
-      DataSourceName: !GetAtt RemoveObjectFromInventoryDataSource.Name
+      FieldName: removeObjectFromStash
+      DataSourceName: !GetAtt RemoveObjectFromStashDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -162,13 +219,13 @@ Resources:
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
   
-  AddObjectToEquipmentResolver:
+  MoveObjectToEquipmentResolver:
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
-      FieldName: addObjectToEquipment
-      DataSourceName: !GetAtt AddObjectToEquipmentDataSource.Name
+      FieldName: moveObjectToEquipment
+      DataSourceName: !GetAtt MoveObjectToEquipmentDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -180,13 +237,13 @@ Resources:
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
   
-  RemoveObjectFromEquipmentResolver:
+  MoveObjectToReadyResolver:
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
       TypeName: Mutation
-      FieldName: removeObjectFromEquipment
-      DataSourceName: !GetAtt RemoveObjectFromEquipmentDataSource.Name
+      FieldName: moveObjectToReady
+      DataSourceName: !GetAtt MoveObjectToReadyDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -198,7 +255,43 @@ Resources:
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
 
-  # New resolvers for Character.inventory and Character.equipment
+  MoveObjectFromReadyToEquipmentResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: moveObjectFromReadyToEquipment
+      DataSourceName: !GetAtt MoveObjectFromReadyToEquipmentDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  MoveObjectFromEquipmentToStashResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: moveObjectFromEquipmentToStash
+      DataSourceName: !GetAtt MoveObjectFromEquipmentToStashDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  # Character object resolvers
   ResolveCharacterObjectsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -224,19 +317,19 @@ Resources:
       LambdaConfig:
         LambdaFunctionArn: !GetAtt ResolveCharacterObjectsFunction.Arn
 
-  CharacterInventoryResolver:
+  CharacterStashResolver:
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !Ref ApiId
       TypeName: Character
-      FieldName: inventory
+      FieldName: stash
       DataSourceName: !GetAtt ResolveCharacterObjectsDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
           "operation": "Invoke",
           "payload": {
-            "field": "inventory",
+            "field": "stash",
             "source": $util.toJson($context.source)
           }
         }
@@ -262,3 +355,21 @@ Resources:
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
 
+  CharacterReadyResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Character
+      FieldName: ready
+      DataSourceName: !GetAtt ResolveCharacterObjectsDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "field": "ready",
+            "source": $util.toJson($context.source)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
