@@ -118,7 +118,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const [createCharacter] = useMutation(CREATE_CHARACTER, {
     refetchQueries: [{ query: LIST_CHARACTERS }],
     onCompleted: (data) => {
-      console.log('Create character response:', data);
       if (onSuccess) {
         onSuccess(data.createCharacter.characterId);
       } else {
@@ -134,7 +133,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       }
     ],
     onCompleted: (data) => {
-      console.log('Update character response:', data);
       if (onSuccess) {
         onSuccess(data.updateCharacter.characterId);
       }
@@ -218,8 +216,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     setError(null);
 
     try {
-      console.log('=== FORM SUBMISSION DEBUG ===');
-      console.log('Raw formData:', JSON.stringify(formData, null, 2));
       
       // Prepare the input data for mutation
       const input = {
@@ -234,7 +230,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         equipmentIds: formData.equipmentIds
       };
       
-      console.log('Input after basic fields:', JSON.stringify(input, null, 2));
       
       // Add all attributes dynamically
       getAllAttributeNames().forEach(attr => {
@@ -246,12 +241,9 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         };
       });
 
-      console.log('Final input before stripTypename:', JSON.stringify(input, null, 2));
       const finalInput = stripTypename(input);
-      console.log('Final input after stripTypename:', JSON.stringify(finalInput, null, 2));
 
       if (isEditing) {
-        console.log('Calling updateCharacter with:', { characterId: character.characterId, input: finalInput });
         await updateCharacter({
           variables: {
             characterId: character.characterId,
@@ -259,7 +251,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           }
         });
       } else {
-        console.log('Calling createCharacter with:', { input: finalInput });
         await createCharacter({
           variables: {
             input: finalInput
