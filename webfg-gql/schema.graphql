@@ -532,6 +532,10 @@ schema {
 # Computed field types for grouped attributes and action calculations
 
 type GroupedAttributes {
+  speed: Float
+  weight: Float
+  size: Float
+  intensity: Float
   lethality: Float
   armour: Float
   endurance: Float
