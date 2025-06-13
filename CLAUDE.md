@@ -192,6 +192,70 @@ mcp__puppeteer__puppeteer_evaluate("document.querySelector('.error-message')?.te
 
 Replace `{DEPLOYMENT_ID}` with your PR number (e.g., `https://webfg-gm-app-qa69.com` for PR #69).
 
+## CRITICAL: Database Schema Backwards Compatibility
+
+**⚠️ PRODUCTION INCIDENT PREVENTION ⚠️**
+
+All database-level schema changes MUST be backwards compatible to prevent production incidents. A production incident occurred when new required fields (speed, weight, size, intensity) were added without considering existing data that had null values for these fields.
+
+### Backwards Compatibility Requirements
+
+1. **New Fields Must Be Optional**
+   - Any new field added to the GraphQL schema MUST be optional (no `!` suffix)
+   - Even if the field will eventually be required, it must start as optional
+   - This allows existing data with null values to continue working
+
+2. **Default Values**
+   - New fields should have sensible default values in resolvers when null
+   - Handle null gracefully in the application logic
+   - Consider providing migration scripts to populate existing records
+
+3. **Roll-Forward Approach**
+   - Never make breaking changes that require immediate data migration
+   - Use a phased approach:
+     - Phase 1: Add new optional fields, deploy
+     - Phase 2: Migrate existing data to populate new fields
+     - Phase 3: Only after all data is migrated, consider making fields required
+
+4. **Removing Fields**
+   - Required fields CANNOT be removed directly
+   - Instead, mark them as deprecated and add new optional replacement fields
+   - Only remove deprecated fields after confirming no production data depends on them
+
+5. **Testing Requirements**
+   - Always test schema changes against production-like data
+   - Verify that queries work with both old (null) and new data
+   - Test list queries that may return mixed data states
+
+### Example: Safe Field Addition
+
+```graphql
+# BAD - Will break production if existing data has null values
+type Character {
+  id: ID!
+  name: String!
+  speed: CharacterAttribute!  # ❌ Required field breaks existing data
+}
+
+# GOOD - Backwards compatible
+type Character {
+  id: ID!
+  name: String!
+  speed: CharacterAttribute   # ✅ Optional field handles null gracefully
+}
+```
+
+### Schema Change Checklist
+
+Before deploying any schema changes:
+- [ ] Are all new fields optional?
+- [ ] Do resolvers handle null values for new fields?
+- [ ] Have you tested with existing production-like data?
+- [ ] Have you incremented both qa_schema and prod_schema versions?
+- [ ] Is there a migration plan for populating new fields?
+
+**Remember: Production data integrity is paramount. When in doubt, make it optional!**
+
 ## Completing a Task
 
 1. In this project, whenever you finish a task, please run the necessary commands in terminal to test your code changes by running the deploy:qa commands as already stated, then confirming they worked using the check-deploy:qa commands as also previously stated.
