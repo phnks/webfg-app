@@ -71,9 +71,9 @@ type Character {
   values: [Value]      
 
   # BODY attributes
-  speed: CharacterAttribute!
-  weight: CharacterAttribute!
-  size: CharacterAttribute!
+  speed: CharacterAttribute
+  weight: CharacterAttribute
+  size: CharacterAttribute
   armour: CharacterAttribute!
   endurance: CharacterAttribute!
   
@@ -85,7 +85,7 @@ type Character {
   perception: CharacterAttribute!
   
   # MENTAL attributes
-  intensity: CharacterAttribute!
+  intensity: CharacterAttribute
   resolve: CharacterAttribute!
   morale: CharacterAttribute!
   intelligence: CharacterAttribute!
@@ -141,9 +141,9 @@ input CharacterInput {
   fatigue: Int!
   values: [ValueInput]
   # BODY attributes
-  speed: CharacterAttributeInput!
-  weight: CharacterAttributeInput!
-  size: CharacterAttributeInput!
+  speed: CharacterAttributeInput
+  weight: CharacterAttributeInput
+  size: CharacterAttributeInput
   armour: CharacterAttributeInput!
   endurance: CharacterAttributeInput!
   
@@ -155,7 +155,7 @@ input CharacterInput {
   perception: CharacterAttributeInput!
   
   # MENTAL attributes
-  intensity: CharacterAttributeInput!
+  intensity: CharacterAttributeInput
   resolve: CharacterAttributeInput!
   morale: CharacterAttributeInput!
   intelligence: CharacterAttributeInput!
@@ -190,9 +190,9 @@ input CharacterConditionInput {
   name: String!
   objectCategory: ObjectCategory!
   # BODY attributes
-  speed: Attribute!
-  weight: Attribute!
-  size: Attribute!
+  speed: Attribute
+  weight: Attribute
+  size: Attribute
   armour: Attribute!
   endurance: Attribute!
   
@@ -204,7 +204,7 @@ input CharacterConditionInput {
   perception: Attribute!
   
   # MENTAL attributes
-  intensity: Attribute!
+  intensity: Attribute
   resolve: Attribute!
   morale: Attribute!
   intelligence: Attribute!

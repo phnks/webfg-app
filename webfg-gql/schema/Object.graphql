@@ -2,9 +2,9 @@ type Object {
   objectId: ID!
   name: String!
   objectCategory: ObjectCategory!
-  speed: Attribute!
-  weight: Attribute!
-  size: Attribute!
+  speed: Attribute
+  weight: Attribute
+  size: Attribute
   armour: Attribute!
   endurance: Attribute!
   lethality: Attribute!
@@ -12,7 +12,7 @@ type Object {
   dexterity: Attribute!
   agility: Attribute!
   perception: Attribute!
-  intensity: Attribute!
+  intensity: Attribute
   resolve: Attribute!
   morale: Attribute!
   intelligence: Attribute!
