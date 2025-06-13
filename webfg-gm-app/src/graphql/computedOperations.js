@@ -70,8 +70,8 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       special
       actionIds
       actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType }
-      inventoryIds
-      inventory { objectId name objectCategory }
+      stashIds
+      stash { objectId name objectCategory }
       equipmentIds
       equipment { 
         objectId name objectCategory
@@ -111,6 +111,8 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
           morale { attributeValue isGrouped }
         }
       }
+      readyIds
+      ready { objectId name objectCategory }
       
       characterConditions {
         conditionId
