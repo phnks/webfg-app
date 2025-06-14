@@ -207,36 +207,54 @@ const CharacterAttributesBackend = ({
         });
       } else {
         // Subsequent entities: calculate weighted average formula
+        // Calculate new running total using weighted average formula: (A1 + A2*(2+A2/A1) + A3*(3+A3/A1) + ...) / N
         const A1 = allValues[0].value; // Highest value
-        const Ai = entity.value; // Current value
-        const n = index + 1; // Position in sequence
+        let sum = A1; // Start with A1
         
-        // Calculate new running total using weighted average
-        let sum = allValues[0].value; // Start with A1
         for (let i = 1; i <= index; i++) {
-          const currentVal = allValues[i].value;
+          const Ai = allValues[i].value;
           const scalingFactor = i + 1;
           if (A1 > 0) {
-            sum += currentVal * (scalingFactor + currentVal / A1);
+            sum += Ai * (scalingFactor + Ai / A1);
           } else {
-            sum += currentVal * scalingFactor;
+            sum += Ai * scalingFactor;
           }
         }
         runningTotal = sum / (index + 1);
         
-        // Create formula string showing the weighted average calculation
-        const valuesList = allValues.slice(0, index + 1).map(v => v.value).join(' + ');
-        const formulaString = `Weighted Average: (${valuesList}) / ${index + 1}`;
-        
-        steps.push({
-          step: stepCount++,
-          entityName: entity.name,
-          entityType: entity.type === 'character' ? 'character' : 'object',
-          attributeValue: entity.value,
-          isGrouped: true,
-          runningTotal: Math.round(runningTotal * 100) / 100,
-          formula: formulaString
-        });
+        // Create formula string showing the correct weighted average calculation
+        if (index === 1) {
+          // Second item: show A1 + A2*(2+A2/A1) / 2
+          const A2 = entity.value;
+          const formulaString = `Weighted Average: (${A1} + ${A2}*(2+${A2}/${A1})) / 2`;
+          steps.push({
+            step: stepCount++,
+            entityName: entity.name,
+            entityType: entity.type === 'character' ? 'character' : 'object',
+            attributeValue: entity.value,
+            isGrouped: true,
+            runningTotal: Math.round(runningTotal * 100) / 100,
+            formula: formulaString
+          });
+        } else {
+          // Third+ item: show full formula
+          let formulaParts = [A1.toString()];
+          for (let i = 1; i <= index; i++) {
+            const Ai = allValues[i].value;
+            const scalingFactor = i + 1;
+            formulaParts.push(`${Ai}*(${scalingFactor}+${Ai}/${A1})`);
+          }
+          const formulaString = `Weighted Average: (${formulaParts.join(' + ')}) / ${index + 1}`;
+          steps.push({
+            step: stepCount++,
+            entityName: entity.name,
+            entityType: entity.type === 'character' ? 'character' : 'object',
+            attributeValue: entity.value,
+            isGrouped: true,
+            runningTotal: Math.round(runningTotal * 100) / 100,
+            formula: formulaString
+          });
+        }
       }
     });
     
