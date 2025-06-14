@@ -134,6 +134,7 @@ const CharacterAttributesBackend = ({
   };
 
   // Function to generate a fallback ready breakdown including ready items
+  // Mimics the backend format: one row per entity, showing weighted average formula as items are added
   const generateReadyFallbackBreakdown = (attributeKey) => {
     const steps = [];
     let stepCount = 1;
@@ -144,120 +145,102 @@ const CharacterAttributesBackend = ({
       return steps;
     }
     
-    // Get original value
+    // Get original value and collect all values to group
     const numOriginalValue = Number(originalValue);
-    
-    // Mirror the backend calculation logic exactly
-    // 1. Start with character base value (if isGrouped=true)
     const charIsGrouped = character?.[attributeKey]?.attribute?.isGrouped !== false;
-    const valuesToGroup = [];
     
+    // Collect all values that will be grouped (sorted by highest first)
+    const allValues = [];
+    const entityNames = [];
+    
+    // Character base value (always first if grouped)
     if (charIsGrouped) {
-      valuesToGroup.push(numOriginalValue);
-      steps.push({
-        step: stepCount++,
-        entityName: character?.name || 'Character',
-        entityType: 'character',
-        attributeValue: numOriginalValue,
-        isGrouped: true,
-        runningTotal: numOriginalValue,
-        formula: null
-      });
+      allValues.push({ value: numOriginalValue, name: character?.name || 'Character', type: 'character' });
     }
     
-    // 2. Add equipment objects that have isGrouped=true
+    // Equipment objects
     if (character?.equipment?.length > 0) {
       character.equipment.forEach(item => {
         const itemAttr = item[attributeKey];
         if (itemAttr && itemAttr.attributeValue !== undefined) {
           const itemValue = Number(itemAttr.attributeValue);
           const itemIsGrouped = itemAttr.isGrouped !== false;
-          
           if (itemIsGrouped && itemValue > 0) {
-            valuesToGroup.push(itemValue);
-            steps.push({
-              step: stepCount++,
-              entityName: item.name || 'Equipment',
-              entityType: 'object',
-              attributeValue: itemValue,
-              isGrouped: true,
-              runningTotal: 0, // Will calculate after grouping
-              formula: `EQUIPMENT: ${item.name} contributes ${itemValue}`
-            });
+            allValues.push({ value: itemValue, name: item.name || 'Equipment', type: 'equipment' });
           }
         }
       });
     }
     
-    // 3. Add ready objects that have isGrouped=true
+    // Ready objects
     if (character?.ready?.length > 0) {
       character.ready.forEach(item => {
         const itemAttr = item[attributeKey];
         if (itemAttr && itemAttr.attributeValue !== undefined) {
           const itemValue = Number(itemAttr.attributeValue);
           const itemIsGrouped = itemAttr.isGrouped !== false;
-          
           if (itemIsGrouped && itemValue > 0) {
-            valuesToGroup.push(itemValue);
-            steps.push({
-              step: stepCount++,
-              entityName: item.name || 'Ready Object',
-              entityType: 'object',
-              attributeValue: itemValue,
-              isGrouped: true,
-              runningTotal: 0, // Will calculate after grouping
-              formula: `READY: ${item.name} contributes ${itemValue}`
-            });
+            allValues.push({ value: itemValue, name: item.name || 'Ready Object', type: 'ready' });
           }
         }
       });
     }
     
-    // 4. Calculate weighted average if we have multiple values
-    let groupedValue = numOriginalValue;
-    if (valuesToGroup.length > 1) {
-      // Sort values in descending order (highest first)
-      valuesToGroup.sort((a, b) => b - a);
-      
-      // Apply weighted average grouping formula: (A1 + A2*(2+A2/A1) + A3*(3+A3/A1) + ...) / N
-      const A1 = valuesToGroup[0];
-      let sum = A1;
-      
-      for (let i = 1; i < valuesToGroup.length; i++) {
-        const Ai = valuesToGroup[i];
-        const scalingFactor = i + 1;
+    // Sort by value descending (highest first) to match backend logic
+    allValues.sort((a, b) => b.value - a.value);
+    
+    // Calculate running totals as each entity is added (like backend format)
+    let runningTotal = 0;
+    
+    allValues.forEach((entity, index) => {
+      if (index === 0) {
+        // First entity (highest value)
+        runningTotal = entity.value;
+        steps.push({
+          step: stepCount++,
+          entityName: entity.name,
+          entityType: entity.type === 'character' ? 'character' : 'object',
+          attributeValue: entity.value,
+          isGrouped: true,
+          runningTotal: Math.round(runningTotal * 100) / 100,
+          formula: null
+        });
+      } else {
+        // Subsequent entities: calculate weighted average formula
+        const A1 = allValues[0].value; // Highest value
+        const Ai = entity.value; // Current value
+        const n = index + 1; // Position in sequence
         
-        if (A1 > 0) {
-          sum += Ai * (scalingFactor + Ai / A1);
-        } else {
-          sum += Ai * scalingFactor;
+        // Calculate new running total using weighted average
+        let sum = allValues[0].value; // Start with A1
+        for (let i = 1; i <= index; i++) {
+          const currentVal = allValues[i].value;
+          const scalingFactor = i + 1;
+          if (A1 > 0) {
+            sum += currentVal * (scalingFactor + currentVal / A1);
+          } else {
+            sum += currentVal * scalingFactor;
+          }
         }
-      }
-      
-      groupedValue = sum / valuesToGroup.length;
-      
-      // Add a grouping calculation step
-      steps.push({
-        step: stepCount++,
-        entityName: 'Weighted Average Grouping',
-        entityType: 'calculation',
-        attributeValue: 0,
-        isGrouped: true,
-        runningTotal: Math.round(groupedValue * 100) / 100,
-        formula: `Grouped: (${valuesToGroup.join(' + ')}) using weighted average = ${Math.round(groupedValue * 100) / 100}`
-      });
-    }
-    
-    let runningTotal = Math.round(groupedValue * 100) / 100;
-    
-    // Update all previous object/character steps with the correct running total after grouping
-    steps.forEach((step, index) => {
-      if (step.entityType !== 'calculation' && step.entityType !== 'condition') {
-        step.runningTotal = runningTotal;
+        runningTotal = sum / (index + 1);
+        
+        // Create formula string showing the weighted average calculation
+        const valuesList = allValues.slice(0, index + 1).map(v => v.value).join(' + ');
+        const formulaString = `Weighted Average: (${valuesList}) / ${index + 1}`;
+        
+        steps.push({
+          step: stepCount++,
+          entityName: entity.name,
+          entityType: entity.type === 'character' ? 'character' : 'object',
+          attributeValue: entity.value,
+          isGrouped: true,
+          runningTotal: Math.round(runningTotal * 100) / 100,
+          formula: formulaString
+        });
       }
     });
     
-    // 5. Apply conditions (HELP/HINDER) at the end
+    // Apply conditions (HELP/HINDER) at the end
     if (hasConditions) {
       const relevantConditions = character.conditions.filter(c => 
         c.conditionTarget && c.conditionTarget.toLowerCase() === attributeKey.toLowerCase()
@@ -282,7 +265,7 @@ const CharacterAttributesBackend = ({
           attributeValue: conditionAmount,
           isGrouped: true,
           runningTotal: Math.round(runningTotal * 100) / 100,
-          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${conditionAmount} = ${Math.round(runningTotal * 100) / 100}`
+          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${conditionAmount}`
         });
       });
     }
