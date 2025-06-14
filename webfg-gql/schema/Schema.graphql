@@ -44,10 +44,12 @@ type Mutation {
   deleteAction(actionId: ID!): Action
 
   # Character-Object relationship mutations
-  addObjectToInventory(characterId: ID!, objectId: ID!): Character
-  removeObjectFromInventory(characterId: ID!, objectId: ID!): Character
-  addObjectToEquipment(characterId: ID!, objectId: ID!): Character
-  removeObjectFromEquipment(characterId: ID!, objectId: ID!): Character
+  addObjectToStash(characterId: ID!, objectId: ID!): Character
+  removeObjectFromStash(characterId: ID!, objectId: ID!): Character
+  moveObjectToEquipment(characterId: ID!, objectId: ID!): Character
+  moveObjectToReady(characterId: ID!, objectId: ID!): Character
+  moveObjectFromReadyToEquipment(characterId: ID!, objectId: ID!): Character
+  moveObjectFromEquipmentToStash(characterId: ID!, objectId: ID!): Character
 
   # Character-Action relationship mutations
   addActionToCharacter(characterId: ID!, actionId: ID!): Character

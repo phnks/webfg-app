@@ -78,6 +78,22 @@ exports.handler = async (event) => {
           source.equipment = [];
         }
 
+        // Fetch ready items for each source character
+        if (source.readyIds && source.readyIds.length > 0) {
+          const readyKeys = source.readyIds.map(id => ({ objectId: id }));
+          const batchGetReadyCommand = new BatchGetCommand({
+            RequestItems: {
+              [objectsTable]: {
+                Keys: readyKeys
+              }
+            }
+          });
+          const readyResult = await docClient.send(batchGetReadyCommand);
+          source.ready = readyResult.Responses?.[objectsTable] || [];
+        } else {
+          source.ready = [];
+        }
+
         // Fetch conditions for each source character
         console.log(`Fetching conditions for source character ${source.name} (${source.characterId}):`, {
           hasCharacterConditions: !!source.characterConditions,
@@ -149,6 +165,22 @@ exports.handler = async (event) => {
             target.equipment = equipmentResult.Responses?.[objectsTable] || [];
           } else {
             target.equipment = [];
+          }
+
+          // Fetch ready items for each target character
+          if (target.readyIds && target.readyIds.length > 0) {
+            const readyKeys = target.readyIds.map(id => ({ objectId: id }));
+            const batchGetReadyCommand = new BatchGetCommand({
+              RequestItems: {
+                [objectsTable]: {
+                  Keys: readyKeys
+                }
+              }
+            });
+            const readyResult = await docClient.send(batchGetReadyCommand);
+            target.ready = readyResult.Responses?.[objectsTable] || [];
+          } else {
+            target.ready = [];
           }
 
           // Fetch conditions for each target character

@@ -28,16 +28,19 @@ type Character {
 
   special: [String]
 
-  inventoryIds: [ID]
-  inventory: [Object]
+  stashIds: [ID]
+  stash: [Object]
   equipmentIds: [ID]
   equipment: [Object]
+  readyIds: [ID]
+  ready: [Object]
   
   characterConditions: [CharacterCondition]
   conditions: [CharacterConditionWithDetails]
   
   # Computed fields (only resolved when requested)
   groupedAttributes: GroupedAttributes
+  readyGroupedAttributes: ReadyGroupedAttributes
   attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]
 }
 
@@ -89,8 +92,9 @@ input CharacterInput {
   charisma: CharacterAttributeInput!
   actionIds: [ID]
   special: [String]
-  inventoryIds: [ID]
+  stashIds: [ID]
   equipmentIds: [ID]
+  readyIds: [ID]
   characterConditions: [CharacterConditionInput]
 }
 

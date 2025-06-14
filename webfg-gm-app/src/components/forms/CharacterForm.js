@@ -70,8 +70,9 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       values: [],
       special: [],
       actionIds: [],
-      inventoryIds: [],
-      equipmentIds: []
+      stashIds: [],
+      equipmentIds: [],
+      readyIds: []
     };
     
     // Add all attributes with default values
@@ -95,8 +96,9 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         values: (character.values || []).map(v => ({ ...v })),
         special: character.special || [],
         actionIds: character.actionIds || [],
-        inventoryIds: character.inventoryIds || [],
-        equipmentIds: character.equipmentIds || []
+        stashIds: character.stashIds || [],
+        equipmentIds: character.equipmentIds || [],
+        readyIds: character.readyIds || []
       };
       
       // Add all attributes from character or default values
@@ -226,8 +228,9 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         values: formData.values.map(v => ({ valueName: v.valueName, valueType: v.valueType })),
         special: formData.special,
         actionIds: formData.actionIds,
-        inventoryIds: formData.inventoryIds,
-        equipmentIds: formData.equipmentIds
+        stashIds: formData.stashIds,
+        equipmentIds: formData.equipmentIds,
+        readyIds: formData.readyIds
       };
       
       

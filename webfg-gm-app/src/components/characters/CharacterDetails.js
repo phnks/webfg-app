@@ -18,8 +18,9 @@ const CharacterDetails = ({ character, onUpdate }) => {
         values: character.values || [],
         special: character.special || "",
         actionIds: character.actionIds || [],
-        inventoryIds: character.inventoryIds || [],
-        equipmentIds: character.equipmentIds || []
+        stashIds: character.stashIds || [],
+        equipmentIds: character.equipmentIds || [],
+        readyIds: character.readyIds || []
       };
 
       // Add attributes with their current values (no more fatigue per attribute)
@@ -67,8 +68,9 @@ const CharacterDetails = ({ character, onUpdate }) => {
         values: character.values || [],
         special: character.special || "",
         actionIds: character.actionIds || [],
-        inventoryIds: character.inventoryIds || [],
-        equipmentIds: character.equipmentIds || []
+        stashIds: character.stashIds || [],
+        equipmentIds: character.equipmentIds || [],
+        readyIds: character.readyIds || []
       };
 
       // Add attributes with their current values (no more fatigue per attribute)

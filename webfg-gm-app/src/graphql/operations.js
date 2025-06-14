@@ -121,8 +121,8 @@ export const GET_CHARACTER = gql`
       special
       actionIds
       actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType triggeredActionId triggeredAction { actionId name sourceAttribute targetAttribute targetType effectType } }
-      inventoryIds
-      inventory { objectId name objectCategory }
+      stashIds
+      stash { objectId name objectCategory }
       equipmentIds
       equipment { 
         objectId name objectCategory
@@ -159,6 +159,25 @@ export const GET_CHARACTER = gql`
           intelligence { attributeValue isGrouped }
           charisma { attributeValue isGrouped }
         }
+      }
+      readyIds
+      ready { 
+        objectId name objectCategory
+        speed { attributeValue isGrouped }
+        weight { attributeValue isGrouped }
+        size { attributeValue isGrouped }
+        armour { attributeValue isGrouped }
+        endurance { attributeValue isGrouped }
+        lethality { attributeValue isGrouped }
+        strength { attributeValue isGrouped }
+        dexterity { attributeValue isGrouped }
+        agility { attributeValue isGrouped }
+        perception { attributeValue isGrouped }
+        intensity { attributeValue isGrouped }
+        resolve { attributeValue isGrouped }
+        morale { attributeValue isGrouped }
+        intelligence { attributeValue isGrouped }
+        charisma { attributeValue isGrouped }
       }
     }
   }
@@ -415,8 +434,9 @@ export const CREATE_CHARACTER = gql`
       
       special
       actionIds
-      inventoryIds
+      stashIds
       equipmentIds
+      readyIds
     }
   }
 `;
@@ -450,8 +470,9 @@ export const UPDATE_CHARACTER = gql`
       
       special
       actionIds
-      inventoryIds
+      stashIds
       equipmentIds
+      readyIds
     }
   }
 `;
@@ -549,13 +570,13 @@ export const DELETE_ACTION = gql`
 `;
 
 // CHARACTER-OBJECT RELATIONSHIP MUTATIONS
-export const ADD_OBJECT_TO_INVENTORY = gql`
-  mutation AddObjectToInventory($characterId: ID!, $objectId: ID!) {
-    addObjectToInventory(characterId: $characterId, objectId: $objectId) {
+export const ADD_OBJECT_TO_STASH = gql`
+  mutation AddObjectToStash($characterId: ID!, $objectId: ID!) {
+    addObjectToStash(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
-      inventoryIds
-      inventory {
+      stashIds
+      stash {
         objectId
         name
         objectCategory
@@ -563,13 +584,14 @@ export const ADD_OBJECT_TO_INVENTORY = gql`
     }
   }
 `;
-export const REMOVE_OBJECT_FROM_INVENTORY = gql`
-  mutation RemoveObjectFromInventory($characterId: ID!, $objectId: ID!) {
-    removeObjectFromInventory(characterId: $characterId, objectId: $objectId) {
+
+export const REMOVE_OBJECT_FROM_STASH = gql`
+  mutation RemoveObjectFromStash($characterId: ID!, $objectId: ID!) {
+    removeObjectFromStash(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
-      inventoryIds
-      inventory {
+      stashIds
+      stash {
         objectId
         name
         objectCategory
@@ -577,11 +599,18 @@ export const REMOVE_OBJECT_FROM_INVENTORY = gql`
     }
   }
 `;
-export const ADD_OBJECT_TO_EQUIPMENT = gql`
-  mutation AddObjectToEquipment($characterId: ID!, $objectId: ID!) {
-    addObjectToEquipment(characterId: $characterId, objectId: $objectId) {
+
+export const MOVE_OBJECT_TO_EQUIPMENT = gql`
+  mutation MoveObjectToEquipment($characterId: ID!, $objectId: ID!) {
+    moveObjectToEquipment(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
+      stashIds
+      stash {
+        objectId
+        name
+        objectCategory
+      }
       equipmentIds
       equipment {
         objectId
@@ -591,11 +620,60 @@ export const ADD_OBJECT_TO_EQUIPMENT = gql`
     }
   }
 `;
-export const REMOVE_OBJECT_FROM_EQUIPMENT = gql`
-  mutation RemoveObjectFromEquipment($characterId: ID!, $objectId: ID!) {
-    removeObjectFromEquipment(characterId: $characterId, objectId: $objectId) {
+
+export const MOVE_OBJECT_TO_READY = gql`
+  mutation MoveObjectToReady($characterId: ID!, $objectId: ID!) {
+    moveObjectToReady(characterId: $characterId, objectId: $objectId) {
       characterId 
       name 
+      equipmentIds
+      equipment {
+        objectId
+        name
+        objectCategory
+      }
+      readyIds
+      ready {
+        objectId
+        name
+        objectCategory
+      }
+    }
+  }
+`;
+
+export const MOVE_OBJECT_FROM_READY_TO_EQUIPMENT = gql`
+  mutation MoveObjectFromReadyToEquipment($characterId: ID!, $objectId: ID!) {
+    moveObjectFromReadyToEquipment(characterId: $characterId, objectId: $objectId) {
+      characterId 
+      name 
+      equipmentIds
+      equipment {
+        objectId
+        name
+        objectCategory
+      }
+      readyIds
+      ready {
+        objectId
+        name
+        objectCategory
+      }
+    }
+  }
+`;
+
+export const MOVE_OBJECT_FROM_EQUIPMENT_TO_STASH = gql`
+  mutation MoveObjectFromEquipmentToStash($characterId: ID!, $objectId: ID!) {
+    moveObjectFromEquipmentToStash(characterId: $characterId, objectId: $objectId) {
+      characterId 
+      name 
+      stashIds
+      stash {
+        objectId
+        name
+        objectCategory
+      }
       equipmentIds
       equipment {
         objectId

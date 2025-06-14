@@ -41,8 +41,9 @@ exports.handler = async (event) => {
     charisma: input.charisma,
     actionIds: input.actionIds || [],
     special: input.special || [],
-    inventoryIds: input.inventoryIds || [],
-    equipmentIds: input.equipmentIds || []
+    stashIds: input.stashIds || [],
+    equipmentIds: input.equipmentIds || [],
+    readyIds: input.readyIds || []
   };
 
   const params = {

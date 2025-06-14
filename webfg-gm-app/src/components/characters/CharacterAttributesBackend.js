@@ -8,13 +8,26 @@ import "./CharacterAttributes.css";
 // Version that uses backend computed fields
 const CharacterAttributesBackend = ({ 
   character, // Full character object with all attributes
-  groupedAttributes // New prop from backend
+  groupedAttributes, // Equipment grouped attributes from backend
+  readyGroupedAttributes // Ready grouped attributes (equipment + ready) from backend - can be undefined
 }) => {
+  // Debug logging
+  console.log('[CharacterAttributesBackend] Props received:', {
+    characterName: character?.name,
+    hasGroupedAttributes: !!groupedAttributes,
+    hasReadyGroupedAttributes: !!readyGroupedAttributes,
+    readyGroupedAttributes: readyGroupedAttributes
+  });
 
   // State for breakdown popup
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [selectedAttribute, setSelectedAttribute] = useState(null);
   const [breakdownAttributeName, setBreakdownAttributeName] = useState('');
+  
+  // State for ready breakdown popup
+  const [showReadyBreakdown, setShowReadyBreakdown] = useState(false);
+  const [selectedReadyAttribute, setSelectedReadyAttribute] = useState(null);
+  const [readyBreakdownAttributeName, setReadyBreakdownAttributeName] = useState('');
   
   // Query for breakdown data when needed
   const { data: breakdownData, loading: breakdownLoading, error: breakdownError } = useQuery(
@@ -30,6 +43,9 @@ const CharacterAttributesBackend = ({
     }
   );
   
+  // Note: Ready breakdown uses frontend fallback function only
+  // Backend doesn't support ready grouped breakdowns yet
+  
   
   // Handler for showing breakdown
   const handleShowBreakdown = (attributeKey, attributeName) => {
@@ -37,6 +53,15 @@ const CharacterAttributesBackend = ({
       setSelectedAttribute(attributeKey);
       setBreakdownAttributeName(attributeName);
       setShowBreakdown(true);
+    }
+  };
+  
+  // Handler for showing ready breakdown
+  const handleShowReadyBreakdown = (attributeKey, attributeName) => {
+    if (character) {
+      setSelectedReadyAttribute(attributeKey);
+      setReadyBreakdownAttributeName(attributeName);
+      setShowReadyBreakdown(true);
     }
   };
   
@@ -104,6 +129,164 @@ const CharacterAttributesBackend = ({
         formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${conditionAmount}`
       });
     });
+    
+    return steps;
+  };
+
+  // Function to generate a fallback ready breakdown including ready items
+  // Mimics the backend format: one row per entity, showing weighted average formula as items are added
+  const generateReadyFallbackBreakdown = (attributeKey) => {
+    const steps = [];
+    let stepCount = 1;
+    
+    // Find the attribute in character
+    const originalValue = character?.[attributeKey]?.attribute?.attributeValue || 0;
+    if (!originalValue && originalValue !== 0) {
+      return steps;
+    }
+    
+    // Get original value and collect all values to group
+    const numOriginalValue = Number(originalValue);
+    const charIsGrouped = character?.[attributeKey]?.attribute?.isGrouped !== false;
+    
+    // Collect all values that will be grouped (sorted by highest first)
+    const allValues = [];
+    const entityNames = [];
+    
+    // Character base value (always first if grouped)
+    if (charIsGrouped) {
+      allValues.push({ value: numOriginalValue, name: character?.name || 'Character', type: 'character' });
+    }
+    
+    // Equipment objects
+    if (character?.equipment?.length > 0) {
+      character.equipment.forEach(item => {
+        const itemAttr = item[attributeKey];
+        if (itemAttr && itemAttr.attributeValue !== undefined) {
+          const itemValue = Number(itemAttr.attributeValue);
+          const itemIsGrouped = itemAttr.isGrouped !== false;
+          if (itemIsGrouped && itemValue > 0) {
+            allValues.push({ value: itemValue, name: item.name || 'Equipment', type: 'equipment' });
+          }
+        }
+      });
+    }
+    
+    // Ready objects
+    if (character?.ready?.length > 0) {
+      character.ready.forEach(item => {
+        const itemAttr = item[attributeKey];
+        if (itemAttr && itemAttr.attributeValue !== undefined) {
+          const itemValue = Number(itemAttr.attributeValue);
+          const itemIsGrouped = itemAttr.isGrouped !== false;
+          if (itemIsGrouped && itemValue > 0) {
+            allValues.push({ value: itemValue, name: item.name || 'Ready Object', type: 'ready' });
+          }
+        }
+      });
+    }
+    
+    // Sort by value descending (highest first) to match backend logic
+    allValues.sort((a, b) => b.value - a.value);
+    
+    // Calculate running totals as each entity is added (like backend format)
+    let runningTotal = 0;
+    
+    allValues.forEach((entity, index) => {
+      if (index === 0) {
+        // First entity (highest value)
+        runningTotal = entity.value;
+        steps.push({
+          step: stepCount++,
+          entityName: entity.name,
+          entityType: entity.type === 'character' ? 'character' : 'object',
+          attributeValue: entity.value,
+          isGrouped: true,
+          runningTotal: Math.round(runningTotal * 100) / 100,
+          formula: null
+        });
+      } else {
+        // Subsequent entities: calculate weighted average formula
+        // Calculate new running total using weighted average formula: (A1 + A2*(2+A2/A1) + A3*(3+A3/A1) + ...) / N
+        const A1 = allValues[0].value; // Highest value
+        let sum = A1; // Start with A1
+        
+        for (let i = 1; i <= index; i++) {
+          const Ai = allValues[i].value;
+          const scalingFactor = i + 1;
+          if (A1 > 0) {
+            sum += Ai * (scalingFactor + Ai / A1);
+          } else {
+            sum += Ai * scalingFactor;
+          }
+        }
+        runningTotal = sum / (index + 1);
+        
+        // Create formula string showing the correct weighted average calculation
+        if (index === 1) {
+          // Second item: show A1 + A2*(2+A2/A1) / 2
+          const A2 = entity.value;
+          const formulaString = `Weighted Average: (${A1} + ${A2}*(2+${A2}/${A1})) / 2`;
+          steps.push({
+            step: stepCount++,
+            entityName: entity.name,
+            entityType: entity.type === 'character' ? 'character' : 'object',
+            attributeValue: entity.value,
+            isGrouped: true,
+            runningTotal: Math.round(runningTotal * 100) / 100,
+            formula: formulaString
+          });
+        } else {
+          // Third+ item: show full formula
+          let formulaParts = [A1.toString()];
+          for (let i = 1; i <= index; i++) {
+            const Ai = allValues[i].value;
+            const scalingFactor = i + 1;
+            formulaParts.push(`${Ai}*(${scalingFactor}+${Ai}/${A1})`);
+          }
+          const formulaString = `Weighted Average: (${formulaParts.join(' + ')}) / ${index + 1}`;
+          steps.push({
+            step: stepCount++,
+            entityName: entity.name,
+            entityType: entity.type === 'character' ? 'character' : 'object',
+            attributeValue: entity.value,
+            isGrouped: true,
+            runningTotal: Math.round(runningTotal * 100) / 100,
+            formula: formulaString
+          });
+        }
+      }
+    });
+    
+    // Apply conditions (HELP/HINDER) at the end
+    if (hasConditions) {
+      const relevantConditions = character.conditions.filter(c => 
+        c.conditionTarget && c.conditionTarget.toLowerCase() === attributeKey.toLowerCase()
+      );
+      
+      relevantConditions.forEach(condition => {
+        const conditionAmount = Number(condition.conditionAmount || condition.amount || 0);
+        if (conditionAmount === 0) return;
+        
+        const previousValue = runningTotal;
+        
+        if (condition.conditionType === 'HELP') {
+          runningTotal += conditionAmount;
+        } else if (condition.conditionType === 'HINDER') {
+          runningTotal -= conditionAmount;
+        }
+        
+        steps.push({
+          step: stepCount++,
+          entityName: condition.name || 'Condition',
+          entityType: 'condition',
+          attributeValue: conditionAmount,
+          isGrouped: true,
+          runningTotal: Math.round(runningTotal * 100) / 100,
+          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${conditionAmount}`
+        });
+      });
+    }
     
     return steps;
   };
@@ -175,8 +358,10 @@ const CharacterAttributesBackend = ({
   // Render function for individual attributes in the view
   const renderAttributeForView = (attributeName, attribute, displayName) => {
     const originalValue = character?.[attributeName]?.attribute?.attributeValue || 0;
-    const groupedValue = effectiveGroupedAttributes?.[attributeName];
+    const equipmentGroupedValue = effectiveGroupedAttributes?.[attributeName];
+    const readyGroupedValue = readyGroupedAttributes?.[attributeName];
     const hasEquipment = character && character.equipment && character.equipment.length > 0;
+    const hasReady = character && character.readyIds && character.readyIds.length > 0;
     const hasConditions = character && character.conditions && character.conditions.length > 0;
     
     // Check if there are conditions that affect this attribute
@@ -186,19 +371,32 @@ const CharacterAttributesBackend = ({
     
     // Convert values to numbers for accurate comparison
     const numOriginal = typeof originalValue === 'string' ? parseFloat(originalValue) : Number(originalValue);
-    const numGrouped = typeof groupedValue === 'string' ? parseFloat(groupedValue) : Number(groupedValue);
+    const numEquipmentGrouped = typeof equipmentGroupedValue === 'string' ? parseFloat(equipmentGroupedValue) : Number(equipmentGroupedValue);
+    const numReadyGrouped = typeof readyGroupedValue === 'string' ? parseFloat(readyGroupedValue) : Number(readyGroupedValue);
     
     // Check if we have valid numbers before computing difference
-    const canComputeDifference = !isNaN(numOriginal) && !isNaN(numGrouped);
-    const difference = canComputeDifference ? Math.abs(numGrouped - numOriginal) : 0;
-    const isDifferent = canComputeDifference && difference >= 0.01;
+    const canComputeEquipmentDifference = !isNaN(numOriginal) && !isNaN(numEquipmentGrouped);
+    const canComputeReadyDifference = !isNaN(numEquipmentGrouped) && !isNaN(numReadyGrouped);
+    const equipmentDifference = canComputeEquipmentDifference ? Math.abs(numEquipmentGrouped - numOriginal) : 0;
+    const readyDifference = canComputeReadyDifference ? Math.abs(numReadyGrouped - numEquipmentGrouped) : 0;
+    const isEquipmentDifferent = canComputeEquipmentDifference && equipmentDifference >= 0.01;
+    const isReadyDifferent = canComputeReadyDifference && readyDifference >= 0.01;
     
-    // Determine if we should show grouped value
-    const shouldShowGroupedValue = 
-      ((groupedValue !== undefined && groupedValue !== null) && 
-       (hasEquipment || hasConditionForThisAttribute || isDifferent)) ||
+    // Determine if we should show equipment grouped value
+    const shouldShowEquipmentGroupedValue = 
+      ((equipmentGroupedValue !== undefined && equipmentGroupedValue !== null) && 
+       (hasEquipment || hasConditionForThisAttribute || isEquipmentDifferent)) ||
       (hasConditionForThisAttribute && effectiveGroupedAttributes && 
-       effectiveGroupedAttributes[attributeName] !== undefined);
+       effectiveGroupedAttributes[attributeName] !== undefined) ||
+      // Always show equipment grouped when we have ready items (to show the intermediate step)
+      (hasReady && readyGroupedAttributes && readyGroupedValue !== undefined && readyGroupedValue !== null);
+       
+    // Determine if we should show ready grouped value
+    // Show if character has ready items AND we have readyGroupedAttributes data
+    const shouldShowReadyGroupedValue = 
+      hasReady && 
+      readyGroupedAttributes && // Check that readyGroupedAttributes exists
+      readyGroupedValue !== undefined && readyGroupedValue !== null;
     
     return (
       <div key={attributeName} className="attribute-item">
@@ -212,11 +410,11 @@ const CharacterAttributesBackend = ({
           >
             {character?.[attributeName]?.attribute?.isGrouped !== false ? '☑️' : '❌'}
           </span>
-          {shouldShowGroupedValue && (
+          {shouldShowEquipmentGroupedValue && (
             <span 
               className="grouped-value" 
               style={getGroupedValueStyle(originalValue, effectiveGroupedAttributes[attributeName])}
-              title="Final grouped value with equipment and conditions"
+              title="Grouped value with equipment and conditions (for targets)"
             >
               {' → '}{
                 effectiveGroupedAttributes[attributeName] !== undefined && 
@@ -236,6 +434,33 @@ const CharacterAttributesBackend = ({
                   ℹ️
                 </button>
               )}
+            </span>
+          )}
+          {shouldShowReadyGroupedValue && (
+            <span 
+              className="ready-grouped-value" 
+              style={{
+                ...getGroupedValueStyle(equipmentGroupedValue, readyGroupedValue),
+                marginLeft: '4px'
+              }}
+              title="Ready grouped value with equipment + ready objects (for sources)"
+            >
+              {' → '}{
+                readyGroupedValue !== undefined && 
+                !isNaN(Number(readyGroupedValue)) ? 
+                  Math.round(Number(readyGroupedValue)) : 
+                  equipmentGroupedValue
+              }
+              <button
+                className="info-icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShowReadyBreakdown(attributeName, displayName);
+                }}
+                title="Show ready grouped attribute breakdown"
+              >
+                ℹ️
+              </button>
             </span>
           )}
         </span>
@@ -271,6 +496,18 @@ const CharacterAttributesBackend = ({
           onClose={() => {
             setShowBreakdown(false);
             setSelectedAttribute(null);
+          }}
+        />
+      )}
+      
+      {showReadyBreakdown && (
+        <AttributeBreakdownPopup
+          breakdown={generateReadyFallbackBreakdown(selectedReadyAttribute)}
+          attributeName={`${readyBreakdownAttributeName} (Ready Grouped)`}
+          isLoading={false}
+          onClose={() => {
+            setShowReadyBreakdown(false);
+            setSelectedReadyAttribute(null);
           }}
         />
       )}

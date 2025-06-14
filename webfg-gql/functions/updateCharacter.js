@@ -56,8 +56,9 @@ exports.handler = async (event) => {
   addUpdateField("charisma", input.charisma);
   addUpdateField("actionIds", input.actionIds);
   addUpdateField("special", input.special);
-  addUpdateField("inventoryIds", input.inventoryIds);
+  addUpdateField("stashIds", input.stashIds);
   addUpdateField("equipmentIds", input.equipmentIds);
+  addUpdateField("readyIds", input.readyIds);
 
   if (updateExpressionParts.length === 0) {
     console.warn("UpdateCharacter called with only characterId and no actual fields to update.");

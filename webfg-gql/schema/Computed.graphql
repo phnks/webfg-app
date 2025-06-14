@@ -18,6 +18,24 @@ type GroupedAttributes {
   morale: Float
 }
 
+type ReadyGroupedAttributes {
+  speed: Float
+  weight: Float
+  size: Float
+  intensity: Float
+  lethality: Float
+  armour: Float
+  endurance: Float
+  strength: Float
+  dexterity: Float
+  agility: Float
+  perception: Float
+  charisma: Float
+  intelligence: Float
+  resolve: Float
+  morale: Float
+}
+
 type AttributeBreakdownStep {
   step: Int!
   entityName: String!

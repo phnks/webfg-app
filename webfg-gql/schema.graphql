@@ -90,16 +90,19 @@ type Character {
 
   special: [String]
 
-  inventoryIds: [ID]
-  inventory: [Object]
+  stashIds: [ID]
+  stash: [Object]
   equipmentIds: [ID]
   equipment: [Object]
+  readyIds: [ID]
+  ready: [Object]
   
   characterConditions: [CharacterCondition]
   conditions: [CharacterConditionWithDetails]
   
   # Computed fields (only resolved when requested)
   groupedAttributes: GroupedAttributes
+  readyGroupedAttributes: ReadyGroupedAttributes
   attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]
 }
 
@@ -151,8 +154,9 @@ input CharacterInput {
   charisma: CharacterAttributeInput!
   actionIds: [ID]
   special: [String]
-  inventoryIds: [ID]
+  stashIds: [ID]
   equipmentIds: [ID]
+  readyIds: [ID]
   characterConditions: [CharacterConditionInput]
 }
 
@@ -369,10 +373,12 @@ type Mutation {
   deleteAction(actionId: ID!): Action
 
   # Character-Object relationship mutations
-  addObjectToInventory(characterId: ID!, objectId: ID!): Character
-  removeObjectFromInventory(characterId: ID!, objectId: ID!): Character
-  addObjectToEquipment(characterId: ID!, objectId: ID!): Character
-  removeObjectFromEquipment(characterId: ID!, objectId: ID!): Character
+  addObjectToStash(characterId: ID!, objectId: ID!): Character
+  removeObjectFromStash(characterId: ID!, objectId: ID!): Character
+  moveObjectToEquipment(characterId: ID!, objectId: ID!): Character
+  moveObjectToReady(characterId: ID!, objectId: ID!): Character
+  moveObjectFromReadyToEquipment(characterId: ID!, objectId: ID!): Character
+  moveObjectFromEquipmentToStash(characterId: ID!, objectId: ID!): Character
 
   # Character-Action relationship mutations
   addActionToCharacter(characterId: ID!, actionId: ID!): Character
@@ -532,6 +538,24 @@ schema {
 # Computed field types for grouped attributes and action calculations
 
 type GroupedAttributes {
+  speed: Float
+  weight: Float
+  size: Float
+  intensity: Float
+  lethality: Float
+  armour: Float
+  endurance: Float
+  strength: Float
+  dexterity: Float
+  agility: Float
+  perception: Float
+  charisma: Float
+  intelligence: Float
+  resolve: Float
+  morale: Float
+}
+
+type ReadyGroupedAttributes {
   speed: Float
   weight: Float
   size: Float
