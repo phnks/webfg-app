@@ -21,6 +21,26 @@ export const GROUPED_ATTRIBUTES_FRAGMENT = gql`
   }
 `;
 
+export const READY_GROUPED_ATTRIBUTES_FRAGMENT = gql`
+  fragment ReadyGroupedAttributesFields on ReadyGroupedAttributes {
+    speed
+    weight
+    size
+    intensity
+    lethality
+    armour
+    endurance
+    strength
+    dexterity
+    agility
+    perception
+    charisma
+    intelligence
+    resolve
+    morale
+  }
+`;
+
 export const ATTRIBUTE_BREAKDOWN_FRAGMENT = gql`
   fragment AttributeBreakdownFields on AttributeBreakdownStep {
     step
@@ -36,6 +56,7 @@ export const ATTRIBUTE_BREAKDOWN_FRAGMENT = gql`
 // CHARACTER QUERIES WITH COMPUTED FIELDS
 export const GET_CHARACTER_WITH_GROUPED = gql`
   ${GROUPED_ATTRIBUTES_FRAGMENT}
+  ${READY_GROUPED_ATTRIBUTES_FRAGMENT}
   query GetCharacterWithGrouped($characterId: ID!) {
     getCharacter(characterId: $characterId) {
       characterId
@@ -65,6 +86,11 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       # Computed grouped attributes
       groupedAttributes {
         ...GroupedAttributesFields
+      }
+      
+      # Ready grouped attributes (includes equipment + ready objects)
+      readyGroupedAttributes {
+        ...ReadyGroupedAttributesFields
       }
       
       special

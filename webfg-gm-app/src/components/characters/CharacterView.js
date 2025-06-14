@@ -409,6 +409,7 @@ const CharacterView = () => {
           <CharacterAttributesBackend 
             character={character}
             groupedAttributes={character.groupedAttributes}
+            readyGroupedAttributes={character.readyGroupedAttributes}
           />
         </div>
 

@@ -332,6 +332,14 @@ const calculateReadyGroupedAttributes = (character) => {
     // Apply new weighted average grouping formula
     const groupedValue = calculateGroupingFormula(valuesToGroup);
     
+    // Debug logging for ready grouped calculation
+    if (attributeName === 'dexterity' && character.name === 'The Guy') {
+      console.log(`[DEBUG READY] Calculating ready grouped dexterity for The Guy:`);
+      console.log(`[DEBUG READY] Character base value: ${charAttrInfo.value}, isGrouped: ${charAttrInfo.isGrouped}`);
+      console.log(`[DEBUG READY] Values to group: ${JSON.stringify(valuesToGroup)}`);
+      console.log(`[DEBUG READY] Grouped value before rounding: ${groupedValue}`);
+    }
+    
     // No fatigue applied here anymore - it's handled at action test level
     groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
   });

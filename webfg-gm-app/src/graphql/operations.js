@@ -161,7 +161,24 @@ export const GET_CHARACTER = gql`
         }
       }
       readyIds
-      ready { objectId name objectCategory }
+      ready { 
+        objectId name objectCategory
+        speed { attributeValue isGrouped }
+        weight { attributeValue isGrouped }
+        size { attributeValue isGrouped }
+        armour { attributeValue isGrouped }
+        endurance { attributeValue isGrouped }
+        lethality { attributeValue isGrouped }
+        strength { attributeValue isGrouped }
+        dexterity { attributeValue isGrouped }
+        agility { attributeValue isGrouped }
+        perception { attributeValue isGrouped }
+        intensity { attributeValue isGrouped }
+        resolve { attributeValue isGrouped }
+        morale { attributeValue isGrouped }
+        intelligence { attributeValue isGrouped }
+        charisma { attributeValue isGrouped }
+      }
     }
   }
 `;
