@@ -43,19 +43,8 @@ const CharacterAttributesBackend = ({
     }
   );
   
-  // Query for ready breakdown data when needed
-  const { data: readyBreakdownData, loading: readyBreakdownLoading } = useQuery(
-    GET_CHARACTER_ATTRIBUTE_BREAKDOWN,
-    {
-      variables: {
-        characterId: character?.characterId,
-        attributeName: selectedReadyAttribute
-      },
-      skip: !selectedReadyAttribute || !character?.characterId,
-      onCompleted: (data) => {},
-      onError: (error) => {}
-    }
-  );
+  // Note: Ready breakdown uses frontend fallback function only
+  // Backend doesn't support ready grouped breakdowns yet
   
   
   // Handler for showing breakdown
@@ -512,9 +501,9 @@ const CharacterAttributesBackend = ({
       
       {showReadyBreakdown && (
         <AttributeBreakdownPopup
-          breakdown={readyBreakdownData?.getCharacter?.attributeBreakdown || generateReadyFallbackBreakdown(selectedReadyAttribute)}
+          breakdown={generateReadyFallbackBreakdown(selectedReadyAttribute)}
           attributeName={`${readyBreakdownAttributeName} (Ready Grouped)`}
-          isLoading={readyBreakdownLoading}
+          isLoading={false}
           onClose={() => {
             setShowReadyBreakdown(false);
             setSelectedReadyAttribute(null);
