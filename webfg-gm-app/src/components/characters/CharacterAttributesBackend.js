@@ -158,102 +158,126 @@ const CharacterAttributesBackend = ({
     // Get original value
     const numOriginalValue = Number(originalValue);
     
-    // Add base value as first step
-    steps.push({
-      step: stepCount++,
-      entityName: character?.name || 'Character',
-      entityType: 'character',
-      attributeValue: numOriginalValue,
-      isGrouped: character?.[attributeKey]?.attribute?.isGrouped || true,
-      runningTotal: numOriginalValue,
-      formula: null
-    });
+    // Mirror the backend calculation logic exactly
+    // 1. Start with character base value (if isGrouped=true)
+    const charIsGrouped = character?.[attributeKey]?.attribute?.isGrouped !== false;
+    const valuesToGroup = [];
     
-    let runningTotal = numOriginalValue;
-    
-    // Add steps for ready items FIRST (before conditions)
-    // Ready items are grouped with the character using weighted average
-    if (character?.ready?.length > 0) {
-      console.log(`[DEBUG] Found ${character.ready.length} ready items for breakdown`);
-      
-      // Find the Gun object to get its name
-      const gunObject = character.ready.find(item => item.name === 'Gun') || character.ready[0];
-      
-      // Use the backend calculation to figure out what the Gun contributed
-      // We need to reverse-engineer from the fact that character (10) + Gun = some intermediate value
-      // Then conditions are applied to get to the final ready grouped value
-      
-      // For dexterity: character base = 10, Gun has dexterity 27, so grouped should be higher than 10
-      // But we also have a -10 condition, so: grouped(10 + Gun) - 10 = 17
-      // This means: grouped(10 + Gun) = 27, so Gun contributed to get from 10 to 27
-      
-      // Let's calculate what the grouped value would be before conditions
-      const finalReadyValue = readyGroupedAttributes?.[attributeKey];
-      console.log(`[DEBUG] Final ready grouped value: ${finalReadyValue}`);
-      
-      if (finalReadyValue !== undefined && finalReadyValue !== null) {
-        // Simplified approach: add the Gun step and let conditions be applied after
-        // We know the final value should be finalReadyValue, so work backwards
-        
-        // First, let's calculate what the grouped value would be before conditions are applied
-        // Since we know: grouped_value_with_gun - condition_effects = finalReadyValue
-        // We want: grouped_value_with_gun
-        
-        let preConditionGroupedValue = finalReadyValue;
-        
-        // Add back the condition effects
-        if (hasConditions) {
-          const relevantConditions = character.conditions.filter(c => 
-            c.conditionTarget && c.conditionTarget.toLowerCase() === attributeKey.toLowerCase()
-          );
-          
-          relevantConditions.forEach(condition => {
-            console.log(`[DEBUG] Processing condition for reverse calc:`, condition);
-            const conditionAmount = Number(condition.amount || condition.conditionAmount || 0);
-            console.log(`[DEBUG] Condition amount: ${conditionAmount}, type: ${condition.conditionType}`);
-            if (condition.conditionType === 'HELP') {
-              preConditionGroupedValue -= conditionAmount; // Reverse the help
-            } else if (condition.conditionType === 'HINDER') {
-              preConditionGroupedValue += conditionAmount; // Reverse the hinder
-            }
-            console.log(`[DEBUG] After condition ${condition.conditionType}, preConditionGroupedValue: ${preConditionGroupedValue}`);
-          });
-        }
-        
-        console.log(`[DEBUG] Pre-condition grouped value: ${preConditionGroupedValue}`);
-        
-        // Calculate what the Gun contributed
-        const gunContribution = preConditionGroupedValue - numOriginalValue;
-        console.log(`[DEBUG] Gun contribution: ${preConditionGroupedValue} - ${numOriginalValue} = ${gunContribution}`);
-        
-        if (!isNaN(gunContribution) && Math.abs(gunContribution) > 0.01) {
-          const previousValue = runningTotal;
-          runningTotal = preConditionGroupedValue;
-          
-          steps.push({
-            step: stepCount++,
-            entityName: gunObject?.name || 'Ready Object', 
-            entityType: 'object',
-            attributeValue: gunContribution,
-            isGrouped: true,
-            runningTotal: runningTotal,
-            formula: `READY: ${previousValue} + ${gunContribution} (grouped)`
-          });
-          console.log(`[DEBUG] Added Gun step: ${gunContribution}`);
-        } else {
-          console.log(`[DEBUG] Gun contribution was NaN or too small: ${gunContribution}`);
-        }
-      }
+    if (charIsGrouped) {
+      valuesToGroup.push(numOriginalValue);
+      steps.push({
+        step: stepCount++,
+        entityName: character?.name || 'Character',
+        entityType: 'character',
+        attributeValue: numOriginalValue,
+        isGrouped: true,
+        runningTotal: numOriginalValue,
+        formula: null
+      });
     }
     
-    // Add steps for conditions last (they apply after ready items)
+    // 2. Add equipment objects that have isGrouped=true
+    if (character?.equipment?.length > 0) {
+      character.equipment.forEach(item => {
+        const itemAttr = item[attributeKey];
+        if (itemAttr && itemAttr.attributeValue !== undefined) {
+          const itemValue = Number(itemAttr.attributeValue);
+          const itemIsGrouped = itemAttr.isGrouped !== false;
+          
+          if (itemIsGrouped && itemValue > 0) {
+            valuesToGroup.push(itemValue);
+            steps.push({
+              step: stepCount++,
+              entityName: item.name || 'Equipment',
+              entityType: 'object',
+              attributeValue: itemValue,
+              isGrouped: true,
+              runningTotal: 0, // Will calculate after grouping
+              formula: `EQUIPMENT: ${item.name} contributes ${itemValue}`
+            });
+          }
+        }
+      });
+    }
+    
+    // 3. Add ready objects that have isGrouped=true
+    if (character?.ready?.length > 0) {
+      character.ready.forEach(item => {
+        const itemAttr = item[attributeKey];
+        if (itemAttr && itemAttr.attributeValue !== undefined) {
+          const itemValue = Number(itemAttr.attributeValue);
+          const itemIsGrouped = itemAttr.isGrouped !== false;
+          
+          if (itemIsGrouped && itemValue > 0) {
+            valuesToGroup.push(itemValue);
+            steps.push({
+              step: stepCount++,
+              entityName: item.name || 'Ready Object',
+              entityType: 'object',
+              attributeValue: itemValue,
+              isGrouped: true,
+              runningTotal: 0, // Will calculate after grouping
+              formula: `READY: ${item.name} contributes ${itemValue}`
+            });
+          }
+        }
+      });
+    }
+    
+    // 4. Calculate weighted average if we have multiple values
+    let groupedValue = numOriginalValue;
+    if (valuesToGroup.length > 1) {
+      // Sort values in descending order (highest first)
+      valuesToGroup.sort((a, b) => b - a);
+      
+      // Apply weighted average grouping formula: (A1 + A2*(2+A2/A1) + A3*(3+A3/A1) + ...) / N
+      const A1 = valuesToGroup[0];
+      let sum = A1;
+      
+      for (let i = 1; i < valuesToGroup.length; i++) {
+        const Ai = valuesToGroup[i];
+        const scalingFactor = i + 1;
+        
+        if (A1 > 0) {
+          sum += Ai * (scalingFactor + Ai / A1);
+        } else {
+          sum += Ai * scalingFactor;
+        }
+      }
+      
+      groupedValue = sum / valuesToGroup.length;
+      
+      // Add a grouping calculation step
+      steps.push({
+        step: stepCount++,
+        entityName: 'Weighted Average Grouping',
+        entityType: 'calculation',
+        attributeValue: 0,
+        isGrouped: true,
+        runningTotal: Math.round(groupedValue * 100) / 100,
+        formula: `Grouped: (${valuesToGroup.join(' + ')}) using weighted average = ${Math.round(groupedValue * 100) / 100}`
+      });
+    }
+    
+    let runningTotal = Math.round(groupedValue * 100) / 100;
+    
+    // Update all previous object/character steps with the correct running total after grouping
+    steps.forEach((step, index) => {
+      if (step.entityType !== 'calculation' && step.entityType !== 'condition') {
+        step.runningTotal = runningTotal;
+      }
+    });
+    
+    // 5. Apply conditions (HELP/HINDER) at the end
     if (hasConditions) {
       const relevantConditions = character.conditions.filter(c => 
         c.conditionTarget && c.conditionTarget.toLowerCase() === attributeKey.toLowerCase()
       );
       
       relevantConditions.forEach(condition => {
-        const conditionAmount = Number(condition.conditionAmount);
+        const conditionAmount = Number(condition.conditionAmount || condition.amount || 0);
+        if (conditionAmount === 0) return;
+        
         const previousValue = runningTotal;
         
         if (condition.conditionType === 'HELP') {
@@ -268,8 +292,8 @@ const CharacterAttributesBackend = ({
           entityType: 'condition',
           attributeValue: conditionAmount,
           isGrouped: true,
-          runningTotal: runningTotal,
-          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${conditionAmount}`
+          runningTotal: Math.round(runningTotal * 100) / 100,
+          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${conditionAmount} = ${Math.round(runningTotal * 100) / 100}`
         });
       });
     }
