@@ -40,6 +40,7 @@ type Character {
   
   # Computed fields (only resolved when requested)
   groupedAttributes: GroupedAttributes
+  readyGroupedAttributes: ReadyGroupedAttributes
   attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]
 }
 

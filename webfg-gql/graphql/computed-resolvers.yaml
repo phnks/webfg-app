@@ -43,6 +43,26 @@ Resources:
             TableName: !Ref ConditionsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
+  # Lambda function for ready grouped attributes
+  ResolveReadyGroupedAttributesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/resolveReadyGroupedAttributes.handler 
+      Runtime: nodejs20.x 
+      MemorySize: 512
+      Timeout: 30
+      Environment:
+        Variables:
+          OBJECTS_TABLE: !Ref ObjectsTableName
+          CONDITIONS_TABLE: !Ref ConditionsTableName
+      Policies:
+        - DynamoDBReadPolicy: 
+            TableName: !Ref ObjectsTableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref ConditionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
   # Lambda function for attribute breakdown
   ResolveAttributeBreakdownFunction:
     Type: AWS::Serverless::Function
@@ -100,6 +120,16 @@ Resources:
       LambdaConfig:
         LambdaFunctionArn: !GetAtt ResolveGroupedAttributesFunction.Arn
 
+  ResolveReadyGroupedAttributesDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ResolveReadyGroupedAttributesDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ResolveReadyGroupedAttributesFunction.Arn
+
   ResolveAttributeBreakdownDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
@@ -128,6 +158,26 @@ Resources:
       TypeName: Character
       FieldName: groupedAttributes
       DataSourceName: !GetAtt ResolveGroupedAttributesDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "source": $util.toJson($context.source),
+            "info": {
+              "parentTypeName": "Character"
+            }
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  CharacterReadyGroupedAttributesResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Character
+      FieldName: readyGroupedAttributes
+      DataSourceName: !GetAtt ResolveReadyGroupedAttributesDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
@@ -227,6 +277,8 @@ Resources:
 Outputs:
   ResolveGroupedAttributesFunctionArn:
     Value: !GetAtt ResolveGroupedAttributesFunction.Arn
+  ResolveReadyGroupedAttributesFunctionArn:
+    Value: !GetAtt ResolveReadyGroupedAttributesFunction.Arn
   ResolveAttributeBreakdownFunctionArn:
     Value: !GetAtt ResolveAttributeBreakdownFunction.Arn
   CalculateActionTestFunctionArn:

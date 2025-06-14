@@ -221,6 +221,177 @@ const calculateGroupedAttributes = (character) => {
 };
 
 /**
+ * Calculate ready grouped attributes which includes character base + equipment + ready objects
+ * This is used when a character is acting as a source in action tests
+ * @param {Object} character - Character object with attributes, equipment, ready objects, and conditions
+ * @returns {Object} Object containing ready grouped values for each attribute
+ */
+const calculateReadyGroupedAttributes = (character) => {
+  const groupedAttributes = {};
+  
+  if (!character) {
+    // Return all attributes as null when no character
+    ATTRIBUTE_NAMES.forEach(attributeName => {
+      groupedAttributes[attributeName] = null;
+    });
+    return groupedAttributes;
+  }
+  
+  // First calculate ready grouped attributes from character, equipment, and ready objects
+  // We ALWAYS compute ALL attributes to ensure frontend gets complete data
+  ATTRIBUTE_NAMES.forEach(attributeName => {
+    const charAttrInfo = extractAttributeInfo(character[attributeName]);
+    
+    if (!charAttrInfo) {
+      // Character doesn't have this attribute, set as null
+      groupedAttributes[attributeName] = null;
+      return;
+    }
+    
+    // Check if there's any equipment or ready objects with this attribute that wants to be grouped
+    let hasGroupableEquipment = false;
+    let hasGroupableReady = false;
+    
+    // Check equipment
+    if (character.equipment && character.equipment.length > 0) {
+      hasGroupableEquipment = character.equipment.some(item => {
+        const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+        return itemAttrInfo && itemAttrInfo.isGrouped;
+      });
+    }
+    
+    // Check ready objects
+    if (character.ready && character.ready.length > 0) {
+      hasGroupableReady = character.ready.some(item => {
+        const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+        return itemAttrInfo && itemAttrInfo.isGrouped;
+      });
+    }
+    
+    const hasAnyGroupableObjects = hasGroupableEquipment || hasGroupableReady;
+    
+    // If character attribute is not grouped AND no objects want to group, just return base value
+    if (!charAttrInfo.isGrouped && !hasAnyGroupableObjects) {
+      groupedAttributes[attributeName] = charAttrInfo.value;
+      return;
+    }
+    
+    // Collect all values for grouping
+    const valuesToGroup = [];
+    
+    // Only include character's value if they have isGrouped=true
+    if (charAttrInfo.isGrouped) {
+      valuesToGroup.push(charAttrInfo.value);
+    }
+    
+    // Add equipment values
+    if (character.equipment && character.equipment.length > 0) {
+      character.equipment.forEach(item => {
+        const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+        if (itemAttrInfo && itemAttrInfo.isGrouped) {
+          // For objects, check if they have their own equipment and get their grouped value
+          let itemValue = itemAttrInfo.value;
+          
+          if (item.equipment && item.equipment.length > 0) {
+            const itemGroupedAttrs = calculateObjectGroupedAttributes(item);
+            itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
+          }
+          
+          valuesToGroup.push(itemValue);
+        }
+      });
+    }
+    
+    // Add ready object values
+    if (character.ready && character.ready.length > 0) {
+      character.ready.forEach(item => {
+        const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+        if (itemAttrInfo && itemAttrInfo.isGrouped) {
+          // For objects, check if they have their own equipment and get their grouped value
+          let itemValue = itemAttrInfo.value;
+          
+          if (item.equipment && item.equipment.length > 0) {
+            const itemGroupedAttrs = calculateObjectGroupedAttributes(item);
+            itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
+          }
+          
+          valuesToGroup.push(itemValue);
+        }
+      });
+    }
+    
+    // If no values to group (shouldn't happen with our logic above), use character's base value
+    if (valuesToGroup.length === 0) {
+      groupedAttributes[attributeName] = charAttrInfo.value;
+      return;
+    }
+    
+    // Sort values in descending order (highest first)
+    valuesToGroup.sort((a, b) => b - a);
+    
+    // Apply new weighted average grouping formula
+    const groupedValue = calculateGroupingFormula(valuesToGroup);
+    
+    // No fatigue applied here anymore - it's handled at action test level
+    groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
+  });
+  
+  // Now apply conditions (HELP/HINDER) to the grouped values
+  console.log(`[DEBUG] Starting to apply conditions for ready grouped attributes for character ${character.name || 'unknown'} (${character.characterId || 'no-id'})`);
+  
+  if (character.conditions && character.conditions.length > 0) {
+    console.log(`[DEBUG] Found ${character.conditions.length} conditions to process for ready grouped attributes`);
+    
+    character.conditions.forEach(condition => {
+      console.log(`[DEBUG] Processing condition for ready attributes: ${JSON.stringify(condition)}`);
+      
+      if (!condition.conditionTarget || !condition.conditionType || condition.amount === undefined) {
+        console.log(`[DEBUG] Skipping invalid condition: ${condition.name || 'unnamed'} - missing required fields`);
+        return; // Skip invalid conditions
+      }
+      
+      // Convert condition target to lowercase to match attribute names
+      const targetAttribute = condition.conditionTarget.toLowerCase();
+      
+      // Only apply if this is a valid attribute and we have a value for it
+      if (ATTRIBUTE_NAMES.includes(targetAttribute) && groupedAttributes[targetAttribute] !== undefined) {
+        const currentValue = groupedAttributes[targetAttribute];
+        let newValue = currentValue;
+        
+        console.log(`[DEBUG] Before applying condition to ready attributes: ${targetAttribute} = ${currentValue}`);
+        
+        // Ensure amount is a number - use our helper for guaranteed numeric value
+        const amount = toInt(condition.amount, 0); // If amount is missing/invalid, use 0 (no effect)
+        
+        // Skip conditions with zero amount (no effect)
+        if (amount === 0) {
+          console.log(`[DEBUG] SKIPPING ready condition due to zero amount for ${condition.name}`);
+          return;
+        }
+        
+        if (condition.conditionType === 'HELP') {
+          newValue = currentValue + amount;
+          console.log(`[DEBUG] Applying HELP condition to ready attributes: ${currentValue} + ${amount} = ${newValue}`);
+        } else if (condition.conditionType === 'HINDER') {
+          newValue = currentValue - amount;
+          console.log(`[DEBUG] Applying HINDER condition to ready attributes: ${currentValue} - ${amount} = ${newValue}`);
+        }
+        
+        // Round to 2 decimal places
+        groupedAttributes[targetAttribute] = Math.round(newValue * 100) / 100;
+        console.log(`[DEBUG] After applying condition to ready attributes (rounded): ${targetAttribute} = ${groupedAttributes[targetAttribute]}`);
+      }
+    });
+  } else {
+    console.log('[DEBUG] No conditions to apply to ready grouped attributes');
+  }
+  
+  console.log('[DEBUG] Final ready grouped attributes after conditions:', JSON.stringify(groupedAttributes));
+  
+  return groupedAttributes;
+};
+
+/**
  * Groups attributes from an object and its equipped objects using weighted average formula
  * Objects don't have fatigue
  * @param {Object} object - Object with attributes and equipment
@@ -282,5 +453,6 @@ module.exports = {
   calculateGroupingFormula,
   extractAttributeInfo,
   calculateGroupedAttributes,
+  calculateReadyGroupedAttributes,
   calculateObjectGroupedAttributes
 };

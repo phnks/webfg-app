@@ -5,6 +5,7 @@
 
 const { 
   calculateGroupedAttributes, 
+  calculateReadyGroupedAttributes,
   calculateObjectGroupedAttributes,
   calculateGroupingFormula
 } = require('./attributeGrouping');
@@ -105,12 +106,29 @@ const calculateActionDifficulty = (sourceValue, targetValue) => {
 };
 
 /**
- * Get single character attribute value with grouping
+ * Get single character attribute value with grouping for sources (uses ready grouped attributes)
  * @param {Object} character - Character object
  * @param {string} attributeName - Attribute name (lowercase)
- * @returns {number} The grouped attribute value (no longer includes fatigue)
+ * @returns {number} The ready grouped attribute value (equipment + ready objects)
  */
-const getSingleCharacterAttributeValue = (character, attributeName) => {
+const getSingleCharacterSourceAttributeValue = (character, attributeName) => {
+  const readyGroupedAttributes = calculateReadyGroupedAttributes(character);
+    
+  if (readyGroupedAttributes[attributeName] !== undefined) {
+    return readyGroupedAttributes[attributeName];
+  } else if (character[attributeName] && character[attributeName].attribute) {
+    return character[attributeName].attribute.attributeValue || 0;
+  }
+  return 0;
+};
+
+/**
+ * Get single character attribute value with grouping for targets (uses equipment grouped attributes)
+ * @param {Object} character - Character object
+ * @param {string} attributeName - Attribute name (lowercase)
+ * @returns {number} The equipment grouped attribute value (equipment only)
+ */
+const getSingleCharacterTargetAttributeValue = (character, attributeName) => {
   const groupedAttributes = calculateGroupedAttributes(character);
     
   if (groupedAttributes[attributeName] !== undefined) {
@@ -122,23 +140,17 @@ const getSingleCharacterAttributeValue = (character, attributeName) => {
 };
 
 /**
- * Get single entity attribute value with grouping (works for both characters and objects)
+ * Get single entity attribute value for targets (characters use equipment grouped, objects use their own grouped)
  * @param {Object} entity - Character or Object
  * @param {string} attributeName - Attribute name (lowercase)
  * @param {string} entityType - 'CHARACTER' or 'OBJECT'
- * @returns {number} The grouped attribute value (no longer includes fatigue)
+ * @returns {number} The grouped attribute value for targets
  */
-const getSingleEntityAttributeValue = (entity, attributeName, entityType) => {
+const getSingleEntityTargetAttributeValue = (entity, attributeName, entityType) => {
   if (entityType === 'CHARACTER') {
-    const groupedAttributes = calculateGroupedAttributes(entity);
-      
-    if (groupedAttributes[attributeName] !== undefined) {
-      return groupedAttributes[attributeName];
-    } else if (entity[attributeName] && entity[attributeName].attribute) {
-      return entity[attributeName].attribute.attributeValue || 0;
-    }
+    return getSingleCharacterTargetAttributeValue(entity, attributeName);
   } else if (entityType === 'OBJECT') {
-    // Objects don't have fatigue
+    // Objects don't have fatigue and use their own grouping logic
     const groupedAttributes = calculateObjectGroupedAttributes(entity);
     if (groupedAttributes[attributeName] !== undefined) {
       return groupedAttributes[attributeName];
@@ -150,23 +162,23 @@ const getSingleEntityAttributeValue = (entity, attributeName, entityType) => {
 };
 
 /**
- * Group multiple sources into a single attribute value
+ * Group multiple sources into a single attribute value (uses ready grouped attributes)
  * @param {Array} sourceCharacters - Array of character objects
  * @param {string} sourceAttribute - Attribute name (lowercase)
- * @returns {number} The grouped source value (no longer includes fatigue)
+ * @returns {number} The grouped source value using ready attributes (equipment + ready objects)
  */
 const groupSourceAttributes = (sourceCharacters, sourceAttribute) => {
   if (!sourceCharacters || sourceCharacters.length === 0) return 0;
   
   if (sourceCharacters.length === 1) {
-    // Single source - get grouped value
-    return getSingleCharacterAttributeValue(sourceCharacters[0], sourceAttribute);
+    // Single source - get ready grouped value
+    return getSingleCharacterSourceAttributeValue(sourceCharacters[0], sourceAttribute);
   }
   
-  // Get the final grouped attribute value for each source character
+  // Get the final ready grouped attribute value for each source character
   const sourceValues = [];
   sourceCharacters.forEach(character => {
-    const groupedValue = getSingleCharacterAttributeValue(character, sourceAttribute);
+    const groupedValue = getSingleCharacterSourceAttributeValue(character, sourceAttribute);
     if (groupedValue > 0) { // Only include non-zero values
       sourceValues.push(groupedValue);
     }
@@ -185,24 +197,24 @@ const groupSourceAttributes = (sourceCharacters, sourceAttribute) => {
 };
 
 /**
- * Group multiple targets into a single attribute value
+ * Group multiple targets into a single attribute value (uses equipment grouped attributes for characters)
  * @param {Array} targetEntities - Array of character or object entities
  * @param {string} targetAttribute - Attribute name (lowercase)
  * @param {string} targetType - 'CHARACTER' or 'OBJECT'
- * @returns {number} The grouped target value (no longer includes fatigue)
+ * @returns {number} The grouped target value using equipment attributes (equipment only for characters)
  */
 const groupTargetAttributes = (targetEntities, targetAttribute, targetType) => {
   if (!targetEntities || targetEntities.length === 0) return 0;
   
   if (targetEntities.length === 1) {
-    // Single target - get grouped value
-    return getSingleEntityAttributeValue(targetEntities[0], targetAttribute, targetType);
+    // Single target - get equipment grouped value for characters, normal grouped for objects
+    return getSingleEntityTargetAttributeValue(targetEntities[0], targetAttribute, targetType);
   }
   
   // Get the final grouped attribute value for each target entity
   const targetValues = [];
   targetEntities.forEach(entity => {
-    const groupedValue = getSingleEntityAttributeValue(entity, targetAttribute, targetType);
+    const groupedValue = getSingleEntityTargetAttributeValue(entity, targetAttribute, targetType);
     if (groupedValue > 0) { // Only include non-zero values
       targetValues.push(groupedValue);
     }
