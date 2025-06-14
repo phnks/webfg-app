@@ -383,8 +383,9 @@ module.exports = {
   calculateActionDifficulty,
   calculateExpectedSuccesses,
   adjustDicePools,
-  getSingleCharacterAttributeValue,
-  getSingleEntityAttributeValue,
+  getSingleCharacterSourceAttributeValue,
+  getSingleCharacterTargetAttributeValue,
+  getSingleEntityTargetAttributeValue,
   groupSourceAttributes,
   groupTargetAttributes,
   calculateActionTest
