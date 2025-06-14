@@ -336,6 +336,16 @@ const calculateReadyGroupedAttributes = (character) => {
     if (attributeName === 'dexterity' && character.name === 'The Guy') {
       console.log(`[DEBUG READY] Calculating ready grouped dexterity for The Guy:`);
       console.log(`[DEBUG READY] Character base value: ${charAttrInfo.value}, isGrouped: ${charAttrInfo.isGrouped}`);
+      console.log(`[DEBUG READY] Equipment items: ${JSON.stringify(character.equipment?.map(item => ({
+        name: item.name,
+        dexterity: item.dexterity,
+        extracted: extractAttributeInfo(item[attributeName])
+      })) || [])}`);
+      console.log(`[DEBUG READY] Ready items: ${JSON.stringify(character.ready?.map(item => ({
+        name: item.name,
+        dexterity: item.dexterity,
+        extracted: extractAttributeInfo(item[attributeName])
+      })) || [])}`);
       console.log(`[DEBUG READY] Values to group: ${JSON.stringify(valuesToGroup)}`);
       console.log(`[DEBUG READY] Grouped value before rounding: ${groupedValue}`);
     }
