@@ -23,6 +23,9 @@
     "start": "env-cmd -f .env.dev react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:coverage": "react-scripts test --coverage --passWithNoTests",
+    "test:ci": "react-scripts test --coverage --passWithNoTests --watchAll=false",
+    "test:unit": "react-scripts test --testPathPattern=__tests__ --watchAll=false",
     "start:bg": "nohup env-cmd -f .env.dev react-scripts start > webfg-gm-app.log 2>&1 & echo \\$\\! > webfg-gm-app.pid",
     "stop:bg": "if [ -f webfg-gm-app.pid ]; then kill \\$\\(cat webfg-gm-app.pid\\) && rm webfg-gm-app.pid && echo 'Stopped server.'; else echo 'Server not running (no PID file)'; fi",
     "restart:bg": "npm run stop:bg && sleep 1 && npm run start:bg",
@@ -33,7 +36,8 @@
     "delete:qa": "bash scripts/delete.sh qa ${DEPLOYMENT_ID:-$1}",
     "delete:prod": "bash scripts/delete.sh prod none",
     "cypress:open": "npx cypress open",
-    "cypress:run": "bash scripts/run-cypress.sh qa"
+    "cypress:run": "bash scripts/run-cypress.sh qa",
+    "test:all": "npm run test:ci && npm run cypress:run"
   },
   "eslintConfig": {
     "extends": [
