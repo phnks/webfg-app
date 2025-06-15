@@ -1,4 +1,4 @@
-const { describe, it, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, it, expect, beforeEach } = require('@jest/globals');
 const { 
   mockCharacterOperations,
   createLambdaResponse, 
@@ -8,7 +8,7 @@ const {
 } = require('../../test-utils/aws-mocks');
 
 // Import the function under test
-const createCharacter = require('../createCharacter');
+const { handler: createCharacter } = require('../createCharacter');
 
 describe('createCharacter Lambda Function', () => {
   let event, context;
