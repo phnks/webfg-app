@@ -243,6 +243,152 @@ function createErrorResponse(statusCode = 500, message = 'Internal Server Error'
 }
 
 /**
+ * Create mock AWS Lambda context
+ */
+function createMockContext() {
+  return {
+    callbackWaitsForEmptyEventLoop: false,
+    functionName: 'test-function',
+    functionVersion: '$LATEST',
+    invokedFunctionArn: 'arn:aws:lambda:us-east-1:123456789012:function:test-function',
+    memoryLimitInMB: 512,
+    awsRequestId: 'test-request-id',
+    logGroupName: '/aws/lambda/test-function',
+    logStreamName: '2024/01/01/[$LATEST]test-stream',
+    identity: undefined,
+    clientContext: undefined,
+    getRemainingTimeInMillis: () => 30000
+  };
+}
+
+/**
+ * Create mock AWS Lambda event
+ */
+function createMockEvent(body = {}) {
+  return {
+    body: JSON.stringify(body),
+    pathParameters: {},
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    requestContext: {
+      requestId: 'test-request-id',
+      identity: {
+        sourceIp: '127.0.0.1'
+      }
+    },
+    isBase64Encoded: false
+  };
+}
+
+/**
+ * Create mock DynamoDB item
+ */
+function mockDynamoDBItem(overrides = {}) {
+  return {
+    id: 'test-id',
+    name: 'Test Item',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...overrides
+  };
+}
+
+/**
+ * Create mock character data
+ */
+function mockCharacter(overrides = {}) {
+  return {
+    id: 'char-123',
+    name: 'Test Character',
+    category: 'HUMAN',
+    description: 'A test character',
+    strength: 10,
+    dexterity: 10,
+    agility: 10,
+    endurance: 10,
+    vigor: 10,
+    perception: 10,
+    intelligence: 10,
+    will: 10,
+    social: 10,
+    faith: 10,
+    armor: 5,
+    lethality: 5,
+    fatigue: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...overrides
+  };
+}
+
+/**
+ * Create mock object data
+ */
+function mockObject(overrides = {}) {
+  return {
+    id: 'obj-123',
+    name: 'Test Object',
+    category: 'WEAPON',
+    description: 'A test object',
+    strength: 0,
+    dexterity: 0,
+    agility: 0,
+    endurance: 0,
+    vigor: 0,
+    perception: 0,
+    intelligence: 0,
+    will: 0,
+    social: 0,
+    faith: 0,
+    armor: 0,
+    lethality: 0,
+    weight: 1,
+    size: 1,
+    speed: 0,
+    intensity: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...overrides
+  };
+}
+
+/**
+ * Create mock action data
+ */
+function mockAction(overrides = {}) {
+  return {
+    id: 'action-123',
+    name: 'Test Action',
+    description: 'A test action',
+    source: 'strength',
+    target: 'armor',
+    type: 'normal',
+    triggersActionId: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...overrides
+  };
+}
+
+/**
+ * Create mock condition data
+ */
+function mockCondition(overrides = {}) {
+  return {
+    id: 'condition-123',
+    name: 'Test Condition',
+    description: 'A test condition',
+    type: 'help',
+    attribute: 'strength',
+    value: 2,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...overrides
+  };
+}
+
+/**
  * Utility to verify DynamoDB operation was called
  */
 function verifyDynamoDBCall(mock, command, times = 1) {
@@ -262,6 +408,13 @@ module.exports = {
   mockActionTestData,
   createLambdaResponse,
   createErrorResponse,
+  createMockContext,
+  createMockEvent,
+  mockDynamoDBItem,
+  mockCharacter,
+  mockObject,
+  mockAction,
+  mockCondition,
   verifyDynamoDBCall,
   ddbMock,
   ddbDocMock

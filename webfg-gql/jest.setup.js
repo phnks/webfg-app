@@ -4,11 +4,40 @@
 process.env.NODE_ENV = 'test';
 process.env.AWS_REGION = 'us-east-1';
 process.env.DYNAMODB_TABLE = 'test-table';
+process.env.CHARACTERS_TABLE = 'test-table';
+process.env.OBJECTS_TABLE = 'test-table';
+process.env.ACTIONS_TABLE = 'test-table';
+process.env.CONDITIONS_TABLE = 'test-table';
 process.env.ENCOUNTER_TABLE = 'test-encounter-table';
 
 // Mock AWS SDK globally
-jest.mock('@aws-sdk/client-dynamodb');
-jest.mock('@aws-sdk/lib-dynamodb');
+const mockSend = jest.fn();
+const mockDynamoDBClient = jest.fn(() => ({
+  send: mockSend
+}));
+const mockDynamoDBDocumentClient = {
+  from: jest.fn(() => ({
+    send: mockSend
+  }))
+};
+
+jest.mock('@aws-sdk/client-dynamodb', () => ({
+  DynamoDBClient: mockDynamoDBClient
+}));
+
+jest.mock('@aws-sdk/lib-dynamodb', () => ({
+  DynamoDBDocumentClient: mockDynamoDBDocumentClient,
+  PutCommand: jest.fn(),
+  GetCommand: jest.fn(),
+  UpdateCommand: jest.fn(),
+  DeleteCommand: jest.fn(),
+  ScanCommand: jest.fn(),
+  QueryCommand: jest.fn(),
+  BatchGetCommand: jest.fn()
+}));
+
+// Export mock send function for use in tests
+global.mockDynamoSend = mockSend;
 
 // Global test utilities
 global.createMockEvent = (body = {}, pathParameters = {}, headers = {}) => ({
