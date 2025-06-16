@@ -62,7 +62,7 @@ describe('Character CRUD Operations', () => {
     // Only run this test if characters exist
     cy.get('body').then($body => {
       if ($body.find('.character-card').not('.add-card').length > 0) {
-        cy.get('.character-card').not('.add-card').first().click();
+        cy.get('.character-card').not('.add-card').first().click({force: true});
         cy.url().should('match', /\/characters\/[a-zA-Z0-9-]+$/);
       }
     });

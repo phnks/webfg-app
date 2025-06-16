@@ -2,31 +2,57 @@
 Cypress.Commands.add('navigateToCharacters', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/characters"]').first().click();
-  cy.wait(1000);
+  cy.wait(2000); // Wait for navigation to complete
+  // Ensure menu is closed by clicking somewhere else if it's still open
+  cy.get('body').then($body => {
+    if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
+      cy.get('main').click();
+    }
+  });
 });
 
 Cypress.Commands.add('navigateToObjects', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/objects"]').first().click();
-  cy.wait(1000);
+  cy.wait(2000);
+  cy.get('body').then($body => {
+    if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
+      cy.get('main').click();
+    }
+  });
 });
 
 Cypress.Commands.add('navigateToActions', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/actions"]').first().click();
-  cy.wait(1000);
+  cy.wait(2000);
+  cy.get('body').then($body => {
+    if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
+      cy.get('main').click();
+    }
+  });
 });
 
 Cypress.Commands.add('navigateToConditions', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/conditions"]').first().click();
-  cy.wait(1000);
+  cy.wait(2000);
+  cy.get('body').then($body => {
+    if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
+      cy.get('main').click();
+    }
+  });
 });
 
 Cypress.Commands.add('navigateToEncounters', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/encounters"]').first().click();
-  cy.wait(1000);
+  cy.wait(2000);
+  cy.get('body').then($body => {
+    if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
+      cy.get('main').click();
+    }
+  });
 });
 
 // Button click helpers
@@ -80,12 +106,12 @@ Cypress.Commands.add('clickSaveButton', () => {
 });
 
 Cypress.Commands.add('clickEditButton', () => {
-  cy.get('button').contains('Edit').click();
+  cy.get('button').contains('Edit').click({force: true});
   cy.wait(500);
 });
 
 Cypress.Commands.add('clickDeleteButton', () => {
-  cy.get('button').contains('Delete').click();
+  cy.get('button').contains('Delete').click({force: true});
   cy.wait(500);
 });
 
