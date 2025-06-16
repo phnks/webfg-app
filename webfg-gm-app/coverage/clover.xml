@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1750016206259" clover="3.2.0">
-  <project timestamp="1750016206259" name="All files">
-    <metrics statements="2233" coveredstatements="4" conditionals="1877" coveredconditionals="4" methods="605" coveredmethods="1" elements="4715" coveredelements="9" complexity="0" loc="2233" ncloc="2233" packages="14" files="44" classes="44"/>
+<coverage generated="1750041807107" clover="3.2.0">
+  <project timestamp="1750041807108" name="All files">
+    <metrics statements="2233" coveredstatements="0" conditionals="1877" coveredconditionals="0" methods="605" coveredmethods="0" elements="4715" coveredelements="0" complexity="0" loc="2233" ncloc="2233" packages="14" files="44" classes="44"/>
     <package name="src">
       <metrics statements="80" coveredstatements="0" conditionals="34" coveredconditionals="0" methods="18" coveredmethods="0"/>
       <file name="App.js" path="/home/aleksstef/dev/webfg-app/webfg-gm-app/src/App.js">
@@ -796,7 +796,7 @@
       </file>
     </package>
     <package name="src.components.common">
-      <metrics statements="96" coveredstatements="4" conditionals="98" coveredconditionals="4" methods="34" coveredmethods="1"/>
+      <metrics statements="96" coveredstatements="0" conditionals="98" coveredconditionals="0" methods="34" coveredmethods="0"/>
       <file name="AttributeBreakdownPopup.js" path="/home/aleksstef/dev/webfg-app/webfg-gm-app/src/components/common/AttributeBreakdownPopup.js">
         <metrics statements="20" coveredstatements="0" conditionals="28" coveredconditionals="0" methods="8" coveredmethods="0"/>
         <line num="4" count="0" type="stmt"/>
@@ -841,11 +841,11 @@
         <line num="59" count="0" type="cond" truecount="0" falsecount="2"/>
       </file>
       <file name="ErrorPopup.js" path="/home/aleksstef/dev/webfg-app/webfg-gm-app/src/components/common/ErrorPopup.js">
-        <metrics statements="4" coveredstatements="4" conditionals="4" coveredconditionals="4" methods="1" coveredmethods="1"/>
-        <line num="4" count="1" type="stmt"/>
-        <line num="5" count="18" type="cond" truecount="2" falsecount="0"/>
-        <line num="6" count="3" type="stmt"/>
-        <line num="9" count="15" type="stmt"/>
+        <metrics statements="4" coveredstatements="0" conditionals="4" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="4" count="0" type="stmt"/>
+        <line num="5" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
       </file>
       <file name="MobileNumberInput.js" path="/home/aleksstef/dev/webfg-app/webfg-gm-app/src/components/common/MobileNumberInput.js">
         <metrics statements="6" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="0"/>
