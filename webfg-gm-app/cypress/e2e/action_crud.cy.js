@@ -8,25 +8,25 @@ describe('Action CRUD Operations', () => {
     {
       name: 'Hit',
       description: 'A basic attack action',
-      source: 'dexterity',
-      target: 'agility',
-      type: 'trigger',
+      source: 'DEXTERITY',
+      target: 'AGILITY',
+      type: 'TRIGGER_ACTION',
       triggersAction: 'Break'
     },
     {
       name: 'Break',
       description: 'Breaking armor or objects',
-      source: 'strength',
-      target: 'armor',
-      type: 'trigger',
+      source: 'STRENGTH',
+      target: 'ARMOUR',
+      type: 'TRIGGER_ACTION',
       triggersAction: 'Kill'
     },
     {
       name: 'Kill',
       description: 'A lethal finishing blow',
-      source: 'lethality',
-      target: 'endurance',
-      type: 'destroy'
+      source: 'LETHALITY',
+      target: 'ENDURANCE',
+      type: 'DESTROY'
     }
   ];
 
@@ -50,9 +50,9 @@ describe('Action CRUD Operations', () => {
     // Verify Kill action details
     cy.contains('h1', 'Kill').should('be.visible');
     cy.contains('A lethal finishing blow').should('be.visible');
-    cy.contains('Type: destroy').should('be.visible');
-    cy.contains('Source: lethality').should('be.visible');
-    cy.contains('Target: endurance').should('be.visible');
+    cy.contains('DESTROY').should('be.visible');
+    cy.contains('LETHALITY').should('be.visible');
+    cy.contains('ENDURANCE').should('be.visible');
     
     cy.navigateToActions();
     
@@ -62,8 +62,9 @@ describe('Action CRUD Operations', () => {
     // Verify Break action details
     cy.contains('h1', 'Break').should('be.visible');
     cy.contains('Breaking armor or objects').should('be.visible');
-    cy.contains('Type: trigger').should('be.visible');
-    cy.contains('Triggers: Kill').should('be.visible');
+    cy.contains('TRIGGER_ACTION').should('be.visible');
+    cy.contains('STRENGTH').should('be.visible');
+    cy.contains('ARMOUR').should('be.visible');
     
     cy.navigateToActions();
     
@@ -73,8 +74,9 @@ describe('Action CRUD Operations', () => {
     // Verify Hit action details
     cy.contains('h1', 'Hit').should('be.visible');
     cy.contains('A basic attack action').should('be.visible');
-    cy.contains('Type: trigger').should('be.visible');
-    cy.contains('Triggers: Break').should('be.visible');
+    cy.contains('TRIGGER_ACTION').should('be.visible');
+    cy.contains('DEXTERITY').should('be.visible');
+    cy.contains('AGILITY').should('be.visible');
   });
 
   it('should list all created actions', () => {
@@ -99,10 +101,9 @@ describe('Action CRUD Operations', () => {
     cy.url().should('match', /\/actions\/[a-zA-Z0-9-]+$/);
     cy.contains('h1', 'Hit').should('be.visible');
     cy.contains('A basic attack action').should('be.visible');
-    cy.contains('Type: trigger').should('be.visible');
-    cy.contains('Source: dexterity').should('be.visible');
-    cy.contains('Target: agility').should('be.visible');
-    cy.contains('Triggers: Break').should('be.visible');
+    cy.contains('TRIGGER_ACTION').should('be.visible');
+    cy.contains('DEXTERITY').should('be.visible');
+    cy.contains('AGILITY').should('be.visible');
   });
 
   it('should update action details', () => {
