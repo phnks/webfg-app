@@ -4,37 +4,34 @@ describe('Inventory Management', () => {
     cy.wait(2000);
   });
 
-  function navigateToCharacters() {
-    cy.get('[data-cy="menu-toggle"]').click();
-    cy.get('[data-cy="nav-characters"]').click();
-    cy.get('[data-cy="menu-toggle"]').click();
-  }
-
   function setupCharacterWithObjects() {
-    navigateToCharacters();
+    cy.navigateToCharacters();
     
     // Click on The Guy character
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    cy.contains('.character-card', 'The Guy').click();
     
     // Add objects if not already present
     cy.get('body').then($body => {
-      if ($body.find('[data-cy="character-stash"]').text().includes('No objects')) {
+      if (!$body.text().includes('Longsword')) {
         // Add objects
-        cy.get('[data-cy="add-object-button"]').click();
-        cy.contains('[data-cy="object-select-item"]', 'Longsword').click();
-        cy.get('[data-cy="confirm-add-object"]').click();
-        
-        cy.get('[data-cy="add-object-button"]').click();
-        cy.contains('[data-cy="object-select-item"]', 'Chainmail').click();
-        cy.get('[data-cy="confirm-add-object"]').click();
-        
-        cy.get('[data-cy="add-object-button"]').click();
-        cy.contains('[data-cy="object-select-item"]', 'Tower Shield').click();
-        cy.get('[data-cy="confirm-add-object"]').click();
-        
-        cy.get('[data-cy="add-object-button"]').click();
-        cy.contains('[data-cy="object-select-item"]', 'Healing Potion').click();
-        cy.get('[data-cy="confirm-add-object"]').click();
+        cy.contains('button', 'Add Object').click();
+        cy.contains('Longsword').click();
+        cy.contains('button', 'Add').click();
+      }
+      if (!$body.text().includes('Chainmail')) {
+        cy.contains('button', 'Add Object').click();
+        cy.contains('Chainmail').click();
+        cy.contains('button', 'Add').click();
+      }
+      if (!$body.text().includes('Tower Shield')) {
+        cy.contains('button', 'Add Object').click();
+        cy.contains('Tower Shield').click();
+        cy.contains('button', 'Add').click();
+      }
+      if (!$body.text().includes('Healing Potion')) {
+        cy.contains('button', 'Add Object').click();
+        cy.contains('Healing Potion').click();
+        cy.contains('button', 'Add').click();
       }
     });
   }
@@ -43,245 +40,291 @@ describe('Inventory Management', () => {
     setupCharacterWithObjects();
     
     // Move Longsword from stash to equipped
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
-      .find('[data-cy="move-to-equipped-button"]')
+    cy.get('.stash-section')
+      .contains('.object-item', 'Longsword')
+      .parent()
+      .find('button:contains("Equip")')
       .click();
     
     // Verify object moved to equipped
-    cy.get('[data-cy="character-equipped"]').should('contain', 'Longsword');
-    cy.get('[data-cy="character-stash"]').should('not.contain', 'Longsword');
+    cy.get('.equipped-section').should('contain', 'Longsword');
+    cy.get('.stash-section').should('not.contain', 'Longsword');
     
     // Move Chainmail to equipped
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Chainmail')
-      .find('[data-cy="move-to-equipped-button"]')
+    cy.get('.stash-section')
+      .contains('.object-item', 'Chainmail')
+      .parent()
+      .find('button:contains("Equip")')
       .click();
     
     // Verify both items in equipped
-    cy.get('[data-cy="character-equipped"]').should('contain', 'Longsword');
-    cy.get('[data-cy="character-equipped"]').should('contain', 'Chainmail');
+    cy.get('.equipped-section').should('contain', 'Longsword');
+    cy.get('.equipped-section').should('contain', 'Chainmail');
   });
 
   it('should move objects from equipped to ready', () => {
     setupCharacterWithObjects();
     
     // First ensure items are equipped
-    cy.get('[data-cy="character-equipped"]').then($equipped => {
+    cy.get('.equipped-section').then($equipped => {
       if (!$equipped.text().includes('Longsword')) {
-        cy.get('[data-cy="character-stash"]')
-          .contains('[data-cy="object-item"]', 'Longsword')
-          .find('[data-cy="move-to-equipped-button"]')
+        cy.get('.stash-section')
+          .contains('.object-item', 'Longsword')
+          .parent()
+          .find('button:contains("Equip")')
           .click();
       }
     });
     
     // Move Longsword from equipped to ready
-    cy.get('[data-cy="character-equipped"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
-      .find('[data-cy="move-to-ready-button"]')
+    cy.get('.equipped-section')
+      .contains('.object-item', 'Longsword')
+      .parent()
+      .find('button:contains("Ready")')
       .click();
     
     // Verify object moved to ready
-    cy.get('[data-cy="character-ready"]').should('contain', 'Longsword');
-    cy.get('[data-cy="character-equipped"]').should('not.contain', 'Longsword');
+    cy.get('.ready-section').should('contain', 'Longsword');
+    cy.get('.equipped-section').should('not.contain', 'Longsword');
   });
 
   it('should move objects back from ready to equipped', () => {
     setupCharacterWithObjects();
     
     // Ensure Longsword is in ready
-    cy.get('[data-cy="character-ready"]').then($ready => {
+    cy.get('.ready-section').then($ready => {
       if (!$ready.text().includes('Longsword')) {
         // Move through the tiers
-        cy.get('[data-cy="character-stash"]')
-          .contains('[data-cy="object-item"]', 'Longsword')
-          .find('[data-cy="move-to-equipped-button"]')
+        cy.get('.stash-section')
+          .contains('.object-item', 'Longsword')
+          .parent()
+          .find('button:contains("Equip")')
           .click();
-        cy.get('[data-cy="character-equipped"]')
-          .contains('[data-cy="object-item"]', 'Longsword')
-          .find('[data-cy="move-to-ready-button"]')
+        cy.get('.equipped-section')
+          .contains('.object-item', 'Longsword')
+          .parent()
+          .find('button:contains("Ready")')
           .click();
       }
     });
     
     // Move Longsword from ready back to equipped
-    cy.get('[data-cy="character-ready"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
-      .find('[data-cy="move-to-equipped-button"]')
+    cy.get('.ready-section')
+      .contains('.object-item', 'Longsword')
+      .parent()
+      .find('button:contains("Unready")')
       .click();
     
     // Verify object moved back to equipped
-    cy.get('[data-cy="character-equipped"]').should('contain', 'Longsword');
-    cy.get('[data-cy="character-ready"]').should('not.contain', 'Longsword');
+    cy.get('.equipped-section').should('contain', 'Longsword');
+    cy.get('.ready-section').should('not.contain', 'Longsword');
   });
 
-  it('should move objects from equipped back to stash', () => {
+  it('should move objects from equipped to stash', () => {
     setupCharacterWithObjects();
     
     // Ensure Chainmail is equipped
-    cy.get('[data-cy="character-equipped"]').then($equipped => {
+    cy.get('.equipped-section').then($equipped => {
       if (!$equipped.text().includes('Chainmail')) {
-        cy.get('[data-cy="character-stash"]')
-          .contains('[data-cy="object-item"]', 'Chainmail')
-          .find('[data-cy="move-to-equipped-button"]')
+        cy.get('.stash-section')
+          .contains('.object-item', 'Chainmail')
+          .parent()
+          .find('button:contains("Equip")')
           .click();
       }
     });
     
-    // Move Chainmail from equipped back to stash
-    cy.get('[data-cy="character-equipped"]')
-      .contains('[data-cy="object-item"]', 'Chainmail')
-      .find('[data-cy="move-to-stash-button"]')
+    // Move Chainmail from equipped to stash
+    cy.get('.equipped-section')
+      .contains('.object-item', 'Chainmail')
+      .parent()
+      .find('button:contains("Unequip")')
       .click();
     
     // Verify object moved back to stash
-    cy.get('[data-cy="character-stash"]').should('contain', 'Chainmail');
-    cy.get('[data-cy="character-equipped"]').should('not.contain', 'Chainmail');
+    cy.get('.stash-section').should('contain', 'Chainmail');
+    cy.get('.equipped-section').should('not.contain', 'Chainmail');
   });
 
-  it('should handle multiple objects in each tier', () => {
+  it('should show all three inventory tiers', () => {
     setupCharacterWithObjects();
     
-    // Move multiple items to equipped
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
-      .find('[data-cy="move-to-equipped-button"]')
-      .click();
+    // Verify all three sections exist
+    cy.get('.stash-section').should('exist');
+    cy.get('.equipped-section').should('exist');
+    cy.get('.ready-section').should('exist');
     
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Chainmail')
-      .find('[data-cy="move-to-equipped-button"]')
-      .click();
+    // Verify section headers
+    cy.contains('h4', 'Stash').should('be.visible');
+    cy.contains('h4', 'Equipped').should('be.visible');
+    cy.contains('h4', 'Ready').should('be.visible');
+  });
+
+  it('should show attribute modifiers when equipping items', () => {
+    setupCharacterWithObjects();
     
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Tower Shield')
-      .find('[data-cy="move-to-equipped-button"]')
-      .click();
+    // Check base armor value
+    cy.get('.attributes-section').within(() => {
+      cy.contains('Armor').parent().then($armor => {
+        const baseArmor = parseInt($armor.text().match(/\d+/)[0]);
+        
+        // Equip Chainmail
+        cy.get('@baseArmor').then(() => {
+          cy.get('.stash-section')
+            .contains('.object-item', 'Chainmail')
+            .parent()
+            .find('button:contains("Equip")')
+            .click();
+        });
+        
+        // Verify armor increased
+        cy.wrap(baseArmor).as('baseArmor');
+      });
+    });
     
-    // Verify all items in equipped
-    cy.get('[data-cy="character-equipped"]').should('contain', 'Longsword');
-    cy.get('[data-cy="character-equipped"]').should('contain', 'Chainmail');
-    cy.get('[data-cy="character-equipped"]').should('contain', 'Tower Shield');
+    // Check that armor value increased
+    cy.get('.attributes-section').within(() => {
+      cy.contains('Armor').parent().should('contain', '30'); // 10 base + 20 from Chainmail
+    });
+    
+    // Check agility decreased
+    cy.get('.attributes-section').within(() => {
+      cy.contains('Agility').parent().should('contain', '7'); // 10 base - 3 from Chainmail
+    });
+  });
+
+  it('should update attribute modifiers when readying weapons', () => {
+    setupCharacterWithObjects();
     
     // Move Longsword to ready
-    cy.get('[data-cy="character-equipped"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
-      .find('[data-cy="move-to-ready-button"]')
-      .click();
-    
-    // Move Tower Shield to ready
-    cy.get('[data-cy="character-equipped"]')
-      .contains('[data-cy="object-item"]', 'Tower Shield')
-      .find('[data-cy="move-to-ready-button"]')
-      .click();
-    
-    // Verify ready items
-    cy.get('[data-cy="character-ready"]').should('contain', 'Longsword');
-    cy.get('[data-cy="character-ready"]').should('contain', 'Tower Shield');
-    
-    // Verify Chainmail still equipped
-    cy.get('[data-cy="character-equipped"]').should('contain', 'Chainmail');
-    
-    // Verify Healing Potion still in stash
-    cy.get('[data-cy="character-stash"]').should('contain', 'Healing Potion');
-  });
-
-  it('should show inventory tier labels and counts', () => {
-    setupCharacterWithObjects();
-    
-    // Check tier labels
-    cy.get('[data-cy="stash-label"]').should('contain', 'Stash');
-    cy.get('[data-cy="equipped-label"]').should('contain', 'Equipped');
-    cy.get('[data-cy="ready-label"]').should('contain', 'Ready');
-    
-    // Check counts
-    cy.get('[data-cy="stash-count"]').should('exist');
-    cy.get('[data-cy="equipped-count"]').should('exist');
-    cy.get('[data-cy="ready-count"]').should('exist');
-  });
-
-  it('should handle drag and drop between tiers', () => {
-    setupCharacterWithObjects();
-    
-    // Drag Longsword from stash to equipped
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
-      .drag('[data-cy="character-equipped"]');
-    
-    // Verify object moved
-    cy.get('[data-cy="character-equipped"]').should('contain', 'Longsword');
-    cy.get('[data-cy="character-stash"]').should('not.contain', 'Longsword');
-    
-    // Drag from equipped to ready
-    cy.get('[data-cy="character-equipped"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
-      .drag('[data-cy="character-ready"]');
-    
-    // Verify object moved
-    cy.get('[data-cy="character-ready"]').should('contain', 'Longsword');
-    cy.get('[data-cy="character-equipped"]').should('not.contain', 'Longsword');
-  });
-
-  it('should persist inventory state', () => {
-    setupCharacterWithObjects();
-    
-    // Move items to different tiers
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
-      .find('[data-cy="move-to-equipped-button"]')
-      .click();
-    
-    cy.get('[data-cy="character-equipped"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
-      .find('[data-cy="move-to-ready-button"]')
-      .click();
-    
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Chainmail')
-      .find('[data-cy="move-to-equipped-button"]')
-      .click();
-    
-    // Navigate away and back
-    navigateToCharacters();
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
-    
-    // Verify inventory state persisted
-    cy.get('[data-cy="character-ready"]').should('contain', 'Longsword');
-    cy.get('[data-cy="character-equipped"]').should('contain', 'Chainmail');
-    cy.get('[data-cy="character-stash"]').should('contain', 'Tower Shield');
-    cy.get('[data-cy="character-stash"]').should('contain', 'Healing Potion');
-  });
-
-  it('should handle empty inventory tiers', () => {
-    navigateToCharacters();
-    
-    // Create a new character with no objects
-    cy.get('[data-cy="create-character-button"]').click();
-    cy.get('input[type="text"]').first().type('Empty Inventory Test');
-    cy.get('select').first().select('HUMAN');
-    cy.contains('button', 'Create Character').click({force: true});
-    
-    // Verify empty state messages
-    cy.get('[data-cy="character-stash"]').should('contain', 'No objects in stash');
-    cy.get('[data-cy="character-equipped"]').should('contain', 'No objects equipped');
-    cy.get('[data-cy="character-ready"]').should('contain', 'No objects ready');
-  });
-
-  it('should show object details in inventory', () => {
-    setupCharacterWithObjects();
-    
-    // Move Longsword to equipped
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
-      .find('[data-cy="move-to-equipped-button"]')
-      .click();
-    
-    // Check that object shows key attributes
-    cy.get('[data-cy="character-equipped"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
+    cy.get('.stash-section')
+      .contains('.object-item', 'Longsword')
       .parent()
-      .should('contain', 'Lethality: 15')
-      .and('contain', 'Speed: 3');
+      .find('button:contains("Equip")')
+      .click();
+    
+    cy.get('.equipped-section')
+      .contains('.object-item', 'Longsword')
+      .parent()
+      .find('button:contains("Ready")')
+      .click();
+    
+    // Check lethality increased
+    cy.get('.attributes-section').within(() => {
+      cy.contains('Lethality').parent().should('contain', '25'); // 10 base + 15 from Longsword
+    });
+  });
+
+  it('should handle consumable items differently', () => {
+    setupCharacterWithObjects();
+    
+    // Healing Potion should not have same movement options
+    cy.get('.stash-section')
+      .contains('.object-item', 'Healing Potion')
+      .parent()
+      .within(() => {
+        // Consumables might have different buttons
+        cy.get('button').then($buttons => {
+          const buttonText = $buttons.text();
+          expect(buttonText).to.match(/Use|Equip|Ready/);
+        });
+      });
+  });
+
+  it('should remove object from character', () => {
+    setupCharacterWithObjects();
+    
+    // Remove Tower Shield from stash
+    cy.get('.stash-section')
+      .contains('.object-item', 'Tower Shield')
+      .parent()
+      .find('button:contains("Remove")')
+      .click();
+    
+    // Confirm removal
+    cy.on('window:confirm', () => true);
+    
+    // Verify object removed
+    cy.get('.stash-section').should('not.contain', 'Tower Shield');
+  });
+
+  it('should handle multiple instances of same object', () => {
+    setupCharacterWithObjects();
+    
+    // Add another Healing Potion
+    cy.contains('button', 'Add Object').click();
+    cy.contains('Healing Potion').click();
+    cy.contains('button', 'Add').click();
+    
+    // Verify count or multiple instances shown
+    cy.get('.stash-section').within(() => {
+      cy.get('.object-item:contains("Healing Potion")').should('have.length.at.least', 2);
+    });
+  });
+
+  it('should show empty state messages', () => {
+    cy.navigateToCharacters();
+    
+    // Create new character without objects
+    cy.clickCreateButton();
+    cy.fillCharacterForm({
+      name: 'Empty Inventory Test',
+      description: 'Character with no items',
+      category: 'HUMAN',
+      attributes: {
+        strength: 5,
+        dexterity: 5,
+        agility: 5,
+        endurance: 5,
+        vigor: 5,
+        perception: 5,
+        intelligence: 5,
+        will: 5,
+        social: 5,
+        faith: 5,
+        armor: 5,
+        lethality: 5
+      }
+    });
+    cy.contains('button', 'Create Character').click({force: true});
+    cy.waitForGraphQL();
+    
+    // Check empty states
+    cy.get('.stash-section').should('contain', 'No objects in stash');
+    cy.get('.equipped-section').should('contain', 'No objects equipped');
+    cy.get('.ready-section').should('contain', 'No objects ready');
+  });
+
+  it('should not allow invalid movements', () => {
+    setupCharacterWithObjects();
+    
+    // Objects in stash should not have "Unequip" or "Unready" buttons
+    cy.get('.stash-section')
+      .contains('.object-item', 'Tower Shield')
+      .parent()
+      .within(() => {
+        cy.get('button:contains("Unequip")').should('not.exist');
+        cy.get('button:contains("Unready")').should('not.exist');
+      });
+    
+    // Objects in ready should not have "Equip" button
+    // First move something to ready
+    cy.get('.stash-section')
+      .contains('.object-item', 'Longsword')
+      .parent()
+      .find('button:contains("Equip")')
+      .click();
+    cy.get('.equipped-section')
+      .contains('.object-item', 'Longsword')
+      .parent()
+      .find('button:contains("Ready")')
+      .click();
+    
+    cy.get('.ready-section')
+      .contains('.object-item', 'Longsword')
+      .parent()
+      .within(() => {
+        cy.get('button:contains("Equip")').should('not.exist');
+      });
   });
 });

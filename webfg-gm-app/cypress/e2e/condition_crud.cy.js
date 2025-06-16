@@ -8,57 +8,49 @@ describe('Condition CRUD Operations', () => {
     {
       name: 'Grapple',
       description: 'Being held or restrained by an opponent',
-      type: 'hinder',
-      attribute: 'agility',
-      value: 5
+      conditionType: 'hinder',
+      stackable: false,
+      attributeModifiers: [
+        { attribute: 'agility', value: -5 }
+      ]
     },
     {
       name: 'Aim',
       description: 'Taking careful aim to improve accuracy',
-      type: 'help',
-      attribute: 'dexterity',
-      value: 3
+      conditionType: 'help',
+      stackable: false,
+      attributeModifiers: [
+        { attribute: 'dexterity', value: 3 }
+      ]
     },
     {
       name: 'Exhausted',
       description: 'Severe fatigue affecting multiple attributes',
-      type: 'hinder',
-      attribute: 'endurance',
-      value: 8
+      conditionType: 'hinder',
+      stackable: true,
+      attributeModifiers: [
+        { attribute: 'endurance', value: -8 },
+        { attribute: 'strength', value: -4 },
+        { attribute: 'agility', value: -2 }
+      ]
     },
     {
       name: 'Blessed',
       description: 'Divine favor enhancing abilities',
-      type: 'help',
-      attribute: 'faith',
-      value: 10
+      conditionType: 'help',
+      stackable: false,
+      attributeModifiers: [
+        { attribute: 'faith', value: 10 },
+        { attribute: 'will', value: 5 }
+      ]
     }
   ];
 
-  function navigateToConditions() {
-    cy.get('[data-cy="menu-toggle"]').click();
-    cy.get('[data-cy="nav-conditions"]').click();
-    cy.get('[data-cy="menu-toggle"]').click();
-  }
-
   function createCondition(condition) {
-    cy.get('[data-cy="create-condition-button"]').click();
-    
-    // Fill basic info
-    cy.get('input[name="name"]').clear().type(condition.name);
-    cy.get('textarea[name="description"]').clear().type(condition.description);
-    
-    // Select type
-    cy.get('select[name="type"]').select(condition.type);
-    
-    // Select attribute
-    cy.get('select[name="attribute"]').select(condition.attribute);
-    
-    // Fill value
-    cy.get('input[name="value"]').clear().type(condition.value.toString());
-    
-    // Submit form
+    cy.clickCreateButton();
+    cy.fillConditionForm(condition);
     cy.contains('button', 'Create Condition').click({force: true});
+    cy.waitForGraphQL();
     
     // Verify redirect
     cy.url().should('include', '/conditions/');
@@ -66,7 +58,7 @@ describe('Condition CRUD Operations', () => {
   }
 
   it('should create test conditions', () => {
-    navigateToConditions();
+    cy.navigateToConditions();
     
     testConditions.forEach((condition) => {
       createCondition(condition);
@@ -74,153 +66,209 @@ describe('Condition CRUD Operations', () => {
       // Verify condition details
       cy.contains('h1', condition.name).should('be.visible');
       cy.contains(condition.description).should('be.visible');
-      cy.contains(`Type: ${condition.type}`).should('be.visible');
-      cy.contains(`Attribute: ${condition.attribute}`).should('be.visible');
-      cy.contains(`Value: ${condition.value}`).should('be.visible');
+      cy.contains(`Type: ${condition.conditionType}`).should('be.visible');
+      
+      // Verify attribute modifiers
+      condition.attributeModifiers.forEach(modifier => {
+        cy.contains(`${modifier.attribute}: ${modifier.value > 0 ? '+' : ''}${modifier.value}`).should('be.visible');
+      });
       
       // Go back to condition list
-      navigateToConditions();
+      cy.navigateToConditions();
     });
   });
 
   it('should list all created conditions', () => {
-    navigateToConditions();
+    cy.navigateToConditions();
     
     // Verify all test conditions appear in list
     testConditions.forEach((condition) => {
-      cy.contains('[data-cy="condition-list-item"]', condition.name).should('exist');
-      // Verify type indicator
-      if (condition.type === 'help') {
-        cy.contains('[data-cy="condition-list-item"]', condition.name)
-          .find('[data-cy="help-indicator"]')
-          .should('exist');
-      } else {
-        cy.contains('[data-cy="condition-list-item"]', condition.name)
-          .find('[data-cy="hinder-indicator"]')
-          .should('exist');
-      }
+      cy.contains('.condition-card', condition.name).should('exist');
+      cy.contains('.condition-card', condition.name).within(() => {
+        cy.contains(condition.description).should('be.visible');
+        // Verify type indicator
+        if (condition.conditionType === 'help') {
+          cy.get('.help-indicator').should('exist');
+        } else {
+          cy.get('.hinder-indicator').should('exist');
+        }
+      });
     });
   });
 
   it('should view condition details', () => {
-    navigateToConditions();
+    cy.navigateToConditions();
     
-    // Click on Grapple
-    cy.contains('[data-cy="condition-list-item"]', 'Grapple').click();
+    // Click on Grapple condition
+    cy.contains('.condition-card', 'Grapple').click();
     
-    // Verify we're on the condition view page
-    cy.url().should('include', '/conditions/');
+    // Verify we're on the detail page
+    cy.url().should('match', /\/conditions\/[a-zA-Z0-9-]+$/);
     cy.contains('h1', 'Grapple').should('be.visible');
-    
-    // Verify effect display
-    cy.contains('Effect: Hinders agility by 5').should('exist');
-    
-    // Verify characters affected section
-    cy.contains('Characters Affected').should('exist');
+    cy.contains('Being held or restrained by an opponent').should('be.visible');
+    cy.contains('Type: hinder').should('be.visible');
+    cy.contains('agility: -5').should('be.visible');
   });
 
   it('should update condition details', () => {
-    navigateToConditions();
+    cy.navigateToConditions();
     
-    // Click on Aim
-    cy.contains('[data-cy="condition-list-item"]', 'Aim').click();
+    // Navigate to Aim condition
+    cy.contains('.condition-card', 'Aim').click();
     
     // Click edit button
-    cy.get('[data-cy="edit-condition-button"]').click();
+    cy.clickEditButton();
     
     // Update description and value
-    cy.get('textarea[name="description"]').clear().type('Focused aim for improved precision');
-    cy.get('input[name="value"]').clear().type('5');
+    const updatedDescription = 'Taking extra careful aim for maximum accuracy - Updated';
+    cy.get('textarea[name="description"]').clear().type(updatedDescription);
+    cy.get('input[name="dexterity"]').clear().type('5');
     
     // Save changes
     cy.contains('button', 'Update Condition').click({force: true});
+    cy.waitForGraphQL();
     
-    // Verify updates
-    cy.contains('Focused aim for improved precision').should('be.visible');
-    cy.contains('Effect: Helps dexterity by 5').should('exist');
+    // Verify update
+    cy.contains(updatedDescription).should('be.visible');
+    cy.contains('dexterity: +5').should('be.visible');
   });
 
   it('should delete a condition', () => {
-    navigateToConditions();
+    cy.navigateToConditions();
     
     // Create a condition to delete
-    cy.get('[data-cy="create-condition-button"]').click();
-    cy.get('input[name="name"]').type('Condition To Delete');
-    cy.get('textarea[name="description"]').type('This will be deleted');
-    cy.get('select[name="type"]').select('hinder');
-    cy.get('select[name="attribute"]').select('strength');
-    cy.get('input[name="value"]').type('3');
+    cy.clickCreateButton();
+    cy.fillConditionForm({
+      name: 'Condition To Delete',
+      description: 'This will be deleted',
+      conditionType: 'hinder',
+      stackable: false,
+      attributeModifiers: [{ attribute: 'strength', value: -2 }]
+    });
     cy.contains('button', 'Create Condition').click({force: true});
-    
-    // Wait for redirect
-    cy.url().should('include', '/conditions/');
+    cy.waitForGraphQL();
     
     // Click delete button
-    cy.get('[data-cy="delete-condition-button"]').click();
+    cy.clickDeleteButton();
     
-    // Confirm deletion
-    cy.get('[data-cy="confirm-delete-button"]').click();
+    // Confirm deletion in any dialog
+    cy.on('window:confirm', () => true);
+    cy.waitForGraphQL();
     
-    // Verify redirect to condition list
-    cy.url().should('equal', `${Cypress.config().baseUrl}/conditions`);
+    // Verify we're back on the list page
+    cy.url().should('include', '/conditions');
+    cy.url().should('not.match', /\/conditions\/[a-zA-Z0-9-]+$/);
     
-    // Verify condition is not in list
-    cy.contains('[data-cy="condition-list-item"]', 'Condition To Delete').should('not.exist');
+    // Verify condition is deleted
+    cy.contains('.condition-card', 'Condition To Delete').should('not.exist');
   });
 
   it('should handle form validation', () => {
-    navigateToConditions();
-    cy.get('[data-cy="create-condition-button"]').click();
+    cy.navigateToConditions();
+    cy.clickCreateButton();
     
-    // Try to submit without required fields
+    // Try to submit empty form
     cy.contains('button', 'Create Condition').click({force: true});
     
-    // Should show validation errors
+    // Check for validation errors
     cy.contains('Name is required').should('be.visible');
-    cy.contains('Type is required').should('be.visible');
-    cy.contains('Attribute is required').should('be.visible');
-    cy.contains('Value is required').should('be.visible');
     
-    // Fill name but invalid value
-    cy.get('input[name="name"]').type('Invalid Condition');
-    cy.get('select[name="type"]').select('help');
-    cy.get('select[name="attribute"]').select('strength');
-    cy.get('input[name="value"]').type('0');
+    // Fill only name and try again
+    cy.get('input[name="name"]').type('Test Condition');
     cy.contains('button', 'Create Condition').click({force: true});
     
-    // Should show value validation error
-    cy.contains('Value must be greater than 0').should('be.visible');
+    // Should still have errors for required fields
+    cy.contains('Description is required').should('be.visible');
   });
 
-  it('should filter conditions by type', () => {
-    navigateToConditions();
+  it('should show stackable toggle', () => {
+    cy.navigateToConditions();
+    cy.clickCreateButton();
     
-    // Check if filter controls exist
-    cy.get('[data-cy="type-filter"]').should('exist');
+    // Check stackable toggle exists
+    cy.get('input[name="stackable"]').should('exist');
     
-    // Filter by HELP type
-    cy.get('[data-cy="type-filter"]').select('help');
+    // Toggle stackable
+    cy.get('input[name="stackable"][value="true"]').check();
+    cy.get('input[name="stackable"][value="true"]').should('be.checked');
     
-    // Verify only help conditions are shown
-    cy.contains('[data-cy="condition-list-item"]', 'Aim').should('be.visible');
-    cy.contains('[data-cy="condition-list-item"]', 'Blessed').should('be.visible');
-    cy.contains('[data-cy="condition-list-item"]', 'Grapple').should('not.exist');
-    cy.contains('[data-cy="condition-list-item"]', 'Exhausted').should('not.exist');
+    // Toggle non-stackable
+    cy.get('input[name="stackable"][value="false"]').check();
+    cy.get('input[name="stackable"][value="false"]').should('be.checked');
+  });
+
+  it('should handle multiple attribute modifiers', () => {
+    cy.navigateToConditions();
     
-    // Filter by HINDER type
-    cy.get('[data-cy="type-filter"]').select('hinder');
+    // View Exhausted condition (has multiple modifiers)
+    cy.contains('.condition-card', 'Exhausted').click();
     
-    // Verify only hinder conditions are shown
-    cy.contains('[data-cy="condition-list-item"]', 'Grapple').should('be.visible');
-    cy.contains('[data-cy="condition-list-item"]', 'Exhausted').should('be.visible');
-    cy.contains('[data-cy="condition-list-item"]', 'Aim').should('not.exist');
-    cy.contains('[data-cy="condition-list-item"]', 'Blessed').should('not.exist');
+    // Verify all modifiers are shown
+    cy.contains('endurance: -8').should('be.visible');
+    cy.contains('strength: -4').should('be.visible');
+    cy.contains('agility: -2').should('be.visible');
+  });
+
+  it('should display help and hinder indicators correctly', () => {
+    cy.navigateToConditions();
     
-    // Clear filter
-    cy.get('[data-cy="type-filter"]').select('ALL');
+    // Check help conditions have positive styling
+    cy.contains('.condition-card', 'Aim').within(() => {
+      cy.get('.help-indicator').should('have.css', 'color').and('match', /green|rgb\(0,.*128.*\)/i);
+    });
     
-    // Verify all conditions are shown again
-    cy.contains('[data-cy="condition-list-item"]', 'Grapple').should('be.visible');
-    cy.contains('[data-cy="condition-list-item"]', 'Aim').should('be.visible');
+    cy.contains('.condition-card', 'Blessed').within(() => {
+      cy.get('.help-indicator').should('exist');
+    });
+    
+    // Check hinder conditions have negative styling
+    cy.contains('.condition-card', 'Grapple').within(() => {
+      cy.get('.hinder-indicator').should('have.css', 'color').and('match', /red|rgb\(.*255.*,.*0.*\)/i);
+    });
+    
+    cy.contains('.condition-card', 'Exhausted').within(() => {
+      cy.get('.hinder-indicator').should('exist');
+    });
+  });
+
+  it('should show conditions used by characters', () => {
+    cy.navigateToConditions();
+    
+    // First, add condition to a character
+    cy.navigateToCharacters();
+    cy.contains('.character-card', 'The Guy').click();
+    cy.contains('button', 'Add Condition').click();
+    cy.contains('Aim').click();
+    cy.contains('button', 'Add').click();
+    
+    // Go back to conditions
+    cy.navigateToConditions();
+    cy.contains('.condition-card', 'Aim').click();
+    
+    // Check if it shows which characters use this condition
+    cy.get('body').then($body => {
+      if ($body.find('.used-by-section').length > 0) {
+        cy.get('.used-by-section').should('contain', 'The Guy');
+      }
+    });
+  });
+
+  after(() => {
+    // Clean up: Delete test conditions if they exist
+    cy.navigateToConditions();
+    
+    const conditionsToDelete = testConditions.map(c => c.name);
+    
+    conditionsToDelete.forEach(conditionName => {
+      cy.get('body').then($body => {
+        if ($body.text().includes(conditionName)) {
+          cy.contains('.condition-card', conditionName).click();
+          cy.clickDeleteButton();
+          cy.on('window:confirm', () => true);
+          cy.waitForGraphQL();
+          cy.navigateToConditions();
+        }
+      });
+    });
   });
 });

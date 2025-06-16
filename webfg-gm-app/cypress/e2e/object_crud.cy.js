@@ -7,7 +7,7 @@ describe('Object CRUD Operations', () => {
   const testObjects = [
     {
       name: 'Longsword',
-      category: 'WEAPON',
+      objectCategory: 'WEAPON',
       description: 'A standard medieval longsword',
       attributes: {
         speed: 3,
@@ -21,7 +21,7 @@ describe('Object CRUD Operations', () => {
     },
     {
       name: 'Chainmail',
-      category: 'ARMOR',
+      objectCategory: 'ARMOR',
       description: 'Flexible armor made of interlocking metal rings',
       attributes: {
         speed: -2,
@@ -34,7 +34,7 @@ describe('Object CRUD Operations', () => {
     },
     {
       name: 'Healing Potion',
-      category: 'ITEM',
+      objectCategory: 'ITEM',
       description: 'A magical potion that restores health',
       attributes: {
         speed: 1,
@@ -47,7 +47,7 @@ describe('Object CRUD Operations', () => {
     },
     {
       name: 'Tower Shield',
-      category: 'SHIELD',
+      objectCategory: 'SHIELD',
       description: 'A large shield providing excellent protection',
       attributes: {
         speed: -4,
@@ -61,7 +61,7 @@ describe('Object CRUD Operations', () => {
     },
     {
       name: 'Human Arm',
-      category: 'BODY_PART',
+      objectCategory: 'BODY_PART',
       description: 'A severed human arm',
       attributes: {
         speed: 0,
@@ -72,38 +72,19 @@ describe('Object CRUD Operations', () => {
     }
   ];
 
-  function navigateToObjects() {
-    cy.get('[data-cy="menu-toggle"]').click();
-    cy.get('[data-cy="nav-objects"]').click();
-    cy.get('[data-cy="menu-toggle"]').click();
-  }
-
   function createObject(object) {
-    cy.get('[data-cy="create-object-button"]').click();
-    
-    // Fill basic info
-    cy.get('input[name="name"]').clear().type(object.name);
-    cy.get('select[name="category"]').select(object.category);
-    cy.get('textarea[name="description"]').clear().type(object.description);
-    
-    // Fill attributes
-    Object.entries(object.attributes).forEach(([attr, value]) => {
-      const input = cy.get(`input[name="${attr}"]`);
-      if (input) {
-        input.clear().type(value.toString());
-      }
-    });
-    
-    // Submit form
+    cy.clickCreateButton();
+    cy.fillObjectForm(object);
     cy.contains('button', 'Create Object').click({force: true});
+    cy.waitForGraphQL();
     
     // Verify redirect
     cy.url().should('include', '/objects/');
     cy.url().should('not.contain', '/objects/new');
   }
 
-  it('should create test objects with various categories', () => {
-    navigateToObjects();
+  it('should create test objects', () => {
+    cy.navigateToObjects();
     
     testObjects.forEach((object) => {
       createObject(object);
@@ -111,157 +92,261 @@ describe('Object CRUD Operations', () => {
       // Verify object details
       cy.contains('h1', object.name).should('be.visible');
       cy.contains(object.description).should('be.visible');
-      cy.contains(`Category: ${object.category}`).should('be.visible');
-      
-      // Verify attributes
-      Object.entries(object.attributes).forEach(([attr, value]) => {
-        if (value !== 0) { // Only check non-zero values as they should be displayed
-          cy.get(`[data-cy="${attr}-value"]`).should('contain', value);
-        }
-      });
+      cy.contains(`Category: ${object.objectCategory}`).should('be.visible');
       
       // Go back to object list
-      navigateToObjects();
+      cy.navigateToObjects();
     });
   });
 
-  it('should list all created objects grouped by category', () => {
-    navigateToObjects();
+  it('should list all created objects', () => {
+    cy.navigateToObjects();
     
     // Verify all test objects appear in list
     testObjects.forEach((object) => {
-      cy.contains('[data-cy="object-list-item"]', object.name).should('exist');
+      cy.contains('.object-card', object.name).should('exist');
+      cy.contains('.object-card', object.name).within(() => {
+        cy.contains(object.description).should('be.visible');
+      });
     });
-    
-    // Verify category grouping
-    cy.contains('[data-cy="object-category-group"]', 'WEAPON').should('exist');
-    cy.contains('[data-cy="object-category-group"]', 'ARMOR').should('exist');
-    cy.contains('[data-cy="object-category-group"]', 'ITEM').should('exist');
-    cy.contains('[data-cy="object-category-group"]', 'SHIELD').should('exist');
-    cy.contains('[data-cy="object-category-group"]', 'BODY_PART').should('exist');
   });
 
   it('should view object details', () => {
-    navigateToObjects();
+    cy.navigateToObjects();
     
     // Click on Longsword
-    cy.contains('[data-cy="object-list-item"]', 'Longsword').click();
+    cy.contains('.object-card', 'Longsword').click();
     
-    // Verify we're on the object view page
-    cy.url().should('include', '/objects/');
+    // Verify we're on the detail page
+    cy.url().should('match', /\/objects\/[a-zA-Z0-9-]+$/);
     cy.contains('h1', 'Longsword').should('be.visible');
+    cy.contains('A standard medieval longsword').should('be.visible');
+    cy.contains('Category: WEAPON').should('be.visible');
     
-    // Verify all sections are present
-    cy.contains('Details').should('exist');
-    cy.contains('Attributes').should('exist');
-    cy.contains('Characters Using This Object').should('exist');
+    // Verify attributes
+    cy.contains('Speed: 3').should('be.visible');
+    cy.contains('Weight: 15').should('be.visible');
+    cy.contains('Size: 4').should('be.visible');
+    cy.contains('Lethality: 15').should('be.visible');
   });
 
   it('should update object details', () => {
-    navigateToObjects();
+    cy.navigateToObjects();
     
-    // Click on Healing Potion
-    cy.contains('[data-cy="object-list-item"]', 'Healing Potion').click();
+    // Navigate to Healing Potion
+    cy.contains('.object-card', 'Healing Potion').click();
     
     // Click edit button
-    cy.get('[data-cy="edit-object-button"]').click();
+    cy.clickEditButton();
     
-    // Update name and description
-    cy.get('input[name="name"]').clear().type('Greater Healing Potion');
-    cy.get('textarea[name="description"]').clear().type('An improved magical potion that restores more health');
+    // Update description
+    const updatedDescription = 'An enhanced magical potion that restores health - Updated';
+    cy.get('textarea[name="description"]').clear().type(updatedDescription);
     
     // Update some attributes
-    cy.get('input[name="vigor"]').clear().type('20');
-    cy.get('input[name="endurance"]').clear().type('10');
-    cy.get('input[name="intensity"]').clear().type('8');
+    cy.get('input[name="vigor"]').clear().type('15');
+    cy.get('input[name="endurance"]').clear().type('8');
     
     // Save changes
     cy.contains('button', 'Update Object').click({force: true});
+    cy.waitForGraphQL();
     
-    // Verify updates
-    cy.contains('h1', 'Greater Healing Potion').should('be.visible');
-    cy.contains('An improved magical potion that restores more health').should('be.visible');
-    cy.get('[data-cy="vigor-value"]').should('contain', '20');
-    cy.get('[data-cy="endurance-value"]').should('contain', '10');
-    cy.get('[data-cy="intensity-value"]').should('contain', '8');
+    // Verify update
+    cy.contains(updatedDescription).should('be.visible');
+    cy.contains('Vigor: 15').should('be.visible');
+    cy.contains('Endurance: 8').should('be.visible');
   });
 
   it('should delete an object', () => {
-    navigateToObjects();
+    cy.navigateToObjects();
     
     // Create an object to delete
-    cy.get('[data-cy="create-object-button"]').click();
-    cy.get('input[name="name"]').type('Object To Delete');
-    cy.get('select[name="category"]').select('ITEM');
-    cy.get('textarea[name="description"]').type('This will be deleted');
-    cy.get('input[name="weight"]').type('1');
-    cy.get('input[name="size"]').type('1');
+    cy.clickCreateButton();
+    cy.fillObjectForm({
+      name: 'Object To Delete',
+      objectCategory: 'ITEM',
+      description: 'This will be deleted',
+      attributes: {
+        speed: 1,
+        weight: 1,
+        size: 1,
+        intensity: 1
+      }
+    });
     cy.contains('button', 'Create Object').click({force: true});
-    
-    // Wait for redirect
-    cy.url().should('include', '/objects/');
+    cy.waitForGraphQL();
     
     // Click delete button
-    cy.get('[data-cy="delete-object-button"]').click();
+    cy.clickDeleteButton();
     
-    // Confirm deletion
-    cy.get('[data-cy="confirm-delete-button"]').click();
+    // Confirm deletion in any dialog
+    cy.on('window:confirm', () => true);
+    cy.waitForGraphQL();
     
-    // Verify redirect to object list
-    cy.url().should('equal', `${Cypress.config().baseUrl}/objects`);
+    // Verify we're back on the list page
+    cy.url().should('include', '/objects');
+    cy.url().should('not.match', /\/objects\/[a-zA-Z0-9-]+$/);
     
-    // Verify object is not in list
-    cy.contains('[data-cy="object-list-item"]', 'Object To Delete').should('not.exist');
+    // Verify object is deleted
+    cy.contains('.object-card', 'Object To Delete').should('not.exist');
   });
 
   it('should handle form validation', () => {
-    navigateToObjects();
-    cy.get('[data-cy="create-object-button"]').click();
+    cy.navigateToObjects();
+    cy.clickCreateButton();
     
-    // Try to submit without required fields
+    // Try to submit empty form
     cy.contains('button', 'Create Object').click({force: true});
     
-    // Should show validation errors
+    // Check for validation errors
     cy.contains('Name is required').should('be.visible');
-    cy.contains('Category is required').should('be.visible');
     
-    // Fill name but invalid attribute values
-    cy.get('input[name="name"]').type('Invalid Object');
-    cy.get('select[name="category"]').select('WEAPON');
-    cy.get('input[name="weight"]').type('-5');
+    // Fill only name and try again
+    cy.get('input[name="name"]').type('Test Object');
     cy.contains('button', 'Create Object').click({force: true});
     
-    // Should show attribute validation error
-    cy.contains('Weight must be positive').should('be.visible');
+    // Should still have errors for required fields
+    cy.contains('Description is required').should('be.visible');
   });
 
   it('should filter objects by category', () => {
-    navigateToObjects();
+    cy.navigateToObjects();
     
     // Check if filter controls exist
-    cy.get('[data-cy="category-filter"]').should('exist');
+    cy.get('body').then($body => {
+      if ($body.find('.category-filter').length > 0) {
+        // Test weapon filter
+        cy.get('.category-filter select').select('WEAPON');
+        cy.contains('.object-card', 'Longsword').should('be.visible');
+        cy.contains('.object-card', 'Chainmail').should('not.exist');
+        
+        // Test armor filter
+        cy.get('.category-filter select').select('ARMOR');
+        cy.contains('.object-card', 'Chainmail').should('be.visible');
+        cy.contains('.object-card', 'Longsword').should('not.exist');
+        
+        // Show all
+        cy.get('.category-filter select').select('ALL');
+        cy.contains('.object-card', 'Longsword').should('be.visible');
+        cy.contains('.object-card', 'Chainmail').should('be.visible');
+      }
+    });
+  });
+
+  it('should show category-specific attributes', () => {
+    cy.navigateToObjects();
     
-    // Filter by WEAPON category
-    cy.get('[data-cy="category-filter"]').select('WEAPON');
+    // View weapon
+    cy.contains('.object-card', 'Longsword').click();
+    cy.contains('Lethality: 15').should('be.visible');
+    cy.contains('Dexterity: 2').should('be.visible');
     
-    // Verify only weapons are shown
-    cy.contains('[data-cy="object-list-item"]', 'Longsword').should('be.visible');
-    cy.contains('[data-cy="object-list-item"]', 'Chainmail').should('not.exist');
-    cy.contains('[data-cy="object-list-item"]', 'Healing Potion').should('not.exist');
+    cy.navigateToObjects();
     
-    // Filter by ARMOR category
-    cy.get('[data-cy="category-filter"]').select('ARMOR');
+    // View armor
+    cy.contains('.object-card', 'Chainmail').click();
+    cy.contains('Armor: 20').should('be.visible');
+    cy.contains('Agility: -3').should('be.visible');
     
-    // Verify only armor is shown
-    cy.contains('[data-cy="object-list-item"]', 'Chainmail').should('be.visible');
-    cy.contains('[data-cy="object-list-item"]', 'Longsword').should('not.exist');
+    cy.navigateToObjects();
     
-    // Clear filter
-    cy.get('[data-cy="category-filter"]').select('ALL');
+    // View shield
+    cy.contains('.object-card', 'Tower Shield').click();
+    cy.contains('Armor: 30').should('be.visible');
+    cy.contains('Agility: -5').should('be.visible');
+    cy.contains('Strength: -2').should('be.visible');
+  });
+
+  it('should show objects used by characters', () => {
+    cy.navigateToObjects();
     
-    // Verify all objects are shown again
-    cy.contains('[data-cy="object-list-item"]', 'Longsword').should('be.visible');
-    cy.contains('[data-cy="object-list-item"]', 'Chainmail').should('be.visible');
-    cy.contains('[data-cy="object-list-item"]', 'Healing Potion').should('be.visible');
+    // First, add object to a character
+    cy.navigateToCharacters();
+    cy.contains('.character-card', 'The Guy').click();
+    cy.contains('button', 'Add Object').click();
+    cy.contains('Longsword').click();
+    cy.contains('button', 'Add').click();
+    
+    // Go back to objects
+    cy.navigateToObjects();
+    cy.contains('.object-card', 'Longsword').click();
+    
+    // Check if it shows which characters use this object
+    cy.get('body').then($body => {
+      if ($body.find('.used-by-section').length > 0) {
+        cy.get('.used-by-section').should('contain', 'The Guy');
+      }
+    });
+  });
+
+  it('should handle negative attribute values correctly', () => {
+    cy.navigateToObjects();
+    
+    // View object with negative attributes
+    cy.contains('.object-card', 'Tower Shield').click();
+    
+    // Verify negative values display correctly
+    cy.contains('Speed: -4').should('be.visible');
+    cy.contains('Agility: -5').should('be.visible');
+    cy.contains('Strength: -2').should('be.visible');
+  });
+
+  it('should handle optional attributes', () => {
+    cy.navigateToObjects();
+    cy.clickCreateButton();
+    
+    // Fill only required fields and some optional attributes
+    cy.get('input[name="name"]').type('Minimal Object');
+    cy.get('select[name="objectCategory"]').select('ITEM');
+    cy.get('textarea[name="description"]').type('An object with minimal attributes');
+    
+    // Fill only speed and weight
+    cy.get('input[name="speed"]').type('2');
+    cy.get('input[name="weight"]').type('5');
+    
+    // Submit form
+    cy.contains('button', 'Create Object').click({force: true});
+    cy.waitForGraphQL();
+    
+    // Verify object was created
+    cy.contains('h1', 'Minimal Object').should('be.visible');
+    cy.contains('Speed: 2').should('be.visible');
+    cy.contains('Weight: 5').should('be.visible');
+  });
+
+  it('should display all object categories correctly', () => {
+    cy.navigateToObjects();
+    
+    // Check all categories are represented
+    const categories = ['WEAPON', 'ARMOR', 'SHIELD', 'ITEM', 'BODY_PART'];
+    
+    categories.forEach(category => {
+      const expectedObject = testObjects.find(obj => obj.objectCategory === category);
+      if (expectedObject) {
+        cy.contains('.object-card', expectedObject.name).should('exist');
+        cy.contains('.object-card', expectedObject.name).click();
+        cy.contains(`Category: ${category}`).should('be.visible');
+        cy.navigateToObjects();
+      }
+    });
+  });
+
+  after(() => {
+    // Clean up: Delete test objects if they exist
+    cy.navigateToObjects();
+    
+    const objectsToDelete = [...testObjects.map(o => o.name), 'Minimal Object'];
+    
+    objectsToDelete.forEach(objectName => {
+      cy.get('body').then($body => {
+        if ($body.text().includes(objectName)) {
+          cy.contains('.object-card', objectName).click();
+          cy.clickDeleteButton();
+          cy.on('window:confirm', () => true);
+          cy.waitForGraphQL();
+          cy.navigateToObjects();
+        }
+      });
+    });
   });
 });

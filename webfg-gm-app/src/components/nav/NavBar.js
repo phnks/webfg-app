@@ -361,19 +361,19 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [], conditio
             </NavLink>
           </li>
           <li className={activeSection === 'objects' ? 'active' : ''}>
-            <NavLink to="/objects" onClick={() => setActiveSection('objects')}>
+            <NavLink to="/objects" onClick={() => setActiveSection('objects')} data-cy="nav-objects">
               <FaCube />
               <span>Objects</span>
             </NavLink>
           </li>
           <li className={activeSection === 'actions' ? 'active' : ''}>
-            <NavLink to="/actions" onClick={() => setActiveSection('actions')}>
+            <NavLink to="/actions" onClick={() => setActiveSection('actions')} data-cy="nav-actions">
               <FaBolt />
               <span>Actions</span>
             </NavLink>
           </li>
           <li className={activeSection === 'conditions' ? 'active' : ''}>
-            <NavLink to="/conditions" onClick={() => setActiveSection('conditions')}>
+            <NavLink to="/conditions" onClick={() => setActiveSection('conditions')} data-cy="nav-conditions">
               <FaExclamationTriangle />
               <span>Conditions</span>
             </NavLink>

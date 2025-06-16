@@ -5,23 +5,23 @@ describe('Action Test Modal and Difficulty Calculations', () => {
   });
 
   function navigateToCharacters() {
-    cy.get('[data-cy="menu-toggle"]').click();
-    cy.get('[data-cy="nav-characters"]').click();
-    cy.get('[data-cy="menu-toggle"]').click();
+    cy.get('.nav-toggle').click();
+    cy.get('a[href="/characters"]').click();
+    cy.get('.nav-toggle').click();
   }
 
   function setupCharacterWithActions() {
     navigateToCharacters();
     
     // Click on The Guy character
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    cy.contains('.character-card', 'The Guy').click();
     
     // Ensure character has Hit action
     cy.get('body').then($body => {
-      if (!$body.find('[data-cy="character-actions-list"]').text().includes('Hit')) {
-        cy.get('[data-cy="add-action-button"]').click();
-        cy.contains('[data-cy="action-select-item"]', 'Hit').click();
-        cy.get('[data-cy="confirm-add-action"]').click();
+      if (!$body.text().includes('Hit')) {
+        cy.contains('button', 'Add Action').click();
+        cy.contains('Hit').click();
+        cy.contains('button', 'Add').click();
       }
     });
   }
@@ -30,13 +30,13 @@ describe('Action Test Modal and Difficulty Calculations', () => {
     setupCharacterWithActions();
     
     // Click test button for Hit action
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="test-action-button"]')
+    cy.contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Test")')
       .click();
     
     // Verify modal opened
-    cy.get('[data-cy="action-test-modal"]').should('be.visible');
+    cy.get('.modal').should('be.visible');
     cy.contains('Test Action: Hit').should('be.visible');
   });
 
@@ -44,13 +44,13 @@ describe('Action Test Modal and Difficulty Calculations', () => {
     setupCharacterWithActions();
     
     // Open test modal for Hit
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="test-action-button"]')
+    cy.contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Test")')
       .click();
     
     // Verify action details displayed
-    cy.get('[data-cy="action-test-modal"]').within(() => {
+    cy.get('.modal').within(() => {
       cy.contains('Source: dexterity').should('exist');
       cy.contains('Target: agility').should('exist');
       cy.contains('Type: trigger').should('exist');
@@ -62,13 +62,13 @@ describe('Action Test Modal and Difficulty Calculations', () => {
     setupCharacterWithActions();
     
     // Open test modal
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="test-action-button"]')
+    cy.contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Test")')
       .click();
     
     // Check formula display
-    cy.get('[data-cy="difficulty-formula"]').should('exist');
+    cy.get('.difficulty-formula').should('exist');
     cy.contains('Difficulty = Target Attribute - Source Attribute').should('exist');
   });
 
@@ -76,158 +76,153 @@ describe('Action Test Modal and Difficulty Calculations', () => {
     setupCharacterWithActions();
     
     // Open test modal
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="test-action-button"]')
+    cy.contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Test")')
       .click();
     
     // Test against Commoner (agility 1)
-    cy.get('[data-cy="target-character-select"]').select('Commoner');
+    cy.get('select').contains('option', 'Commoner').parent().select('Commoner');
     
     // Difficulty should be: Commoner agility (1) - The Guy dexterity (10) = -9
-    cy.get('[data-cy="calculated-difficulty"]').should('contain', '-9');
-    cy.get('[data-cy="difficulty-description"]').should('contain', 'Very Easy');
+    cy.contains('Difficulty: -9').should('exist');
+    cy.contains('Very Easy').should('exist');
     
     // Test against Anum (agility 100)
-    cy.get('[data-cy="target-character-select"]').select('Anum');
+    cy.get('select').contains('option', 'Anum').parent().select('Anum');
     
     // Difficulty should be: Anum agility (100) - The Guy dexterity (10) = 90
-    cy.get('[data-cy="calculated-difficulty"]').should('contain', '90');
-    cy.get('[data-cy="difficulty-description"]').should('contain', 'Extremely Hard');
+    cy.contains('Difficulty: 90').should('exist');
+    cy.contains('Extremely Hard').should('exist');
   });
 
   it('should update difficulty when source attribute changes', () => {
     navigateToCharacters();
     
     // Setup The Guy with Aim condition to boost dexterity
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    cy.contains('.character-card', 'The Guy').click();
     
     // Add Aim condition if not present
     cy.get('body').then($body => {
-      if (!$body.find('[data-cy="character-conditions-list"]').text().includes('Aim')) {
-        cy.get('[data-cy="add-condition-button"]').click();
-        cy.contains('[data-cy="condition-select-item"]', 'Aim').click();
-        cy.get('[data-cy="confirm-add-condition"]').click();
+      if (!$body.text().includes('Aim')) {
+        cy.contains('button', 'Add Condition').click();
+        cy.contains('Aim').click();
+        cy.contains('button', 'Add').click();
       }
     });
     
     // Ensure Hit action is present
     cy.get('body').then($body => {
-      if (!$body.find('[data-cy="character-actions-list"]').text().includes('Hit')) {
-        cy.get('[data-cy="add-action-button"]').click();
-        cy.contains('[data-cy="action-select-item"]', 'Hit').click();
-        cy.get('[data-cy="confirm-add-action"]').click();
+      if (!$body.text().includes('Hit')) {
+        cy.contains('button', 'Add Action').click();
+        cy.contains('Hit').click();
+        cy.contains('button', 'Add').click();
       }
     });
     
     // Open test modal
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="test-action-button"]')
+    cy.contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Test")')
       .click();
     
     // Test against The Guy (self)
-    cy.get('[data-cy="target-character-select"]').select('The Guy');
+    cy.get('select').contains('option', 'The Guy').parent().select('The Guy');
     
     // With Aim: dexterity is 13 (10 + 3), agility is 10
     // Difficulty: 10 - 13 = -3
-    cy.get('[data-cy="calculated-difficulty"]').should('contain', '-3');
-    cy.get('[data-cy="source-attribute-value"]').should('contain', '13');
+    cy.contains('Difficulty: -3').should('exist');
+    cy.contains('Source: 13').should('exist');
   });
 
   it('should show roll requirements', () => {
     setupCharacterWithActions();
     
     // Open test modal
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="test-action-button"]')
+    cy.contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Test")')
       .click();
     
     // Select different targets to see roll requirements
-    cy.get('[data-cy="target-character-select"]').select('Commoner');
+    cy.get('select').contains('option', 'Commoner').parent().select('Commoner');
     
     // For very easy difficulty (-9), should show minimum roll needed
-    cy.get('[data-cy="roll-requirement"]').should('exist');
-    cy.contains('Roll needed: 2+').should('exist'); // Or whatever the system uses
+    cy.contains('Roll needed').should('exist');
+    cy.contains('2+').should('exist'); // Or whatever the system uses
     
     // Select harder target
-    cy.get('[data-cy="target-character-select"]').select('Anum');
+    cy.get('select').contains('option', 'Anum').parent().select('Anum');
     
     // For extreme difficulty (90), should show very high roll needed
-    cy.contains('Roll needed: 20+').should('exist'); // Or indicate impossible
+    cy.contains('20+').should('exist'); // Or indicate impossible
   });
 
   it('should simulate action execution', () => {
     setupCharacterWithActions();
     
     // Open test modal
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="test-action-button"]')
+    cy.contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Test")')
       .click();
     
     // Select target
-    cy.get('[data-cy="target-character-select"]').select('Commoner');
+    cy.get('select').contains('option', 'Commoner').parent().select('Commoner');
     
     // Click simulate/execute button
-    cy.get('[data-cy="execute-test-button"]').click();
+    cy.contains('button', 'Execute').click();
     
     // Should show result
-    cy.get('[data-cy="test-result"]').should('be.visible');
-    cy.get('[data-cy="test-result"]').should('contain', 'Success'); // With -9 difficulty
+    cy.contains('Success').should('be.visible');
     
     // For trigger actions, should show chain execution
-    cy.contains('Action chain triggered: Hit → Break → Kill').should('exist');
+    cy.contains('Hit → Break → Kill').should('exist');
   });
 
   it('should handle action chains in test modal', () => {
     setupCharacterWithActions();
     
     // Open test modal for Hit (which triggers Break → Kill)
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="test-action-button"]')
+    cy.contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Test")')
       .click();
     
     // Should show full action chain
-    cy.get('[data-cy="action-chain-display"]').should('exist');
     cy.contains('Hit → Break → Kill').should('exist');
     
     // Select target
-    cy.get('[data-cy="target-character-select"]').select('Commoner');
+    cy.get('select').contains('option', 'Commoner').parent().select('Commoner');
     
     // Should show difficulty for each action in chain
-    cy.get('[data-cy="chain-difficulties"]').within(() => {
-      cy.contains('Hit: -9').should('exist'); // dex vs agility
-      cy.contains('Break:').should('exist'); // strength vs armor
-      cy.contains('Kill:').should('exist'); // lethality vs endurance
-    });
+    cy.contains('Hit: -9').should('exist'); // dex vs agility
+    cy.contains('Break:').should('exist'); // strength vs armor
+    cy.contains('Kill:').should('exist'); // lethality vs endurance
   });
 
   it('should test destroy type actions', () => {
     navigateToCharacters();
     
     // Add Kill action directly to character
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    cy.contains('.character-card', 'The Guy').click();
     
     cy.get('body').then($body => {
-      if (!$body.find('[data-cy="character-actions-list"]').text().includes('Kill')) {
-        cy.get('[data-cy="add-action-button"]').click();
-        cy.contains('[data-cy="action-select-item"]', 'Kill').click();
-        cy.get('[data-cy="confirm-add-action"]').click();
+      if (!$body.text().includes('Kill')) {
+        cy.contains('button', 'Add Action').click();
+        cy.contains('Kill').click();
+        cy.contains('button', 'Add').click();
       }
     });
     
     // Open test modal for Kill
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Kill')
+    cy.contains('.action-item', 'Kill')
       .parent()
-      .find('[data-cy="test-action-button"]')
+      .find('button:contains("Test")')
       .click();
     
     // Verify destroy type specifics
-    cy.get('[data-cy="action-test-modal"]').within(() => {
+    cy.get('.modal').within(() => {
       cy.contains('Type: destroy').should('exist');
       cy.contains('Warning: This action will destroy the target').should('exist');
     });
@@ -237,76 +232,76 @@ describe('Action Test Modal and Difficulty Calculations', () => {
     setupCharacterWithActions();
     
     // Open test modal
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="test-action-button"]')
+    cy.contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Test")')
       .click();
     
     // Close modal
-    cy.get('[data-cy="close-test-modal"]').click();
+    cy.get('.modal button.close').click();
     
     // Verify modal closed
-    cy.get('[data-cy="action-test-modal"]').should('not.exist');
+    cy.get('.modal').should('not.exist');
   });
 
   it('should handle edge cases in difficulty calculation', () => {
     navigateToCharacters();
     
     // Create character with negative attributes
-    cy.contains('[data-cy="character-list-item"]', 'Commoner').click();
+    cy.contains('.character-card', 'Commoner').click();
     
     // Add Tower Shield to get negative agility
-    cy.get('[data-cy="add-object-button"]').click();
-    cy.contains('[data-cy="object-select-item"]', 'Tower Shield').click();
-    cy.get('[data-cy="confirm-add-object"]').click();
+    cy.contains('button', 'Add Object').click();
+    cy.contains('Tower Shield').click();
+    cy.contains('button', 'Add').click();
     
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Tower Shield')
-      .find('[data-cy="move-to-equipped-button"]')
+    cy.contains('.object-item', 'Tower Shield')
+      .parent()
+      .find('button:contains("Equip")')
       .click();
     
     // Add Hit action
-    cy.get('[data-cy="add-action-button"]').click();
-    cy.contains('[data-cy="action-select-item"]', 'Hit').click();
-    cy.get('[data-cy="confirm-add-action"]').click();
+    cy.contains('button', 'Add Action').click();
+    cy.contains('Hit').click();
+    cy.contains('button', 'Add').click();
     
     // Open test modal
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="test-action-button"]')
+    cy.contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Test")')
       .click();
     
     // Test against The Guy
-    cy.get('[data-cy="target-character-select"]').select('The Guy');
+    cy.get('select').contains('option', 'The Guy').parent().select('The Guy');
     
     // Commoner dex (1) vs The Guy agility (10)
     // Difficulty: 10 - 1 = 9
-    cy.get('[data-cy="calculated-difficulty"]').should('contain', '9');
+    cy.contains('Difficulty: 9').should('exist');
     
     // Show that negative source attributes make actions harder
-    cy.get('[data-cy="source-attribute-value"]').should('contain', '1');
-    cy.get('[data-cy="difficulty-description"]').should('contain', 'Hard');
+    cy.contains('Source: 1').should('exist');
+    cy.contains('Hard').should('exist');
   });
 
   it('should update test results dynamically', () => {
     setupCharacterWithActions();
     
     // Open test modal
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="test-action-button"]')
+    cy.contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Test")')
       .click();
     
     // Test against multiple targets without closing modal
     const targets = ['Commoner', 'The Guy', 'Anum'];
     
     targets.forEach(target => {
-      cy.get('[data-cy="target-character-select"]').select(target);
-      cy.get('[data-cy="execute-test-button"]').click();
-      cy.get('[data-cy="test-result"]').should('be.visible');
+      cy.get('select').contains('option', target).parent().select(target);
+      cy.contains('button', 'Execute').click();
+      cy.contains('Result').should('be.visible');
       
       // Clear result for next test
-      cy.get('[data-cy="clear-result-button"]').click();
+      cy.contains('button', 'Clear').click();
     });
   });
 });

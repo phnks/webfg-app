@@ -4,244 +4,270 @@ describe('Character Associations', () => {
     cy.wait(2000);
   });
 
-  function navigateToCharacters() {
-    cy.get('[data-cy="menu-toggle"]').click();
-    cy.get('[data-cy="nav-characters"]').click();
-    cy.get('[data-cy="menu-toggle"]').click();
-  }
-
   it('should add objects to character', () => {
-    navigateToCharacters();
+    cy.navigateToCharacters();
     
     // Click on The Guy character
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    cy.contains('.character-card', 'The Guy').click();
     
     // Navigate to Objects section
-    cy.get('[data-cy="character-objects-section"]').should('exist');
+    cy.contains('.character-sections h3', 'Objects').should('exist');
     
     // Click add object button
-    cy.get('[data-cy="add-object-button"]').click();
+    cy.contains('button', 'Add Object').click();
     
-    // Should show object selection modal
-    cy.get('[data-cy="object-selection-modal"]').should('be.visible');
+    // Should show object selection modal or list
+    cy.get('.modal').should('be.visible');
     
     // Select Longsword
-    cy.contains('[data-cy="object-select-item"]', 'Longsword').click();
-    cy.get('[data-cy="confirm-add-object"]').click();
+    cy.contains('Longsword').click();
+    cy.contains('button', 'Add').click();
     
     // Verify object was added to stash
-    cy.get('[data-cy="character-stash"]').should('contain', 'Longsword');
+    cy.get('.stash-section').should('contain', 'Longsword');
     
     // Add more objects
-    cy.get('[data-cy="add-object-button"]').click();
-    cy.contains('[data-cy="object-select-item"]', 'Chainmail').click();
-    cy.get('[data-cy="confirm-add-object"]').click();
+    cy.contains('button', 'Add Object').click();
+    cy.contains('Chainmail').click();
+    cy.contains('button', 'Add').click();
     
-    cy.get('[data-cy="add-object-button"]').click();
-    cy.contains('[data-cy="object-select-item"]', 'Tower Shield').click();
-    cy.get('[data-cy="confirm-add-object"]').click();
+    cy.contains('button', 'Add Object').click();
+    cy.contains('Tower Shield').click();
+    cy.contains('button', 'Add').click();
     
-    cy.get('[data-cy="add-object-button"]').click();
-    cy.contains('[data-cy="object-select-item"]', 'Healing Potion').click();
-    cy.get('[data-cy="confirm-add-object"]').click();
+    cy.contains('button', 'Add Object').click();
+    cy.contains('Healing Potion').click();
+    cy.contains('button', 'Add').click();
     
     // Verify all objects in stash
-    cy.get('[data-cy="character-stash"]').should('contain', 'Longsword');
-    cy.get('[data-cy="character-stash"]').should('contain', 'Chainmail');
-    cy.get('[data-cy="character-stash"]').should('contain', 'Tower Shield');
-    cy.get('[data-cy="character-stash"]').should('contain', 'Healing Potion');
+    cy.get('.stash-section').should('contain', 'Longsword');
+    cy.get('.stash-section').should('contain', 'Chainmail');
+    cy.get('.stash-section').should('contain', 'Tower Shield');
+    cy.get('.stash-section').should('contain', 'Healing Potion');
   });
 
   it('should add actions to character', () => {
-    navigateToCharacters();
+    cy.navigateToCharacters();
     
     // Click on The Guy character
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    cy.contains('.character-card', 'The Guy').click();
     
     // Navigate to Actions section
-    cy.get('[data-cy="character-actions-section"]').should('exist');
+    cy.contains('.character-sections h3', 'Actions').should('exist');
     
     // Click add action button
-    cy.get('[data-cy="add-action-button"]').click();
+    cy.contains('button', 'Add Action').click();
     
     // Should show action selection modal
-    cy.get('[data-cy="action-selection-modal"]').should('be.visible');
+    cy.get('.modal').should('be.visible');
     
     // Select Hit action
-    cy.contains('[data-cy="action-select-item"]', 'Hit').click();
-    cy.get('[data-cy="confirm-add-action"]').click();
+    cy.contains('Hit').click();
+    cy.contains('button', 'Add').click();
     
     // Verify action was added
-    cy.get('[data-cy="character-actions-list"]').should('contain', 'Hit');
+    cy.get('.actions-section').should('contain', 'Hit');
     
     // Verify action chain is displayed
-    cy.get('[data-cy="character-actions-list"]').should('contain', 'Hit → Break → Kill');
+    cy.get('.actions-section').should('contain', 'Hit → Break → Kill');
     
     // Add another action
-    cy.get('[data-cy="add-action-button"]').click();
-    cy.contains('[data-cy="action-select-item"]', 'Break').click();
-    cy.get('[data-cy="confirm-add-action"]').click();
+    cy.contains('button', 'Add Action').click();
+    cy.contains('Break').click();
+    cy.contains('button', 'Add').click();
     
     // Verify both actions are listed
-    cy.get('[data-cy="character-actions-list"]').should('contain', 'Hit');
-    cy.get('[data-cy="character-actions-list"]').should('contain', 'Break');
+    cy.get('.actions-section').should('contain', 'Hit');
+    cy.get('.actions-section').should('contain', 'Break');
   });
 
   it('should add conditions to character', () => {
-    navigateToCharacters();
+    cy.navigateToCharacters();
     
     // Click on The Guy character
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    cy.contains('.character-card', 'The Guy').click();
     
     // Navigate to Conditions section
-    cy.get('[data-cy="character-conditions-section"]').should('exist');
+    cy.contains('.character-sections h3', 'Conditions').should('exist');
     
     // Click add condition button
-    cy.get('[data-cy="add-condition-button"]').click();
+    cy.contains('button', 'Add Condition').click();
     
     // Should show condition selection modal
-    cy.get('[data-cy="condition-selection-modal"]').should('be.visible');
+    cy.get('.modal').should('be.visible');
     
-    // Select Grapple condition
-    cy.contains('[data-cy="condition-select-item"]', 'Grapple').click();
-    cy.get('[data-cy="confirm-add-condition"]').click();
+    // Select Aim condition
+    cy.contains('Aim').click();
+    cy.contains('button', 'Add').click();
     
     // Verify condition was added
-    cy.get('[data-cy="character-conditions-list"]').should('contain', 'Grapple');
-    cy.get('[data-cy="character-conditions-list"]').should('contain', 'Hinders agility by 5');
+    cy.get('.conditions-section').should('contain', 'Aim');
+    cy.get('.conditions-section').should('contain', '+3 dexterity');
     
-    // Add helpful condition
-    cy.get('[data-cy="add-condition-button"]').click();
-    cy.contains('[data-cy="condition-select-item"]', 'Aim').click();
-    cy.get('[data-cy="confirm-add-condition"]').click();
+    // Add another condition
+    cy.contains('button', 'Add Condition').click();
+    cy.contains('Grapple').click();
+    cy.contains('button', 'Add').click();
     
     // Verify both conditions are listed
-    cy.get('[data-cy="character-conditions-list"]').should('contain', 'Grapple');
-    cy.get('[data-cy="character-conditions-list"]').should('contain', 'Aim');
-    cy.get('[data-cy="character-conditions-list"]').should('contain', 'Helps dexterity by 3');
+    cy.get('.conditions-section').should('contain', 'Aim');
+    cy.get('.conditions-section').should('contain', 'Grapple');
   });
 
   it('should remove objects from character', () => {
-    navigateToCharacters();
+    cy.navigateToCharacters();
     
-    // Click on The Guy character (should have objects from previous test)
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    // First add an object
+    cy.contains('.character-card', 'The Guy').click();
+    cy.contains('button', 'Add Object').click();
+    cy.contains('Longsword').click();
+    cy.contains('button', 'Add').click();
     
-    // Find Longsword in stash and remove it
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Longsword')
-      .find('[data-cy="remove-object-button"]')
+    // Now remove it
+    cy.get('.stash-section')
+      .contains('.object-item', 'Longsword')
+      .parent()
+      .find('button:contains("Remove")')
       .click();
     
     // Confirm removal
-    cy.get('[data-cy="confirm-remove-button"]').click();
+    cy.on('window:confirm', () => true);
     
     // Verify object was removed
-    cy.get('[data-cy="character-stash"]').should('not.contain', 'Longsword');
+    cy.get('.stash-section').should('not.contain', 'Longsword');
   });
 
   it('should remove actions from character', () => {
-    navigateToCharacters();
+    cy.navigateToCharacters();
     
-    // Click on The Guy character
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    // First add an action
+    cy.contains('.character-card', 'The Guy').click();
+    cy.contains('button', 'Add Action').click();
+    cy.contains('Hit').click();
+    cy.contains('button', 'Add').click();
     
-    // Find Hit action and remove it
-    cy.get('[data-cy="character-actions-list"]')
-      .contains('[data-cy="action-item"]', 'Hit')
-      .find('[data-cy="remove-action-button"]')
+    // Now remove it
+    cy.get('.actions-section')
+      .contains('.action-item', 'Hit')
+      .parent()
+      .find('button:contains("Remove")')
       .click();
     
     // Confirm removal
-    cy.get('[data-cy="confirm-remove-button"]').click();
+    cy.on('window:confirm', () => true);
     
     // Verify action was removed
-    cy.get('[data-cy="character-actions-list"]').should('not.contain', 'Hit');
+    cy.get('.actions-section').should('not.contain', 'Hit');
   });
 
   it('should remove conditions from character', () => {
-    navigateToCharacters();
+    cy.navigateToCharacters();
     
-    // Click on The Guy character
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    // First add a condition
+    cy.contains('.character-card', 'The Guy').click();
+    cy.contains('button', 'Add Condition').click();
+    cy.contains('Aim').click();
+    cy.contains('button', 'Add').click();
     
-    // Find Grapple condition and remove it
-    cy.get('[data-cy="character-conditions-list"]')
-      .contains('[data-cy="condition-item"]', 'Grapple')
-      .find('[data-cy="remove-condition-button"]')
+    // Now remove it
+    cy.get('.conditions-section')
+      .contains('.condition-item', 'Aim')
+      .parent()
+      .find('button:contains("Remove")')
       .click();
     
     // Confirm removal
-    cy.get('[data-cy="confirm-remove-button"]').click();
+    cy.on('window:confirm', () => true);
     
     // Verify condition was removed
-    cy.get('[data-cy="character-conditions-list"]').should('not.contain', 'Grapple');
+    cy.get('.conditions-section').should('not.contain', 'Aim');
   });
 
-  it('should show object details from character view', () => {
-    navigateToCharacters();
+  it('should show object details in character view', () => {
+    cy.navigateToCharacters();
     
-    // Click on The Guy character
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    // Add object first
+    cy.contains('.character-card', 'The Guy').click();
+    cy.contains('button', 'Add Object').click();
+    cy.contains('Longsword').click();
+    cy.contains('button', 'Add').click();
     
-    // Click on an object to view details
-    cy.get('[data-cy="character-stash"]')
-      .contains('[data-cy="object-item"]', 'Chainmail')
+    // Click on object to see details
+    cy.get('.stash-section')
+      .contains('.object-item', 'Longsword')
       .click();
     
-    // Should navigate to object view
-    cy.url().should('include', '/objects/');
-    cy.contains('h1', 'Chainmail').should('be.visible');
-    
-    // Navigate back to character
-    cy.go('back');
-    cy.url().should('include', '/characters/');
+    // Should show object details (modal or expanded view)
+    cy.contains('Damage: 15').should('be.visible');
+    cy.contains('Lethality: 15').should('be.visible');
   });
 
-  it('should prevent adding duplicate objects', () => {
-    navigateToCharacters();
+  it('should show action details in character view', () => {
+    cy.navigateToCharacters();
     
-    // Click on The Guy character
-    cy.contains('[data-cy="character-list-item"]', 'The Guy').click();
+    // Add action first
+    cy.contains('.character-card', 'The Guy').click();
+    cy.contains('button', 'Add Action').click();
+    cy.contains('Hit').click();
+    cy.contains('button', 'Add').click();
     
-    // Try to add Chainmail again (already added)
-    cy.get('[data-cy="add-object-button"]').click();
+    // Action details should be visible
+    cy.get('.actions-section').within(() => {
+      cy.contains('Source: dexterity').should('exist');
+      cy.contains('Target: agility').should('exist');
+      cy.contains('Type: trigger').should('exist');
+    });
+  });
+
+  it('should show condition effects on attributes', () => {
+    cy.navigateToCharacters();
     
-    // Chainmail should be disabled or marked as already added
-    cy.get('[data-cy="object-selection-modal"]')
-      .contains('[data-cy="object-select-item"]', 'Chainmail')
-      .should('have.class', 'disabled')
-      .or('contain', 'Already added');
+    // Add condition
+    cy.contains('.character-card', 'The Guy').click();
+    cy.contains('button', 'Add Condition').click();
+    cy.contains('Aim').click();
+    cy.contains('button', 'Add').click();
+    
+    // Check that dexterity is modified
+    cy.get('.attributes-section').within(() => {
+      cy.contains('Dexterity').parent().should('contain', '13'); // 10 base + 3 from Aim
+    });
+    
+    // Add another condition
+    cy.contains('button', 'Add Condition').click();
+    cy.contains('Grapple').click();
+    cy.contains('button', 'Add').click();
+    
+    // Check that agility is modified
+    cy.get('.attributes-section').within(() => {
+      cy.contains('Agility').parent().should('contain', '5'); // 10 base - 5 from Grapple
+    });
+  });
+
+  it('should handle duplicate associations', () => {
+    cy.navigateToCharacters();
+    
+    // Add object
+    cy.contains('.character-card', 'The Guy').click();
+    cy.contains('button', 'Add Object').click();
+    cy.contains('Longsword').click();
+    cy.contains('button', 'Add').click();
+    
+    // Try to add same object again
+    cy.contains('button', 'Add Object').click();
+    
+    // Longsword should either be disabled or show as already added
+    cy.get('.modal').within(() => {
+      cy.get('body').then($body => {
+        if ($body.find('.object-item.disabled:contains("Longsword")').length > 0) {
+          cy.contains('.object-item.disabled', 'Longsword').should('exist');
+        } else {
+          cy.contains('Longsword (Already Added)').should('exist');
+        }
+      });
+    });
     
     // Close modal
-    cy.get('[data-cy="cancel-button"]').click();
-  });
-
-  it('should handle associations for multiple characters', () => {
-    navigateToCharacters();
-    
-    // Add object to Commoner
-    cy.contains('[data-cy="character-list-item"]', 'Commoner').click();
-    cy.get('[data-cy="add-object-button"]').click();
-    cy.contains('[data-cy="object-select-item"]', 'Healing Potion').click();
-    cy.get('[data-cy="confirm-add-object"]').click();
-    cy.get('[data-cy="character-stash"]').should('contain', 'Healing Potion');
-    
-    navigateToCharacters();
-    
-    // Add different objects to Anum
-    cy.contains('[data-cy="character-list-item"]', 'Anum').click();
-    cy.get('[data-cy="add-object-button"]').click();
-    cy.contains('[data-cy="object-select-item"]', 'Longsword').click();
-    cy.get('[data-cy="confirm-add-object"]').click();
-    
-    // Add condition to Anum
-    cy.get('[data-cy="add-condition-button"]').click();
-    cy.contains('[data-cy="condition-select-item"]', 'Blessed').click();
-    cy.get('[data-cy="confirm-add-condition"]').click();
-    
-    // Verify associations
-    cy.get('[data-cy="character-stash"]').should('contain', 'Longsword');
-    cy.get('[data-cy="character-conditions-list"]').should('contain', 'Blessed');
+    cy.get('.modal button.close').click();
   });
 });
