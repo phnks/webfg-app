@@ -5,9 +5,9 @@ describe('Action Test Modal and Difficulty Calculations', () => {
   });
 
   function navigateToCharacters() {
-    cy.get('.nav-toggle').click();
+    cy.get('.menu-toggle').click();
     cy.get('a[href="/characters"]').click();
-    cy.get('.nav-toggle').click();
+    cy.wait(1000);
   }
 
   function setupCharacterWithActions() {
