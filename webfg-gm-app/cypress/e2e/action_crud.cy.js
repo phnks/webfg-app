@@ -6,24 +6,22 @@ describe('Action CRUD Operations', () => {
 
   const testActions = [
     {
-      name: 'Hit',
+      name: 'Simple Hit',
       description: 'A basic attack action',
       source: 'DEXTERITY',
       target: 'AGILITY',
-      type: 'TRIGGER_ACTION',
-      triggersAction: 'Break'
+      type: 'DESTROY'
     },
     {
-      name: 'Break',
-      description: 'Breaking armor or objects',
+      name: 'Simple Block',
+      description: 'A defensive action',
       source: 'STRENGTH',
-      target: 'ARMOUR',
-      type: 'TRIGGER_ACTION',
-      triggersAction: 'Kill'
+      target: 'AGILITY',
+      type: 'DESTROY'
     },
     {
-      name: 'Kill',
-      description: 'A lethal finishing blow',
+      name: 'Simple Strike',
+      description: 'A simple strike action',
       source: 'LETHALITY',
       target: 'ENDURANCE',
       type: 'DESTROY'
@@ -70,29 +68,29 @@ describe('Action CRUD Operations', () => {
   it('should create test actions in order', () => {
     cy.navigateToActions();
     
-    // Create Kill action first (since Hit and Break depend on it)
+    // Create Simple Strike action
     createAction(testActions[2]);
     
-    // Verify Kill action details
-    cy.contains('h1', 'Kill').should('be.visible');
-    cy.contains('A lethal finishing blow').should('be.visible');
+    // Verify Simple Strike action details
+    cy.contains('h1', 'Simple Strike').should('be.visible');
+    cy.contains('A simple strike action').should('be.visible');
     
     cy.navigateToActions();
     
-    // Create Break action (depends on Kill)
+    // Create Simple Block action
     createAction(testActions[1]);
     
-    // Verify Break action details
-    cy.contains('h1', 'Break').should('be.visible');
-    cy.contains('Breaking armor or objects').should('be.visible');
+    // Verify Simple Block action details
+    cy.contains('h1', 'Simple Block').should('be.visible');
+    cy.contains('A defensive action').should('be.visible');
     
     cy.navigateToActions();
     
-    // Create Hit action (depends on Break)
+    // Create Simple Hit action
     createAction(testActions[0]);
     
-    // Verify Hit action details
-    cy.contains('h1', 'Hit').should('be.visible');
+    // Verify Simple Hit action details
+    cy.contains('h1', 'Simple Hit').should('be.visible');
     cy.contains('A basic attack action').should('be.visible');
   });
 
@@ -108,14 +106,14 @@ describe('Action CRUD Operations', () => {
   it('should view action details', () => {
     cy.navigateToActions();
     
-    // Click on Hit action (search more broadly)
-    cy.contains('Hit').click({force: true});
+    // Click on Simple Hit action (search more broadly)
+    cy.contains('Simple Hit').click({force: true});
     
     // Verify we're on the detail page
     cy.url().should('match', /\/actions\/[a-zA-Z0-9-]+$/);
-    cy.contains('h1', 'Hit').should('be.visible');
+    cy.contains('h1', 'Simple Hit').should('be.visible');
     cy.contains('A basic attack action').should('be.visible');
-    cy.contains('TRIGGER_ACTION').should('be.visible');
+    cy.contains('DESTROY').should('be.visible');
     cy.contains('DEXTERITY').should('be.visible');
     cy.contains('AGILITY').should('be.visible');
   });
@@ -123,14 +121,14 @@ describe('Action CRUD Operations', () => {
   it('should update action details', () => {
     cy.navigateToActions();
     
-    // Navigate to Kill action
-    cy.contains('Kill').click({force: true});
+    // Navigate to Simple Strike action
+    cy.contains('Simple Strike').click({force: true});
     
     // Click edit button
     cy.clickEditButton();
     
     // Update description
-    const updatedDescription = 'An extremely lethal finishing blow - Updated';
+    const updatedDescription = 'A simple strike action - Updated';
     cy.get('textarea[name="description"]').clear().type(updatedDescription);
     
     // Save changes
@@ -144,8 +142,8 @@ describe('Action CRUD Operations', () => {
   it('should delete an action', () => {
     cy.navigateToActions();
     
-    // First, we need to delete Hit (depends on Break)
-    cy.contains('Hit').click({force: true});
+    // Delete Simple Hit action
+    cy.contains('Simple Hit').click({force: true});
     cy.clickDeleteButton();
     
     // Confirm deletion in any dialog
@@ -156,8 +154,8 @@ describe('Action CRUD Operations', () => {
     cy.url().should('include', '/actions');
     cy.url().should('not.match', /\/actions\/[a-zA-Z0-9-]+$/);
     
-    // Verify Hit is deleted (check that it's not in the page)
-    cy.get('body').should('not.contain.text', 'Hit');
+    // Verify Simple Hit is deleted (check that it's not in the page)
+    cy.get('body').should('not.contain.text', 'Simple Hit');
   });
 
   it('should handle form validation', () => {
@@ -227,7 +225,7 @@ describe('Action CRUD Operations', () => {
     // Clean up: Delete all test actions
     cy.navigateToActions();
     
-    const actionsToDelete = ['Dependent Action', 'Break', 'Kill'];
+    const actionsToDelete = ['Dependent Action', 'Simple Block', 'Simple Strike', 'Test Action'];
     
     actionsToDelete.forEach(actionName => {
       cy.get('body').then($body => {
