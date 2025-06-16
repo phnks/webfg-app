@@ -31,12 +31,44 @@ Cypress.Commands.add('navigateToEncounters', () => {
 
 // Button click helpers
 Cypress.Commands.add('clickCreateButton', () => {
-  // Try the sidebar + New button first, then fall back to main create button
-  cy.get('body').then($body => {
-    if ($body.find('.add-btn').length > 0) {
-      cy.get('.add-btn').click();
+  // Check what page we're on and click the appropriate create button
+  cy.url().then(url => {
+    if (url.includes('/actions')) {
+      // On actions page - click either sidebar "+ New" or main "Create New Action"
+      cy.get('body').then($body => {
+        if ($body.find('.add-btn').length > 0) {
+          cy.get('.add-btn').click();
+        } else {
+          cy.contains('button', 'Create New Action').click();
+        }
+      });
+    } else if (url.includes('/characters')) {
+      // On characters page
+      cy.get('body').then($body => {
+        if ($body.find('.add-btn').length > 0) {
+          cy.get('.add-btn').click();
+        } else {
+          cy.contains('button', 'Create New Character').click();
+        }
+      });
+    } else if (url.includes('/objects')) {
+      // On objects page
+      cy.get('body').then($body => {
+        if ($body.find('.add-btn').length > 0) {
+          cy.get('.add-btn').click();
+        } else {
+          cy.contains('button', 'Create New Object').click();
+        }
+      });
     } else {
-      cy.get('.create-button').click();
+      // Fallback - try to find any create button
+      cy.get('body').then($body => {
+        if ($body.find('.add-btn').length > 0) {
+          cy.get('.add-btn').click();
+        } else if ($body.find('button:contains("Create")').length > 0) {
+          cy.get('button:contains("Create")').first().click();
+        }
+      });
     }
   });
   cy.wait(500);
@@ -76,8 +108,25 @@ Cypress.Commands.add('fillBasicObjectInfo', (object) => {
 });
 
 Cypress.Commands.add('fillActionForm', (action) => {
+  // Wait for form to be ready
+  cy.get('input[name="name"]').should('be.visible');
+  
   cy.get('input[name="name"]').clear().type(action.name);
   cy.get('textarea[name="description"]').clear().type(action.description);
+  
+  // Fill required Category field - default to ATTACK if not specified
+  if (action.category) {
+    cy.get('select[name="actionCategory"]').select(action.category);
+  } else {
+    cy.get('select[name="actionCategory"]').select('ATTACK');
+  }
+  
+  // Fill required Target Type field - default to CHARACTER if not specified
+  if (action.targetType) {
+    cy.get('select[name="targetType"]').select(action.targetType);
+  } else {
+    cy.get('select[name="targetType"]').select('CHARACTER');
+  }
   
   // Map our test data to actual form field names
   if (action.source) {
@@ -91,8 +140,11 @@ Cypress.Commands.add('fillActionForm', (action) => {
     cy.get('select[name="effectType"]').select(action.type);
   }
   
+  // Wait a moment for all form fields to be filled
+  cy.wait(1000);
+  
   // Handle trigger actions if the form supports them
-  if (action.type === 'trigger' && action.triggersAction) {
+  if (action.type === 'TRIGGER_ACTION' && action.triggersAction) {
     cy.get('body').then($body => {
       if ($body.find('select[name="triggersAction"]').length > 0) {
         cy.get('select[name="triggersAction"]').select(action.triggersAction);
@@ -108,7 +160,7 @@ Cypress.Commands.add('fillBasicConditionInfo', (condition) => {
 
 // Wait for GraphQL operations
 Cypress.Commands.add('waitForGraphQL', () => {
-  cy.wait(2000); // Give time for GraphQL operations to complete
+  cy.wait(4000); // Give time for GraphQL operations to complete
 });
 
 // Submit form helper

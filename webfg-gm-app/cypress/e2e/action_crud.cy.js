@@ -33,7 +33,7 @@ describe('Action CRUD Operations', () => {
   function createAction(action) {
     cy.clickCreateButton();
     cy.fillActionForm(action);
-    cy.contains('button', 'Create Action').click({force: true});
+    cy.contains('button', 'Create').click({force: true});
     cy.waitForGraphQL();
     
     // Verify redirect
@@ -151,14 +151,14 @@ describe('Action CRUD Operations', () => {
     cy.clickCreateButton();
     
     // Try to submit empty form
-    cy.contains('button', 'Create Action').click({force: true});
+    cy.contains('button', 'Create').click({force: true});
     
     // Check for validation errors
     cy.contains('Name is required').should('be.visible');
     
     // Fill only name and try again
     cy.get('input[name="name"]').type('Test Action');
-    cy.contains('button', 'Create Action').click({force: true});
+    cy.contains('button', 'Create').click({force: true});
     
     // Should still have errors for required fields
     cy.contains('Description is required').should('be.visible');
@@ -171,9 +171,11 @@ describe('Action CRUD Operations', () => {
     // Fill form with trigger type
     cy.get('input[name="name"]').type('Dependent Action');
     cy.get('textarea[name="description"]').type('An action that triggers another');
-    cy.get('select[name="source"]').select('strength');
-    cy.get('select[name="target"]').select('armor');
-    cy.get('select[name="type"]').select('trigger');
+    cy.get('select[name="actionCategory"]').select('ATTACK');
+    cy.get('select[name="sourceAttribute"]').select('STRENGTH');
+    cy.get('select[name="targetAttribute"]').select('ARMOUR');
+    cy.get('select[name="targetType"]').select('CHARACTER');
+    cy.get('select[name="effectType"]').select('TRIGGER_ACTION');
     
     // Verify triggersAction dropdown appears and has the Kill action
     cy.get('select[name="triggersAction"]').should('be.visible');
@@ -183,7 +185,7 @@ describe('Action CRUD Operations', () => {
     cy.get('select[name="triggersAction"]').select('Kill');
     
     // Submit
-    cy.contains('button', 'Create Action').click({force: true});
+    cy.contains('button', 'Create').click({force: true});
     cy.waitForGraphQL();
     
     // Verify it was created with trigger
