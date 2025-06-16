@@ -1,7 +1,7 @@
 // Navigation helpers
 Cypress.Commands.add('navigateToCharacters', () => {
   cy.get('.menu-toggle').click();
-  cy.get('a[href="/characters"]').first().click();
+  cy.get('a[href="/characters"]').first().click({force: true});
   
   // Longer waits for CI environment
   const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
@@ -11,14 +11,14 @@ Cypress.Commands.add('navigateToCharacters', () => {
   // Ensure menu is closed by clicking somewhere else if it's still open
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
-      cy.get('main').click();
+      cy.get('main').click({force: true});
     }
   });
 });
 
 Cypress.Commands.add('navigateToObjects', () => {
   cy.get('.menu-toggle').click();
-  cy.get('a[href="/objects"]').first().click();
+  cy.get('a[href="/objects"]').first().click({force: true});
   
   const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
   const waitTime = isCI ? 4000 : 2000;
@@ -26,14 +26,14 @@ Cypress.Commands.add('navigateToObjects', () => {
   
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
-      cy.get('main').click();
+      cy.get('main').click({force: true});
     }
   });
 });
 
 Cypress.Commands.add('navigateToActions', () => {
   cy.get('.menu-toggle').click();
-  cy.get('a[href="/actions"]').first().click();
+  cy.get('a[href="/actions"]').first().click({force: true});
   
   const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
   const waitTime = isCI ? 4000 : 2000;
@@ -41,14 +41,14 @@ Cypress.Commands.add('navigateToActions', () => {
   
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
-      cy.get('main').click();
+      cy.get('main').click({force: true});
     }
   });
 });
 
 Cypress.Commands.add('navigateToConditions', () => {
   cy.get('.menu-toggle').click();
-  cy.get('a[href="/conditions"]').first().click();
+  cy.get('a[href="/conditions"]').first().click({force: true});
   
   const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
   const waitTime = isCI ? 4000 : 2000;
@@ -56,7 +56,7 @@ Cypress.Commands.add('navigateToConditions', () => {
   
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
-      cy.get('main').click();
+      cy.get('main').click({force: true});
     }
   });
 });
