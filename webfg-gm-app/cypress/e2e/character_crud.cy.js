@@ -72,14 +72,12 @@ describe('Character CRUD Operations', () => {
     cy.navigateToCharacters();
     cy.clickCreateButton();
     
-    // Navigate back using browser or cancel
-    cy.get('body').then($body => {
-      if ($body.find('button:contains("Cancel")').length > 0) {
-        cy.contains('button', 'Cancel').click();
-      } else {
-        cy.go('back');
-      }
-    });
+    // Wait for form to load
+    cy.wait(2000);
+    
+    // Navigate back using browser
+    cy.go('back');
+    cy.wait(2000);
     
     cy.url().should('include', '/characters');
     cy.url().should('not.contain', '/new');

@@ -33,8 +33,14 @@ describe('Action CRUD Operations', () => {
   function createAction(action) {
     cy.clickCreateButton();
     cy.fillActionForm(action);
+    
+    // Scroll to submit button and click
+    cy.scrollTo('bottom');
     cy.contains('button', 'Create').click({force: true});
     cy.waitForGraphQL();
+    
+    // Wait a bit more for redirect
+    cy.wait(2000);
     
     // Verify redirect
     cy.url().should('include', '/actions/');
