@@ -149,6 +149,9 @@ Cypress.Commands.add('fillBasicCharacterInfo', (character) => {
 });
 
 Cypress.Commands.add('fillBasicObjectInfo', (object) => {
+  // Wait for form to be ready
+  cy.get('input[name="name"]').should('be.visible');
+  
   cy.get('input[name="name"]').clear().type(object.name);
   
   // Object form doesn't have description field, only name and category
@@ -158,6 +161,11 @@ Cypress.Commands.add('fillBasicObjectInfo', (object) => {
     // Default to first available option if not specified
     cy.get('select[name="objectCategory"]').select(0);
   }
+  
+  // Wait a moment for all form fields to be filled
+  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
+  const waitTime = isCI ? 3000 : 1000;
+  cy.wait(waitTime);
 });
 
 Cypress.Commands.add('fillActionForm', (action) => {

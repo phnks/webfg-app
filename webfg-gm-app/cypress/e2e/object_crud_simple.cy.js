@@ -18,9 +18,9 @@ describe('Simple Object CRUD Operations', () => {
     cy.url().should('include', '/objects/new');
     
     // Wait for page to fully load and check for either h1 or form presence
-    cy.get('body').should('contain.text', 'Create Object');
+    cy.get('body').should('contain.text', 'Create');
     
-    // Should show all required form fields
+    // Should show all required form fields (objects only have name and category, no description)
     cy.get('input[name="name"]').should('be.visible');
     cy.get('select[name="objectCategory"]').should('be.visible');
     

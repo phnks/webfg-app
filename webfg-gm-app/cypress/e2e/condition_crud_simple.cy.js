@@ -59,14 +59,17 @@ describe('Simple Condition CRUD Operations', () => {
 
   after(() => {
     // Clean up: Delete the test condition we created
-    cy.navigateToConditions();
-    
-    // Check if Simple Test Condition exists and delete it
     cy.get('body').then($body => {
+      // Navigate to conditions if needed and delete test condition
       if ($body.text().includes('Simple Test Condition')) {
+        cy.navigateToConditions();
         cy.contains('Simple Test Condition').click({force: true});
         cy.contains('button', 'Delete').click({force: true});
         cy.waitForGraphQL();
+        
+        // Should redirect back to conditions list
+        cy.url().should('include', '/conditions');
+        cy.url().should('not.match', /\/conditions\/[a-zA-Z0-9-]+$/);
       }
     });
   });
