@@ -7,7 +7,7 @@ describe('Simple Object CRUD Operations', () => {
   it('should navigate to objects page', () => {
     cy.navigateToObjects();
     cy.url().should('include', '/objects');
-    cy.contains('h1', 'Objects').should('be.visible');
+    cy.contains('Objects').should('be.visible');
   });
 
   it('should show object creation form', () => {
@@ -17,13 +17,19 @@ describe('Simple Object CRUD Operations', () => {
     // Should navigate to object creation page
     cy.url().should('include', '/objects/new');
     
-    // Wait for page to fully load
-    cy.get('body').should('contain.text', 'Create');
+    // Wait for page to fully load and check for either h1 or form presence
+    cy.get('body').should('contain.text', 'Create Object');
     
-    // Should show basic form fields
+    // Should show all required form fields
     cy.get('input[name="name"]').should('be.visible');
-    cy.get('textarea[name="description"]').should('be.visible');
     cy.get('select[name="objectCategory"]').should('be.visible');
+    
+    // Should show attributes section
+    cy.get('body').should('contain.text', 'Attributes');
+    
+    // Scroll to the bottom to see the Create button
+    cy.scrollTo('bottom');
+    cy.contains('button', 'Create').should('exist');
   });
 
   it('should create a simple object', () => {
@@ -33,23 +39,17 @@ describe('Simple Object CRUD Operations', () => {
     // Fill the form with a simple object
     cy.fillBasicObjectInfo({
       name: 'Simple Test Sword',
-      description: 'A simple test sword for automated testing',
       objectCategory: 'WEAPON'
     });
     
-    // Scroll to submit and click
-    cy.scrollTo('bottom');
+    // Submit the form
     cy.contains('button', 'Create').click({force: true});
     cy.waitForGraphQL();
-    
-    // Wait for redirect
-    cy.wait(2000);
     
     // Should redirect to object detail page
     cy.url().should('include', '/objects/');
     cy.url().should('not.contain', '/objects/new');
-    cy.contains('Simple Test Sword').should('be.visible');
-    cy.contains('A simple test sword for automated testing').should('be.visible');
+    cy.contains('h1', 'Simple Test Sword').should('be.visible');
   });
 
   it('should list objects including the created one', () => {

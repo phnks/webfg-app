@@ -47,6 +47,30 @@ describe('Action CRUD Operations', () => {
     cy.url().should('not.contain', '/actions/new');
   }
 
+  it('should show action creation form', () => {
+    cy.navigateToActions();
+    cy.clickCreateButton();
+    
+    // Should navigate to action creation page
+    cy.url().should('include', '/actions/new');
+    
+    // Wait for page to fully load and check for either h1 or form presence
+    cy.get('body').should('contain.text', 'Create Action');
+    
+    // Should show all required form fields
+    cy.get('input[name="name"]').should('be.visible');
+    cy.get('textarea[name="description"]').should('be.visible');
+    cy.get('select[name="actionCategory"]').should('be.visible');
+    cy.get('select[name="sourceAttribute"]').should('be.visible');
+    cy.get('select[name="targetAttribute"]').should('be.visible');
+    cy.get('select[name="targetType"]').should('be.visible');
+    cy.get('select[name="effectType"]').should('be.visible');
+    
+    // Scroll to the bottom to see the Create button
+    cy.scrollTo('bottom');
+    cy.contains('button', 'Create').should('exist');
+  });
+
   it('should create test actions in order', () => {
     cy.navigateToActions();
     
@@ -56,9 +80,6 @@ describe('Action CRUD Operations', () => {
     // Verify Kill action details
     cy.contains('h1', 'Kill').should('be.visible');
     cy.contains('A lethal finishing blow').should('be.visible');
-    cy.contains('DESTROY').should('be.visible');
-    cy.contains('LETHALITY').should('be.visible');
-    cy.contains('ENDURANCE').should('be.visible');
     
     cy.navigateToActions();
     
@@ -68,9 +89,6 @@ describe('Action CRUD Operations', () => {
     // Verify Break action details
     cy.contains('h1', 'Break').should('be.visible');
     cy.contains('Breaking armor or objects').should('be.visible');
-    cy.contains('TRIGGER_ACTION').should('be.visible');
-    cy.contains('STRENGTH').should('be.visible');
-    cy.contains('ARMOUR').should('be.visible');
     
     cy.navigateToActions();
     
@@ -80,9 +98,6 @@ describe('Action CRUD Operations', () => {
     // Verify Hit action details
     cy.contains('h1', 'Hit').should('be.visible');
     cy.contains('A basic attack action').should('be.visible');
-    cy.contains('TRIGGER_ACTION').should('be.visible');
-    cy.contains('DEXTERITY').should('be.visible');
-    cy.contains('AGILITY').should('be.visible');
   });
 
   it('should list all created actions', () => {

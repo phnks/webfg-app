@@ -17,12 +17,16 @@ describe('Simple Condition CRUD Operations', () => {
     // Should navigate to condition creation page
     cy.url().should('include', '/conditions/new');
     
-    // Wait for page to fully load
-    cy.wait(2000);
+    // Wait for page to fully load and check for either h1 or form presence
+    cy.get('body').should('contain.text', 'Create Condition');
     
-    // Should show form
-    cy.get('input').should('have.length.greaterThan', 0);
-    cy.get('textarea').should('exist');
+    // Should show all required form fields
+    cy.get('input').first().should('be.visible'); // Name field
+    cy.get('textarea').first().should('be.visible'); // Description field
+    
+    // Scroll to the bottom to see the Create button
+    cy.scrollTo('bottom');
+    cy.contains('button', 'Create').should('exist');
   });
 
   it('should create a simple condition', () => {
@@ -35,18 +39,15 @@ describe('Simple Condition CRUD Operations', () => {
       description: 'A simple test condition for automated testing'
     });
     
-    // Scroll to submit and click
-    cy.scrollTo('bottom');
+    // Submit the form
     cy.contains('button', 'Create').click({force: true});
     cy.waitForGraphQL();
-    
-    // Wait for redirect
-    cy.wait(2000);
     
     // Should redirect to condition detail page
     cy.url().should('include', '/conditions/');
     cy.url().should('not.contain', '/conditions/new');
-    cy.get('body').should('contain.text', 'Simple Test Condition');
+    cy.contains('h1', 'Simple Test Condition').should('be.visible');
+    cy.contains('A simple test condition for automated testing').should('be.visible');
   });
 
   it('should list conditions including the created one', () => {

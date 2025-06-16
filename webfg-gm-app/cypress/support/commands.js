@@ -150,8 +150,14 @@ Cypress.Commands.add('fillBasicCharacterInfo', (character) => {
 
 Cypress.Commands.add('fillBasicObjectInfo', (object) => {
   cy.get('input[name="name"]').clear().type(object.name);
-  cy.get('textarea[name="description"]').clear().type(object.description);
-  cy.get('select[name="objectCategory"]').select(object.objectCategory);
+  
+  // Object form doesn't have description field, only name and category
+  if (object.objectCategory) {
+    cy.get('select[name="objectCategory"]').select(object.objectCategory);
+  } else {
+    // Default to first available option if not specified
+    cy.get('select[name="objectCategory"]').select(0);
+  }
 });
 
 Cypress.Commands.add('fillActionForm', (action) => {
