@@ -2,7 +2,12 @@
 Cypress.Commands.add('navigateToCharacters', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/characters"]').first().click();
-  cy.wait(2000); // Wait for navigation to complete
+  
+  // Longer waits for CI environment
+  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
+  const waitTime = isCI ? 4000 : 2000;
+  cy.wait(waitTime);
+  
   // Ensure menu is closed by clicking somewhere else if it's still open
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
@@ -14,7 +19,11 @@ Cypress.Commands.add('navigateToCharacters', () => {
 Cypress.Commands.add('navigateToObjects', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/objects"]').first().click();
-  cy.wait(2000);
+  
+  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
+  const waitTime = isCI ? 4000 : 2000;
+  cy.wait(waitTime);
+  
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
       cy.get('main').click();
@@ -25,7 +34,11 @@ Cypress.Commands.add('navigateToObjects', () => {
 Cypress.Commands.add('navigateToActions', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/actions"]').first().click();
-  cy.wait(2000);
+  
+  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
+  const waitTime = isCI ? 4000 : 2000;
+  cy.wait(waitTime);
+  
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
       cy.get('main').click();
@@ -36,7 +49,11 @@ Cypress.Commands.add('navigateToActions', () => {
 Cypress.Commands.add('navigateToConditions', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/conditions"]').first().click();
-  cy.wait(2000);
+  
+  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
+  const waitTime = isCI ? 4000 : 2000;
+  cy.wait(waitTime);
+  
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
       cy.get('main').click();
@@ -47,7 +64,11 @@ Cypress.Commands.add('navigateToConditions', () => {
 Cypress.Commands.add('navigateToEncounters', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/encounters"]').first().click();
-  cy.wait(2000);
+  
+  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
+  const waitTime = isCI ? 4000 : 2000;
+  cy.wait(waitTime);
+  
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
       cy.get('main').click();
@@ -167,7 +188,9 @@ Cypress.Commands.add('fillActionForm', (action) => {
   }
   
   // Wait a moment for all form fields to be filled
-  cy.wait(1000);
+  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
+  const waitTime = isCI ? 3000 : 1000;
+  cy.wait(waitTime);
   
   // Handle trigger actions if the form supports them
   if (action.type === 'TRIGGER_ACTION' && action.triggersAction) {
@@ -186,7 +209,10 @@ Cypress.Commands.add('fillBasicConditionInfo', (condition) => {
 
 // Wait for GraphQL operations
 Cypress.Commands.add('waitForGraphQL', () => {
-  cy.wait(4000); // Give time for GraphQL operations to complete
+  // Longer waits for CI environment vs local development
+  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
+  const waitTime = isCI ? 8000 : 4000; // Double the wait time in CI
+  cy.wait(waitTime);
 });
 
 // Submit form helper
