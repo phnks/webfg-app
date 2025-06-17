@@ -131,7 +131,7 @@ describe('Action CRUD Operations', () => {
     cy.on('uncaught:exception', (err, runnable) => {
       // Return false to prevent the test from failing due to app errors
       if (err.message.includes('characterId') || err.message.includes('Cannot read properties of undefined')) {
-        cy.log('Application error detected, skipping update test: ' + err.message);
+        console.log('Application error detected, skipping update test: ' + err.message);
         return false;
       }
       return true;
