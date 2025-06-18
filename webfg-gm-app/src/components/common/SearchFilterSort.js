@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import './SearchFilterSort.css';
 
 const SearchFilterSort = ({ 
@@ -9,21 +9,6 @@ const SearchFilterSort = ({
 }) => {
   const [filters, setFilters] = useState(initialFilters);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [debouncedFilters, setDebouncedFilters] = useState(initialFilters);
-
-  // Debounce filter changes to avoid excessive API calls
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedFilters(filters);
-    }, 500); // 500ms delay
-
-    return () => clearTimeout(timer);
-  }, [filters]);
-
-  // Trigger API call when debounced filters change
-  useEffect(() => {
-    onFilterChange(debouncedFilters);
-  }, [debouncedFilters, onFilterChange]);
 
   // Entity-specific filter configurations
   const filterConfig = useMemo(() => {
@@ -159,8 +144,11 @@ const SearchFilterSort = ({
 
   const handleFilterChange = useCallback((newFilters) => {
     setFilters(newFilters);
-    // Don't call onFilterChange directly - let the debounce effect handle it
   }, []);
+
+  const applyFilters = useCallback(() => {
+    onFilterChange(filters);
+  }, [filters, onFilterChange]);
 
   const updateFilter = useCallback((key, value) => {
     const newFilters = { ...filters, [key]: value };
@@ -172,7 +160,6 @@ const SearchFilterSort = ({
 
   const clearAllFilters = useCallback(() => {
     setFilters({});
-    setDebouncedFilters({});
     onClearFilters && onClearFilters();
     onFilterChange({});
   }, [onFilterChange, onClearFilters]);
@@ -379,6 +366,13 @@ const SearchFilterSort = ({
       <div className="search-filter-header">
         <h3>Search & Filter</h3>
         <div className="header-controls">
+          <button
+            type="button"
+            onClick={applyFilters}
+            className="apply-filters"
+          >
+            Search
+          </button>
           <button
             type="button"
             onClick={() => setShowAdvanced(!showAdvanced)}
