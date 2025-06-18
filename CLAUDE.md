@@ -139,6 +139,204 @@ The application revolves around these primary entities:
 14. If you ever has questions during your task, you can message the user on discord via the discord MCP. The user's channel id is: 538552940303220750. The user will see your message then com
 e back to answer your question. You may have to wait a while depending on how busy the user is with other tasks
 
+## Testing Strategy
+
+**⚠️ CRITICAL: ALL TESTS MUST PASS BEFORE MERGING ⚠️**
+
+This project has comprehensive test coverage across two levels:
+
+### 1. Unit Tests (Jest)
+- **webfg-gm-app**: React component unit tests
+- **webfg-gql**: Lambda function unit tests
+
+### 2. End-to-End Tests (Cypress)
+- **webfg-gm-app**: Full user flow testing across all features
+
+## Running Tests
+
+### Unit Tests
+
+```bash
+# Frontend unit tests
+cd webfg-gm-app
+npm test                    # Run all unit tests in watch mode
+npm run test:ci            # Run tests once (used in CI)
+
+# Backend unit tests
+cd webfg-gql
+npm test                    # Run all Lambda function tests
+```
+
+### E2E Tests (Cypress)
+
+```bash
+cd webfg-gm-app
+# Local development
+npm run cypress:open        # Open Cypress test runner UI
+npm run cypress:run         # Run all tests headless
+
+# Against QA environment
+npm run cypress:run ${DEPLOYMENT_ID}  # e.g., npm run cypress:run 69
+```
+
+## CI/CD Test Requirements
+
+**ALL TESTS RUN AUTOMATICALLY ON EVERY PR AND MUST PASS:**
+
+1. **GitHub Actions Pipeline** (`.github/workflows/deploy-qa.yml`):
+   - ✅ GQL Unit Tests must pass
+   - ✅ GM App Unit Tests must pass
+   - ✅ Cypress E2E Tests must pass (100% success rate)
+   - ❌ If ANY test fails, the PR cannot be merged
+
+2. **Test Execution Order**:
+   - Unit tests run first (fast feedback)
+   - Deployment happens only if unit tests pass
+   - E2E tests run against deployed QA environment
+   - All must succeed for green build
+
+## 🚨 CRITICAL TESTING RULES 🚨
+
+### Rule 1: Run Tests After Every Code Change
+```bash
+# After making ANY code changes:
+npm test                    # Run unit tests
+npm run cypress:run         # Run E2E tests locally
+```
+
+### Rule 2: Tests Are Your Safety Net
+- Tests catch regression bugs
+- Tests prevent breaking existing features
+- Tests ensure code quality
+- **If tests fail after your changes, YOU BROKE SOMETHING**
+
+### Rule 3: Fix Your Code, NOT the Tests
+**This is the MOST IMPORTANT rule:**
+
+❌ **WRONG APPROACH:**
+- Tests fail after your changes
+- You update tests to make them pass
+- This defeats the entire purpose of testing!
+
+✅ **CORRECT APPROACH:**
+1. Tests fail after your changes
+2. **Read the test failure carefully** - it tells you what broke
+3. **Fix YOUR CODE** to make tests pass
+4. Only modify tests if you added a NEW FEATURE that tests don't cover
+
+### Rule 4: When to Update Tests
+
+**Only update tests when:**
+1. You added a **new feature** that doesn't have test coverage
+2. You're fixing a **bug in the test itself** (rare)
+3. The UI legitimately changed (e.g., button text changed from "Create" to "Add")
+
+**Example of legitimate test update:**
+```javascript
+// Old UI had "Create Character" button
+cy.contains('button', 'Create Character').click();
+
+// New UI changed to "Add Character" button
+cy.contains('button', 'Add Character').click();
+```
+
+### Rule 5: Tests Document Expected Behavior
+- Tests show how the app SHOULD work
+- If your code makes tests fail, your code is wrong
+- Tests are the source of truth for application behavior
+
+## Test Structure
+
+### Cypress E2E Tests (`webfg-gm-app/cypress/e2e/`)
+```
+action_crud.cy.js           - Full CRUD for actions
+action_crud_simple.cy.js    - Basic action operations
+character_crud.cy.js        - Full CRUD for characters
+character_associations.cy.js - Character relationships
+condition_crud.cy.js        - Condition management
+inventory_management.cy.js  - Inventory system tests
+object_crud.cy.js          - Object management
+... (18 test files total, 106+ individual tests)
+```
+
+### What E2E Tests Cover:
+- ✅ Navigation between all pages
+- ✅ Creating new entities (characters, objects, actions, conditions)
+- ✅ Viewing entity lists and details
+- ✅ Updating/editing entities
+- ✅ Deleting entities
+- ✅ Form validation
+- ✅ Character associations (objects, actions, conditions)
+- ✅ Inventory management (stash, equipped, ready items)
+- ✅ Error handling
+- ✅ UI interactions and workflows
+
+### Unit Tests
+```
+webfg-gm-app/src/__tests__/  - React component tests
+webfg-gql/functions/__tests__/ - Lambda function tests
+```
+
+### What Unit Tests Cover:
+- ✅ Component rendering
+- ✅ Props validation
+- ✅ State management
+- ✅ GraphQL mocking
+- ✅ Lambda function logic
+- ✅ DynamoDB operations
+- ✅ Error scenarios
+
+## Common Test Failure Scenarios
+
+### Scenario 1: Selector Changed
+**Symptom**: `cy.get('.old-class')` fails
+**Fix**: Update selector in YOUR CODE to match what tests expect, or if UI legitimately changed, update test
+
+### Scenario 2: GraphQL Query Changed
+**Symptom**: Tests timeout waiting for data
+**Fix**: Ensure your GraphQL changes are backwards compatible
+
+### Scenario 3: Navigation Changed
+**Symptom**: Tests can't find expected pages
+**Fix**: Ensure routes and navigation still work as expected
+
+### Scenario 4: Form Validation Changed
+**Symptom**: Form tests fail on submission
+**Fix**: Ensure you didn't break required field validation
+
+## Test Maintenance Workflow
+
+1. **Before starting work**: Run all tests to ensure clean baseline
+2. **During development**: Run tests frequently
+3. **Before committing**: Run ALL tests
+4. **After pushing**: Monitor GitHub Actions for test results
+5. **If tests fail in CI**: Fix immediately before proceeding
+
+## Example: Proper Test-Driven Bug Fix
+
+```bash
+# 1. Tests are passing on master
+npm test  # ✅ All pass
+
+# 2. You make changes for a new feature
+# ... edit code ...
+
+# 3. Run tests
+npm test  # ❌ 3 tests fail!
+
+# 4. Read the failure
+# "Expected button with text 'Save' but found 'undefined'"
+
+# 5. Realize your code broke the Save button
+# 6. Fix YOUR CODE to restore the Save button
+# 7. Run tests again
+npm test  # ✅ All pass
+
+# 8. Only NOW commit your changes
+```
+
+**Remember**: The tests are there to protect you and the codebase. Respect them, and they'll save you from countless bugs and angry users!
+
 ## Frontend Testing with Puppeteer
 
 **WHEN TO TEST**: Always test frontend changes after deploying to QA environment. This ensures your changes work correctly in the deployed environment.
@@ -258,9 +456,29 @@ Before deploying any schema changes:
 
 ## Completing a Task
 
-1. In this project, whenever you finish a task, please run the necessary commands in terminal to test your code changes by running the deploy:qa commands as already stated, then confirming they worked using the check-deploy:qa commands as also previously stated.
-2. Then you must take the role of the user and test your code changes, simulating a real user of the application. Use the Puppeteer testing instructions above to thoroughly test your frontend changes.
-3. When you have confirmed that your changes are working then do the following
+1. **RUN ALL TESTS FIRST**: Before anything else, ensure all tests pass:
+   ```bash
+   # Frontend tests
+   cd webfg-gm-app
+   npm test          # Unit tests
+   npm run cypress:run  # E2E tests
+   
+   # Backend tests (if you changed backend)
+   cd webfg-gql
+   npm test
+   ```
+   **If ANY test fails, STOP and fix your code!**
+
+2. Deploy your changes to QA environment:
+   - Run the deploy:qa commands as stated above
+   - Confirm deployment succeeded using check-deploy:qa commands
+   
+3. Test your changes manually:
+   - Use Puppeteer to test frontend changes in deployed environment
+   - Simulate real user interactions
+   - Verify your feature works as expected
+
+4. When you have confirmed everything works AND all tests pass:
     1. Update the PR for your feature branch to include any additional code changes you made for this task, use the `gh` cli for this
     2. On the PR make sure to include a detailed description of all the changes you made and in which files, why you made those changes, and then also describe any uncertainties or issues you encountered. If the PR description already exists make sure to update it and not overwrite what is already there
     3. Add all files you have made changes to using the `git add` command
