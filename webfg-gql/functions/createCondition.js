@@ -16,7 +16,9 @@ exports.handler = async (event) => {
   const condition = {
     conditionId,
     name: input.name,
+    nameLowerCase: input.name.toLowerCase(),
     description: input.description,
+    descriptionLowerCase: input.description.toLowerCase(),
     conditionCategory: input.conditionCategory,
     conditionType: input.conditionType,
     conditionTarget: input.conditionTarget

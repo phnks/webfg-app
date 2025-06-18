@@ -24,6 +24,9 @@ exports.handler = async (event) => {
     if (item.name === undefined || item.name === null) item.name = '';
     if (item.objectCategory === undefined || item.objectCategory === null) item.objectCategory = 'TOOL';
     
+    // Add lowercase name for case-insensitive searching
+    item.nameLowerCase = item.name.toLowerCase();
+    
     // Initialize attributes with default values if not provided
     const defaultAttribute = { current: 0, max: 0, base: 0 };
     

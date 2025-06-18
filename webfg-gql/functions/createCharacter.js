@@ -20,6 +20,7 @@ exports.handler = async (event) => {
   const item = {
     characterId: characterId,
     name: input.name,
+    nameLowerCase: input.name.toLowerCase(),
     characterCategory: input.characterCategory,
     will: input.will || 0,
     fatigue: input.fatigue || 0,

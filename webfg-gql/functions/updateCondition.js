@@ -24,6 +24,19 @@ exports.handler = async (event) => {
       expressionAttributeValues[`:${field}`] = input[field];
     }
   });
+
+  // Update lowercase fields for case-insensitive searching
+  if (input.name !== undefined) {
+    updateExpressionParts.push(`#nameLowerCase = :nameLowerCase`);
+    expressionAttributeNames[`#nameLowerCase`] = 'nameLowerCase';
+    expressionAttributeValues[`:nameLowerCase`] = input.name.toLowerCase();
+  }
+  
+  if (input.description !== undefined) {
+    updateExpressionParts.push(`#descriptionLowerCase = :descriptionLowerCase`);
+    expressionAttributeNames[`#descriptionLowerCase`] = 'descriptionLowerCase';
+    expressionAttributeValues[`:descriptionLowerCase`] = input.description.toLowerCase();
+  }
   
   if (updateExpressionParts.length === 0) {
     throw new Error('No fields to update');

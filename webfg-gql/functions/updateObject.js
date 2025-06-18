@@ -32,6 +32,16 @@ exports.handler = async (event) => {
         }
     }
 
+    // Update nameLowerCase whenever name is updated
+    if (input.name !== undefined) {
+        const lowerCaseAttributeName = '#nameLowerCase';
+        const lowerCaseAttributeValue = ':nameLowerCase';
+        
+        expressionAttributeNames[lowerCaseAttributeName] = 'nameLowerCase';
+        expressionAttributeValues[lowerCaseAttributeValue] = input.name.toLowerCase();
+        updateExpressionParts.push(`${lowerCaseAttributeName} = ${lowerCaseAttributeValue}`);
+    }
+
     const params = {
         TableName: OBJECTS_TABLE_NAME,
         Key: {

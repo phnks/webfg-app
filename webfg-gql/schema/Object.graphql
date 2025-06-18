@@ -1,6 +1,7 @@
 type Object {
   objectId: ID!
   name: String!
+  nameLowerCase: String
   objectCategory: ObjectCategory!
   speed: Attribute
   weight: Attribute
