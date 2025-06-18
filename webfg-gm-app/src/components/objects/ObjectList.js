@@ -12,6 +12,7 @@ const ObjectList = () => {
   const [pageSize, setPageSize] = useState(10);
   const [cursors, setCursors] = useState([null]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [viewMode, setViewMode] = useState('table');
 
   const queryVariables = useMemo(() => ({
     filter: {
@@ -75,6 +76,72 @@ const ObjectList = () => {
   const hasNextPage = data?.listObjectsEnhanced?.hasNextPage || false;
   const hasPreviousPage = currentPage > 0;
 
+  const renderTableView = () => (
+    <div className="object-table-container">
+      <table className="object-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {objects.map(object => (
+            <tr key={object.objectId} onClick={() => handleObjectClick(object.objectId)}>
+              <td className="object-name">{object.name}</td>
+              <td><span className="category-badge">{object.objectCategory}</span></td>
+              <td>
+                <button 
+                  className="view-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleObjectClick(object.objectId);
+                  }}
+                >
+                  View
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="table-actions">
+        <button
+          className="create-button"
+          onClick={() => navigate("/objects/new")}
+        >
+          Create New Object
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderGridView = () => (
+    <div className="object-grid">
+      {objects.map(object => (
+        <div
+          key={object.objectId}
+          className="object-card"
+          onClick={() => handleObjectClick(object.objectId)}
+        >
+          <h3>{object.name}</h3>
+          <div className="object-meta">
+            <span className="category">{object.objectCategory}</span>
+          </div>
+        </div>
+      ))}
+
+      <div
+        className="object-card add-card"
+        onClick={() => navigate("/objects/new")}
+      >
+        <div className="add-icon">+</div>
+        <h3>Create New Object</h3>
+      </div>
+    </div>
+  );
+
   return (
     <div className="object-page">
       <div className="page-content">
@@ -86,6 +153,21 @@ const ObjectList = () => {
           initialFilters={filters}
           onClearFilters={handleClearFilters}
         />
+
+        <div className="view-controls">
+          <button 
+            className={`view-toggle ${viewMode === 'table' ? 'active' : ''}`}
+            onClick={() => setViewMode('table')}
+          >
+            Table View
+          </button>
+          <button 
+            className={`view-toggle ${viewMode === 'grid' ? 'active' : ''}`}
+            onClick={() => setViewMode('grid')}
+          >
+            Grid View
+          </button>
+        </div>
 
         {loading && (
           <div className="loading-overlay">Loading...</div>
@@ -103,28 +185,7 @@ const ObjectList = () => {
           </div>
         ) : (
           <>
-            <div className="object-grid">
-              {objects.map(object => (
-                <div
-                  key={object.objectId}
-                  className="object-card"
-                  onClick={() => handleObjectClick(object.objectId)}
-                >
-                  <h3>{object.name}</h3>
-                  <div className="object-meta">
-                    <span className="category">{object.objectCategory}</span>
-                  </div>
-                </div>
-              ))}
-
-              <div
-                className="object-card add-card"
-                onClick={() => navigate("/objects/new")}
-              >
-                <div className="add-icon">+</div>
-                <h3>Create New Object</h3>
-              </div>
-            </div>
+            {viewMode === 'table' ? renderTableView() : renderGridView()}
 
             <PaginationControls
               hasNextPage={hasNextPage}

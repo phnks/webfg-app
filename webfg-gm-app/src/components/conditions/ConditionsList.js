@@ -12,6 +12,7 @@ const ConditionsList = () => {
   const [pageSize, setPageSize] = useState(10);
   const [cursors, setCursors] = useState([null]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [viewMode, setViewMode] = useState('table');
 
   const queryVariables = useMemo(() => ({
     filter: {
@@ -72,6 +73,87 @@ const ConditionsList = () => {
   const hasNextPage = data?.listConditionsEnhanced?.hasNextPage || false;
   const hasPreviousPage = currentPage > 0;
 
+  const renderTableView = () => (
+    <>
+      <table className="condition-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Type</th>
+            <th>Target Attribute</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {conditions.map(condition => (
+            <tr key={condition.conditionId} onClick={() => handleConditionClick(condition.conditionId)}>
+              <td className="condition-name">{condition.name}</td>
+              <td><span className="category-badge">{condition.conditionCategory}</span></td>
+              <td>
+                <span className={`condition-type ${condition.conditionType.toLowerCase()}`}>
+                  {condition.conditionType}
+                </span>
+              </td>
+              <td>{condition.conditionTarget}</td>
+              <td>
+                <button 
+                  className="view-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleConditionClick(condition.conditionId);
+                  }}
+                >
+                  View
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <button 
+        className="create-button floating-create"
+        onClick={() => navigate("/conditions/new")}
+      >
+        + Create New Condition
+      </button>
+    </>
+  );
+
+  const renderGridView = () => (
+    <>
+      <div className="condition-grid">
+        {conditions.map(condition => (
+          <div 
+            key={condition.conditionId} 
+            className={`condition-card ${condition.conditionType.toLowerCase()}`}
+            onClick={() => handleConditionClick(condition.conditionId)}
+          >
+            <h3>{condition.name}</h3>
+            <div className="condition-meta">
+              <span className={`condition-type ${condition.conditionType.toLowerCase()}`}>
+                {condition.conditionType}
+              </span>
+              <span className="condition-target">{condition.conditionTarget}</span>
+            </div>
+            <p className="condition-description">{condition.description}</p>
+            <div className="condition-category">
+              {condition.conditionCategory}
+            </div>
+          </div>
+        ))}
+        
+        <div 
+          className="condition-card add-card"
+          onClick={() => navigate("/conditions/new")}
+        >
+          <div className="add-icon">+</div>
+          <h3>Create New Condition</h3>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className="condition-page">
       <div className="page-content">
@@ -83,6 +165,21 @@ const ConditionsList = () => {
           initialFilters={filters}
           onClearFilters={handleClearFilters}
         />
+
+        <div className="view-controls">
+          <button 
+            className={`view-toggle ${viewMode === 'table' ? 'active' : ''}`}
+            onClick={() => setViewMode('table')}
+          >
+            Table View
+          </button>
+          <button 
+            className={`view-toggle ${viewMode === 'grid' ? 'active' : ''}`}
+            onClick={() => setViewMode('grid')}
+          >
+            Grid View
+          </button>
+        </div>
 
         {loading && (
           <div className="loading-overlay">Loading...</div>
@@ -100,35 +197,7 @@ const ConditionsList = () => {
           </div>
         ) : (
           <>
-            <div className="condition-grid">
-              {conditions.map(condition => (
-                <div 
-                  key={condition.conditionId} 
-                  className={`condition-card ${condition.conditionType.toLowerCase()}`}
-                  onClick={() => handleConditionClick(condition.conditionId)}
-                >
-                  <h3>{condition.name}</h3>
-                  <div className="condition-meta">
-                    <span className={`condition-type ${condition.conditionType.toLowerCase()}`}>
-                      {condition.conditionType}
-                    </span>
-                    <span className="condition-target">{condition.conditionTarget}</span>
-                  </div>
-                  <p className="condition-description">{condition.description}</p>
-                  <div className="condition-category">
-                    {condition.conditionCategory}
-                  </div>
-                </div>
-              ))}
-              
-              <div 
-                className="condition-card add-card"
-                onClick={() => navigate("/conditions/new")}
-              >
-                <div className="add-icon">+</div>
-                <h3>Create New Condition</h3>
-              </div>
-            </div>
+            {viewMode === 'table' ? renderTableView() : renderGridView()}
 
             <PaginationControls
               hasNextPage={hasNextPage}

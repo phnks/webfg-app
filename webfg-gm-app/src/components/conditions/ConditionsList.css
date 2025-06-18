@@ -72,6 +72,110 @@
   margin-top: 10px;
 }
 
+/* Table view styles */
+.condition-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.condition-table th {
+  background: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.condition-table td {
+  padding: 12px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.condition-table tr:hover {
+  background: #f8f9fa;
+  cursor: pointer;
+}
+
+.condition-table .condition-name {
+  font-weight: 500;
+  color: #007bff;
+}
+
+.condition-table .category-badge {
+  background: #e9ecef;
+  color: #495057;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+}
+
+.condition-table .view-button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.condition-table .view-button:hover {
+  background: #0056b3;
+}
+
+/* View controls */
+.view-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.view-toggle {
+  padding: 8px 16px;
+  border: 1px solid #dee2e6;
+  background: white;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.view-toggle.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.view-toggle:hover:not(.active) {
+  background: #f8f9fa;
+}
+
+/* Floating create button for table view */
+.floating-create {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  font-size: 1em;
+  font-weight: 500;
+  z-index: 100;
+}
+
+.floating-create:hover {
+  background: #218838;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
   .condition-page {
@@ -89,5 +193,20 @@
   
   .condition-card h3 {
     font-size: 1.1em;
+  }
+
+  /* Hide table on mobile, force grid view */
+  .condition-table {
+    display: none;
+  }
+
+  .view-controls {
+    display: none;
+  }
+
+  /* Adjust floating button position on mobile */
+  .floating-create {
+    bottom: 70px;
+    right: 15px;
   }
 }

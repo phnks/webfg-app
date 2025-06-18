@@ -29,13 +29,18 @@
   padding: 0.25rem 0.75rem;
   border: 1px solid #6c757d;
   background: white;
+  color: #6c757d;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.875rem;
   transition: all 0.2s ease;
 }
 
-.toggle-advanced:hover,
+.toggle-advanced:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
 .clear-filters:hover {
   background: #e9ecef;
 }

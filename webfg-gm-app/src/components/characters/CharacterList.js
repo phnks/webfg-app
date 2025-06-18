@@ -12,6 +12,7 @@ const CharacterList = () => {
   const [pageSize, setPageSize] = useState(10);
   const [cursors, setCursors] = useState([null]); // Stack of cursors for navigation
   const [currentPage, setCurrentPage] = useState(0);
+  const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
 
   // Construct query variables
   const queryVariables = useMemo(() => ({
@@ -73,6 +74,79 @@ const CharacterList = () => {
   const hasNextPage = data?.listCharactersEnhanced?.hasNextPage || false;
   const hasPreviousPage = currentPage > 0;
 
+  const renderTableView = () => (
+    <div className="character-table-container">
+      <table className="character-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Will</th>
+            <th>Fatigue</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {characters.map(character => (
+            <tr key={character.characterId} onClick={() => handleCharacterClick(character.characterId)}>
+              <td className="character-name">{character.name}</td>
+              <td><span className="category-badge">{character.characterCategory}</span></td>
+              <td>{character.will}</td>
+              <td>{character.fatigue}</td>
+              <td>
+                <button 
+                  className="view-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCharacterClick(character.characterId);
+                  }}
+                >
+                  View
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="table-actions">
+        <button
+          className="create-button"
+          onClick={() => navigate("/characters/new")}
+          data-cy="create-character-button"
+        >
+          Create New Character
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderGridView = () => (
+    <div className="character-grid">
+      {characters.map(character => (
+        <div
+          key={character.characterId}
+          className="character-card"
+          onClick={() => handleCharacterClick(character.characterId)}
+        >
+          <h3>{character.name}</h3>
+          <div className="character-meta">
+            <span className="category">{character.characterCategory}</span>
+            <span className="stats">Will: {character.will} | Fatigue: {character.fatigue}</span>
+          </div>
+        </div>
+      ))}
+
+      <div
+        className="character-card add-card"
+        onClick={() => navigate("/characters/new")}
+        data-cy="create-character-button"
+      >
+        <div className="add-icon">+</div>
+        <h3>Create New Character</h3>
+      </div>
+    </div>
+  );
+
   return (
     <div className="character-page">
       <div className="page-content">
@@ -84,6 +158,21 @@ const CharacterList = () => {
           initialFilters={filters}
           onClearFilters={handleClearFilters}
         />
+
+        <div className="view-controls">
+          <button 
+            className={`view-toggle ${viewMode === 'table' ? 'active' : ''}`}
+            onClick={() => setViewMode('table')}
+          >
+            Table View
+          </button>
+          <button 
+            className={`view-toggle ${viewMode === 'grid' ? 'active' : ''}`}
+            onClick={() => setViewMode('grid')}
+          >
+            Grid View
+          </button>
+        </div>
 
         {loading && (
           <div className="loading-overlay">Loading...</div>
@@ -102,30 +191,7 @@ const CharacterList = () => {
           </div>
         ) : (
           <>
-            <div className="character-grid">
-              {characters.map(character => (
-                <div
-                  key={character.characterId}
-                  className="character-card"
-                  onClick={() => handleCharacterClick(character.characterId)}
-                >
-                  <h3>{character.name}</h3>
-                  <div className="character-meta">
-                    <span className="category">{character.characterCategory}</span>
-                    <span className="stats">Will: {character.will} | Fatigue: {character.fatigue}</span>
-                  </div>
-                </div>
-              ))}
-
-              <div
-                className="character-card add-card"
-                onClick={() => navigate("/characters/new")}
-                data-cy="create-character-button"
-              >
-                <div className="add-icon">+</div>
-                <h3>Create New Character</h3>
-              </div>
-            </div>
+            {viewMode === 'table' ? renderTableView() : renderGridView()}
 
             <PaginationControls
               hasNextPage={hasNextPage}
