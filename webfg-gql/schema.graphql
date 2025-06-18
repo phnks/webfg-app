@@ -331,21 +331,28 @@ type Query {
   # Character queries
   getCharacter(characterId: ID!): Character
   listCharacters(filter: CharacterFilterInput): [Character]
+  # Enhanced character list query with search, filtering, sorting, and pagination
+  listCharactersEnhanced(filter: EnhancedCharacterFilterInput): CharacterConnection
 
   # Object queries
   getObject(objectId: ID!): Object
   listObjects(filter: ObjectFilterInput): [Object]
-
+  # Enhanced object list query with search, filtering, sorting, and pagination
+  listObjectsEnhanced(filter: EnhancedObjectFilterInput): ObjectConnection
 
   # Action queries
   getAction(actionId: ID!): Action
   getActions(actionIds: [ID!]!): [Action]
   listActions(filter: ActionFilterInput): [Action]
+  # Enhanced action list query with search, filtering, sorting, and pagination
+  listActionsEnhanced(filter: EnhancedActionFilterInput): ActionConnection
 
   # Condition queries
   getCondition(conditionId: ID!): Condition
   getConditions(conditionIds: [ID!]!): [Condition]
   listConditions(filter: ConditionFilterInput): [Condition]
+  # Enhanced condition list query with search, filtering, sorting, and pagination
+  listConditionsEnhanced(filter: EnhancedConditionFilterInput): ConditionConnection
 
   # Encounter queries
   getEncounter(encounterId: ID!): Encounter
@@ -695,6 +702,182 @@ input UpdateTerrainPositionInput {
   terrainId: ID!
   x: Int!
   y: Int!
+}
+
+# Enhanced Filtering, Sorting and Pagination Schema
+
+# Generic pagination input
+input PaginationInput {
+  limit: Int # Max 100, default 10
+  cursor: String # For cursor-based pagination
+}
+
+# Generic sorting input
+input SortInput {
+  field: String!
+  direction: SortDirection!
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+# Enhanced filtering inputs for numeric values
+input NumericFilterInput {
+  eq: Int
+  ne: Int
+  lt: Int
+  le: Int
+  gt: Int
+  ge: Int
+  between: [Int!] # Exactly 2 values [min, max]
+}
+
+# Enhanced filtering inputs for float values
+input FloatFilterInput {
+  eq: Float
+  ne: Float
+  lt: Float
+  le: Float
+  gt: Float
+  ge: Float
+  between: [Float!] # Exactly 2 values [min, max]
+}
+
+# Attribute filtering for complex attribute objects
+input AttributeFilterInput {
+  attributeValue: FloatFilterInput
+  isGrouped: Boolean
+}
+
+# Enhanced Character Filter Input
+input EnhancedCharacterFilterInput {
+  # Text search - searches name and description
+  search: String
+  
+  # Basic filters
+  name: StringFilterInput
+  characterCategory: CharacterCategory
+  will: NumericFilterInput
+  fatigue: NumericFilterInput
+  
+  # Attribute filters
+  speed: AttributeFilterInput
+  weight: AttributeFilterInput
+  size: AttributeFilterInput
+  armour: AttributeFilterInput
+  endurance: AttributeFilterInput
+  lethality: AttributeFilterInput
+  strength: AttributeFilterInput
+  dexterity: AttributeFilterInput
+  agility: AttributeFilterInput
+  perception: AttributeFilterInput
+  intensity: AttributeFilterInput
+  resolve: AttributeFilterInput
+  morale: AttributeFilterInput
+  intelligence: AttributeFilterInput
+  charisma: AttributeFilterInput
+  
+  # Pagination and sorting
+  pagination: PaginationInput
+  sort: [SortInput!]
+}
+
+# Enhanced Object Filter Input
+input EnhancedObjectFilterInput {
+  # Text search - searches name
+  search: String
+  
+  # Basic filters
+  name: StringFilterInput
+  objectCategory: ObjectCategory
+  
+  # Attribute filters
+  speed: AttributeFilterInput
+  weight: AttributeFilterInput
+  size: AttributeFilterInput
+  armour: AttributeFilterInput
+  endurance: AttributeFilterInput
+  lethality: AttributeFilterInput
+  strength: AttributeFilterInput
+  dexterity: AttributeFilterInput
+  agility: AttributeFilterInput
+  perception: AttributeFilterInput
+  intensity: AttributeFilterInput
+  resolve: AttributeFilterInput
+  morale: AttributeFilterInput
+  intelligence: AttributeFilterInput
+  charisma: AttributeFilterInput
+  
+  # Pagination and sorting
+  pagination: PaginationInput
+  sort: [SortInput!]
+}
+
+# Enhanced Action Filter Input
+input EnhancedActionFilterInput {
+  # Text search - searches name and description
+  search: String
+  
+  # Basic filters
+  name: StringFilterInput
+  description: StringFilterInput
+  actionCategory: ActionCategory
+  sourceAttribute: AttributeName
+  targetAttribute: AttributeName
+  targetType: TargetType
+  effectType: EffectType
+  
+  # Pagination and sorting
+  pagination: PaginationInput
+  sort: [SortInput!]
+}
+
+# Enhanced Condition Filter Input
+input EnhancedConditionFilterInput {
+  # Text search - searches name and description
+  search: String
+  
+  # Basic filters
+  name: StringFilterInput
+  description: StringFilterInput
+  conditionCategory: ConditionCategory
+  conditionType: ConditionType
+  conditionTarget: AttributeName
+  
+  # Pagination and sorting
+  pagination: PaginationInput
+  sort: [SortInput!]
+}
+
+# Paginated response types
+type CharacterConnection {
+  items: [Character!]!
+  nextCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int
+}
+
+type ObjectConnection {
+  items: [Object!]!
+  nextCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int
+}
+
+type ActionConnection {
+  items: [Action!]!
+  nextCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int
+}
+
+type ConditionConnection {
+  items: [Condition!]!
+  nextCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int
 }
 
 

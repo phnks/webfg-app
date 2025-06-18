@@ -50,6 +50,19 @@ Resources:
         Variables:
           OBJECTS_TABLE_NAME: !Ref ObjectsTableName
 
+  ListObjectsEnhancedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/listObjectsEnhanced.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ObjectsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          OBJECTS_TABLE_NAME: !Ref ObjectsTableName
+
   CreateObjectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -126,6 +139,17 @@ Resources:
       LambdaConfig:
         LambdaFunctionArn: !GetAtt ListObjectsFunction.Arn
 
+  ListObjectsEnhancedLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: ListObjectsEnhancedFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ListObjectsEnhancedLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ListObjectsEnhancedFunction.Arn
+
   CreateObjectLambdaDataSource:
     Type: AWS::AppSync::DataSource
     DependsOn: CreateObjectFunction
@@ -195,6 +219,22 @@ Resources:
       TypeName: 'Query'
       FieldName: 'listObjects'
       DataSourceName: "ListObjectsLambdaDataSource"
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  ListObjectsEnhancedResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: ListObjectsEnhancedLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'listObjectsEnhanced'
+      DataSourceName: "ListObjectsEnhancedLambdaDataSource"
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",

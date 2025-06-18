@@ -1190,3 +1190,206 @@ export const UPDATE_CONDITION_AMOUNT = gql`
   }
 `;
 
+
+// ENHANCED QUERIES WITH SEARCH, FILTERING, SORTING, AND PAGINATION
+
+export const LIST_CHARACTERS_ENHANCED = gql`
+  query ListCharactersEnhanced($filter: EnhancedCharacterFilterInput) {
+    listCharactersEnhanced(filter: $filter) {
+      items {
+        characterId
+        name
+        characterCategory
+        will
+        fatigue
+        characterConditions {
+          conditionId
+          amount
+        }
+        conditions {
+          conditionId
+          name
+          description
+          conditionCategory
+          conditionType
+          conditionTarget
+          amount
+        }
+        speed { attribute { attributeValue isGrouped } }
+        weight { attribute { attributeValue isGrouped } }
+        size { attribute { attributeValue isGrouped } }
+        armour { attribute { attributeValue isGrouped } }
+        endurance { attribute { attributeValue isGrouped } }
+        lethality { attribute { attributeValue isGrouped } }
+        strength { attribute { attributeValue isGrouped } }
+        dexterity { attribute { attributeValue isGrouped } }
+        agility { attribute { attributeValue isGrouped } }
+        perception { attribute { attributeValue isGrouped } }
+        intensity { attribute { attributeValue isGrouped } }
+        resolve { attribute { attributeValue isGrouped } }
+        morale { attribute { attributeValue isGrouped } }
+        intelligence { attribute { attributeValue isGrouped } }
+        charisma { attribute { attributeValue isGrouped } }
+        equipment { 
+          objectId name objectCategory
+          speed { attributeValue isGrouped }
+          weight { attributeValue isGrouped }
+          size { attributeValue isGrouped }
+          armour { attributeValue isGrouped }
+          endurance { attributeValue isGrouped }
+          lethality { attributeValue isGrouped }
+          strength { attributeValue isGrouped }
+          dexterity { attributeValue isGrouped }
+          agility { attributeValue isGrouped }
+          perception { attributeValue isGrouped }
+          intensity { attributeValue isGrouped }
+          resolve { attributeValue isGrouped }
+          morale { attributeValue isGrouped }
+          intelligence { attributeValue isGrouped }
+          charisma { attributeValue isGrouped }
+          equipment { objectId name objectCategory }
+        }
+        ready { 
+          objectId name objectCategory
+          speed { attributeValue isGrouped }
+          weight { attributeValue isGrouped }
+          size { attributeValue isGrouped }
+          armour { attributeValue isGrouped }
+          endurance { attributeValue isGrouped }
+          lethality { attributeValue isGrouped }
+          strength { attributeValue isGrouped }
+          dexterity { attributeValue isGrouped }
+          agility { attributeValue isGrouped }
+          perception { attributeValue isGrouped }
+          intensity { attributeValue isGrouped }
+          resolve { attributeValue isGrouped }
+          morale { attributeValue isGrouped }
+          intelligence { attributeValue isGrouped }
+          charisma { attributeValue isGrouped }
+          equipment { objectId name objectCategory }
+        }
+        stash { 
+          objectId name objectCategory
+          speed { attributeValue isGrouped }
+          weight { attributeValue isGrouped }
+          size { attributeValue isGrouped }
+          armour { attributeValue isGrouped }
+          endurance { attributeValue isGrouped }
+          lethality { attributeValue isGrouped }
+          strength { attributeValue isGrouped }
+          dexterity { attributeValue isGrouped }
+          agility { attributeValue isGrouped }
+          perception { attributeValue isGrouped }
+          intensity { attributeValue isGrouped }
+          resolve { attributeValue isGrouped }
+          morale { attributeValue isGrouped }
+          intelligence { attributeValue isGrouped }
+          charisma { attributeValue isGrouped }
+          equipment { objectId name objectCategory }
+        }
+        actions { actionId name actionCategory sourceAttribute targetAttribute targetType effectType description }
+      }
+      nextCursor
+      hasNextPage
+      totalCount
+    }
+  }
+`;
+
+export const LIST_OBJECTS_ENHANCED = gql`
+  query ListObjectsEnhanced($filter: EnhancedObjectFilterInput) {
+    listObjectsEnhanced(filter: $filter) {
+      items {
+        objectId
+        name
+        objectCategory
+        speed { attributeValue isGrouped }
+        weight { attributeValue isGrouped }
+        size { attributeValue isGrouped }
+        armour { attributeValue isGrouped }
+        endurance { attributeValue isGrouped }
+        lethality { attributeValue isGrouped }
+        strength { attributeValue isGrouped }
+        dexterity { attributeValue isGrouped }
+        agility { attributeValue isGrouped }
+        perception { attributeValue isGrouped }
+        intensity { attributeValue isGrouped }
+        resolve { attributeValue isGrouped }
+        morale { attributeValue isGrouped }
+        intelligence { attributeValue isGrouped }
+        charisma { attributeValue isGrouped }
+        special
+        equipment { 
+          objectId name objectCategory
+          speed { attributeValue isGrouped }
+          weight { attributeValue isGrouped }
+          size { attributeValue isGrouped }
+          armour { attributeValue isGrouped }
+          endurance { attributeValue isGrouped }
+          lethality { attributeValue isGrouped }
+          strength { attributeValue isGrouped }
+          dexterity { attributeValue isGrouped }
+          agility { attributeValue isGrouped }
+          perception { attributeValue isGrouped }
+          intensity { attributeValue isGrouped }
+          resolve { attributeValue isGrouped }
+          morale { attributeValue isGrouped }
+          intelligence { attributeValue isGrouped }
+          charisma { attributeValue isGrouped }
+        }
+      }
+      nextCursor
+      hasNextPage
+      totalCount
+    }
+  }
+`;
+
+export const LIST_ACTIONS_ENHANCED = gql`
+  query ListActionsEnhanced($filter: EnhancedActionFilterInput) {
+    listActionsEnhanced(filter: $filter) {
+      items {
+        actionId
+        name
+        actionCategory
+        sourceAttribute
+        targetAttribute
+        targetType
+        effectType
+        description
+        triggeredAction {
+          actionId
+          name
+          actionCategory
+          sourceAttribute
+          targetAttribute
+          targetType
+          effectType
+          description
+        }
+      }
+      nextCursor
+      hasNextPage
+      totalCount
+    }
+  }
+`;
+
+export const LIST_CONDITIONS_ENHANCED = gql`
+  query ListConditionsEnhanced($filter: EnhancedConditionFilterInput) {
+    listConditionsEnhanced(filter: $filter) {
+      items {
+        conditionId
+        name
+        description
+        conditionCategory
+        conditionType
+        conditionTarget
+      }
+      nextCursor
+      hasNextPage
+      totalCount
+    }
+  }
+`;
+EOF < /dev/null

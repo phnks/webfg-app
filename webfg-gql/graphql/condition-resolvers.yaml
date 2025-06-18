@@ -82,6 +82,22 @@ Resources:
             TableName: !Ref ConditionsTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
+  ListConditionsEnhancedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/listConditionsEnhanced.handler
+      Runtime: nodejs20.x
+      MemorySize: 512
+      Timeout: 30
+      Environment:
+        Variables:
+          CONDITIONS_TABLE_NAME: !Ref ConditionsTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ConditionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
   # Lambda Data Sources
   CreateConditionLambdaDataSource:
     Type: AWS::AppSync::DataSource
@@ -122,6 +138,16 @@ Resources:
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
         LambdaFunctionArn: !GetAtt GetConditionsFunction.Arn
+
+  ListConditionsEnhancedLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ListConditionsEnhancedLambdaSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ListConditionsEnhancedFunction.Arn
 
   # Resolvers
   GetConditionResolver:
@@ -212,6 +238,21 @@ Resources:
         #else
           []
         #end
+
+  ListConditionsEnhancedResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'listConditionsEnhanced'
+      DataSourceName: ListConditionsEnhancedLambdaSource
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   CreateConditionResolver:
     Type: AWS::AppSync::Resolver
