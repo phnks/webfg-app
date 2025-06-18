@@ -95,11 +95,12 @@ Resources:
 
   ListActionsEnhancedResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: ListActionsEnhancedLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'listActionsEnhanced'
-      DataSourceName: ListActionsEnhancedLambdaSource
+      DataSourceName: !GetAtt ListActionsEnhancedLambdaDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",

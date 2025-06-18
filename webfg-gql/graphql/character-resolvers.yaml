@@ -157,11 +157,12 @@ Resources:
 
   ListCharactersEnhancedResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: ListCharactersEnhancedLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'listCharactersEnhanced'
-      DataSourceName: ListCharactersEnhancedLambdaSource
+      DataSourceName: !GetAtt ListCharactersEnhancedLambdaDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",

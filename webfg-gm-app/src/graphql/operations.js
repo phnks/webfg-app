@@ -1392,4 +1392,3 @@ export const LIST_CONDITIONS_ENHANCED = gql`
     }
   }
 `;
-EOF < /dev/null

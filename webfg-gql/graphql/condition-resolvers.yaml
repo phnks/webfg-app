@@ -241,11 +241,12 @@ Resources:
 
   ListConditionsEnhancedResolver:
     Type: AWS::AppSync::Resolver
+    DependsOn: ListConditionsEnhancedLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'listConditionsEnhanced'
-      DataSourceName: ListConditionsEnhancedLambdaSource
+      DataSourceName: !GetAtt ListConditionsEnhancedLambdaDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",

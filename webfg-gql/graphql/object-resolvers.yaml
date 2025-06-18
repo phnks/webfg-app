@@ -234,7 +234,7 @@ Resources:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'listObjectsEnhanced'
-      DataSourceName: "ListObjectsEnhancedLambdaDataSource"
+      DataSourceName: !GetAtt ListObjectsEnhancedLambdaDataSource.Name
       RequestMappingTemplate: |
         {
           "version": "2018-05-29",
