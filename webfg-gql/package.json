@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest --testPathPattern=__tests__",
     "build:schema:qa": "ENVIRONMENT=qa node schema/buildSchema.js",
     "build:schema:prod": "ENVIRONMENT=prod node schema/buildSchema.js",
     "deploy:qa": "bash scripts/deploy.sh qa ${DEPLOYMENT_ID:-$1}",
@@ -35,6 +38,9 @@
     "stack_name": "webfg-gql"
   },
   "devDependencies": {
-    "graphql": "^16.10.0"
+    "graphql": "^16.10.0",
+    "jest": "^29.7.0",
+    "@jest/globals": "^29.7.0",
+    "aws-sdk-client-mock": "^3.0.1"
   }
 }

@@ -6,9 +6,52 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
+  test-gql-unit:
+    name: Run GQL Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./webfg-gql
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install GQL dependencies
+        run: npm install
+
+      - name: Run GQL unit tests
+        run: npm test
+
+  test-gm-app-unit:
+    name: Run GM App Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./webfg-gm-app
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install GM App dependencies
+        run: npm install
+
+      - name: Run GM App unit tests
+        run: npm run test:ci
+
   deploy-gql-qa:
     name: Deploy GQL to QA (PR-${{ github.event.number }})
     runs-on: ubuntu-latest
+    needs: test-gql-unit # Wait for GQL unit tests to pass
     defaults:
       run:
         working-directory: ./webfg-gql
@@ -58,7 +101,7 @@ jobs:
   deploy-gm-app-qa:
     name: Deploy GM App to QA (PR-${{ github.event.number }})
     runs-on: ubuntu-latest
-    needs: deploy-gql-qa # Run after GQL deployment
+    needs: [deploy-gql-qa, test-gm-app-unit] # Wait for GQL deployment and GM App unit tests
     defaults:
       run:
         working-directory: ./webfg-gm-app

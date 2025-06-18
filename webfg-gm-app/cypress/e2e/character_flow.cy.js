@@ -5,17 +5,11 @@ describe('Character User Flow', () => {
 
     cy.wait(2000); // Wait for initial page load
 
-    // Open the side navigation bar
-    cy.get('[data-cy="menu-toggle"]').click();
-
     // Navigate to Characters
-    cy.get('[data-cy="nav-characters"]').click();
-
-    // Close the navigation menu
-    cy.get('[data-cy="menu-toggle"]').click();
+    cy.navigateToCharacters();
 
     // Click create character button
-    cy.get('[data-cy="create-character-button"]').click();
+    cy.clickCreateButton();
 
     // Fill out the name field
     cy.get('input[type="text"]').first().type('Test Character');
