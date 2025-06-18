@@ -36,11 +36,17 @@ exports.handler = async (event) => {
         const expressionAttributeNames = {};
         const expressionAttributeValues = {};
 
-        // Text search - case-insensitive search using nameLowerCase field (description search omitted for now)
+        // Text search - handle both old and new records
+        // For backwards compatibility, we search both the original name field and the new nameLowerCase field
         if (filter.search) {
-            filterExpressions.push('contains(#nameLowerCase, :search)');
+            // Search in name field (case-sensitive) OR in nameLowerCase field if it exists (case-insensitive)
+            // Also search in description field for actions
+            filterExpressions.push('(contains(#name, :search) OR (attribute_exists(#nameLowerCase) AND contains(#nameLowerCase, :searchLower)) OR contains(#description, :search))');
+            expressionAttributeNames['#name'] = 'name';
             expressionAttributeNames['#nameLowerCase'] = 'nameLowerCase';
-            expressionAttributeValues[':search'] = filter.search.toLowerCase();
+            expressionAttributeNames['#description'] = 'description';
+            expressionAttributeValues[':search'] = filter.search;
+            expressionAttributeValues[':searchLower'] = filter.search.toLowerCase();
         }
 
         // Basic string filters
