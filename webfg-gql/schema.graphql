@@ -63,6 +63,7 @@ enum ValueType {
 type Character {
   characterId: ID!
   name: String!
+  nameLowerCase: String
   characterCategory: CharacterCategory!
   will: Int!
   fatigue: Int!
@@ -183,6 +184,7 @@ input CharacterConditionInput {
 type Object {
   objectId: ID!
   name: String!
+  nameLowerCase: String
   objectCategory: ObjectCategory!
   speed: Attribute
   weight: Attribute
@@ -250,6 +252,7 @@ input ObjectInput {
 type Action {
   actionId: ID!
   name: String!
+  nameLowerCase: String
   actionCategory: ActionCategory!
   sourceAttribute: AttributeName!
   targetAttribute: AttributeName!
@@ -297,7 +300,9 @@ input ActionInput {
 type Condition {
   conditionId: ID!
   name: String!
+  nameLowerCase: String
   description: String!
+  descriptionLowerCase: String
   conditionCategory: ConditionCategory!
   conditionType: ConditionType!
   conditionTarget: AttributeName!
