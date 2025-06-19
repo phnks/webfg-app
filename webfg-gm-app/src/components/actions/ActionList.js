@@ -81,7 +81,7 @@ const ActionList = () => {
 
   const handleEdit = (e, actionId) => {
     e.stopPropagation();
-    navigate(`/actions/${actionId}/edit`);
+    navigate(`/actions/${actionId}`);
   };
 
   const handleDelete = async (e, actionId, actionName) => {

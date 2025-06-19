@@ -81,7 +81,7 @@ const ObjectList = () => {
 
   const handleEdit = (e, objectId) => {
     e.stopPropagation();
-    navigate(`/objects/${objectId}/edit`);
+    navigate(`/objects/${objectId}`);
   };
 
   const handleDelete = async (e, objectId, objectName) => {
