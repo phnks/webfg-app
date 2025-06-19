@@ -48,7 +48,7 @@ const CharacterList = () => {
 
   const handleEdit = (e, characterId) => {
     e.stopPropagation();
-    navigate(`/characters/${characterId}`);
+    navigate(`/characters/${characterId}/edit`);
   };
 
   const handleDelete = async (e, characterId, characterName) => {

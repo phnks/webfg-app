@@ -6,15 +6,19 @@ import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, LIST_CONDITIONS } from './
 import NavBar from './components/nav/NavBar';
 import CharacterList from './components/characters/CharacterList';
 import CharacterView from './components/characters/CharacterView';
+import CharacterEdit from './components/characters/CharacterEdit';
 import CharacterForm from './components/forms/CharacterForm';
 import ObjectList from './components/objects/ObjectList';
 import ObjectView from './components/objects/ObjectView';
+import ObjectEdit from './components/objects/ObjectEdit';
 import ObjectForm from './components/forms/ObjectForm';
 import ActionList from './components/actions/ActionList';
 import ActionView from './components/actions/ActionView';
+import ActionEdit from './components/actions/ActionEdit';
 import ActionForm from './components/forms/ActionForm';
 import ConditionsList from './components/conditions/ConditionsList';
 import ConditionView from './components/conditions/ConditionView';
+import ConditionEdit from './components/conditions/ConditionEdit';
 import ConditionForm from './components/forms/ConditionForm';
 import Home from './components/Home';
 import { SelectedCharacterProvider, useSelectedCharacter } from './context/SelectedCharacterContext';
@@ -66,28 +70,28 @@ function AppContent() {
             {/* Use navigate in onSuccess */}
             <Route path="/characters/new" element={<CharacterForm onSuccess={(id) => navigate(`/characters/${id}`)} />} /> 
             <Route path="/characters/:characterId" element={<CharacterView />} />
-            {/* Edit is usually triggered from CharacterView */}
+            <Route path="/characters/:characterId/edit" element={<CharacterEdit />} />
 
             {/* Object routes */}
             <Route path="/objects" element={<ObjectList />} />
              {/* Use navigate in onSuccess */}
             <Route path="/objects/new" element={<ObjectForm onSuccess={(id) => navigate(`/objects/${id}`)} />} />
             <Route path="/objects/:objectId" element={<ObjectView />} />
-             {/* Edit is usually triggered from ObjectView */}
+            <Route path="/objects/:objectId/edit" element={<ObjectEdit />} />
 
             {/* Action routes */}
             <Route path="/actions" element={<ActionList />} />
              {/* Use navigate in onSuccess */}
             <Route path="/actions/new" element={<ActionForm onSuccess={(id) => navigate(`/actions/${id}`)} />} />
             <Route path="/actions/:actionId" element={<ActionView />} />
-            {/* Edit is usually triggered from ActionView */}
+            <Route path="/actions/:actionId/edit" element={<ActionEdit />} />
 
             {/* Condition routes */}
             <Route path="/conditions" element={<ConditionsList />} />
              {/* Use navigate in onSuccess */}
             <Route path="/conditions/new" element={<ConditionForm onSuccess={(id) => navigate(`/conditions/${id}`)} />} />
             <Route path="/conditions/:conditionId" element={<ConditionView />} />
-            {/* Edit is usually triggered from ConditionView */}
+            <Route path="/conditions/:conditionId/edit" element={<ConditionEdit />} />
 
             {/* Encounter routes */}
             <Route path="/encounters" element={<EncountersList />} />

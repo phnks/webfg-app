@@ -15,11 +15,11 @@ import AttributeGroups from "../common/AttributeGroups";
 import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
 import "./ObjectView.css";
 
-const ObjectView = () => {
+const ObjectView = ({ startInEditMode = false }) => {
   const { objectId } = useParams();
   const navigate = useNavigate();
   const { selectedCharacter } = useSelectedCharacter();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(startInEditMode);
   const [currentObject, setCurrentObject] = useState(null);
   const [addObjectSuccess, setAddObjectSuccess] = useState(false);
   const [mutationError, setMutationError] = useState(null);
@@ -94,6 +94,11 @@ const ObjectView = () => {
       setCurrentObject(data.getObject);
     }
   }, [data]);
+
+  // Set edit mode when prop changes
+  useEffect(() => {
+    setIsEditing(startInEditMode);
+  }, [startInEditMode]);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);

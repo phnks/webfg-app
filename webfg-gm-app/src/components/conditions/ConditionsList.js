@@ -82,7 +82,7 @@ const ConditionsList = () => {
 
   const handleEdit = (e, conditionId) => {
     e.stopPropagation();
-    navigate(`/conditions/${conditionId}`);
+    navigate(`/conditions/${conditionId}/edit`);
   };
 
   const handleDelete = async (e, conditionId, conditionName) => {
