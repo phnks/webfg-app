@@ -1,18 +1,27 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@apollo/client";
-import { LIST_ACTIONS_ENHANCED } from "../../graphql/operations";
+import { useQuery, useMutation } from "@apollo/client";
+import { 
+  LIST_ACTIONS_ENHANCED,
+  ADD_ACTION_TO_CHARACTER,
+  DELETE_ACTION
+} from "../../graphql/operations";
+import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import SearchFilterSort from "../common/SearchFilterSort";
 import PaginationControls from "../common/PaginationControls";
+import ErrorPopup from "../common/ErrorPopup";
 import "./ActionList.css";
 
 const ActionList = () => {
   const navigate = useNavigate();
+  const { selectedCharacter } = useSelectedCharacter();
   const [filters, setFilters] = useState({});
   const [pageSize, setPageSize] = useState(10);
   const [cursors, setCursors] = useState([null]);
   const [currentPage, setCurrentPage] = useState(0);
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
+  const [mutationError, setMutationError] = useState(null);
+  const [addingActionId, setAddingActionId] = useState(null);
 
   const queryVariables = useMemo(() => ({
     filter: {
@@ -28,9 +37,71 @@ const ActionList = () => {
     variables: queryVariables,
     fetchPolicy: 'cache-and-network'
   });
+
+  const [addActionToCharacter] = useMutation(ADD_ACTION_TO_CHARACTER);
+  const [deleteAction] = useMutation(DELETE_ACTION, {
+    refetchQueries: [{ 
+      query: LIST_ACTIONS_ENHANCED, 
+      variables: queryVariables 
+    }]
+  });
   
   const handleActionClick = (actionId) => {
     navigate(`/actions/${actionId}`);
+  };
+
+  const handleAddToCharacter = async (e, actionId) => {
+    e.stopPropagation();
+    
+    if (!selectedCharacter) {
+      setMutationError({ message: "Please select a character first.", stack: null });
+      return;
+    }
+
+    setAddingActionId(actionId);
+    try {
+      await addActionToCharacter({
+        variables: {
+          characterId: selectedCharacter.characterId,
+          actionId
+        }
+      });
+      
+      // Show success for 3 seconds
+      setTimeout(() => setAddingActionId(null), 3000);
+    } catch (err) {
+      console.error("Error adding action to character:", err);
+      setAddingActionId(null);
+      setMutationError({ 
+        message: err.message || "Failed to add action to character", 
+        stack: err.stack || null 
+      });
+    }
+  };
+
+  const handleEdit = (e, actionId) => {
+    e.stopPropagation();
+    navigate(`/actions/${actionId}/edit`);
+  };
+
+  const handleDelete = async (e, actionId, actionName) => {
+    e.stopPropagation();
+    
+    if (!window.confirm(`Are you sure you want to delete "${actionName}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteAction({
+        variables: { actionId }
+      });
+    } catch (err) {
+      console.error("Error deleting action:", err);
+      setMutationError({ 
+        message: err.message || "Failed to delete action", 
+        stack: err.stack || null 
+      });
+    }
   };
 
   const handleFilterChange = useCallback((newFilters) => {
@@ -93,15 +164,29 @@ const ActionList = () => {
               <td>{action.sourceAttribute}</td>
               <td>{action.targetAttribute}</td>
               <td>
-                <button 
-                  className="view-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleActionClick(action.actionId);
-                  }}
-                >
-                  View
-                </button>
+                <div className="action-buttons">
+                  {selectedCharacter && (
+                    <button 
+                      className={`add-button ${addingActionId === action.actionId ? 'success' : ''}`}
+                      onClick={(e) => handleAddToCharacter(e, action.actionId)}
+                      disabled={addingActionId === action.actionId}
+                    >
+                      {addingActionId === action.actionId ? 'Added!' : 'Add'}
+                    </button>
+                  )}
+                  <button 
+                    className="edit-button"
+                    onClick={(e) => handleEdit(e, action.actionId)}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    className="delete-button"
+                    onClick={(e) => handleDelete(e, action.actionId, action.name)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -213,6 +298,13 @@ const ActionList = () => {
           </>
         )}
       </div>
+      
+      {mutationError && (
+        <ErrorPopup
+          error={mutationError}
+          onClose={() => setMutationError(null)}
+        />
+      )}
     </div>
   );
 };

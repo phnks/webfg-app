@@ -1,9 +1,13 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@apollo/client";
-import { LIST_CHARACTERS_ENHANCED } from "../../graphql/operations";
+import { useQuery, useMutation } from "@apollo/client";
+import { 
+  LIST_CHARACTERS_ENHANCED,
+  DELETE_CHARACTER
+} from "../../graphql/operations";
 import SearchFilterSort from "../common/SearchFilterSort";
 import PaginationControls from "../common/PaginationControls";
+import ErrorPopup from "../common/ErrorPopup";
 import "./CharacterList.css";
 
 const CharacterList = () => {
@@ -13,6 +17,7 @@ const CharacterList = () => {
   const [cursors, setCursors] = useState([null]); // Stack of cursors for navigation
   const [currentPage, setCurrentPage] = useState(0);
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
+  const [mutationError, setMutationError] = useState(null);
 
   // Construct query variables
   const queryVariables = useMemo(() => ({
@@ -30,8 +35,40 @@ const CharacterList = () => {
     fetchPolicy: 'cache-and-network'
   });
 
+  const [deleteCharacter] = useMutation(DELETE_CHARACTER, {
+    refetchQueries: [{ 
+      query: LIST_CHARACTERS_ENHANCED, 
+      variables: queryVariables 
+    }]
+  });
+
   const handleCharacterClick = (characterId) => {
     navigate(`/characters/${characterId}`);
+  };
+
+  const handleEdit = (e, characterId) => {
+    e.stopPropagation();
+    navigate(`/characters/${characterId}/edit`);
+  };
+
+  const handleDelete = async (e, characterId, characterName) => {
+    e.stopPropagation();
+    
+    if (!window.confirm(`Are you sure you want to delete "${characterName}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteCharacter({
+        variables: { characterId }
+      });
+    } catch (err) {
+      console.error("Error deleting character:", err);
+      setMutationError({ 
+        message: err.message || "Failed to delete character", 
+        stack: err.stack || null 
+      });
+    }
   };
 
   const handleFilterChange = useCallback((newFilters) => {
@@ -94,15 +131,20 @@ const CharacterList = () => {
               <td>{character.will}</td>
               <td>{character.fatigue}</td>
               <td>
-                <button 
-                  className="view-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCharacterClick(character.characterId);
-                  }}
-                >
-                  View
-                </button>
+                <div className="action-buttons">
+                  <button 
+                    className="edit-button"
+                    onClick={(e) => handleEdit(e, character.characterId)}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    className="delete-button"
+                    onClick={(e) => handleDelete(e, character.characterId, character.name)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -206,6 +248,13 @@ const CharacterList = () => {
           </>
         )}
       </div>
+      
+      {mutationError && (
+        <ErrorPopup
+          error={mutationError}
+          onClose={() => setMutationError(null)}
+        />
+      )}
     </div>
   );
 };

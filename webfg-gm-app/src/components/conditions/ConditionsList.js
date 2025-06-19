@@ -1,18 +1,27 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@apollo/client";
-import { LIST_CONDITIONS_ENHANCED } from "../../graphql/operations";
+import { useQuery, useMutation } from "@apollo/client";
+import { 
+  LIST_CONDITIONS_ENHANCED,
+  ADD_CONDITION_TO_CHARACTER,
+  DELETE_CONDITION
+} from "../../graphql/operations";
+import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import SearchFilterSort from "../common/SearchFilterSort";
 import PaginationControls from "../common/PaginationControls";
+import ErrorPopup from "../common/ErrorPopup";
 import "./ConditionsList.css";
 
 const ConditionsList = () => {
   const navigate = useNavigate();
+  const { selectedCharacter } = useSelectedCharacter();
   const [filters, setFilters] = useState({});
   const [pageSize, setPageSize] = useState(10);
   const [cursors, setCursors] = useState([null]);
   const [currentPage, setCurrentPage] = useState(0);
   const [viewMode, setViewMode] = useState('table');
+  const [mutationError, setMutationError] = useState(null);
+  const [addingConditionId, setAddingConditionId] = useState(null);
 
   const queryVariables = useMemo(() => ({
     filter: {
@@ -28,9 +37,72 @@ const ConditionsList = () => {
     variables: queryVariables,
     fetchPolicy: 'cache-and-network'
   });
+
+  const [addConditionToCharacter] = useMutation(ADD_CONDITION_TO_CHARACTER);
+  const [deleteCondition] = useMutation(DELETE_CONDITION, {
+    refetchQueries: [{ 
+      query: LIST_CONDITIONS_ENHANCED, 
+      variables: queryVariables 
+    }]
+  });
   
   const handleConditionClick = (conditionId) => {
     navigate(`/conditions/${conditionId}`);
+  };
+
+  const handleAddToCharacter = async (e, conditionId) => {
+    e.stopPropagation();
+    
+    if (!selectedCharacter) {
+      setMutationError({ message: "Please select a character first.", stack: null });
+      return;
+    }
+
+    setAddingConditionId(conditionId);
+    try {
+      await addConditionToCharacter({
+        variables: {
+          characterId: selectedCharacter.characterId,
+          conditionId,
+          amount: 1 // Default amount is 1
+        }
+      });
+      
+      // Show success for 3 seconds
+      setTimeout(() => setAddingConditionId(null), 3000);
+    } catch (err) {
+      console.error("Error adding condition to character:", err);
+      setAddingConditionId(null);
+      setMutationError({ 
+        message: err.message || "Failed to add condition to character", 
+        stack: err.stack || null 
+      });
+    }
+  };
+
+  const handleEdit = (e, conditionId) => {
+    e.stopPropagation();
+    navigate(`/conditions/${conditionId}/edit`);
+  };
+
+  const handleDelete = async (e, conditionId, conditionName) => {
+    e.stopPropagation();
+    
+    if (!window.confirm(`Are you sure you want to delete "${conditionName}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteCondition({
+        variables: { conditionId }
+      });
+    } catch (err) {
+      console.error("Error deleting condition:", err);
+      setMutationError({ 
+        message: err.message || "Failed to delete condition", 
+        stack: err.stack || null 
+      });
+    }
   };
 
   const handleFilterChange = useCallback((newFilters) => {
@@ -97,15 +169,29 @@ const ConditionsList = () => {
               </td>
               <td>{condition.conditionTarget}</td>
               <td>
-                <button 
-                  className="view-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleConditionClick(condition.conditionId);
-                  }}
-                >
-                  View
-                </button>
+                <div className="action-buttons">
+                  {selectedCharacter && (
+                    <button 
+                      className={`add-button ${addingConditionId === condition.conditionId ? 'success' : ''}`}
+                      onClick={(e) => handleAddToCharacter(e, condition.conditionId)}
+                      disabled={addingConditionId === condition.conditionId}
+                    >
+                      {addingConditionId === condition.conditionId ? 'Added!' : 'Add'}
+                    </button>
+                  )}
+                  <button 
+                    className="edit-button"
+                    onClick={(e) => handleEdit(e, condition.conditionId)}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    className="delete-button"
+                    onClick={(e) => handleDelete(e, condition.conditionId, condition.name)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -212,6 +298,13 @@ const ConditionsList = () => {
           </>
         )}
       </div>
+      
+      {mutationError && (
+        <ErrorPopup
+          error={mutationError}
+          onClose={() => setMutationError(null)}
+        />
+      )}
     </div>
   );
 };

@@ -1,18 +1,27 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@apollo/client";
-import { LIST_OBJECTS_ENHANCED } from "../../graphql/operations";
+import { useQuery, useMutation } from "@apollo/client";
+import { 
+  LIST_OBJECTS_ENHANCED,
+  ADD_OBJECT_TO_STASH,
+  DELETE_OBJECT
+} from "../../graphql/operations";
+import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import SearchFilterSort from "../common/SearchFilterSort";
 import PaginationControls from "../common/PaginationControls";
+import ErrorPopup from "../common/ErrorPopup";
 import "./ObjectList.css";
 
 const ObjectList = () => {
   const navigate = useNavigate();
+  const { selectedCharacter } = useSelectedCharacter();
   const [filters, setFilters] = useState({});
   const [pageSize, setPageSize] = useState(10);
   const [cursors, setCursors] = useState([null]);
   const [currentPage, setCurrentPage] = useState(0);
   const [viewMode, setViewMode] = useState('table');
+  const [mutationError, setMutationError] = useState(null);
+  const [addingObjectId, setAddingObjectId] = useState(null);
 
   const queryVariables = useMemo(() => ({
     filter: {
@@ -29,8 +38,70 @@ const ObjectList = () => {
     fetchPolicy: 'cache-and-network'
   });
 
+  const [addObjectToStash] = useMutation(ADD_OBJECT_TO_STASH);
+  const [deleteObject] = useMutation(DELETE_OBJECT, {
+    refetchQueries: [{ 
+      query: LIST_OBJECTS_ENHANCED, 
+      variables: queryVariables 
+    }]
+  });
+
   const handleObjectClick = (objectId) => {
     navigate(`/objects/${objectId}`);
+  };
+
+  const handleAddToStash = async (e, objectId) => {
+    e.stopPropagation();
+    
+    if (!selectedCharacter) {
+      setMutationError({ message: "Please select a character first.", stack: null });
+      return;
+    }
+
+    setAddingObjectId(objectId);
+    try {
+      await addObjectToStash({
+        variables: {
+          characterId: selectedCharacter.characterId,
+          objectId
+        }
+      });
+      
+      // Show success for 3 seconds
+      setTimeout(() => setAddingObjectId(null), 3000);
+    } catch (err) {
+      console.error("Error adding object to stash:", err);
+      setAddingObjectId(null);
+      setMutationError({ 
+        message: err.message || "Failed to add object to stash", 
+        stack: err.stack || null 
+      });
+    }
+  };
+
+  const handleEdit = (e, objectId) => {
+    e.stopPropagation();
+    navigate(`/objects/${objectId}/edit`);
+  };
+
+  const handleDelete = async (e, objectId, objectName) => {
+    e.stopPropagation();
+    
+    if (!window.confirm(`Are you sure you want to delete "${objectName}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteObject({
+        variables: { objectId }
+      });
+    } catch (err) {
+      console.error("Error deleting object:", err);
+      setMutationError({ 
+        message: err.message || "Failed to delete object", 
+        stack: err.stack || null 
+      });
+    }
   };
 
   const handleFilterChange = useCallback((newFilters) => {
@@ -92,15 +163,29 @@ const ObjectList = () => {
               <td className="object-name">{object.name}</td>
               <td><span className="category-badge">{object.objectCategory}</span></td>
               <td>
-                <button 
-                  className="view-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleObjectClick(object.objectId);
-                  }}
-                >
-                  View
-                </button>
+                <div className="action-buttons">
+                  {selectedCharacter && (
+                    <button 
+                      className={`add-button ${addingObjectId === object.objectId ? 'success' : ''}`}
+                      onClick={(e) => handleAddToStash(e, object.objectId)}
+                      disabled={addingObjectId === object.objectId}
+                    >
+                      {addingObjectId === object.objectId ? 'Added!' : 'Add'}
+                    </button>
+                  )}
+                  <button 
+                    className="edit-button"
+                    onClick={(e) => handleEdit(e, object.objectId)}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    className="delete-button"
+                    onClick={(e) => handleDelete(e, object.objectId, object.name)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -200,6 +285,13 @@ const ObjectList = () => {
           </>
         )}
       </div>
+      
+      {mutationError && (
+        <ErrorPopup
+          error={mutationError}
+          onClose={() => setMutationError(null)}
+        />
+      )}
     </div>
   );
 };
