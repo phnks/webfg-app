@@ -56,10 +56,19 @@ describe('Character CRUD Operations', () => {
     
     // Check if there are characters or empty state
     cy.get('body').then($body => {
-      if ($body.find('.character-card').length > 0) {
-        cy.get('.character-card').should('have.length.greaterThan', 0);
+      // Check for characters in both table view (tr elements) and grid view (.character-card)
+      const hasTableCharacters = $body.find('tbody tr').length > 0;
+      const hasGridCharacters = $body.find('.character-card').length > 0;
+      
+      if (hasTableCharacters || hasGridCharacters) {
+        // Verify at least one character exists
+        if (hasTableCharacters) {
+          cy.get('tbody tr').should('have.length.greaterThan', 0);
+        } else {
+          cy.get('.character-card').should('have.length.greaterThan', 0);
+        }
       } else {
-        cy.contains('No characters have been created yet').should('be.visible');
+        cy.contains('No characters found').should('be.visible');
       }
     });
   });

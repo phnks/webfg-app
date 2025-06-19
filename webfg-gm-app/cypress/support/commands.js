@@ -127,12 +127,26 @@ Cypress.Commands.add('clickSaveButton', () => {
 });
 
 Cypress.Commands.add('clickEditButton', () => {
-  cy.get('button').contains('Edit').click({force: true});
+  // Try the new action-buttons structure first, then fallback to old structure
+  cy.get('body').then($body => {
+    if ($body.find('.action-buttons .edit-button').length > 0) {
+      cy.get('.action-buttons .edit-button').first().click({force: true});
+    } else {
+      cy.get('button').contains('Edit').click({force: true});
+    }
+  });
   cy.wait(500);
 });
 
 Cypress.Commands.add('clickDeleteButton', () => {
-  cy.get('button').contains('Delete').click({force: true});
+  // Try the new action-buttons structure first, then fallback to old structure
+  cy.get('body').then($body => {
+    if ($body.find('.action-buttons .delete-button').length > 0) {
+      cy.get('.action-buttons .delete-button').first().click({force: true});
+    } else {
+      cy.get('button').contains('Delete').click({force: true});
+    }
+  });
   cy.wait(500);
 });
 
