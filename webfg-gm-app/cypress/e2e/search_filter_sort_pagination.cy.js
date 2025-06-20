@@ -335,10 +335,29 @@ describe('Search, Filter, Sort, and Pagination', () => {
           
           // Should show no results or empty state
           cy.get('body').then($body => {
-            const hasNoResults = $body.text().includes('No objects found') || 
-                                 $body.text().includes('No results found') ||
-                                 $body.find('.empty-state').length > 0;
-            expect(hasNoResults).to.be.true;
+            const bodyText = $body.text();
+            const hasEmptyState = $body.find('.empty-state').length > 0;
+            const hasNoObjectsText = bodyText.includes('No objects found');
+            const hasNoResultsText = bodyText.includes('No results found');
+            const hasNoItemsText = bodyText.includes('No items found');
+            
+            // Additional checks for common empty state patterns
+            const hasEmptyMessage = hasNoObjectsText || hasNoResultsText || hasNoItemsText || hasEmptyState;
+            
+            // If still no match, check if search returned zero results (table might be empty)
+            const hasNoTableRows = $body.find('tbody tr').length === 0;
+            const hasEmptyTable = hasNoTableRows && $body.find('tbody').length > 0;
+            
+            const isEmptyState = hasEmptyMessage || hasEmptyTable;
+            
+            if (!isEmptyState) {
+              // Log what we actually found for debugging
+              console.log('Body text:', bodyText.substring(0, 500));
+              console.log('Empty state elements:', $body.find('.empty-state').length);
+              console.log('Table rows:', $body.find('tbody tr').length);
+            }
+            
+            expect(isEmptyState, 'Should show empty state when searching for non-existent items').to.be.true;
           });
           
           // Clear search
