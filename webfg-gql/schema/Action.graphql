@@ -1,6 +1,7 @@
 type Action {
   actionId: ID!
   name: String!
+  nameLowerCase: String
   actionCategory: ActionCategory!
   sourceAttribute: AttributeName!
   targetAttribute: AttributeName!

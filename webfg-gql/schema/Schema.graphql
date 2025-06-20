@@ -2,21 +2,28 @@ type Query {
   # Character queries
   getCharacter(characterId: ID!): Character
   listCharacters(filter: CharacterFilterInput): [Character]
+  # Enhanced character list query with search, filtering, sorting, and pagination
+  listCharactersEnhanced(filter: EnhancedCharacterFilterInput): CharacterConnection
 
   # Object queries
   getObject(objectId: ID!): Object
   listObjects(filter: ObjectFilterInput): [Object]
-
+  # Enhanced object list query with search, filtering, sorting, and pagination
+  listObjectsEnhanced(filter: EnhancedObjectFilterInput): ObjectConnection
 
   # Action queries
   getAction(actionId: ID!): Action
   getActions(actionIds: [ID!]!): [Action]
   listActions(filter: ActionFilterInput): [Action]
+  # Enhanced action list query with search, filtering, sorting, and pagination
+  listActionsEnhanced(filter: EnhancedActionFilterInput): ActionConnection
 
   # Condition queries
   getCondition(conditionId: ID!): Condition
   getConditions(conditionIds: [ID!]!): [Condition]
   listConditions(filter: ConditionFilterInput): [Condition]
+  # Enhanced condition list query with search, filtering, sorting, and pagination
+  listConditionsEnhanced(filter: EnhancedConditionFilterInput): ConditionConnection
 
   # Encounter queries
   getEncounter(encounterId: ID!): Encounter

@@ -17,6 +17,33 @@ Parameters:
     Description: 'ARN of the AppSync Lambda service role'
 
 Resources:
+  # Enhanced Actions List Function
+  ListActionsEnhancedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/listActionsEnhanced.handler
+      Runtime: nodejs20.x
+      MemorySize: 512
+      Timeout: 30
+      Environment:
+        Variables:
+          ACTIONS_TABLE_NAME: !Ref ActionsTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ActionsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # Enhanced Actions List Data Source
+  ListActionsEnhancedLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ListActionsEnhancedLambdaSource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt ListActionsEnhancedFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
   GetActionResolver:
     Type: AWS::AppSync::Resolver
     Properties:
@@ -65,6 +92,22 @@ Resources:
            #end
         }
       ResponseMappingTemplate: '$util.toJson($context.result.items)'
+
+  ListActionsEnhancedResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: ListActionsEnhancedLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'listActionsEnhanced'
+      DataSourceName: !GetAtt ListActionsEnhancedLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   CreateActionResolver:
     Type: AWS::AppSync::Resolver

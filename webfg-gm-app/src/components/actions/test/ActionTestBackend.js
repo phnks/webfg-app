@@ -327,37 +327,38 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   };
   
   // Get display values from backend result
-  const getDisplaySourceValue = () => {
-    if (sourceOverride) {
-      return parseFloat(sourceOverrideValue) || 0;
-    } else if (testResult?.calculateActionTest) {
-      const { sourceValue, sourceCount } = testResult.calculateActionTest;
-      if (sourceCount === 1) {
-        return `${sourceValue} (1 source)`;
-      } else if (sourceCount > 1) {
-        return `${sourceValue} (${sourceCount} sources grouped)`;
-      }
-    } else if (selectedSourceIds.length > 0) {
-      return `Source (${selectedSourceIds.length} selected)`;
-    }
-    return 'N/A';
-  };
+  // These functions were defined but not used - commented out for potential future use
+  // const getDisplaySourceValue = () => {
+  //   if (sourceOverride) {
+  //     return parseFloat(sourceOverrideValue) || 0;
+  //   } else if (testResult?.calculateActionTest) {
+  //     const { sourceValue, sourceCount } = testResult.calculateActionTest;
+  //     if (sourceCount === 1) {
+  //       return `${sourceValue} (1 source)`;
+  //     } else if (sourceCount > 1) {
+  //       return `${sourceValue} (${sourceCount} sources grouped)`;
+  //     }
+  //   } else if (selectedSourceIds.length > 0) {
+  //     return `Source (${selectedSourceIds.length} selected)`;
+  //   }
+  //   return 'N/A';
+  // };
 
-  const getDisplayTargetValue = () => {
-    if (override) {
-      return parseFloat(overrideValue) || 0;
-    } else if (testResult?.calculateActionTest) {
-      const { targetValue, targetCount } = testResult.calculateActionTest;
-      if (targetCount === 1) {
-        return `${targetValue} (1 target)`;
-      } else if (targetCount > 1) {
-        return `${targetValue} (${targetCount} targets grouped)`;
-      }
-    } else if (selectedTargetIds.length > 0) {
-      return `Target (${selectedTargetIds.length} selected)`;
-    }
-    return 'N/A';
-  };
+  // const getDisplayTargetValue = () => {
+  //   if (override) {
+  //     return parseFloat(overrideValue) || 0;
+  //   } else if (testResult?.calculateActionTest) {
+  //     const { targetValue, targetCount } = testResult.calculateActionTest;
+  //     if (targetCount === 1) {
+  //       return `${targetValue} (1 target)`;
+  //     } else if (targetCount > 1) {
+  //       return `${targetValue} (${targetCount} targets grouped)`;
+  //     }
+  //   } else if (selectedTargetIds.length > 0) {
+  //     return `Target (${selectedTargetIds.length} selected)`;
+  //   }
+  //   return 'N/A';
+  // };
   
   return (
     <div className="action-test-container">

@@ -5,7 +5,6 @@ import {
   DELETE_CHARACTER,
   ON_UPDATE_CHARACTER,
   ON_DELETE_CHARACTER,
-  ADD_OBJECT_TO_STASH,
   REMOVE_OBJECT_FROM_STASH,
   MOVE_OBJECT_TO_EQUIPMENT,
   MOVE_OBJECT_TO_READY,
@@ -24,11 +23,11 @@ import "./CharacterView.css";
 import ErrorPopup from '../common/ErrorPopup'; // Import ErrorPopup
 import QuickAdjustPopup from '../common/QuickAdjustPopup';
 
-const CharacterView = () => {
+const CharacterView = ({ startInEditMode = false }) => {
   const { characterId } = useParams();
   const navigate = useNavigate();
   const { selectCharacter } = useSelectedCharacter();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(startInEditMode);
   const [currentCharacter, setCurrentCharacter] = useState(null);
   const [testAction, setTestAction] = useState(null); // State to store action being tested
   const [mutationError, setMutationError] = useState(null); // Added mutationError state
@@ -51,6 +50,11 @@ const CharacterView = () => {
   });
 
   const [deleteCharacter] = useMutation(DELETE_CHARACTER);
+
+  // Set edit mode when prop changes
+  useEffect(() => {
+    setIsEditing(startInEditMode);
+  }, [startInEditMode]);
   
   // Equipment mutations
   const [moveObjectToEquipment] = useMutation(MOVE_OBJECT_TO_EQUIPMENT, {

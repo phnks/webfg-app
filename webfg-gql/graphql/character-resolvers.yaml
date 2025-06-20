@@ -69,6 +69,22 @@ Resources:
             TableName: !Ref CharactersTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole 
 
+  ListCharactersEnhancedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/listCharactersEnhanced.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE_NAME: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
   # --- Data Sources for Lambda Mutations ---
   CreateCharacterLambdaDataSource:
     Type: AWS::AppSync::DataSource
@@ -95,6 +111,15 @@ Resources:
       Name: DeleteCharacterLambdaSource 
       Type: AWS_LAMBDA
       LambdaConfig: { LambdaFunctionArn: !GetAtt DeleteCharacterFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  ListCharactersEnhancedLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ListCharactersEnhancedLambdaSource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt ListCharactersEnhancedFunction.Arn }
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
 
   # --- Resolvers ---
@@ -129,6 +154,22 @@ Resources:
           #end
         }
       ResponseMappingTemplate: '$util.toJson($context.result.items)'
+
+  ListCharactersEnhancedResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: ListCharactersEnhancedLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'listCharactersEnhanced'
+      DataSourceName: !GetAtt ListCharactersEnhancedLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
 
   CreateCharacterResolver:
     Type: AWS::AppSync::Resolver

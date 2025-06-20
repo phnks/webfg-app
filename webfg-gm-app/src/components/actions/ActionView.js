@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@apollo/client";
 import {
@@ -13,11 +13,11 @@ import ActionTestBackend from "./test/ActionTestBackend";
 import "./ActionView.css";
 import ErrorPopup from '../common/ErrorPopup';
 
-const ActionView = () => {
+const ActionView = ({ startInEditMode = false }) => {
   const { actionId } = useParams();
   const navigate = useNavigate();
   const { selectedCharacter } = useSelectedCharacter();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(startInEditMode);
   const [isTesting, setIsTesting] = useState(false);
   const [currentAction, setCurrentAction] = useState(null);
   const [addActionSuccess, setAddActionSuccess] = useState(false);
@@ -26,7 +26,7 @@ const ActionView = () => {
 
   // Initial query to get action data
   // Get action data
-  const { data, loading, error, refetch } = useQuery(GET_ACTION, {
+  const { loading, error, refetch } = useQuery(GET_ACTION, {
     variables: { actionId },
     onCompleted: (data) => {
       if (data && data.getAction) {
@@ -36,7 +36,7 @@ const ActionView = () => {
   });
 
   // Get full character data when a character is selected
-  const { data: characterData } = useQuery(GET_CHARACTER_WITH_GROUPED, {
+  useQuery(GET_CHARACTER_WITH_GROUPED, {
     variables: { characterId: selectedCharacter?.characterId },
     skip: !selectedCharacter,
     onCompleted: (data) => {
@@ -48,6 +48,11 @@ const ActionView = () => {
 
   const [deleteAction] = useMutation(DELETE_ACTION);
   const [addActionToCharacter] = useMutation(ADD_ACTION_TO_CHARACTER);
+
+  // Set edit mode when prop changes
+  useEffect(() => {
+    setIsEditing(startInEditMode);
+  }, [startInEditMode]);
 
   // Handle adding action to selected character
   const handleAddToCharacter = async () => {

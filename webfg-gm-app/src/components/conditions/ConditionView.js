@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@apollo/client";
 import {
@@ -11,17 +11,17 @@ import ConditionForm from "../forms/ConditionForm";
 import "./ConditionView.css";
 import ErrorPopup from '../common/ErrorPopup';
 
-const ConditionView = () => {
+const ConditionView = ({ startInEditMode = false }) => {
   const { conditionId } = useParams();
   const navigate = useNavigate();
   const { selectedCharacter } = useSelectedCharacter();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(startInEditMode);
   const [currentCondition, setCurrentCondition] = useState(null);
   const [addConditionSuccess, setAddConditionSuccess] = useState(false);
   const [mutationError, setMutationError] = useState(null);
 
   // Get condition data
-  const { data, loading, error, refetch } = useQuery(GET_CONDITION, {
+  const { loading, error, refetch } = useQuery(GET_CONDITION, {
     variables: { conditionId },
     onCompleted: (data) => {
       if (data && data.getCondition) {
@@ -32,6 +32,11 @@ const ConditionView = () => {
 
   const [deleteCondition] = useMutation(DELETE_CONDITION);
   const [addConditionToCharacter] = useMutation(ADD_CONDITION_TO_CHARACTER);
+
+  // Set edit mode when prop changes
+  useEffect(() => {
+    setIsEditing(startInEditMode);
+  }, [startInEditMode]);
 
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this condition?")) {

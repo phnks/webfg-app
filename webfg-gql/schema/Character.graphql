@@ -1,6 +1,7 @@
 type Character {
   characterId: ID!
   name: String!
+  nameLowerCase: String
   characterCategory: CharacterCategory!
   will: Int!
   fatigue: Int!
