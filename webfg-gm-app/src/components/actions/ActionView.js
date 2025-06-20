@@ -26,7 +26,7 @@ const ActionView = ({ startInEditMode = false }) => {
 
   // Initial query to get action data
   // Get action data
-  const { data, loading, error, refetch } = useQuery(GET_ACTION, {
+  const { loading, error, refetch } = useQuery(GET_ACTION, {
     variables: { actionId },
     onCompleted: (data) => {
       if (data && data.getAction) {
@@ -36,7 +36,7 @@ const ActionView = ({ startInEditMode = false }) => {
   });
 
   // Get full character data when a character is selected
-  const { data: characterData } = useQuery(GET_CHARACTER_WITH_GROUPED, {
+  useQuery(GET_CHARACTER_WITH_GROUPED, {
     variables: { characterId: selectedCharacter?.characterId },
     skip: !selectedCharacter,
     onCompleted: (data) => {

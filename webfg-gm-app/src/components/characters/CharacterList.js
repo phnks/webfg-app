@@ -30,7 +30,7 @@ const CharacterList = () => {
     }
   }), [filters, pageSize, cursors, currentPage]);
 
-  const { data, loading, error, refetch } = useQuery(LIST_CHARACTERS_ENHANCED, {
+  const { data, loading, error } = useQuery(LIST_CHARACTERS_ENHANCED, {
     variables: queryVariables,
     fetchPolicy: 'cache-and-network'
   });

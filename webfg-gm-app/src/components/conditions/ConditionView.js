@@ -21,7 +21,7 @@ const ConditionView = ({ startInEditMode = false }) => {
   const [mutationError, setMutationError] = useState(null);
 
   // Get condition data
-  const { data, loading, error, refetch } = useQuery(GET_CONDITION, {
+  const { loading, error, refetch } = useQuery(GET_CONDITION, {
     variables: { conditionId },
     onCompleted: (data) => {
       if (data && data.getCondition) {

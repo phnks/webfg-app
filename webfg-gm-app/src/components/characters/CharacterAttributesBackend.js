@@ -30,7 +30,7 @@ const CharacterAttributesBackend = ({
   const [readyBreakdownAttributeName, setReadyBreakdownAttributeName] = useState('');
   
   // Query for breakdown data when needed
-  const { data: breakdownData, loading: breakdownLoading, error: breakdownError } = useQuery(
+  const { data: breakdownData, loading: breakdownLoading } = useQuery(
     GET_CHARACTER_ATTRIBUTE_BREAKDOWN,
     {
       variables: {
@@ -151,7 +151,6 @@ const CharacterAttributesBackend = ({
     
     // Collect all values that will be grouped (sorted by highest first)
     const allValues = [];
-    const entityNames = [];
     
     // Character base value (always first if grouped)
     if (charIsGrouped) {
@@ -378,9 +377,9 @@ const CharacterAttributesBackend = ({
     const canComputeEquipmentDifference = !isNaN(numOriginal) && !isNaN(numEquipmentGrouped);
     const canComputeReadyDifference = !isNaN(numEquipmentGrouped) && !isNaN(numReadyGrouped);
     const equipmentDifference = canComputeEquipmentDifference ? Math.abs(numEquipmentGrouped - numOriginal) : 0;
-    const readyDifference = canComputeReadyDifference ? Math.abs(numReadyGrouped - numEquipmentGrouped) : 0;
+    // const readyDifference = canComputeReadyDifference ? Math.abs(numReadyGrouped - numEquipmentGrouped) : 0; // Commented out - not currently used
     const isEquipmentDifferent = canComputeEquipmentDifference && equipmentDifference >= 0.01;
-    const isReadyDifferent = canComputeReadyDifference && readyDifference >= 0.01;
+    // const isReadyDifferent = canComputeReadyDifference && readyDifference >= 0.01; // Commented out - not currently used
     
     // Determine if we should show equipment grouped value
     const shouldShowEquipmentGroupedValue = 
