@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@apollo/client";
 import { 
@@ -19,9 +19,24 @@ const ConditionsList = () => {
   const [pageSize, setPageSize] = useState(10);
   const [cursors, setCursors] = useState([null]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [viewMode, setViewMode] = useState('table');
+  const [viewMode, setViewMode] = useState(() => {
+    // Default to grid view on mobile devices
+    return window.innerWidth <= 768 ? 'grid' : 'table';
+  });
   const [mutationError, setMutationError] = useState(null);
   const [addingConditionId, setAddingConditionId] = useState(null);
+
+  // Handle window resize to switch view modes
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768 && viewMode === 'table') {
+        setViewMode('grid');
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [viewMode]);
 
   const queryVariables = useMemo(() => ({
     filter: {

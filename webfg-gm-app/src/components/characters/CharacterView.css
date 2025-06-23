@@ -306,3 +306,87 @@
 .remove-condition-button:hover {
   background-color: #c82333 !important;
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .character-view {
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .view-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .view-header h1 {
+    font-size: 24px;
+    word-break: break-word;
+  }
+
+  .character-race {
+    font-size: 16px;
+  }
+
+  .view-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .section-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .section {
+    min-width: unset;
+    width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+  }
+
+  .section h3 {
+    font-size: 18px;
+  }
+
+  .character-action {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .action-info {
+    width: 100%;
+  }
+
+  .test-action-button {
+    width: 100%;
+  }
+
+  .equipment-item,
+  .inventory-item,
+  .condition-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .item-info {
+    width: 100%;
+  }
+
+  .equip-button,
+  .unequip-button,
+  .remove-condition-button {
+    width: 100%;
+  }
+
+  .condition-link {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+}

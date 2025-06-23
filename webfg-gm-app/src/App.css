@@ -206,3 +206,28 @@ button:disabled {
   background-color: #bdc3c7;
   cursor: not-allowed;
 }
+
+/* Mobile viewport and overflow fixes */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .app {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .content {
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .page-content {
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}

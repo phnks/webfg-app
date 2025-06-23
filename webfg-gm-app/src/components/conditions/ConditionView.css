@@ -231,31 +231,74 @@
 
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
-  .condition-header {
+  .condition-view {
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .view-header {
     flex-direction: column;
-    gap: 20px;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 20px;
   }
 
-  .condition-title h1 {
-    font-size: 1.5em;
+  .view-header h1 {
+    font-size: 24px;
+    word-break: break-word;
   }
 
-  .condition-actions {
+  .condition-badges {
     width: 100%;
   }
 
+  .view-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
   .add-to-character-btn,
-  .edit-btn,
-  .delete-btn {
+  .edit-button,
+  .delete-button {
     flex: 1;
-    text-align: center;
+    min-width: 100px;
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .section-row {
+    flex-direction: column;
+  }
+
+  .section {
+    min-width: unset;
+    width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+  }
+
+  .section h3 {
+    font-size: 18px;
   }
 
   .detail-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
 
-  .condition-details {
-    padding: 20px;
+  .condition-effect {
+    padding: 10px;
+    font-size: 0.9em;
+  }
+
+  .detail-item span {
+    font-size: 1em;
+    word-break: break-word;
+  }
+
+  .success-message {
+    padding: 10px;
+    font-size: 0.9em;
   }
 }
