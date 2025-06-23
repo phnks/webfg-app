@@ -120,6 +120,87 @@
   }
 }
 
+/* Mobile List View Styles */
+.object-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.object-mobile-item {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.object-mobile-item:hover {
+  background: #f8f9fa;
+}
+
+.object-mobile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.object-mobile-name {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.object-mobile-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.object-mobile-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.object-mobile-actions .add-button,
+.object-mobile-actions .edit-button,
+.object-mobile-actions .delete-button {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 40px;
+  text-align: center;
+}
+
+.object-mobile-actions .add-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.object-mobile-actions .add-button.success {
+  background-color: #28a745;
+}
+
+.object-mobile-actions .edit-button {
+  background-color: #6c757d;
+  color: white;
+}
+
+.object-mobile-actions .delete-button {
+  background-color: #dc3545;
+  color: white;
+}
+
 .object-table {
   width: 100%;
   border-collapse: collapse;

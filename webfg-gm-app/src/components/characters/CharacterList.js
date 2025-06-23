@@ -189,6 +189,47 @@ const CharacterList = () => {
     </div>
   );
 
+  const renderMobileListView = () => (
+    <div className="character-mobile-list">
+      {characters.map(character => (
+        <div 
+          key={character.characterId} 
+          className="character-mobile-item"
+          onClick={() => handleCharacterClick(character.characterId)}
+        >
+          <div className="character-mobile-info">
+            <div className="character-mobile-name">{character.name}</div>
+            <div className="character-mobile-meta">
+              <span className="category-badge">{character.characterCategory}</span>
+              <span className="character-stats">Will: {character.will} | Fatigue: {character.fatigue}</span>
+            </div>
+          </div>
+          <div className="character-mobile-actions">
+            <button 
+              className="edit-button"
+              onClick={(e) => handleEdit(e, character.characterId)}
+            >
+              Edit
+            </button>
+            <button 
+              className="delete-button"
+              onClick={(e) => handleDelete(e, character.characterId, character.name)}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
+      <button
+        className="create-button floating-create"
+        onClick={() => navigate("/characters/new")}
+        data-cy="create-character-button"
+      >
+        + Create New Character
+      </button>
+    </div>
+  );
+
   return (
     <div className="character-page">
       <div className="page-content">
@@ -233,7 +274,10 @@ const CharacterList = () => {
           </div>
         ) : (
           <>
-            {viewMode === 'table' ? renderTableView() : renderGridView()}
+            {window.innerWidth <= 768 ? 
+              renderMobileListView() : 
+              (viewMode === 'table' ? renderTableView() : renderGridView())
+            }
 
             <PaginationControls
               hasNextPage={hasNextPage}
