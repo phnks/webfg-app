@@ -71,7 +71,7 @@ export const LIST_CHARACTERS = gql`
         }
       }
       actionIds
-      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType triggeredActionId triggeredAction { actionId name sourceAttribute targetAttribute targetType effectType } }
+      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType objectUsage triggeredActionId triggeredAction { actionId name sourceAttribute targetAttribute targetType effectType objectUsage } }
     }
   }
 `;
@@ -120,7 +120,7 @@ export const GET_CHARACTER = gql`
       
       special
       actionIds
-      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType triggeredActionId triggeredAction { actionId name sourceAttribute targetAttribute targetType effectType } }
+      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType objectUsage triggeredActionId triggeredAction { actionId name sourceAttribute targetAttribute targetType effectType objectUsage } }
       stashIds
       stash { objectId name objectCategory }
       equipmentIds
@@ -291,6 +291,7 @@ export const LIST_ACTIONS = gql`
       targetType
       effectType
       triggeredActionId
+      objectUsage
       triggeredAction {
         actionId
         name
@@ -299,6 +300,7 @@ export const LIST_ACTIONS = gql`
         targetType
         effectType
         triggeredActionId
+        objectUsage
       }
     }
   }
@@ -316,6 +318,7 @@ export const GET_ACTION = gql`
       targetType
       effectType
       triggeredActionId
+      objectUsage
       triggeredAction {
         actionId
         name
@@ -324,6 +327,7 @@ export const GET_ACTION = gql`
         targetType
         effectType
         triggeredActionId
+        objectUsage
       }
     }
   }
@@ -340,6 +344,7 @@ export const GET_ACTIONS = gql`
       description
       targetType
       effectType
+      objectUsage
     }
   }
 `;
@@ -551,6 +556,7 @@ export const CREATE_ACTION = gql`
       actionId name actionCategory sourceAttribute targetAttribute description
       targetType
       effectType
+      objectUsage
     }
   }
 `;
@@ -560,6 +566,7 @@ export const UPDATE_ACTION = gql`
       actionId name actionCategory sourceAttribute targetAttribute description
       targetType
       effectType
+      objectUsage
     }
   }
 `;
@@ -1004,6 +1011,7 @@ export const ON_UPDATE_ACTION = gql`
       actionId name actionCategory sourceAttribute targetAttribute description
       targetType
       effectType
+      objectUsage
     } 
   }
 `;
@@ -1287,7 +1295,7 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           charisma { attributeValue isGrouped }
           equipment { objectId name objectCategory }
         }
-        actions { actionId name actionCategory sourceAttribute targetAttribute targetType effectType description }
+        actions { actionId name actionCategory sourceAttribute targetAttribute targetType effectType description objectUsage }
       }
       nextCursor
       hasNextPage
@@ -1357,6 +1365,7 @@ export const LIST_ACTIONS_ENHANCED = gql`
         targetType
         effectType
         description
+        objectUsage
         triggeredAction {
           actionId
           name
@@ -1366,6 +1375,7 @@ export const LIST_ACTIONS_ENHANCED = gql`
           targetType
           effectType
           description
+          objectUsage
         }
       }
       nextCursor
