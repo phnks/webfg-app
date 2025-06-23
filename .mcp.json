@@ -11,6 +11,10 @@
   	  "command": "npx",
   	  "args": ["-y", "v-3/discordmcp"],
 	  "env": { "DISCORD_TOKEN": "${env:DISCORD_BOT_TOKEN}" }
+	},
+        "context7": {
+	  "type": "sse",
+	  "url": "https://mcp.context7.com/sse"
 	}
     }
 }

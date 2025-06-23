@@ -139,6 +139,17 @@ The application revolves around these primary entities:
 14. If you ever has questions during your task, you can message the user on discord via the discord MCP. The user's channel id is: 538552940303220750. The user will see your message then com
 e back to answer your question. You may have to wait a while depending on how busy the user is with other tasks
 
+## Context7 quick-start
+
+Context7 pipes the latest, version-exact docs for 9 000+ libraries straight to you.
+Use Context7 anytime you are working with a library to get up to date knowledge about that library.
+
+1. **Invoke it** – just append `use context7` to any prompt:  
+   > “Add Prisma pagination to this query. **use context7**”
+2. **Reference specific docs** (optional):  
+   * `@context7:docs://npm/next@latest` – Next.js docs  
+   * `@context7:docs://crate/serde`     – Rust Serde docs
+
 ## Testing Strategy
 
 **⚠️ CRITICAL: ALL TESTS MUST PASS BEFORE MERGING ⚠️**
