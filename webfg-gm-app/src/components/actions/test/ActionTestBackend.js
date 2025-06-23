@@ -16,6 +16,13 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   // Per-action override settings
   const [actionOverrides, setActionOverrides] = useState({});
   
+  // Object usage selection for ready inventory
+  const [selectedObjectId, setSelectedObjectId] = useState(null);
+  
+  // State for showing final grouped attributes
+  const [showFinalGrouped, setShowFinalGrouped] = useState(false);
+  const [finalGroupedAttributes, setFinalGroupedAttributes] = useState(null);
+  
   // Fetch potential targets based on targetType
   const { data: charactersData } = useQuery(LIST_CHARACTERS, { skip: targetType !== 'CHARACTER' });
   const { data: objectsData } = useQuery(LIST_OBJECTS, { skip: targetType !== 'OBJECT' });
@@ -199,6 +206,135 @@ const ActionTestBackend = ({ action, character, onClose }) => {
     } else {
       setSelectedSourceIds(prev => prev.filter(id => id !== sourceId));
     }
+  };
+  
+  // Handler for object selection from ready inventory
+  const handleObjectSelection = (objectId) => {
+    setSelectedObjectId(objectId === selectedObjectId ? null : objectId);
+  };
+  
+  // Get available objects from character's ready inventory based on objectUsage
+  const getAvailableReadyObjects = () => {
+    if (!character || !character.ready || !action.objectUsage || action.objectUsage === 'NONE') {
+      return [];
+    }
+    
+    const readyObjects = character.ready || [];
+    
+    if (action.objectUsage === 'ANY') {
+      return readyObjects;
+    }
+    
+    // Filter by object category matching objectUsage
+    return readyObjects.filter(obj => obj.objectCategory === action.objectUsage);
+  };
+
+  // Calculate final grouped attributes when object is selected
+  const calculateFinalGroupedAttributes = () => {
+    if (!selectedObjectId || !character) {
+      return null;
+    }
+    
+    const selectedObject = character.ready?.find(obj => obj.objectId === selectedObjectId);
+    if (!selectedObject) {
+      return null;
+    }
+    
+    // Get character's equipment grouped attributes (base + equipment)
+    const equipmentGrouped = character.groupedAttributes || {};
+    
+    // Calculate final attributes by adding the selected object's attributes
+    const finalAttributes = {};
+    const attributeNames = [
+      'speed', 'weight', 'size', 'armour', 'endurance', 'lethality',
+      'strength', 'dexterity', 'agility', 'perception', 'intensity',
+      'resolve', 'morale', 'intelligence', 'charisma'
+    ];
+    
+    attributeNames.forEach(attrName => {
+      const equipmentValue = equipmentGrouped[attrName] || 0;
+      const objectAttr = selectedObject[attrName];
+      const objectValue = objectAttr ? objectAttr.attributeValue || 0 : 0;
+      
+      // Simple addition for now - in real implementation this would use proper grouping logic
+      finalAttributes[attrName] = equipmentValue + objectValue;
+    });
+    
+    return finalAttributes;
+  };
+  
+  // Effect to calculate final grouped attributes when object selection changes
+  useEffect(() => {
+    if (selectedObjectId) {
+      const finalAttrs = calculateFinalGroupedAttributes();
+      setFinalGroupedAttributes(finalAttrs);
+      setShowFinalGrouped(true);
+    } else {
+      setShowFinalGrouped(false);
+      setFinalGroupedAttributes(null);
+    }
+  }, [selectedObjectId, character]);
+  
+  // Render object selection section
+  const renderObjectSelection = () => {
+    if (!action.objectUsage || action.objectUsage === 'NONE') {
+      return (
+        <div className="object-selection">
+          <h3>Object Usage</h3>
+          <p className="object-usage-note">
+            This action has object usage set to NONE - no object selection required.
+          </p>
+        </div>
+      );
+    }
+    
+    const availableObjects = getAvailableReadyObjects();
+    
+    if (availableObjects.length === 0) {
+      return (
+        <div className="object-selection">
+          <h3>Object Usage: {action.objectUsage}</h3>
+          <p className="object-usage-note">
+            No objects in ready inventory match the required object usage ({action.objectUsage}).
+          </p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="object-selection">
+        <h3>Object Usage: {action.objectUsage}</h3>
+        <p className="object-usage-note">
+          Select an object from ready inventory (optional):
+        </p>
+        
+        <div className="object-selection-list">
+          <label className="object-option">
+            <input
+              type="radio"
+              name="objectSelection"
+              checked={selectedObjectId === null}
+              onChange={() => setSelectedObjectId(null)}
+            />
+            <span className="object-name">No object selected</span>
+          </label>
+          
+          {availableObjects.map((obj) => (
+            <label key={obj.objectId} className="object-option">
+              <input
+                type="radio"
+                name="objectSelection"
+                checked={selectedObjectId === obj.objectId}
+                onChange={() => handleObjectSelection(obj.objectId)}
+              />
+              <span className="object-name">
+                {obj.name} ({obj.objectCategory})
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const getTargetOptions = () => {
@@ -425,6 +561,8 @@ const ActionTestBackend = ({ action, character, onClose }) => {
           {getTargetOptions()}
         </div>
         
+
+        {renderObjectSelection()}
         <div className="action-buttons">
           <button
             className="submit-button"
@@ -438,6 +576,24 @@ const ActionTestBackend = ({ action, character, onClose }) => {
           </button>
         </div>
         
+
+        {showFinalGrouped && finalGroupedAttributes && (
+          <div className="final-grouped-display">
+            <h3>Final Grouped Attributes (Equipment + Selected Object)</h3>
+            <p className="final-grouped-note">
+              These values show the character's attributes with equipment plus the selected object from ready inventory.
+              This is what will be used for the {action.sourceAttribute} calculation.
+            </p>
+            <div className="final-grouped-values">
+              <div className="attribute-row">
+                <span className="attribute-label">{action.sourceAttribute}:</span>
+                <span className="attribute-value">
+                  {Math.round(finalGroupedAttributes[action.sourceAttribute?.toLowerCase()] || 0)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
         {actionChainResults.length > 0 && (
           <div className="result-display">
             <h3>Action Chain Results</h3>
