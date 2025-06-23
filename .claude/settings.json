@@ -51,12 +51,16 @@
       "mcp__puppeteer__puppeteer_fill",
       "mcp__puppeteer__puppeteer_click",
       "mcp__puppeteer__puppeteer_evaluate",
-      "mcp__discord"
+      "mcp__puppeteer__puppeteer_select",
+      "mcp__discord",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "puppeteer"
+    "puppeteer",
+    "context7"
   ],
   "env": {
     "AWS_MAX_ATTEMPTS": "25",
