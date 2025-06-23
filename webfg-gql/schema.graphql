@@ -261,6 +261,7 @@ type Action {
   effectType: EffectType!
   triggeredActionId: ID
   triggeredAction: Action
+  objectUsage: ObjectUsage
 }
 
 enum ActionCategory {
@@ -286,6 +287,24 @@ enum EffectType {
   TRIGGER_ACTION
 }
 
+enum ObjectUsage {
+  NONE
+  ANY
+  TOOL
+  WEAPON
+  ARMOR
+  CONTAINER
+  STRUCTURE
+  JEWLERY
+  DEVICE
+  MATERIAL
+  CLOTHING
+  LIGHT_SOURCE
+  DOCUMENT
+  COMPONENT
+  ARTIFACT
+}
+
 input ActionInput {
   name: String!
   actionCategory: ActionCategory!
@@ -295,6 +314,7 @@ input ActionInput {
   targetType: TargetType!
   effectType: EffectType!
   triggeredActionId: ID
+  objectUsage: ObjectUsage
 }
 
 type Condition {
@@ -456,6 +476,7 @@ input EnhancedActionFilterInput {
   targetAttribute: AttributeName
   targetType: TargetType
   effectType: EffectType
+  objectUsage: ObjectUsage
   
   # Pagination and sorting
   pagination: PaginationInput
@@ -693,6 +714,7 @@ input CharacterFilterInput {
  input ActionFilterInput {
    name: StringFilterInput
    actionCategory: ActionCategory # Changed from 'type: ActionType'
+   objectUsage: ObjectUsage
  }
 
 input ConditionFilterInput {
