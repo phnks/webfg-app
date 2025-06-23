@@ -265,6 +265,14 @@
   margin-bottom: 1rem;
 }
 
+/* Mobile table scrolling */
+@media (max-width: 768px) {
+  .action-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .action-table {
   width: 100%;
   border-collapse: collapse;

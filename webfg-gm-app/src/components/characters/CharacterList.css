@@ -227,6 +227,14 @@
   margin-bottom: 1rem;
 }
 
+/* Mobile table scrolling */
+@media (max-width: 768px) {
+  .character-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .character-table {
   width: 100%;
   border-collapse: collapse;
