@@ -132,18 +132,18 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [], conditio
 
   useSubscription(ON_UPDATE_ACTION, {
     onData: ({ data }) => {
-      const updatedCharacter = data.data.onUpdateCharacter;
+      const updatedAction = data.data.onUpdateAction;
 
-      // Don't update if character was deleted
-      if (deletedItemIds.current.characters.has(updatedCharacter.characterId)) {
+      // Don't update if action was deleted
+      if (deletedItemIds.current.actions.has(updatedAction.actionId)) {
         return;
       }
 
-      setCharacters(prev =>
-        prev.map(char =>
-          char.characterId === updatedCharacter.characterId
-            ? updatedCharacter
-            : char
+      setActions(prev =>
+        prev.map(action =>
+          action.actionId === updatedAction.actionId
+            ? updatedAction
+            : action
         )
       );
     }
