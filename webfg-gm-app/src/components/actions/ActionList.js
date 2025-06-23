@@ -240,6 +240,55 @@ const ActionList = () => {
     </div>
   );
 
+  const renderMobileListView = () => (
+    <div className="action-mobile-list">
+      {actions.map(action => (
+        <div 
+          key={action.actionId} 
+          className="action-mobile-item"
+          onClick={() => handleActionClick(action.actionId)}
+        >
+          <div className="action-mobile-info">
+            <div className="action-mobile-name">{action.name}</div>
+            <div className="action-mobile-meta">
+              <span className="category-badge">{action.actionCategory}</span>
+              <span className="action-attributes">{action.sourceAttribute} → {action.targetAttribute}</span>
+            </div>
+          </div>
+          <div className="action-mobile-actions">
+            {selectedCharacter && (
+              <button 
+                className={`add-button ${addingActionId === action.actionId ? 'success' : ''}`}
+                onClick={(e) => handleAddToCharacter(e, action.actionId)}
+                disabled={addingActionId === action.actionId}
+              >
+                {addingActionId === action.actionId ? '✓' : 'Add'}
+              </button>
+            )}
+            <button 
+              className="edit-button"
+              onClick={(e) => handleEdit(e, action.actionId)}
+            >
+              Edit
+            </button>
+            <button 
+              className="delete-button"
+              onClick={(e) => handleDelete(e, action.actionId, action.name)}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
+      <button
+        className="create-button floating-create"
+        onClick={() => navigate("/actions/new")}
+      >
+        + Create New Action
+      </button>
+    </div>
+  );
+
   return (
     <div className="action-page">
       <div className="page-content">
@@ -283,7 +332,10 @@ const ActionList = () => {
           </div>
         ) : (
           <>
-            {viewMode === 'table' ? renderTableView() : renderGridView()}
+            {window.innerWidth <= 768 ? 
+              renderMobileListView() : 
+              (viewMode === 'table' ? renderTableView() : renderGridView())
+            }
 
             <PaginationControls
               hasNextPage={hasNextPage}

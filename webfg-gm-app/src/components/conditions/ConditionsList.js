@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@apollo/client";
 import { 
@@ -19,9 +19,24 @@ const ConditionsList = () => {
   const [pageSize, setPageSize] = useState(10);
   const [cursors, setCursors] = useState([null]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [viewMode, setViewMode] = useState('table');
+  const [viewMode, setViewMode] = useState(() => {
+    // Default to grid view on mobile devices
+    return window.innerWidth <= 768 ? 'grid' : 'table';
+  });
   const [mutationError, setMutationError] = useState(null);
   const [addingConditionId, setAddingConditionId] = useState(null);
+
+  // Handle window resize to switch view modes
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768 && viewMode === 'table') {
+        setViewMode('grid');
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [viewMode]);
 
   const queryVariables = useMemo(() => ({
     filter: {
@@ -147,56 +162,58 @@ const ConditionsList = () => {
 
   const renderTableView = () => (
     <>
-      <table className="condition-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Type</th>
-            <th>Target Attribute</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {conditions.map(condition => (
-            <tr key={condition.conditionId} onClick={() => handleConditionClick(condition.conditionId)}>
-              <td className="condition-name">{condition.name}</td>
-              <td><span className="category-badge">{condition.conditionCategory}</span></td>
-              <td>
-                <span className={`condition-type ${condition.conditionType.toLowerCase()}`}>
-                  {condition.conditionType}
-                </span>
-              </td>
-              <td>{condition.conditionTarget}</td>
-              <td>
-                <div className="action-buttons">
-                  {selectedCharacter && (
-                    <button 
-                      className={`add-button ${addingConditionId === condition.conditionId ? 'success' : ''}`}
-                      onClick={(e) => handleAddToCharacter(e, condition.conditionId)}
-                      disabled={addingConditionId === condition.conditionId}
-                    >
-                      {addingConditionId === condition.conditionId ? 'Added!' : 'Add'}
-                    </button>
-                  )}
-                  <button 
-                    className="edit-button"
-                    onClick={(e) => handleEdit(e, condition.conditionId)}
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    className="delete-button"
-                    onClick={(e) => handleDelete(e, condition.conditionId, condition.name)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
+      <div className="condition-table-container">
+        <table className="condition-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Target Attribute</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {conditions.map(condition => (
+              <tr key={condition.conditionId} onClick={() => handleConditionClick(condition.conditionId)}>
+                <td className="condition-name">{condition.name}</td>
+                <td><span className="category-badge">{condition.conditionCategory}</span></td>
+                <td>
+                  <span className={`condition-type ${condition.conditionType.toLowerCase()}`}>
+                    {condition.conditionType}
+                  </span>
+                </td>
+                <td>{condition.conditionTarget}</td>
+                <td>
+                  <div className="action-buttons">
+                    {selectedCharacter && (
+                      <button 
+                        className={`add-button ${addingConditionId === condition.conditionId ? 'success' : ''}`}
+                        onClick={(e) => handleAddToCharacter(e, condition.conditionId)}
+                        disabled={addingConditionId === condition.conditionId}
+                      >
+                        {addingConditionId === condition.conditionId ? 'Added!' : 'Add'}
+                      </button>
+                    )}
+                    <button 
+                      className="edit-button"
+                      onClick={(e) => handleEdit(e, condition.conditionId)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="delete-button"
+                      onClick={(e) => handleDelete(e, condition.conditionId, condition.name)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <button 
         className="create-button floating-create"
         onClick={() => navigate("/conditions/new")}
@@ -237,6 +254,59 @@ const ConditionsList = () => {
           <h3>Create New Condition</h3>
         </div>
       </div>
+    </>
+  );
+
+  const renderMobileListView = () => (
+    <>
+      <div className="condition-mobile-list">
+        {conditions.map(condition => (
+          <div 
+            key={condition.conditionId} 
+            className="condition-mobile-item"
+            onClick={() => handleConditionClick(condition.conditionId)}
+          >
+            <div className="condition-mobile-info">
+              <div className="condition-mobile-name">{condition.name}</div>
+              <div className="condition-mobile-meta">
+                <span className={`condition-type ${condition.conditionType.toLowerCase()}`}>
+                  {condition.conditionType}
+                </span>
+                <span className="condition-target">{condition.conditionTarget}</span>
+              </div>
+            </div>
+            <div className="condition-mobile-actions">
+              {selectedCharacter && (
+                <button 
+                  className={`add-button ${addingConditionId === condition.conditionId ? 'success' : ''}`}
+                  onClick={(e) => handleAddToCharacter(e, condition.conditionId)}
+                  disabled={addingConditionId === condition.conditionId}
+                >
+                  {addingConditionId === condition.conditionId ? '✓' : 'Add'}
+                </button>
+              )}
+              <button 
+                className="edit-button"
+                onClick={(e) => handleEdit(e, condition.conditionId)}
+              >
+                Edit
+              </button>
+              <button 
+                className="delete-button"
+                onClick={(e) => handleDelete(e, condition.conditionId, condition.name)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button 
+        className="create-button floating-create"
+        onClick={() => navigate("/conditions/new")}
+      >
+        + Create New Condition
+      </button>
     </>
   );
 
@@ -283,7 +353,10 @@ const ConditionsList = () => {
           </div>
         ) : (
           <>
-            {viewMode === 'table' ? renderTableView() : renderGridView()}
+            {window.innerWidth <= 768 ? 
+              renderMobileListView() : 
+              (viewMode === 'table' ? renderTableView() : renderGridView())
+            }
 
             <PaginationControls
               hasNextPage={hasNextPage}

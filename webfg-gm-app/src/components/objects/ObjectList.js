@@ -227,6 +227,54 @@ const ObjectList = () => {
     </div>
   );
 
+  const renderMobileListView = () => (
+    <div className="object-mobile-list">
+      {objects.map(object => (
+        <div 
+          key={object.objectId} 
+          className="object-mobile-item"
+          onClick={() => handleObjectClick(object.objectId)}
+        >
+          <div className="object-mobile-info">
+            <div className="object-mobile-name">{object.name}</div>
+            <div className="object-mobile-meta">
+              <span className="category-badge">{object.objectCategory}</span>
+            </div>
+          </div>
+          <div className="object-mobile-actions">
+            {selectedCharacter && (
+              <button 
+                className={`add-button ${addingObjectId === object.objectId ? 'success' : ''}`}
+                onClick={(e) => handleAddToStash(e, object.objectId)}
+                disabled={addingObjectId === object.objectId}
+              >
+                {addingObjectId === object.objectId ? '✓' : 'Add'}
+              </button>
+            )}
+            <button 
+              className="edit-button"
+              onClick={(e) => handleEdit(e, object.objectId)}
+            >
+              Edit
+            </button>
+            <button 
+              className="delete-button"
+              onClick={(e) => handleDelete(e, object.objectId, object.name)}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
+      <button
+        className="create-button floating-create"
+        onClick={() => navigate("/objects/new")}
+      >
+        + Create New Object
+      </button>
+    </div>
+  );
+
   return (
     <div className="object-page">
       <div className="page-content">
@@ -270,7 +318,10 @@ const ObjectList = () => {
           </div>
         ) : (
           <>
-            {viewMode === 'table' ? renderTableView() : renderGridView()}
+            {window.innerWidth <= 768 ? 
+              renderMobileListView() : 
+              (viewMode === 'table' ? renderTableView() : renderGridView())
+            }
 
             <PaginationControls
               hasNextPage={hasNextPage}
