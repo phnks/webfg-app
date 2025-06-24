@@ -240,10 +240,7 @@ const ActionTestBackend = ({ action, character, onClose }) => {
       return null;
     }
     
-    // Get character's equipment grouped attributes (base + equipment)
-    const equipmentGrouped = character.groupedAttributes || {};
-    
-    // Calculate final attributes by adding the selected object's attributes
+    // We need to recalculate grouping properly with base + equipment + selected ready object
     const finalAttributes = {};
     const attributeNames = [
       'speed', 'weight', 'size', 'armour', 'endurance', 'lethality',
@@ -252,12 +249,59 @@ const ActionTestBackend = ({ action, character, onClose }) => {
     ];
     
     attributeNames.forEach(attrName => {
-      const equipmentValue = equipmentGrouped[attrName] || 0;
-      const objectAttr = selectedObject[attrName];
-      const objectValue = objectAttr ? objectAttr.attributeValue || 0 : 0;
+      const valuesToGroup = [];
       
-      // Simple addition for now - in real implementation this would use proper grouping logic
-      finalAttributes[attrName] = equipmentValue + objectValue;
+      // Add character base value if it's groupable
+      const charAttr = character[attrName];
+      if (charAttr && charAttr.attribute && charAttr.attribute.isGrouped) {
+        valuesToGroup.push(charAttr.attribute.attributeValue || 0);
+      }
+      
+      // Add equipment values if they're groupable
+      if (character.equipment) {
+        character.equipment.forEach(item => {
+          const itemAttr = item[attrName];
+          if (itemAttr && itemAttr.isGrouped) {
+            valuesToGroup.push(itemAttr.attributeValue || 0);
+          }
+        });
+      }
+      
+      // Add selected ready object value if it's groupable
+      const objectAttr = selectedObject[attrName];
+      if (objectAttr && objectAttr.isGrouped) {
+        valuesToGroup.push(objectAttr.attributeValue || 0);
+      }
+      
+      // Calculate grouped value using the same formula as backend
+      if (valuesToGroup.length === 0) {
+        // If no groupable values, use character base value
+        const charAttr = character[attrName];
+        finalAttributes[attrName] = charAttr && charAttr.attribute ? charAttr.attribute.attributeValue || 0 : 0;
+      } else if (valuesToGroup.length === 1) {
+        finalAttributes[attrName] = valuesToGroup[0];
+      } else {
+        // Sort values in descending order (highest first)
+        valuesToGroup.sort((a, b) => b - a);
+        
+        const A1 = valuesToGroup[0]; // Highest value
+        let sum = A1; // Start with the highest value
+        
+        // Add weighted values for all other attributes using 0.25 constant
+        for (let i = 1; i < valuesToGroup.length; i++) {
+          const Ai = valuesToGroup[i];
+          const scalingFactor = 0.25; // Constant scaling factor
+          
+          if (A1 > 0) {
+            sum += Ai * (scalingFactor + Ai / A1);
+          } else {
+            // Handle edge case where A1 is 0
+            sum += Ai * scalingFactor;
+          }
+        }
+        
+        finalAttributes[attrName] = Math.round((sum / valuesToGroup.length) * 100) / 100;
+      }
     });
     
     return finalAttributes;
@@ -577,23 +621,41 @@ const ActionTestBackend = ({ action, character, onClose }) => {
         </div>
         
 
-        {showFinalGrouped && finalGroupedAttributes && (
-          <div className="final-grouped-display">
-            <h3>Final Grouped Attributes (Equipment + Selected Object)</h3>
-            <p className="final-grouped-note">
-              These values show the character's attributes with equipment plus the selected object from ready inventory.
-              This is what will be used for the {action.sourceAttribute} calculation.
-            </p>
-            <div className="final-grouped-values">
+        {/* Display what values will be used for action test */}
+        <div className="action-test-values-preview">
+          <h3>Action Test Values Preview</h3>
+          <p className="preview-note">
+            These are the values that will be used for the {action.sourceAttribute} calculation:
+          </p>
+          
+          {!selectedObjectId ? (
+            <div className="no-object-selected">
               <div className="attribute-row">
-                <span className="attribute-label">{action.sourceAttribute}:</span>
+                <span className="attribute-label">{action.sourceAttribute} (Base + Equipment):</span>
                 <span className="attribute-value">
-                  {Math.round(finalGroupedAttributes[action.sourceAttribute?.toLowerCase()] || 0)}
+                  {Math.round(character.groupedAttributes?.[action.sourceAttribute?.toLowerCase()] || 0)}
                 </span>
               </div>
+              <p className="calculation-note">
+                <small>Using equipment-grouped values since no ready object is selected.</small>
+              </p>
             </div>
-          </div>
-        )}
+          ) : (
+            showFinalGrouped && finalGroupedAttributes && (
+              <div className="object-selected">
+                <div className="attribute-row">
+                  <span className="attribute-label">{action.sourceAttribute} (Base + Equipment + Selected Object):</span>
+                  <span className="attribute-value">
+                    {Math.round(finalGroupedAttributes[action.sourceAttribute?.toLowerCase()] || 0)}
+                  </span>
+                </div>
+                <p className="calculation-note">
+                  <small>Using recalculated grouped values including the selected ready object.</small>
+                </p>
+              </div>
+            )
+          )}
+        </div>
         {actionChainResults.length > 0 && (
           <div className="result-display">
             <h3>Action Chain Results</h3>
