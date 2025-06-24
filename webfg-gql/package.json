@@ -33,7 +33,7 @@
     "uuid": "^11.1.0"
   },
   "config": {
-    "qa_schema": "v98",
+    "qa_schema": "v100",
     "prod_schema": "v86",
     "stack_name": "webfg-gql"
   },

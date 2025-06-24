@@ -186,6 +186,7 @@ type Object {
   name: String!
   nameLowerCase: String
   objectCategory: ObjectCategory!
+  isEquipment: Boolean
   speed: Attribute
   weight: Attribute
   size: Attribute
@@ -229,6 +230,7 @@ enum ObjectCategory {
 input ObjectInput {
   name: String
   objectCategory: ObjectCategory
+  isEquipment: Boolean
   speed: AttributeInput
   weight: AttributeInput
   size: AttributeInput

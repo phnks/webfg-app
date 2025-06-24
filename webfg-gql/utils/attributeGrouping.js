@@ -107,7 +107,9 @@ const calculateGroupedAttributes = (character) => {
     if (character.equipment && character.equipment.length > 0) {
       hasGroupableEquipment = character.equipment.some(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-        return itemAttrInfo && itemAttrInfo.isGrouped;
+        // Default to true if isEquipment is undefined/null for backwards compatibility
+        const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+        return itemAttrInfo && itemAttrInfo.isGrouped && isEquipment !== false;
       });
     }
     
@@ -128,7 +130,11 @@ const calculateGroupedAttributes = (character) => {
     if (character.equipment && character.equipment.length > 0) {
       character.equipment.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-        if (itemAttrInfo && itemAttrInfo.isGrouped) {
+        // Only include equipment items that are marked as equipment (isEquipment: true)
+        // Skip weapons/tools that require active use (isEquipment: false)
+        // IMPORTANT: Default to true if isEquipment is undefined/null for backwards compatibility
+        const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+        if (itemAttrInfo && itemAttrInfo.isGrouped && isEquipment !== false) {
           // For objects, check if they have their own equipment and get their grouped value
           let itemValue = itemAttrInfo.value;
           
@@ -256,7 +262,9 @@ const calculateReadyGroupedAttributes = (character) => {
     if (character.equipment && character.equipment.length > 0) {
       hasGroupableEquipment = character.equipment.some(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-        return itemAttrInfo && itemAttrInfo.isGrouped;
+        // Default to true if isEquipment is undefined/null for backwards compatibility
+        const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+        return itemAttrInfo && itemAttrInfo.isGrouped && isEquipment !== false;
       });
     }
     
@@ -288,7 +296,11 @@ const calculateReadyGroupedAttributes = (character) => {
     if (character.equipment && character.equipment.length > 0) {
       character.equipment.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-        if (itemAttrInfo && itemAttrInfo.isGrouped) {
+        // Only include equipment items that are marked as equipment (isEquipment: true)
+        // Skip weapons/tools that require active use (isEquipment: false)
+        // IMPORTANT: Default to true if isEquipment is undefined/null for backwards compatibility
+        const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+        if (itemAttrInfo && itemAttrInfo.isGrouped && isEquipment !== false) {
           // For objects, check if they have their own equipment and get their grouped value
           let itemValue = itemAttrInfo.value;
           
@@ -516,7 +528,11 @@ const calculateGroupedAttributesWithSelectedReady = (character, selectedReadyObj
     if (character.equipment && character.equipment.length > 0) {
       character.equipment.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
-        if (itemAttrInfo && itemAttrInfo.isGrouped) {
+        // Only include equipment items that are marked as equipment (isEquipment: true)
+        // Skip weapons/tools that require active use (isEquipment: false)
+        // IMPORTANT: Default to true if isEquipment is undefined/null for backwards compatibility
+        const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+        if (itemAttrInfo && itemAttrInfo.isGrouped && isEquipment !== false) {
           // For objects, check if they have their own equipment and get their grouped value
           let itemValue = itemAttrInfo.value;
           
