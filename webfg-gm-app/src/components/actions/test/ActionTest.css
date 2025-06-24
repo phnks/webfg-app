@@ -867,3 +867,98 @@
   font-weight: normal;
   font-size: 1.1rem;
 }
+
+/* Success Range Styles */
+.success-ranges {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border: 2px solid #6c757d;
+  text-align: left;
+}
+
+.success-ranges h6 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.range-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.range-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.range-label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.range-value {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.guaranteed-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.guaranteed-failure {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.potential-success {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.target-range {
+  background-color: #e9ecef;
+  color: #495057;
+  border: 1px solid #ced4da;
+}
+
+.success-assessment {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.success-guaranteed {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.success-impossible {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.success-partial {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}

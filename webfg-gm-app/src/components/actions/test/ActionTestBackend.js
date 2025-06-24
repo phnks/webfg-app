@@ -792,23 +792,12 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                 {(() => {
                   const sourceAttribute = actionResult.action.sourceAttribute;
                   const targetAttribute = actionResult.action.targetAttribute;
-                  const sourceDice = getDiceForAttribute(sourceAttribute);
-                  const targetDice = getDiceForAttribute(targetAttribute);
                   
-                  // Calculate modifiers based on attribute values and fatigue
-                  const sourceModifier = calculateAttributeModifier(
-                    actionResult.result.sourceValue, 
-                    actionResult.result.sourceFatigue, 
-                    sourceAttribute
-                  );
-                  const targetModifier = calculateAttributeModifier(
-                    actionResult.result.targetValue, 
-                    actionResult.result.targetFatigue, 
-                    targetAttribute
-                  );
-                  
-                  const sourceDiceDisplay = formatDiceRoll(sourceAttribute, sourceModifier);
-                  const targetDiceDisplay = formatDiceRoll(targetAttribute, targetModifier);
+                  // Use backend-calculated values
+                  const sourceDiceDisplay = actionResult.result.sourceDiceDisplay || 'N/A';
+                  const targetDiceDisplay = actionResult.result.targetDiceDisplay || 'N/A';
+                  const sourceModifier = actionResult.result.sourceModifier || 0;
+                  const targetModifier = actionResult.result.targetModifier || 0;
                   
                   return (
                     <div className="dice-roll-info">
@@ -831,7 +820,7 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                       </div>
                       
                       <div className="modifier-breakdown">
-                        <h6>Modifier Breakdown</h6>
+                        <h6>Dice Roll Calculation</h6>
                         <div className="modifier-item">
                           <span className="modifier-label">Source {sourceAttribute}:</span>
                           <span className="modifier-calculation">
@@ -839,7 +828,7 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                             {attributeUsesDice(sourceAttribute) && actionResult.result.sourceFatigue > 0 && (
                               <> - {actionResult.result.sourceFatigue} (fatigue)</>
                             )}
-                            {' = '}{sourceModifier}
+                            {' = '}{sourceModifier} → {sourceDiceDisplay}
                           </span>
                         </div>
                         <div className="modifier-item">
@@ -849,18 +838,49 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                             {attributeUsesDice(targetAttribute) && actionResult.result.targetFatigue > 0 && (
                               <> - {actionResult.result.targetFatigue} (fatigue)</>
                             )}
-                            {' = '}{targetModifier}
+                            {' = '}{targetModifier} → {targetDiceDisplay}
                           </span>
                         </div>
                       </div>
                       
-                      <div className="final-dice-display">
-                        <h6>Final Dice Rolls</h6>
-                        <div className="final-rolls">
-                          <span className="source-roll">{sourceDiceDisplay}</span>
-                          <span className="vs-text"> VS </span>
-                          <span className="target-roll">{targetDiceDisplay}</span>
-                        </div>
+                      <div className="success-ranges">
+                        <h6>Success Probability</h6>
+                        {(() => {
+                          // Use backend-calculated range analysis
+                          const sourceRange = actionResult.result.sourceRange || { min: 0, max: 0 };
+                          const targetRange = actionResult.result.targetRange || { min: 0, max: 0 };
+                          const guaranteedSuccess = actionResult.result.guaranteedSuccess || false;
+                          const guaranteedFailure = actionResult.result.guaranteedFailure || false;
+                          const partialSuccess = actionResult.result.partialSuccess || false;
+                          
+                          return (
+                            <div className="range-analysis">
+                              <div className="range-item">
+                                <span className="range-label">Source Range ({sourceAttribute}):</span>
+                                <span className={`range-value ${guaranteedSuccess ? 'guaranteed-success' : guaranteedFailure ? 'guaranteed-failure' : 'potential-success'}`}>
+                                  {sourceRange.min}-{sourceRange.max}
+                                </span>
+                              </div>
+                              <div className="range-item">
+                                <span className="range-label">Target Range ({targetAttribute}):</span>
+                                <span className="range-value target-range">
+                                  {targetRange.min}-{targetRange.max}
+                                </span>
+                              </div>
+                              <div className="success-assessment">
+                                {guaranteedSuccess && (
+                                  <span className="success-guaranteed">✓ Guaranteed Success - All source rolls beat all target rolls</span>
+                                )}
+                                {guaranteedFailure && (
+                                  <span className="success-impossible">✗ Guaranteed Failure - No source roll can beat any target roll</span>
+                                )}
+                                {partialSuccess && (
+                                  <span className="success-partial">~ Partial Success - Some combinations succeed</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   );

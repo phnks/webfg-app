@@ -69,12 +69,13 @@ export const calculateAttributeModifier = (attributeValue, fatigue, attribute) =
   
   // For static attributes (no dice), don't apply fatigue
   if (!attributeUsesDice(attribute)) {
-    return value;
+    return Math.round(value); // Round static values too
   }
   
-  // For dice-based attributes, subtract fatigue
+  // For dice-based attributes, subtract fatigue and round
   const fatigueValue = fatigue || 0;
-  return Math.max(0, value - fatigueValue); // Don't allow negative modifiers
+  const result = Math.max(0, value - fatigueValue); // Don't allow negative modifiers
+  return Math.round(result); // Round to integer (.0-.4 down, .5-.9 up)
 };
 
 /**
