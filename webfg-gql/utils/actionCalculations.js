@@ -113,9 +113,25 @@ const calculateActionDifficulty = (sourceValue, targetValue) => {
  * @returns {number} The ready grouped attribute value (equipment + ready objects)
  */
 const getSingleCharacterSourceAttributeValue = (character, attributeName, selectedReadyObjectId = null) => {
+  console.log('[DEBUG getSingleCharacterSourceAttributeValue]', {
+    characterName: character?.name,
+    attributeName,
+    selectedReadyObjectId,
+    hasReadyArray: !!character?.ready,
+    readyCount: character?.ready?.length || 0,
+    readyIds: character?.readyIds || []
+  });
+  
   if (selectedReadyObjectId) {
     // If a ready object is selected, calculate grouping including that specific object
     const groupedAttributes = calculateGroupedAttributesWithSelectedReady(character, selectedReadyObjectId);
+    
+    console.log('[DEBUG after calculateGroupedAttributesWithSelectedReady]', {
+      characterName: character?.name,
+      attributeName,
+      selectedReadyObjectId,
+      groupedValue: groupedAttributes[attributeName]
+    });
     
     if (groupedAttributes[attributeName] !== undefined) {
       return groupedAttributes[attributeName];

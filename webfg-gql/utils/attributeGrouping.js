@@ -474,13 +474,25 @@ const calculateObjectGroupedAttributes = (object) => {
 const calculateGroupedAttributesWithSelectedReady = (character, selectedReadyObjectId) => {
   const groupedAttributes = {};
   
+  console.log('[DEBUG calculateGroupedAttributesWithSelectedReady]', {
+    characterName: character?.name,
+    selectedReadyObjectId,
+    hasReadyArray: !!character?.ready,
+    readyCount: character?.ready?.length || 0,
+    readyObjects: character?.ready?.map(obj => ({ objectId: obj.objectId, name: obj.name })) || []
+  });
+  
   if (!character || !selectedReadyObjectId) {
+    console.log('[DEBUG] Fallback: no character or selectedReadyObjectId');
     return calculateGroupedAttributes(character); // Fallback to equipment-only
   }
   
   // Find the selected ready object
   const selectedReadyObject = character.ready?.find(obj => obj.objectId === selectedReadyObjectId);
+  console.log('[DEBUG] Found selected ready object:', selectedReadyObject ? { objectId: selectedReadyObject.objectId, name: selectedReadyObject.name } : 'NOT FOUND');
+  
   if (!selectedReadyObject) {
+    console.log('[DEBUG] Fallback: selected ready object not found in character.ready array');
     return calculateGroupedAttributes(character); // Fallback if object not found
   }
   
@@ -529,6 +541,22 @@ const calculateGroupedAttributesWithSelectedReady = (character, selectedReadyObj
       }
       
       valuesToGroup.push(readyValue);
+      
+      // Debug logging for dexterity specifically
+      if (attributeName === 'dexterity') {
+        console.log('[DEBUG selected ready object dexterity]', {
+          objectName: selectedReadyObject.name,
+          readyAttrInfo,
+          readyValue,
+          addedToGroup: true
+        });
+      }
+    } else if (attributeName === 'dexterity') {
+      console.log('[DEBUG selected ready object dexterity NOT grouped]', {
+        objectName: selectedReadyObject.name,
+        readyAttrInfo,
+        reason: !readyAttrInfo ? 'no attribute info' : 'not grouped'
+      });
     }
     
     // Calculate final grouped value
@@ -544,6 +572,16 @@ const calculateGroupedAttributesWithSelectedReady = (character, selectedReadyObj
       const groupedValue = calculateGroupingFormula(valuesToGroup);
       
       groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
+    }
+    
+    // Debug logging for dexterity calculation
+    if (attributeName === 'dexterity') {
+      console.log('[DEBUG calculateGroupedAttributesWithSelectedReady dexterity result]', {
+        characterName: character.name,
+        selectedObjectName: selectedReadyObject.name,
+        valuesToGroup,
+        finalValue: groupedAttributes[attributeName]
+      });
     }
   });
   
