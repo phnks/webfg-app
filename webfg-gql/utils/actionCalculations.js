@@ -7,7 +7,8 @@ const {
   calculateGroupedAttributes, 
   calculateReadyGroupedAttributes,
   calculateObjectGroupedAttributes,
-  calculateGroupingFormula
+  calculateGroupingFormula,
+  calculateGroupedAttributesWithSelectedReady
 } = require('./attributeGrouping');
 
 /**
@@ -111,12 +112,25 @@ const calculateActionDifficulty = (sourceValue, targetValue) => {
  * @param {string} attributeName - Attribute name (lowercase)
  * @returns {number} The ready grouped attribute value (equipment + ready objects)
  */
-const getSingleCharacterSourceAttributeValue = (character, attributeName) => {
-  const readyGroupedAttributes = calculateReadyGroupedAttributes(character);
+const getSingleCharacterSourceAttributeValue = (character, attributeName, selectedReadyObjectId = null) => {
+  if (selectedReadyObjectId) {
+    // If a ready object is selected, calculate grouping including that specific object
+    const groupedAttributes = calculateGroupedAttributesWithSelectedReady(character, selectedReadyObjectId);
     
-  if (readyGroupedAttributes[attributeName] !== undefined) {
-    return readyGroupedAttributes[attributeName];
-  } else if (character[attributeName] && character[attributeName].attribute) {
+    if (groupedAttributes[attributeName] !== undefined) {
+      return groupedAttributes[attributeName];
+    }
+  } else {
+    // If no ready object is selected, use equipment-only grouping
+    const groupedAttributes = calculateGroupedAttributes(character);
+    
+    if (groupedAttributes[attributeName] !== undefined) {
+      return groupedAttributes[attributeName];
+    }
+  }
+  
+  // Fallback to base attribute value
+  if (character[attributeName] && character[attributeName].attribute) {
     return character[attributeName].attribute.attributeValue || 0;
   }
   return 0;
@@ -167,18 +181,18 @@ const getSingleEntityTargetAttributeValue = (entity, attributeName, entityType) 
  * @param {string} sourceAttribute - Attribute name (lowercase)
  * @returns {number} The grouped source value using ready attributes (equipment + ready objects)
  */
-const groupSourceAttributes = (sourceCharacters, sourceAttribute) => {
+const groupSourceAttributes = (sourceCharacters, sourceAttribute, selectedReadyObjectId = null) => {
   if (!sourceCharacters || sourceCharacters.length === 0) return 0;
   
   if (sourceCharacters.length === 1) {
-    // Single source - get ready grouped value
-    return getSingleCharacterSourceAttributeValue(sourceCharacters[0], sourceAttribute);
+    // Single source - get value based on ready object selection
+    return getSingleCharacterSourceAttributeValue(sourceCharacters[0], sourceAttribute, selectedReadyObjectId);
   }
   
-  // Get the final ready grouped attribute value for each source character
+  // Get the final grouped attribute value for each source character
   const sourceValues = [];
   sourceCharacters.forEach(character => {
-    const groupedValue = getSingleCharacterSourceAttributeValue(character, sourceAttribute);
+    const groupedValue = getSingleCharacterSourceAttributeValue(character, sourceAttribute, selectedReadyObjectId);
     if (groupedValue > 0) { // Only include non-zero values
       sourceValues.push(groupedValue);
     }
@@ -256,7 +270,8 @@ const calculateActionTest = (params) => {
     override = false,
     overrideValue = 0,
     sourceOverride = false,
-    sourceOverrideValue = 0
+    sourceOverrideValue = 0,
+    selectedReadyObjectId = null
   } = params;
   
   // Convert attribute names to lowercase for calculation
@@ -269,7 +284,7 @@ const calculateActionTest = (params) => {
   if (sourceOverride) {
     sourceValue = sourceOverrideValue;
   } else {
-    sourceValue = groupSourceAttributes(sourceCharacters, sourceLower);
+    sourceValue = groupSourceAttributes(sourceCharacters, sourceLower, selectedReadyObjectId);
   }
   
   // Calculate target value (without fatigue for characters)

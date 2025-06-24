@@ -465,6 +465,91 @@ const calculateObjectGroupedAttributes = (object) => {
   return groupedAttributes;
 };
 
+/**
+ * Groups attributes from a character, their equipped objects, and a specific selected ready object
+ * @param {Object} character - Character object with attributes, equipment, and ready items
+ * @param {string} selectedReadyObjectId - ID of the specific ready object to include
+ * @returns {Object} Object containing grouped values for each attribute
+ */
+const calculateGroupedAttributesWithSelectedReady = (character, selectedReadyObjectId) => {
+  const groupedAttributes = {};
+  
+  if (!character || !selectedReadyObjectId) {
+    return calculateGroupedAttributes(character); // Fallback to equipment-only
+  }
+  
+  // Find the selected ready object
+  const selectedReadyObject = character.ready?.find(obj => obj.objectId === selectedReadyObjectId);
+  if (!selectedReadyObject) {
+    return calculateGroupedAttributes(character); // Fallback if object not found
+  }
+  
+  ATTRIBUTE_NAMES.forEach(attributeName => {
+    const charAttrInfo = extractAttributeInfo(character[attributeName]);
+    
+    if (!charAttrInfo) {
+      // Character doesn't have this attribute, skip grouping
+      return;
+    }
+    
+    // Collect all values for grouping (base + equipment + selected ready object)
+    const valuesToGroup = [];
+    
+    // Only include character's value if they have isGrouped=true
+    if (charAttrInfo.isGrouped) {
+      valuesToGroup.push(charAttrInfo.value);
+    }
+    
+    // Add equipment values if they're groupable
+    if (character.equipment && character.equipment.length > 0) {
+      character.equipment.forEach(item => {
+        const itemAttrInfo = extractAttributeInfo(item[attributeName]);
+        if (itemAttrInfo && itemAttrInfo.isGrouped) {
+          // For objects, check if they have their own equipment and get their grouped value
+          let itemValue = itemAttrInfo.value;
+          
+          if (item.equipment && item.equipment.length > 0) {
+            const itemGroupedAttrs = calculateObjectGroupedAttributes(item);
+            itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
+          }
+          
+          valuesToGroup.push(itemValue);
+        }
+      });
+    }
+    
+    // Add selected ready object value if it's groupable
+    const readyAttrInfo = extractAttributeInfo(selectedReadyObject[attributeName]);
+    if (readyAttrInfo && readyAttrInfo.isGrouped) {
+      let readyValue = readyAttrInfo.value;
+      
+      if (selectedReadyObject.equipment && selectedReadyObject.equipment.length > 0) {
+        const readyGroupedAttrs = calculateObjectGroupedAttributes(selectedReadyObject);
+        readyValue = readyGroupedAttrs[attributeName] || readyAttrInfo.value;
+      }
+      
+      valuesToGroup.push(readyValue);
+    }
+    
+    // Calculate final grouped value
+    if (valuesToGroup.length === 0) {
+      groupedAttributes[attributeName] = charAttrInfo.value;
+    } else if (valuesToGroup.length === 1) {
+      groupedAttributes[attributeName] = valuesToGroup[0];
+    } else {
+      // Sort values in descending order (highest first)
+      valuesToGroup.sort((a, b) => b - a);
+      
+      // Apply weighted average grouping formula
+      const groupedValue = calculateGroupingFormula(valuesToGroup);
+      
+      groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
+    }
+  });
+  
+  return groupedAttributes;
+};
+
 module.exports = {
   ATTRIBUTE_NAMES,
   ATTRIBUTE_GROUPS,
@@ -472,5 +557,6 @@ module.exports = {
   extractAttributeInfo,
   calculateGroupedAttributes,
   calculateReadyGroupedAttributes,
-  calculateObjectGroupedAttributes
+  calculateObjectGroupedAttributes,
+  calculateGroupedAttributesWithSelectedReady
 };
