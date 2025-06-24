@@ -42,6 +42,7 @@ const createDefaultObjectForm = () => {
   const form = {
     name: "",
     objectCategory: ObjectCategoryEnum[0],
+    isEquipment: true, // Default to true (passive equipment like armor)
     special: [],
     equipmentIds: []
   };
@@ -60,6 +61,7 @@ const prepareObjectInput = (data) => {
   const input = {
     name: data.name,
     objectCategory: data.objectCategory || ObjectCategoryEnum[0],
+    isEquipment: data.isEquipment !== undefined ? data.isEquipment : true,
     special: data.special || [],
     equipmentIds: data.equipmentIds || []
   };
@@ -87,6 +89,7 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
       const form = {
         name: base.name || "",
         objectCategory: base.objectCategory || ObjectCategoryEnum[0],
+        isEquipment: base.isEquipment !== undefined ? base.isEquipment : true,
         special: base.special || [],
         equipmentIds: base.equipmentIds || []
       };
@@ -263,6 +266,23 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
           <select id="objectCategory" name="objectCategory" value={formData.objectCategory} onChange={handleChange}>
             {ObjectCategoryEnum.map(cat => <option key={cat} value={cat}>{cat}</option>)}
           </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="isEquipment" className="checkbox-label">
+            <input
+              type="checkbox"
+              id="isEquipment"
+              name="isEquipment"
+              checked={formData.isEquipment !== false}
+              onChange={(e) => setFormData(prev => ({ ...prev, isEquipment: e.target.checked }))}
+            />
+            Is Equipment (provides passive benefits when equipped)
+          </label>
+          <small className="field-help">
+            Check this for armor, shields, and other items that provide benefits just by being equipped.
+            Uncheck for weapons, tools, and items that only provide benefits when actively used in actions.
+          </small>
         </div>
 
         <div className="form-group">

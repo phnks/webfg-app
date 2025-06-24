@@ -35,7 +35,7 @@ export const LIST_CHARACTERS = gql`
       intelligence { attribute { attributeValue isGrouped } }
       charisma { attribute { attributeValue isGrouped } }
       equipment { 
-        objectId name objectCategory
+        objectId name objectCategory isEquipment
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
@@ -52,7 +52,7 @@ export const LIST_CHARACTERS = gql`
         intelligence { attributeValue isGrouped }
         charisma { attributeValue isGrouped }
         equipment { 
-          objectId name objectCategory
+          objectId name objectCategory isEquipment
           speed { attributeValue isGrouped }
           weight { attributeValue isGrouped }
           size { attributeValue isGrouped }
@@ -122,10 +122,10 @@ export const GET_CHARACTER = gql`
       actionIds
       actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType objectUsage triggeredActionId triggeredAction { actionId name sourceAttribute targetAttribute targetType effectType objectUsage } }
       stashIds
-      stash { objectId name objectCategory }
+      stash { objectId name objectCategory isEquipment }
       equipmentIds
       equipment { 
-        objectId name objectCategory
+        objectId name objectCategory isEquipment
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
@@ -142,7 +142,7 @@ export const GET_CHARACTER = gql`
         intelligence { attributeValue isGrouped }
         charisma { attributeValue isGrouped }
         equipment { 
-          objectId name objectCategory
+          objectId name objectCategory isEquipment
           speed { attributeValue isGrouped }
           weight { attributeValue isGrouped }
           size { attributeValue isGrouped }
@@ -162,7 +162,7 @@ export const GET_CHARACTER = gql`
       }
       readyIds
       ready { 
-        objectId name objectCategory
+        objectId name objectCategory isEquipment
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
@@ -190,6 +190,7 @@ export const LIST_OBJECTS = gql`
       objectId
       name
       objectCategory
+      isEquipment
       speed { attributeValue isGrouped }
       weight { attributeValue isGrouped }
       size { attributeValue isGrouped }
@@ -208,7 +209,7 @@ export const LIST_OBJECTS = gql`
       special
       equipmentIds
       equipment { 
-        objectId name objectCategory
+        objectId name objectCategory isEquipment
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
@@ -1239,7 +1240,7 @@ export const LIST_CHARACTERS_ENHANCED = gql`
         intelligence { attribute { attributeValue isGrouped } }
         charisma { attribute { attributeValue isGrouped } }
         equipment { 
-          objectId name objectCategory
+          objectId name objectCategory isEquipment
           speed { attributeValue isGrouped }
           weight { attributeValue isGrouped }
           size { attributeValue isGrouped }
@@ -1258,7 +1259,7 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           equipment { objectId name objectCategory }
         }
         ready { 
-          objectId name objectCategory
+          objectId name objectCategory isEquipment
           speed { attributeValue isGrouped }
           weight { attributeValue isGrouped }
           size { attributeValue isGrouped }
@@ -1277,7 +1278,7 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           equipment { objectId name objectCategory }
         }
         stash { 
-          objectId name objectCategory
+          objectId name objectCategory isEquipment
           speed { attributeValue isGrouped }
           weight { attributeValue isGrouped }
           size { attributeValue isGrouped }
@@ -1328,7 +1329,7 @@ export const LIST_OBJECTS_ENHANCED = gql`
         charisma { attributeValue isGrouped }
         special
         equipment { 
-          objectId name objectCategory
+          objectId name objectCategory isEquipment
           speed { attributeValue isGrouped }
           weight { attributeValue isGrouped }
           size { attributeValue isGrouped }

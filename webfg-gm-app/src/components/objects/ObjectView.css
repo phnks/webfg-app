@@ -7,6 +7,17 @@
   line-height: 1.6;
 }
 
+/* Equipment Type Styling */
+.equipment-type.passive {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.equipment-type.active {
+  color: #dc3545;
+  font-weight: 500;
+}
+
 /* Breadcrumbs */
 .breadcrumb-nav {
   background-color: #fff;

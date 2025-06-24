@@ -78,19 +78,30 @@ const ActionTestBackend = ({ action, character, onClose }) => {
       sourceOverrideValue: hasSourceOverride ? parseFloat(sourceOverrideVal) || 0 : 0
     };
     
+    // Only include selectedReadyObjectId if it's not null/undefined to avoid Apollo Client stripping it
+    if (selectedObjectId !== null && selectedObjectId !== undefined) {
+      input.selectedReadyObjectId = selectedObjectId;
+    }
+    
     console.log(`Calculating action ${actionIndex + 1}: ${currentAction.name}`, {
       sourceIds,
       targetIds,
       isFirstAction,
       actionKey,
       actionOverride,
-      input
+      input,
+      selectedObjectId,
+      selectedObjectIdType: typeof selectedObjectId,
+      selectedObjectIdIsNull: selectedObjectId === null,
+      selectedObjectIdIsUndefined: selectedObjectId === undefined
     });
     
     // Calculate test for current action
+    console.log('About to call calculateTest with variables:', { input });
     const result = await calculateTest({
       variables: { input }
     });
+    console.log('calculateTest result:', result.data?.calculateActionTest);
     
     if (result.data && result.data.calculateActionTest) {
       const actionResult = {
