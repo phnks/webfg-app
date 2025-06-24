@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client';
 import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, GET_ACTION } from '../../../graphql/operations';
 import { CALCULATE_ACTION_TEST } from '../../../graphql/computedOperations';
+import { 
+  getDiceForAttribute, 
+  attributeUsesDice, 
+  calculateAttributeModifier, 
+  formatDiceRoll, 
+  getAttributeRange 
+} from '../../../utils/diceMapping';
 import './ActionTest.css';
 
 const ActionTestBackend = ({ action, character, onClose }) => {
@@ -781,116 +788,129 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                       actionResult.result.targetValue}
                   </p>
                 
-                {/* Dice Pool Information */}
-                {actionResult.result.dicePoolExceeded && (
-                  <div className="dice-pool-info">
-                    <h5>Dice Pools</h5>
-                    <p className="dice-pool-note">
-                      Total dice exceeded 20, pools were halved:
-                    </p>
-                    <div className="dice-pool-values">
-                      <div className="dice-pool-item">
-                        <span className="dice-label">Source Dice:</span>
-                        <span className="dice-original">{actionResult.result.sourceDice}</span>
-                        <span className="dice-arrow">→</span>
-                        <span className="dice-adjusted">{actionResult.result.adjustedSourceDice}</span>
+                {/* New Dice Rolling Information */}
+                {(() => {
+                  const sourceAttribute = actionResult.action.sourceAttribute;
+                  const targetAttribute = actionResult.action.targetAttribute;
+                  const sourceDice = getDiceForAttribute(sourceAttribute);
+                  const targetDice = getDiceForAttribute(targetAttribute);
+                  
+                  // Calculate modifiers based on attribute values and fatigue
+                  const sourceModifier = calculateAttributeModifier(
+                    actionResult.result.sourceValue, 
+                    actionResult.result.sourceFatigue, 
+                    sourceAttribute
+                  );
+                  const targetModifier = calculateAttributeModifier(
+                    actionResult.result.targetValue, 
+                    actionResult.result.targetFatigue, 
+                    targetAttribute
+                  );
+                  
+                  const sourceDiceDisplay = formatDiceRoll(sourceAttribute, sourceModifier);
+                  const targetDiceDisplay = formatDiceRoll(targetAttribute, targetModifier);
+                  
+                  return (
+                    <div className="dice-roll-info">
+                      <h5>Dice Rolls Required</h5>
+                      <div className="dice-roll-values">
+                        <div className="dice-roll-item">
+                          <span className="dice-label">Source ({sourceAttribute}):</span>
+                          <span className="dice-value">{sourceDiceDisplay}</span>
+                          {!attributeUsesDice(sourceAttribute) && (
+                            <span className="static-note"> (No roll needed)</span>
+                          )}
+                        </div>
+                        <div className="dice-roll-item">
+                          <span className="dice-label">Target ({targetAttribute}):</span>
+                          <span className="dice-value">{targetDiceDisplay}</span>
+                          {!attributeUsesDice(targetAttribute) && (
+                            <span className="static-note"> (No roll needed)</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="dice-pool-item">
-                        <span className="dice-label">Target Dice:</span>
-                        <span className="dice-original">{actionResult.result.targetDice}</span>
-                        <span className="dice-arrow">→</span>
-                        <span className="dice-adjusted">{actionResult.result.adjustedTargetDice}</span>
+                      
+                      <div className="modifier-breakdown">
+                        <h6>Modifier Breakdown</h6>
+                        <div className="modifier-item">
+                          <span className="modifier-label">Source {sourceAttribute}:</span>
+                          <span className="modifier-calculation">
+                            {actionResult.result.sourceValue}
+                            {attributeUsesDice(sourceAttribute) && actionResult.result.sourceFatigue > 0 && (
+                              <> - {actionResult.result.sourceFatigue} (fatigue)</>
+                            )}
+                            {' = '}{sourceModifier}
+                          </span>
+                        </div>
+                        <div className="modifier-item">
+                          <span className="modifier-label">Target {targetAttribute}:</span>
+                          <span className="modifier-calculation">
+                            {actionResult.result.targetValue}
+                            {attributeUsesDice(targetAttribute) && actionResult.result.targetFatigue > 0 && (
+                              <> - {actionResult.result.targetFatigue} (fatigue)</>
+                            )}
+                            {' = '}{targetModifier}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="final-dice-display">
+                        <h6>Final Dice Rolls</h6>
+                        <div className="final-rolls">
+                          <span className="source-roll">{sourceDiceDisplay}</span>
+                          <span className="vs-text"> VS </span>
+                          <span className="target-roll">{targetDiceDisplay}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
                 
-                {!actionResult.result.dicePoolExceeded && (
-                  <div className="dice-pool-info">
-                    <h5>Dice to Roll</h5>
-                    <div className="dice-pool-values">
-                      <div className="dice-pool-item">
-                        <span className="dice-label">Source Dice:</span>
-                        <span className="dice-value">{actionResult.result.sourceDice}</span>
-                      </div>
-                      <div className="dice-pool-item">
-                        <span className="dice-label">Target Dice:</span>
-                        <span className="dice-value">{actionResult.result.targetDice}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Fatigue Application */}
+                {/* Fatigue Information - Simplified for new dice system */}
                 {(actionResult.result.sourceFatigue > 0 || actionResult.result.targetFatigue > 0) && (
                   <div className="fatigue-info">
-                    <h5>Fatigue Applied</h5>
+                    <h5>Current Fatigue</h5>
                     <p className="fatigue-note">
-                      Fatigue is applied after dice pool adjustment:
+                      Fatigue is subtracted from dice-based attribute modifiers:
                     </p>
                     <div className="fatigue-values">
                       {actionResult.result.sourceFatigue > 0 && (
                         <div className="fatigue-item">
-                          <span className="fatigue-label">Source Fatigue:</span>
+                          <span className="fatigue-label">Source Characters:</span>
                           <div className="fatigue-breakdown">
                             {actionResult.result.sourceFatigueDetails && actionResult.result.sourceFatigueDetails.length > 0 ? (
-                              <>
-                                {actionResult.result.sourceFatigueDetails.map((detail, idx) => (
-                                  <span key={detail.characterId} className="fatigue-character">
-                                    {detail.characterName}: {detail.fatigue}
-                                    {idx < actionResult.result.sourceFatigueDetails.length - 1 && " + "}
-                                  </span>
-                                ))}
-                                <span className="fatigue-total"> = {actionResult.result.sourceFatigue}</span>
-                              </>
+                              actionResult.result.sourceFatigueDetails.map((detail, idx) => (
+                                <span key={detail.characterId} className="fatigue-character">
+                                  {detail.characterName}: {detail.fatigue} fatigue
+                                  {idx < actionResult.result.sourceFatigueDetails.length - 1 && ", "}
+                                </span>
+                              ))
                             ) : (
-                              <span className="fatigue-value">-{actionResult.result.sourceFatigue}</span>
+                              <span className="fatigue-value">Total: {actionResult.result.sourceFatigue}</span>
                             )}
                           </div>
-                          <span className="fatigue-arrow">→</span>
-                          <span className="fatigue-final">{actionResult.result.finalSourceDice} dice</span>
                         </div>
                       )}
                       {actionResult.result.targetFatigue > 0 && (
                         <div className="fatigue-item">
-                          <span className="fatigue-label">Target Fatigue:</span>
+                          <span className="fatigue-label">Target Characters:</span>
                           <div className="fatigue-breakdown">
                             {actionResult.result.targetFatigueDetails && actionResult.result.targetFatigueDetails.length > 0 ? (
-                              <>
-                                {actionResult.result.targetFatigueDetails.map((detail, idx) => (
-                                  <span key={detail.characterId} className="fatigue-character">
-                                    {detail.characterName}: {detail.fatigue}
-                                    {idx < actionResult.result.targetFatigueDetails.length - 1 && " + "}
-                                  </span>
-                                ))}
-                                <span className="fatigue-total"> = {actionResult.result.targetFatigue}</span>
-                              </>
+                              actionResult.result.targetFatigueDetails.map((detail, idx) => (
+                                <span key={detail.characterId} className="fatigue-character">
+                                  {detail.characterName}: {detail.fatigue} fatigue
+                                  {idx < actionResult.result.targetFatigueDetails.length - 1 && ", "}
+                                </span>
+                              ))
                             ) : (
-                              <span className="fatigue-value">-{actionResult.result.targetFatigue}</span>
+                              <span className="fatigue-value">Total: {actionResult.result.targetFatigue}</span>
                             )}
                           </div>
-                          <span className="fatigue-arrow">→</span>
-                          <span className="fatigue-final">{actionResult.result.finalTargetDice} dice</span>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
-                
-                {/* Final Dice Pools */}
-                <div className="final-dice-info">
-                  <h5>Final Dice Pools</h5>
-                  <div className="final-dice-values">
-                    <div className="final-dice-item">
-                      <span className="dice-label">Source:</span>
-                      <span className="dice-final-value">{actionResult.result.finalSourceDice} dice</span>
-                    </div>
-                    <div className="final-dice-item">
-                      <span className="dice-label">Target:</span>
-                      <span className="dice-final-value">{actionResult.result.finalTargetDice} dice</span>
-                    </div>
-                  </div>
-                </div>
               </div>
             );
             })}
