@@ -113,16 +113,18 @@ const calculateActionDifficulty = (sourceValue, targetValue) => {
  * @returns {number} The ready grouped attribute value (equipment + ready objects)
  */
 const getSingleCharacterSourceAttributeValue = (character, attributeName, selectedReadyObjectId = null) => {
-  console.log('[DEBUG getSingleCharacterSourceAttributeValue]', {
+  console.log('=== [DEBUG getSingleCharacterSourceAttributeValue] START ===', {
     characterName: character?.name,
     attributeName,
     selectedReadyObjectId,
     hasReadyArray: !!character?.ready,
     readyCount: character?.ready?.length || 0,
-    readyIds: character?.readyIds || []
+    readyIds: character?.readyIds || [],
+    readyObjectIds: character?.ready?.map(obj => obj.objectId) || []
   });
   
   if (selectedReadyObjectId) {
+    console.log('[DEBUG] Selected ready object ID provided, will calculate with selected ready object');
     // If a ready object is selected, calculate grouping including that specific object
     const groupedAttributes = calculateGroupedAttributesWithSelectedReady(character, selectedReadyObjectId);
     
@@ -130,25 +132,36 @@ const getSingleCharacterSourceAttributeValue = (character, attributeName, select
       characterName: character?.name,
       attributeName,
       selectedReadyObjectId,
-      groupedValue: groupedAttributes[attributeName]
+      groupedValue: groupedAttributes[attributeName],
+      allGroupedAttributes: groupedAttributes
     });
     
     if (groupedAttributes[attributeName] !== undefined) {
-      return groupedAttributes[attributeName];
+      const finalValue = groupedAttributes[attributeName];
+      console.log(`[DEBUG] RETURNING GROUPED VALUE WITH SELECTED READY: ${finalValue}`);
+      return finalValue;
+    } else {
+      console.log('[DEBUG] Grouped attributes did not contain the requested attribute, falling through');
     }
   } else {
+    console.log('[DEBUG] No ready object selected, using equipment-only grouping');
     // If no ready object is selected, use equipment-only grouping
     const groupedAttributes = calculateGroupedAttributes(character);
     
     if (groupedAttributes[attributeName] !== undefined) {
-      return groupedAttributes[attributeName];
+      const equipmentValue = groupedAttributes[attributeName];
+      console.log(`[DEBUG] RETURNING EQUIPMENT-ONLY GROUPED VALUE: ${equipmentValue}`);
+      return equipmentValue;
     }
   }
   
   // Fallback to base attribute value
   if (character[attributeName] && character[attributeName].attribute) {
-    return character[attributeName].attribute.attributeValue || 0;
+    const baseValue = character[attributeName].attribute.attributeValue || 0;
+    console.log(`[DEBUG] FALLING BACK TO BASE ATTRIBUTE VALUE: ${baseValue}`);
+    return baseValue;
   }
+  console.log('[DEBUG] NO VALUE FOUND, RETURNING 0');
   return 0;
 };
 
