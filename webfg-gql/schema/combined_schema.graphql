@@ -1,360 +1,29 @@
-type Attribute {
-  attributeValue: Float!
-  isGrouped: Boolean!
-}
-
-input AttributeInput {
-  attributeValue: Float!
-  isGrouped: Boolean!
-}
-
-enum AttributeName {
-  # BODY attributes
-  SPEED
-  WEIGHT
-  SIZE
-  ARMOUR
-  ENDURANCE
-  
-  # MARTIAL attributes
-  LETHALITY
-  STRENGTH
-  DEXTERITY
-  AGILITY
-  PERCEPTION
-  
-  # MENTAL attributes
-  INTENSITY
-  RESOLVE
-  MORALE
-  INTELLIGENCE
-  CHARISMA
-}type Value {
-  valueName: ValueName!
-  valueType: ValueType!
-}
-
-enum ValueName {
-  IDEALISM
-  PRAGMATISM
-  DISCIPLINE
-  DEFIANCE
-  CURIOSITY
-  DETACHMENT
-  CONTROL
-  COMPASSION
-  AMBITION
-  DOUBT
-  LOYALTY
-  INDEPENDENCE
-  FAITH
-  CYNICISM
-  GLORY
-  SURVIVAL
-  UNITY
-  VIOLENCE
-  RESTRAINT
-  OBSESSION
-}
-
-enum ValueType {
-  GOOD
-  BAD
-}
-type Character {
-  characterId: ID!
-  name: String!
-  characterCategory: CharacterCategory!
-  will: Int!
-  fatigue: Int!
-
-  values: [Value]      
-
-  # BODY attributes
-  speed: CharacterAttribute
-  weight: CharacterAttribute
-  size: CharacterAttribute
-  armour: CharacterAttribute!
-  endurance: CharacterAttribute!
-  
-  # MARTIAL attributes
-  lethality: CharacterAttribute!
-  strength: CharacterAttribute!
-  dexterity: CharacterAttribute!
-  agility: CharacterAttribute!
-  perception: CharacterAttribute!
-  
-  # MENTAL attributes
-  intensity: CharacterAttribute
-  resolve: CharacterAttribute!
-  morale: CharacterAttribute!
-  intelligence: CharacterAttribute!
-  charisma: CharacterAttribute!
-
-  actionIds: [ID]
-  actions: [Action]
-
-  special: [String]
-
-  inventoryIds: [ID]
-  inventory: [Object]
-  equipmentIds: [ID]
-  equipment: [Object]
-  
-  characterConditions: [CharacterCondition]
-  conditions: [CharacterConditionWithDetails]
-  
-  # Computed fields (only resolved when requested)
-  groupedAttributes: GroupedAttributes
-  attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]
-}
-
-enum CharacterCategory {
-  HUMAN
-  TREPIDITE
-  MONSTER
-  CARVED
-  ANTHRO
-  ICER
-  DAXMC
-  QRTIS
-  TYVIR
-}
-
-type CharacterAttribute {
-  attribute: Attribute!
-}
-
-input CharacterAttributeInput {
-  attribute: AttributeInput!
-}
-
-input ValueInput {
-  valueName: ValueName!
-  valueType: ValueType!
-}
-
-input CharacterInput {
-  name: String!
-  characterCategory: CharacterCategory!
-  will: Int!
-  fatigue: Int!
-  values: [ValueInput]
-  # BODY attributes
-  speed: CharacterAttributeInput
-  weight: CharacterAttributeInput
-  size: CharacterAttributeInput
-  armour: CharacterAttributeInput!
-  endurance: CharacterAttributeInput!
-  
-  # MARTIAL attributes
-  lethality: CharacterAttributeInput!
-  strength: CharacterAttributeInput!
-  dexterity: CharacterAttributeInput!
-  agility: CharacterAttributeInput!
-  perception: CharacterAttributeInput!
-  
-  # MENTAL attributes
-  intensity: CharacterAttributeInput
-  resolve: CharacterAttributeInput!
-  morale: CharacterAttributeInput!
-  intelligence: CharacterAttributeInput!
-  charisma: CharacterAttributeInput!
-  actionIds: [ID]
-  special: [String]
-  inventoryIds: [ID]
-  equipmentIds: [ID]
-  characterConditions: [CharacterConditionInput]
-}
-
-type CharacterCondition {
-  conditionId: ID!
-  amount: Int!
-}
-
-type CharacterConditionWithDetails {
-  conditionId: ID!
-  name: String!
-  description: String!
-  conditionCategory: ConditionCategory!
-  conditionType: ConditionType!
-  conditionTarget: AttributeName!
-  amount: Int!
-}
-
-input CharacterConditionInput {
-  conditionId: ID!
-  amount: Int!
-}type Object {
-  objectId: ID!
-  name: String!
-  objectCategory: ObjectCategory!
-  # BODY attributes
-  speed: Attribute
-  weight: Attribute
-  size: Attribute
-  armour: Attribute!
-  endurance: Attribute!
-  
-  # MARTIAL attributes
-  lethality: Attribute!
-  strength: Attribute!
-  dexterity: Attribute!
-  agility: Attribute!
-  perception: Attribute!
-  
-  # MENTAL attributes
-  intensity: Attribute
-  resolve: Attribute!
-  morale: Attribute!
-  intelligence: Attribute!
-  charisma: Attribute!
-  special: [String]
-  equipmentIds: [ID]
-  equipment: [Object]
-  
-  # Computed fields (only resolved when requested)
-  groupedAttributes: GroupedAttributes
-  attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]
-}
-
-enum ObjectCategory {
-  TOOL
-  WEAPON
-  ARMOR
-  CONTAINER
-  STRUCTURE
-  JEWLERY
-  DEVICE
-  MATERIAL
-  CLOTHING
-  LIGHT_SOURCE
-  DOCUMENT
-  COMPONENT
-  ARTIFACT
-}
-
-input ObjectInput {
-  name: String
-  objectCategory: ObjectCategory
-  # BODY attributes
-  speed: AttributeInput
-  weight: AttributeInput
-  size: AttributeInput
-  armour: AttributeInput
-  endurance: AttributeInput
-  
-  # MARTIAL attributes
-  lethality: AttributeInput
-  strength: AttributeInput
-  dexterity: AttributeInput
-  agility: AttributeInput
-  perception: AttributeInput
-  
-  # MENTAL attributes
-  intensity: AttributeInput
-  resolve: AttributeInput
-  morale: AttributeInput
-  intelligence: AttributeInput
-  charisma: AttributeInput
-  special: [String]
-  equipmentIds: [ID]
-}
-type Action {
-  actionId: ID!
-  name: String!
-  actionCategory: ActionCategory!
-  sourceAttribute: AttributeName!
-  targetAttribute: AttributeName!
-  description: String
-  targetType: TargetType!
-  effectType: EffectType!
-  triggeredActionId: ID
-  triggeredAction: Action
-}
-
-enum ActionCategory {
-  MOVE
-  ATTACK
-  DEFEND
-  RECOVER
-  INTERACT
-  MANIPULATE
-  ASSIST
-}
-
-enum TargetType {
-  OBJECT
-  CHARACTER
-  ACTION
-}
-
-enum EffectType {
-  HELP
-  HINDER
-  DESTROY
-  TRIGGER_ACTION
-}
-
-input ActionInput {
-  name: String!
-  actionCategory: ActionCategory!
-  sourceAttribute: AttributeName!
-  targetAttribute: AttributeName!
-  description: String
-  targetType: TargetType!
-  effectType: EffectType!
-  triggeredActionId: ID
-}type Condition {
-  conditionId: ID!
-  name: String!
-  description: String!
-  conditionCategory: ConditionCategory!
-  conditionType: ConditionType!
-  conditionTarget: AttributeName!
-}
-
-enum ConditionType {
-  HELP
-  HINDER
-}
-
-enum ConditionCategory {
-  PHYSICAL
-  MENTAL
-  ENVIRONMENTAL
-  MAGICAL
-  DISEASE
-  BUFF
-  DEBUFF
-  STATUS
-}
-
-input ConditionInput {
-  name: String!
-  description: String!
-  conditionCategory: ConditionCategory!
-  conditionType: ConditionType!
-  conditionTarget: AttributeName!
-}type Query {
+type Query {
   # Character queries
   getCharacter(characterId: ID!): Character
   listCharacters(filter: CharacterFilterInput): [Character]
+  # Enhanced character list query with search, filtering, sorting, and pagination
+  listCharactersEnhanced(filter: EnhancedCharacterFilterInput): CharacterConnection
 
   # Object queries
   getObject(objectId: ID!): Object
   listObjects(filter: ObjectFilterInput): [Object]
-
+  # Enhanced object list query with search, filtering, sorting, and pagination
+  listObjectsEnhanced(filter: EnhancedObjectFilterInput): ObjectConnection
 
   # Action queries
   getAction(actionId: ID!): Action
   getActions(actionIds: [ID!]!): [Action]
   listActions(filter: ActionFilterInput): [Action]
+  # Enhanced action list query with search, filtering, sorting, and pagination
+  listActionsEnhanced(filter: EnhancedActionFilterInput): ActionConnection
 
   # Condition queries
   getCondition(conditionId: ID!): Condition
   getConditions(conditionIds: [ID!]!): [Condition]
   listConditions(filter: ConditionFilterInput): [Condition]
+  # Enhanced condition list query with search, filtering, sorting, and pagination
+  listConditionsEnhanced(filter: EnhancedConditionFilterInput): ConditionConnection
 
   # Encounter queries
   getEncounter(encounterId: ID!): Encounter
@@ -382,10 +51,12 @@ type Mutation {
   deleteAction(actionId: ID!): Action
 
   # Character-Object relationship mutations
-  addObjectToInventory(characterId: ID!, objectId: ID!): Character
-  removeObjectFromInventory(characterId: ID!, objectId: ID!): Character
-  addObjectToEquipment(characterId: ID!, objectId: ID!): Character
-  removeObjectFromEquipment(characterId: ID!, objectId: ID!): Character
+  addObjectToStash(characterId: ID!, objectId: ID!): Character
+  removeObjectFromStash(characterId: ID!, objectId: ID!): Character
+  moveObjectToEquipment(characterId: ID!, objectId: ID!): Character
+  moveObjectToReady(characterId: ID!, objectId: ID!): Character
+  moveObjectFromReadyToEquipment(characterId: ID!, objectId: ID!): Character
+  moveObjectFromEquipmentToStash(characterId: ID!, objectId: ID!): Character
 
   # Character-Action relationship mutations
   addActionToCharacter(characterId: ID!, actionId: ID!): Character
@@ -512,6 +183,7 @@ input CharacterFilterInput {
  input ActionFilterInput {
    name: StringFilterInput
    actionCategory: ActionCategory # Changed from 'type: ActionType'
+   objectUsage: ObjectUsage
  }
 
 input ConditionFilterInput {
@@ -540,71 +212,291 @@ schema {
   mutation: Mutation
   subscription: Subscription
 }
-# Computed field types for grouped attributes and action calculations
-
-type GroupedAttributes {
-  lethality: Float
-  armour: Float
-  endurance: Float
-  strength: Float
-  dexterity: Float
-  agility: Float
-  perception: Float
-  charisma: Float
-  intelligence: Float
-  resolve: Float
-  morale: Float
-}
-
-type AttributeBreakdownStep {
-  step: Int!
-  entityName: String!
-  entityType: String!
-  attributeValue: Float!
-  isGrouped: Boolean!
-  runningTotal: Float!
-  formula: String
-}
-
-type FatigueContribution {
+type Character {
   characterId: ID!
-  characterName: String!
+  name: String!
+  nameLowerCase: String
+  characterCategory: CharacterCategory!
+  will: Int!
   fatigue: Int!
+
+  values: [Value]      
+
+  speed: CharacterAttribute
+  weight: CharacterAttribute
+  size: CharacterAttribute
+  armour: CharacterAttribute!
+  endurance: CharacterAttribute!
+  lethality: CharacterAttribute!
+  strength: CharacterAttribute!
+  dexterity: CharacterAttribute!
+  agility: CharacterAttribute!
+  perception: CharacterAttribute!
+  intensity: CharacterAttribute
+  resolve: CharacterAttribute!
+  morale: CharacterAttribute!
+  intelligence: CharacterAttribute!
+  charisma: CharacterAttribute!
+
+  actionIds: [ID]
+  actions: [Action]
+
+  special: [String]
+
+  stashIds: [ID]
+  stash: [Object]
+  equipmentIds: [ID]
+  equipment: [Object]
+  readyIds: [ID]
+  ready: [Object]
+  
+  characterConditions: [CharacterCondition]
+  conditions: [CharacterConditionWithDetails]
+  
+  # Computed fields (only resolved when requested)
+  groupedAttributes: GroupedAttributes
+  readyGroupedAttributes: ReadyGroupedAttributes
+  attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]
 }
 
-type ActionTestResult {
-  difficulty: Float!
-  sourceValue: Float!
-  targetValue: Float!
-  sourceCount: Int!
-  targetCount: Int!
-  successPercentage: Float!
-  sourceDice: Int!
-  targetDice: Int!
-  adjustedSourceDice: Int!
-  adjustedTargetDice: Int!
-  sourceFatigue: Int!
-  targetFatigue: Int!
-  finalSourceDice: Int!
-  finalTargetDice: Int!
-  dicePoolExceeded: Boolean!
-  sourceFatigueDetails: [FatigueContribution!]!
-  targetFatigueDetails: [FatigueContribution!]!
+enum CharacterCategory {
+  HUMAN
+  TREPIDITE
+  MONSTER
+  CARVED
+  ANTHRO
+  ICER
+  DAXMC
+  QRTIS
+  TYVIR
 }
 
-input ActionTestInput {
+type CharacterAttribute {
+  attribute: Attribute!
+}
+
+input CharacterAttributeInput {
+  attribute: AttributeInput!
+}
+
+input ValueInput {
+  valueName: ValueName!
+  valueType: ValueType!
+}
+
+input CharacterInput {
+  name: String!
+  characterCategory: CharacterCategory!
+  will: Int!
+  fatigue: Int!
+  values: [ValueInput]
+  speed: CharacterAttributeInput
+  weight: CharacterAttributeInput
+  size: CharacterAttributeInput
+  armour: CharacterAttributeInput!
+  endurance: CharacterAttributeInput!
+  lethality: CharacterAttributeInput!
+  strength: CharacterAttributeInput!
+  dexterity: CharacterAttributeInput!
+  agility: CharacterAttributeInput!
+  perception: CharacterAttributeInput!
+  intensity: CharacterAttributeInput
+  resolve: CharacterAttributeInput!
+  morale: CharacterAttributeInput!
+  intelligence: CharacterAttributeInput!
+  charisma: CharacterAttributeInput!
+  actionIds: [ID]
+  special: [String]
+  stashIds: [ID]
+  equipmentIds: [ID]
+  readyIds: [ID]
+  characterConditions: [CharacterConditionInput]
+}
+
+type CharacterCondition {
+  conditionId: ID!
+  amount: Int!
+}
+
+type CharacterConditionWithDetails {
+  conditionId: ID!
+  name: String!
+  description: String!
+  conditionCategory: ConditionCategory!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+  amount: Int!
+}
+
+input CharacterConditionInput {
+  conditionId: ID!
+  amount: Int!
+}type Object {
+  objectId: ID!
+  name: String!
+  nameLowerCase: String
+  objectCategory: ObjectCategory!
+  speed: Attribute
+  weight: Attribute
+  size: Attribute
+  armour: Attribute!
+  endurance: Attribute!
+  lethality: Attribute!
+  strength: Attribute!
+  dexterity: Attribute!
+  agility: Attribute!
+  perception: Attribute!
+  intensity: Attribute
+  resolve: Attribute!
+  morale: Attribute!
+  intelligence: Attribute!
+  charisma: Attribute!
+  special: [String]
+  equipmentIds: [ID]
+  equipment: [Object]
+  
+  # Computed fields (only resolved when requested)
+  groupedAttributes: GroupedAttributes
+  attributeBreakdown(attributeName: String!): [AttributeBreakdownStep!]
+}
+
+enum ObjectCategory {
+  TOOL
+  WEAPON
+  ARMOR
+  CONTAINER
+  STRUCTURE
+  JEWLERY
+  DEVICE
+  MATERIAL
+  CLOTHING
+  LIGHT_SOURCE
+  DOCUMENT
+  COMPONENT
+  ARTIFACT
+}
+
+input ObjectInput {
+  name: String
+  objectCategory: ObjectCategory
+  speed: AttributeInput
+  weight: AttributeInput
+  size: AttributeInput
+  armour: AttributeInput
+  endurance: AttributeInput
+  lethality: AttributeInput
+  strength: AttributeInput
+  dexterity: AttributeInput
+  agility: AttributeInput
+  perception: AttributeInput
+  intensity: AttributeInput
+  resolve: AttributeInput
+  morale: AttributeInput
+  intelligence: AttributeInput
+  charisma: AttributeInput
+  special: [String]
+  equipmentIds: [ID]
+}
+type Action {
   actionId: ID!
-  sourceCharacterIds: [ID!]!
-  targetIds: [ID!]
+  name: String!
+  nameLowerCase: String
+  actionCategory: ActionCategory!
+  sourceAttribute: AttributeName!
+  targetAttribute: AttributeName!
+  description: String
   targetType: TargetType!
-  override: Boolean
-  overrideValue: Float
-  sourceOverride: Boolean
-  sourceOverrideValue: Float
+  effectType: EffectType!
+  triggeredActionId: ID
+  triggeredAction: Action
+  objectUsage: ObjectUsage
 }
 
-# Computed fields are now directly in Character and Object types
-# Query extension for calculateActionTest is now in Schema.graphqltype Encounter {
+enum ActionCategory {
+  MOVE
+  ATTACK
+  DEFEND
+  RECOVER
+  INTERACT
+  MANIPULATE
+  ASSIST
+}
+
+enum TargetType {
+  OBJECT
+  CHARACTER
+  ACTION
+}
+
+enum EffectType {
+  HELP
+  HINDER
+  DESTROY
+  TRIGGER_ACTION
+}
+
+enum ObjectUsage {
+  NONE
+  ANY
+  TOOL
+  WEAPON
+  ARMOR
+  CONTAINER
+  STRUCTURE
+  JEWLERY
+  DEVICE
+  MATERIAL
+  CLOTHING
+  LIGHT_SOURCE
+  DOCUMENT
+  COMPONENT
+  ARTIFACT
+}
+
+input ActionInput {
+  name: String!
+  actionCategory: ActionCategory!
+  sourceAttribute: AttributeName!
+  targetAttribute: AttributeName!
+  description: String
+  targetType: TargetType!
+  effectType: EffectType!
+  triggeredActionId: ID
+  objectUsage: ObjectUsage
+}type Condition {
+  conditionId: ID!
+  name: String!
+  nameLowerCase: String
+  description: String!
+  descriptionLowerCase: String
+  conditionCategory: ConditionCategory!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+}
+
+enum ConditionType {
+  HELP
+  HINDER
+}
+
+enum ConditionCategory {
+  PHYSICAL
+  MENTAL
+  ENVIRONMENTAL
+  MAGICAL
+  DISEASE
+  BUFF
+  DEBUFF
+  STATUS
+}
+
+input ConditionInput {
+  name: String!
+  description: String!
+  conditionCategory: ConditionCategory!
+  conditionType: ConditionType!
+  conditionTarget: AttributeName!
+}type Encounter {
   encounterId: ID!
   name: String!
   description: String
@@ -676,4 +568,325 @@ input UpdateTerrainPositionInput {
   terrainId: ID!
   x: Int!
   y: Int!
+}
+type Attribute {
+  attributeValue: Float!
+  isGrouped: Boolean!
+}
+
+input AttributeInput {
+  attributeValue: Float!
+  isGrouped: Boolean!
+}
+
+enum AttributeName {
+  SPEED
+  WEIGHT
+  SIZE
+  ARMOUR
+  ENDURANCE
+  LETHALITY
+  STRENGTH
+  DEXTERITY
+  AGILITY
+  PERCEPTION
+  INTENSITY
+  RESOLVE
+  MORALE
+  INTELLIGENCE
+  CHARISMA
+}type Value {
+  valueName: ValueName!
+  valueType: ValueType!
+}
+
+enum ValueName {
+  IDEALISM
+  PRAGMATISM
+  DISCIPLINE
+  DEFIANCE
+  CURIOSITY
+  DETACHMENT
+  CONTROL
+  COMPASSION
+  AMBITION
+  DOUBT
+  LOYALTY
+  INDEPENDENCE
+  FAITH
+  CYNICISM
+  GLORY
+  SURVIVAL
+  UNITY
+  VIOLENCE
+  RESTRAINT
+  OBSESSION
+}
+
+enum ValueType {
+  GOOD
+  BAD
+}
+# Computed field types for grouped attributes and action calculations
+
+type GroupedAttributes {
+  speed: Float
+  weight: Float
+  size: Float
+  intensity: Float
+  lethality: Float
+  armour: Float
+  endurance: Float
+  strength: Float
+  dexterity: Float
+  agility: Float
+  perception: Float
+  charisma: Float
+  intelligence: Float
+  resolve: Float
+  morale: Float
+}
+
+type ReadyGroupedAttributes {
+  speed: Float
+  weight: Float
+  size: Float
+  intensity: Float
+  lethality: Float
+  armour: Float
+  endurance: Float
+  strength: Float
+  dexterity: Float
+  agility: Float
+  perception: Float
+  charisma: Float
+  intelligence: Float
+  resolve: Float
+  morale: Float
+}
+
+type AttributeBreakdownStep {
+  step: Int!
+  entityName: String!
+  entityType: String!
+  attributeValue: Float!
+  isGrouped: Boolean!
+  runningTotal: Float!
+  formula: String
+}
+
+type FatigueContribution {
+  characterId: ID!
+  characterName: String!
+  fatigue: Int!
+}
+
+type ActionTestResult {
+  difficulty: Float!
+  sourceValue: Float!
+  targetValue: Float!
+  sourceCount: Int!
+  targetCount: Int!
+  successPercentage: Float!
+  sourceDice: Int!
+  targetDice: Int!
+  adjustedSourceDice: Int!
+  adjustedTargetDice: Int!
+  sourceFatigue: Int!
+  targetFatigue: Int!
+  finalSourceDice: Int!
+  finalTargetDice: Int!
+  dicePoolExceeded: Boolean!
+  sourceFatigueDetails: [FatigueContribution!]!
+  targetFatigueDetails: [FatigueContribution!]!
+}
+
+input ActionTestInput {
+  actionId: ID!
+  sourceCharacterIds: [ID!]!
+  targetIds: [ID!]
+  targetType: TargetType!
+  override: Boolean
+  overrideValue: Float
+  sourceOverride: Boolean
+  sourceOverrideValue: Float
+  selectedReadyObjectId: ID
+}
+
+# Computed fields are now directly in Character and Object types
+# Query extension for calculateActionTest is now in Schema.graphql# Enhanced Filtering, Sorting and Pagination Schema
+
+# Generic pagination input
+input PaginationInput {
+  limit: Int # Max 100, default 10
+  cursor: String # For cursor-based pagination
+}
+
+# Generic sorting input
+input SortInput {
+  field: String!
+  direction: SortDirection!
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+# Enhanced filtering inputs for numeric values
+input NumericFilterInput {
+  eq: Int
+  ne: Int
+  lt: Int
+  le: Int
+  gt: Int
+  ge: Int
+  between: [Int!] # Exactly 2 values [min, max]
+}
+
+# Enhanced filtering inputs for float values
+input FloatFilterInput {
+  eq: Float
+  ne: Float
+  lt: Float
+  le: Float
+  gt: Float
+  ge: Float
+  between: [Float!] # Exactly 2 values [min, max]
+}
+
+# Attribute filtering for complex attribute objects
+input AttributeFilterInput {
+  attributeValue: FloatFilterInput
+  isGrouped: Boolean
+}
+
+# Enhanced Character Filter Input
+input EnhancedCharacterFilterInput {
+  # Text search - searches name and description
+  search: String
+  
+  # Basic filters
+  name: StringFilterInput
+  characterCategory: CharacterCategory
+  will: NumericFilterInput
+  fatigue: NumericFilterInput
+  
+  # Attribute filters
+  speed: AttributeFilterInput
+  weight: AttributeFilterInput
+  size: AttributeFilterInput
+  armour: AttributeFilterInput
+  endurance: AttributeFilterInput
+  lethality: AttributeFilterInput
+  strength: AttributeFilterInput
+  dexterity: AttributeFilterInput
+  agility: AttributeFilterInput
+  perception: AttributeFilterInput
+  intensity: AttributeFilterInput
+  resolve: AttributeFilterInput
+  morale: AttributeFilterInput
+  intelligence: AttributeFilterInput
+  charisma: AttributeFilterInput
+  
+  # Pagination and sorting
+  pagination: PaginationInput
+  sort: [SortInput!]
+}
+
+# Enhanced Object Filter Input
+input EnhancedObjectFilterInput {
+  # Text search - searches name
+  search: String
+  
+  # Basic filters
+  name: StringFilterInput
+  objectCategory: ObjectCategory
+  
+  # Attribute filters
+  speed: AttributeFilterInput
+  weight: AttributeFilterInput
+  size: AttributeFilterInput
+  armour: AttributeFilterInput
+  endurance: AttributeFilterInput
+  lethality: AttributeFilterInput
+  strength: AttributeFilterInput
+  dexterity: AttributeFilterInput
+  agility: AttributeFilterInput
+  perception: AttributeFilterInput
+  intensity: AttributeFilterInput
+  resolve: AttributeFilterInput
+  morale: AttributeFilterInput
+  intelligence: AttributeFilterInput
+  charisma: AttributeFilterInput
+  
+  # Pagination and sorting
+  pagination: PaginationInput
+  sort: [SortInput!]
+}
+
+# Enhanced Action Filter Input
+input EnhancedActionFilterInput {
+  # Text search - searches name and description
+  search: String
+  
+  # Basic filters
+  name: StringFilterInput
+  description: StringFilterInput
+  actionCategory: ActionCategory
+  sourceAttribute: AttributeName
+  targetAttribute: AttributeName
+  targetType: TargetType
+  effectType: EffectType
+  objectUsage: ObjectUsage
+  
+  # Pagination and sorting
+  pagination: PaginationInput
+  sort: [SortInput!]
+}
+
+# Enhanced Condition Filter Input
+input EnhancedConditionFilterInput {
+  # Text search - searches name and description
+  search: String
+  
+  # Basic filters
+  name: StringFilterInput
+  description: StringFilterInput
+  conditionCategory: ConditionCategory
+  conditionType: ConditionType
+  conditionTarget: AttributeName
+  
+  # Pagination and sorting
+  pagination: PaginationInput
+  sort: [SortInput!]
+}
+
+# Paginated response types
+type CharacterConnection {
+  items: [Character!]!
+  nextCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int
+}
+
+type ObjectConnection {
+  items: [Object!]!
+  nextCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int
+}
+
+type ActionConnection {
+  items: [Action!]!
+  nextCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int
+}
+
+type ConditionConnection {
+  items: [Condition!]!
+  nextCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int
 }

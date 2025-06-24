@@ -231,6 +231,10 @@ const ActionView = ({ startInEditMode = false }) => {
              <span>Effect Type:</span>
              <span>{action.effectType || "N/A"}</span>
            </div>
+           <div className="detail-row">
+             <span>Object Usage:</span>
+             <span>{action.objectUsage || "N/A"}</span>
+           </div>
          </div>
       </div>
       <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} />

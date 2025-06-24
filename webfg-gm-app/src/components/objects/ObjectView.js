@@ -257,6 +257,17 @@ const ObjectView = ({ startInEditMode = false }) => {
             <span>Category:</span>
             <span>{currentObject.objectCategory || "N/A"}</span>
           </div>
+          
+          <div className="detail-row">
+            <span>Is Equipment:</span>
+            <span>
+              {currentObject.isEquipment !== false ? (
+                <span className="equipment-type passive">✓ Provides passive benefits when equipped</span>
+              ) : (
+                <span className="equipment-type active">✗ Only provides benefits when actively used</span>
+              )}
+            </span>
+          </div>
 
           <AttributeGroups
             attributes={currentObject}

@@ -24,10 +24,10 @@ const CharacterAttributesBackend = ({
   const [selectedAttribute, setSelectedAttribute] = useState(null);
   const [breakdownAttributeName, setBreakdownAttributeName] = useState('');
   
-  // State for ready breakdown popup
-  const [showReadyBreakdown, setShowReadyBreakdown] = useState(false);
-  const [selectedReadyAttribute, setSelectedReadyAttribute] = useState(null);
-  const [readyBreakdownAttributeName, setReadyBreakdownAttributeName] = useState('');
+  // Note: Ready breakdown state removed as ready grouping is no longer automatic
+  // const [showReadyBreakdown, setShowReadyBreakdown] = useState(false);
+  // const [selectedReadyAttribute, setSelectedReadyAttribute] = useState(null);
+  // const [readyBreakdownAttributeName, setReadyBreakdownAttributeName] = useState('');
   
   // Query for breakdown data when needed
   const { data: breakdownData, loading: breakdownLoading } = useQuery(
@@ -56,14 +56,14 @@ const CharacterAttributesBackend = ({
     }
   };
   
-  // Handler for showing ready breakdown
-  const handleShowReadyBreakdown = (attributeKey, attributeName) => {
-    if (character) {
-      setSelectedReadyAttribute(attributeKey);
-      setReadyBreakdownAttributeName(attributeName);
-      setShowReadyBreakdown(true);
-    }
-  };
+  // Note: Ready breakdown handler removed as ready grouping is no longer automatic
+  // const handleShowReadyBreakdown = (attributeKey, attributeName) => {
+  //   if (character) {
+  //     setSelectedReadyAttribute(attributeKey);
+  //     setReadyBreakdownAttributeName(attributeName);
+  //     setShowReadyBreakdown(true);
+  //   }
+  // };
   
   const hasConditions = character && character.conditions && character.conditions.length > 0;
   
@@ -390,12 +390,8 @@ const CharacterAttributesBackend = ({
       // Always show equipment grouped when we have ready items (to show the intermediate step)
       (hasReady && readyGroupedAttributes && readyGroupedValue !== undefined && readyGroupedValue !== null);
        
-    // Determine if we should show ready grouped value
-    // Show if character has ready items AND we have readyGroupedAttributes data
-    const shouldShowReadyGroupedValue = 
-      hasReady && 
-      readyGroupedAttributes && // Check that readyGroupedAttributes exists
-      readyGroupedValue !== undefined && readyGroupedValue !== null;
+    // Note: Ready grouped values are no longer automatically displayed
+    // They will only be calculated and shown during action tests when an object is selected
     
     return (
       <div key={attributeName} className="attribute-item">
@@ -435,33 +431,7 @@ const CharacterAttributesBackend = ({
               )}
             </span>
           )}
-          {shouldShowReadyGroupedValue && (
-            <span 
-              className="ready-grouped-value" 
-              style={{
-                ...getGroupedValueStyle(equipmentGroupedValue, readyGroupedValue),
-                marginLeft: '4px'
-              }}
-              title="Ready grouped value with equipment + ready objects (for sources)"
-            >
-              {' → '}{
-                readyGroupedValue !== undefined && 
-                !isNaN(Number(readyGroupedValue)) ? 
-                  Math.round(Number(readyGroupedValue)) : 
-                  equipmentGroupedValue
-              }
-              <button
-                className="info-icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleShowReadyBreakdown(attributeName, displayName);
-                }}
-                title="Show ready grouped attribute breakdown"
-              >
-                ℹ️
-              </button>
-            </span>
-          )}
+          {/* Ready grouped values are no longer displayed here - only shown during action tests */}
         </span>
       </div>
     );
@@ -499,6 +469,8 @@ const CharacterAttributesBackend = ({
         />
       )}
       
+      {/* Ready breakdown popup removed as ready grouping is no longer automatic */}
+      {/*
       {showReadyBreakdown && (
         <AttributeBreakdownPopup
           breakdown={generateReadyFallbackBreakdown(selectedReadyAttribute)}
@@ -510,6 +482,7 @@ const CharacterAttributesBackend = ({
           }}
         />
       )}
+      */}
     </>
   );
 };

@@ -153,6 +153,7 @@ const ActionList = () => {
             <th>Category</th>
             <th>Source Attribute</th>
             <th>Target Attribute</th>
+            <th>Object Usage</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -163,6 +164,7 @@ const ActionList = () => {
               <td><span className="category-badge">{action.actionCategory}</span></td>
               <td>{action.sourceAttribute}</td>
               <td>{action.targetAttribute}</td>
+              <td><span className="object-usage-badge">{action.objectUsage || 'N/A'}</span></td>
               <td>
                 <div className="action-buttons">
                   {selectedCharacter && (
@@ -218,6 +220,7 @@ const ActionList = () => {
             <div className="action-details-meta">
               <span className="action-target-type">{action.targetType}</span>
               <span className="action-effect-type">{action.effectType}</span>
+              <span className="action-object-usage">{action.objectUsage || 'N/A'}</span>
             </div>
           </div>
           {action.description && (
@@ -253,6 +256,7 @@ const ActionList = () => {
             <div className="action-mobile-meta">
               <span className="category-badge">{action.actionCategory}</span>
               <span className="action-attributes">{action.sourceAttribute} → {action.targetAttribute}</span>
+              <span className="object-usage-badge">{action.objectUsage || 'N/A'}</span>
             </div>
           </div>
           <div className="action-mobile-actions">

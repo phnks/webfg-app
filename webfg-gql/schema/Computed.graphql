@@ -81,6 +81,7 @@ input ActionTestInput {
   overrideValue: Float
   sourceOverride: Boolean
   sourceOverrideValue: Float
+  selectedReadyObjectId: ID
 }
 
 # Computed fields are now directly in Character and Object types

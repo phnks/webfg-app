@@ -183,6 +183,7 @@ input CharacterFilterInput {
  input ActionFilterInput {
    name: StringFilterInput
    actionCategory: ActionCategory # Changed from 'type: ActionType'
+   objectUsage: ObjectUsage
  }
 
 input ConditionFilterInput {

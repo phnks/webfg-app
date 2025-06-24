@@ -24,7 +24,8 @@ exports.handler = async (event) => {
     override = false,
     overrideValue = 0,
     sourceOverride = false,
-    sourceOverrideValue = 0
+    sourceOverrideValue = 0,
+    selectedReadyObjectId = null
   } = input;
 
   try {
@@ -286,7 +287,8 @@ exports.handler = async (event) => {
       override,
       overrideValue,
       sourceOverride,
-      sourceOverrideValue
+      sourceOverrideValue,
+      selectedReadyObjectId
     });
 
     console.log("Calculated action test result:", JSON.stringify(result, null, 2));

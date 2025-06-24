@@ -16,6 +16,13 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   // Per-action override settings
   const [actionOverrides, setActionOverrides] = useState({});
   
+  // Object usage selection for ready inventory
+  const [selectedObjectId, setSelectedObjectId] = useState(null);
+  
+  // State for showing final grouped attributes
+  const [showFinalGrouped, setShowFinalGrouped] = useState(false);
+  const [finalGroupedAttributes, setFinalGroupedAttributes] = useState(null);
+  
   // Fetch potential targets based on targetType
   const { data: charactersData } = useQuery(LIST_CHARACTERS, { skip: targetType !== 'CHARACTER' });
   const { data: objectsData } = useQuery(LIST_OBJECTS, { skip: targetType !== 'OBJECT' });
@@ -71,19 +78,30 @@ const ActionTestBackend = ({ action, character, onClose }) => {
       sourceOverrideValue: hasSourceOverride ? parseFloat(sourceOverrideVal) || 0 : 0
     };
     
+    // Only include selectedReadyObjectId if it's not null/undefined to avoid Apollo Client stripping it
+    if (selectedObjectId !== null && selectedObjectId !== undefined) {
+      input.selectedReadyObjectId = selectedObjectId;
+    }
+    
     console.log(`Calculating action ${actionIndex + 1}: ${currentAction.name}`, {
       sourceIds,
       targetIds,
       isFirstAction,
       actionKey,
       actionOverride,
-      input
+      input,
+      selectedObjectId,
+      selectedObjectIdType: typeof selectedObjectId,
+      selectedObjectIdIsNull: selectedObjectId === null,
+      selectedObjectIdIsUndefined: selectedObjectId === undefined
     });
     
     // Calculate test for current action
+    console.log('About to call calculateTest with variables:', { input });
     const result = await calculateTest({
       variables: { input }
     });
+    console.log('calculateTest result:', result.data?.calculateActionTest);
     
     if (result.data && result.data.calculateActionTest) {
       const actionResult = {
@@ -199,6 +217,179 @@ const ActionTestBackend = ({ action, character, onClose }) => {
     } else {
       setSelectedSourceIds(prev => prev.filter(id => id !== sourceId));
     }
+  };
+  
+  // Handler for object selection from ready inventory
+  const handleObjectSelection = (objectId) => {
+    setSelectedObjectId(objectId === selectedObjectId ? null : objectId);
+  };
+  
+  // Get available objects from character's ready inventory based on objectUsage
+  const getAvailableReadyObjects = () => {
+    if (!character || !character.ready || !action.objectUsage || action.objectUsage === 'NONE') {
+      return [];
+    }
+    
+    const readyObjects = character.ready || [];
+    
+    if (action.objectUsage === 'ANY') {
+      return readyObjects;
+    }
+    
+    // Filter by object category matching objectUsage
+    return readyObjects.filter(obj => obj.objectCategory === action.objectUsage);
+  };
+
+  // Calculate final grouped attributes when object is selected
+  const calculateFinalGroupedAttributes = () => {
+    if (!selectedObjectId || !character) {
+      return null;
+    }
+    
+    const selectedObject = character.ready?.find(obj => obj.objectId === selectedObjectId);
+    if (!selectedObject) {
+      return null;
+    }
+    
+    // We need to recalculate grouping properly with base + equipment + selected ready object
+    const finalAttributes = {};
+    const attributeNames = [
+      'speed', 'weight', 'size', 'armour', 'endurance', 'lethality',
+      'strength', 'dexterity', 'agility', 'perception', 'intensity',
+      'resolve', 'morale', 'intelligence', 'charisma'
+    ];
+    
+    attributeNames.forEach(attrName => {
+      const valuesToGroup = [];
+      
+      // Add character base value if it's groupable
+      const charAttr = character[attrName];
+      if (charAttr && charAttr.attribute && charAttr.attribute.isGrouped) {
+        valuesToGroup.push(charAttr.attribute.attributeValue || 0);
+      }
+      
+      // Add equipment values if they're groupable
+      if (character.equipment) {
+        character.equipment.forEach(item => {
+          const itemAttr = item[attrName];
+          if (itemAttr && itemAttr.isGrouped) {
+            valuesToGroup.push(itemAttr.attributeValue || 0);
+          }
+        });
+      }
+      
+      // Add selected ready object value if it's groupable
+      const objectAttr = selectedObject[attrName];
+      if (objectAttr && objectAttr.isGrouped) {
+        valuesToGroup.push(objectAttr.attributeValue || 0);
+      }
+      
+      // Calculate grouped value using the same formula as backend
+      if (valuesToGroup.length === 0) {
+        // If no groupable values, use character base value
+        const charAttr = character[attrName];
+        finalAttributes[attrName] = charAttr && charAttr.attribute ? charAttr.attribute.attributeValue || 0 : 0;
+      } else if (valuesToGroup.length === 1) {
+        finalAttributes[attrName] = valuesToGroup[0];
+      } else {
+        // Sort values in descending order (highest first)
+        valuesToGroup.sort((a, b) => b - a);
+        
+        const A1 = valuesToGroup[0]; // Highest value
+        let sum = A1; // Start with the highest value
+        
+        // Add weighted values for all other attributes using 0.25 constant
+        for (let i = 1; i < valuesToGroup.length; i++) {
+          const Ai = valuesToGroup[i];
+          const scalingFactor = 0.25; // Constant scaling factor
+          
+          if (A1 > 0) {
+            sum += Ai * (scalingFactor + Ai / A1);
+          } else {
+            // Handle edge case where A1 is 0
+            sum += Ai * scalingFactor;
+          }
+        }
+        
+        finalAttributes[attrName] = Math.round((sum / valuesToGroup.length) * 100) / 100;
+      }
+    });
+    
+    return finalAttributes;
+  };
+  
+  // Effect to calculate final grouped attributes when object selection changes
+  useEffect(() => {
+    if (selectedObjectId) {
+      const finalAttrs = calculateFinalGroupedAttributes();
+      setFinalGroupedAttributes(finalAttrs);
+      setShowFinalGrouped(true);
+    } else {
+      setShowFinalGrouped(false);
+      setFinalGroupedAttributes(null);
+    }
+  }, [selectedObjectId, character]);
+  
+  // Render object selection section
+  const renderObjectSelection = () => {
+    if (!action.objectUsage || action.objectUsage === 'NONE') {
+      return (
+        <div className="object-selection">
+          <h3>Object Usage</h3>
+          <p className="object-usage-note">
+            This action has object usage set to NONE - no object selection required.
+          </p>
+        </div>
+      );
+    }
+    
+    const availableObjects = getAvailableReadyObjects();
+    
+    if (availableObjects.length === 0) {
+      return (
+        <div className="object-selection">
+          <h3>Object Usage: {action.objectUsage}</h3>
+          <p className="object-usage-note">
+            No objects in ready inventory match the required object usage ({action.objectUsage}).
+          </p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="object-selection">
+        <h3>Object Usage: {action.objectUsage}</h3>
+        <p className="object-usage-note">
+          Select an object from ready inventory (optional):
+        </p>
+        
+        <div className="object-selection-list">
+          <label className="object-option">
+            <input
+              type="radio"
+              name="objectSelection"
+              checked={selectedObjectId === null}
+              onChange={() => setSelectedObjectId(null)}
+            />
+            <span className="object-name">No object selected</span>
+          </label>
+          
+          {availableObjects.map((obj) => (
+            <label key={obj.objectId} className="object-option">
+              <input
+                type="radio"
+                name="objectSelection"
+                checked={selectedObjectId === obj.objectId}
+                onChange={() => handleObjectSelection(obj.objectId)}
+              />
+              <span className="object-name">
+                {obj.name} ({obj.objectCategory})
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const getTargetOptions = () => {
@@ -425,6 +616,8 @@ const ActionTestBackend = ({ action, character, onClose }) => {
           {getTargetOptions()}
         </div>
         
+
+        {renderObjectSelection()}
         <div className="action-buttons">
           <button
             className="submit-button"
@@ -438,6 +631,42 @@ const ActionTestBackend = ({ action, character, onClose }) => {
           </button>
         </div>
         
+
+        {/* Display what values will be used for action test */}
+        <div className="action-test-values-preview">
+          <h3>Action Test Values Preview</h3>
+          <p className="preview-note">
+            These are the values that will be used for the {action.sourceAttribute} calculation:
+          </p>
+          
+          {!selectedObjectId ? (
+            <div className="no-object-selected">
+              <div className="attribute-row">
+                <span className="attribute-label">{action.sourceAttribute} (Base + Equipment):</span>
+                <span className="attribute-value">
+                  {Math.round(character.groupedAttributes?.[action.sourceAttribute?.toLowerCase()] || 0)}
+                </span>
+              </div>
+              <p className="calculation-note">
+                <small>Using equipment-grouped values since no ready object is selected.</small>
+              </p>
+            </div>
+          ) : (
+            showFinalGrouped && finalGroupedAttributes && (
+              <div className="object-selected">
+                <div className="attribute-row">
+                  <span className="attribute-label">{action.sourceAttribute} (Base + Equipment + Selected Object):</span>
+                  <span className="attribute-value">
+                    {Math.round(finalGroupedAttributes[action.sourceAttribute?.toLowerCase()] || 0)}
+                  </span>
+                </div>
+                <p className="calculation-note">
+                  <small>Using recalculated grouped values including the selected ready object.</small>
+                </p>
+              </div>
+            )
+          )}
+        </div>
         {actionChainResults.length > 0 && (
           <div className="result-display">
             <h3>Action Chain Results</h3>

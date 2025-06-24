@@ -6,6 +6,27 @@
   height: 100%;
 }
 
+/* Equipment Type Badge */
+.equipment-type-badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.equipment-type-badge.passive {
+  background-color: #e6f7e6;
+  color: #28a745;
+  border: 1px solid #b8e6b8;
+}
+
+.equipment-type-badge.active {
+  background-color: #fdeaea;
+  color: #dc3545;
+  border: 1px solid #f5c6cb;
+}
+
 /* Reusing most styles from CharacterList.css */
 .list-header {
   padding: 15px;

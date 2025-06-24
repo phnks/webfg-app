@@ -23,6 +23,7 @@ exports.handler = async (event) => {
     // Ensure required fields have values
     if (item.name === undefined || item.name === null) item.name = '';
     if (item.objectCategory === undefined || item.objectCategory === null) item.objectCategory = 'TOOL';
+    if (item.isEquipment === undefined || item.isEquipment === null) item.isEquipment = true; // Default to true for backwards compatibility
     
     // Add lowercase name for case-insensitive searching
     item.nameLowerCase = item.name.toLowerCase();

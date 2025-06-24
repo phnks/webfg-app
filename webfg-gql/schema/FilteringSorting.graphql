@@ -122,6 +122,7 @@ input EnhancedActionFilterInput {
   targetAttribute: AttributeName
   targetType: TargetType
   effectType: EffectType
+  objectUsage: ObjectUsage
   
   # Pagination and sorting
   pagination: PaginationInput

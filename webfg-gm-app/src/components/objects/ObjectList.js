@@ -154,6 +154,7 @@ const ObjectList = () => {
           <tr>
             <th>Name</th>
             <th>Category</th>
+            <th>Equipment Type</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -162,6 +163,11 @@ const ObjectList = () => {
             <tr key={object.objectId} onClick={() => handleObjectClick(object.objectId)}>
               <td className="object-name">{object.name}</td>
               <td><span className="category-badge">{object.objectCategory}</span></td>
+              <td>
+                <span className={`equipment-type-badge ${object.isEquipment !== false ? 'passive' : 'active'}`}>
+                  {object.isEquipment !== false ? 'Passive' : 'Active'}
+                </span>
+              </td>
               <td>
                 <div className="action-buttons">
                   {selectedCharacter && (

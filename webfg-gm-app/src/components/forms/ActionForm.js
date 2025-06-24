@@ -20,6 +20,11 @@ const AttributeName = [
 ];
 const TargetType = ["OBJECT", "CHARACTER", "ACTION"];
 const EffectType = ["HELP", "HINDER", "DESTROY", "TRIGGER_ACTION"];
+const ObjectUsage = [
+  "NONE", "ANY", "TOOL", "WEAPON", "ARMOR", "CONTAINER", "STRUCTURE",
+  "JEWLERY", "DEVICE", "MATERIAL", "CLOTHING", "LIGHT_SOURCE",
+  "DOCUMENT", "COMPONENT", "ARTIFACT"
+];
 
 const defaultActionForm = {
   name: '',
@@ -29,7 +34,8 @@ const defaultActionForm = {
   description: '',
   targetType: TargetType[0],
   effectType: EffectType[0],
-  triggeredActionId: null
+  triggeredActionId: null,
+  objectUsage: ObjectUsage[0]
 };
 
 const stripTypename = (obj) => {
@@ -56,7 +62,8 @@ const prepareActionInput = (data, isEditing) => {
     targetAttribute: data.targetAttribute,
     description: data.description || "",
     targetType: data.targetType,
-    effectType: data.effectType
+    effectType: data.effectType,
+    objectUsage: data.objectUsage
   };
   if (data.effectType === 'TRIGGER_ACTION' && data.triggeredActionId) {
     input.triggeredActionId = data.triggeredActionId;
@@ -246,6 +253,19 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
             required
           >
             {EffectType.map(type => <option key={type} value={type}>{type}</option>)}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="objectUsage">Object Usage</label>
+          <select
+            id="objectUsage"
+            name="objectUsage"
+            value={formData.objectUsage || ""}
+            onChange={handleChange}
+            required
+          >
+            {ObjectUsage.map(usage => <option key={usage} value={usage}>{usage}</option>)}
           </select>
         </div>
 

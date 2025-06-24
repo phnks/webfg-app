@@ -282,7 +282,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     
     for (let j = 1; j < valuesUpToHere.length; j++) {
       const Ai = valuesUpToHere[j];
-      const scalingFactor = j + 1; // Group count when this item was added (2, 3, 4, ...)
+      const scalingFactor = 0.25; // Constant scaling factor
       if (A1 > 0) {
         sum += Ai * (scalingFactor + Ai / A1);
       } else {
@@ -293,7 +293,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     currentValue = sum / valuesUpToHere.length;
     
     stepNumber++;
-    const scalingFactorForDisplay = i + 1; // Group count when this item was added
+    const scalingFactorForDisplay = 0.25; // Constant scaling factor
     breakdown.push({
       step: stepNumber,
       entityName: entity.name,
@@ -413,7 +413,7 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
     
     for (let j = 1; j < valuesUpToHere.length; j++) {
       const Ai = valuesUpToHere[j];
-      const scalingFactor = j + 1; // Group count when this item was added (2, 3, 4, ...)
+      const scalingFactor = 0.25; // Constant scaling factor
       if (A1 > 0) {
         sum += Ai * (scalingFactor + Ai / A1);
       } else {
@@ -424,7 +424,7 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
     currentValue = sum / valuesUpToHere.length;
     
     stepNumber++;
-    const scalingFactorForDisplay = i + 1; // Group count when this item was added
+    const scalingFactorForDisplay = 0.25; // Constant scaling factor
     breakdown.push({
       step: stepNumber,
       entityName: entity.name,

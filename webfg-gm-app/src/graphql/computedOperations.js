@@ -95,12 +95,12 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       
       special
       actionIds
-      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType }
+      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType objectUsage }
       stashIds
       stash { objectId name objectCategory }
       equipmentIds
       equipment { 
-        objectId name objectCategory
+        objectId name objectCategory isEquipment isEquipment
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
@@ -123,7 +123,7 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
         }
         
         equipment { 
-          objectId name objectCategory
+          objectId name objectCategory isEquipment isEquipment
           lethality { attributeValue isGrouped }
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
@@ -139,7 +139,7 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       }
       readyIds
       ready { 
-        objectId name objectCategory
+        objectId name objectCategory isEquipment isEquipment
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
@@ -196,6 +196,7 @@ export const GET_OBJECT_WITH_GROUPED = gql`
       objectId
       name
       objectCategory
+      isEquipment
       
       # Object attributes
       speed { attributeValue isGrouped }
@@ -222,7 +223,7 @@ export const GET_OBJECT_WITH_GROUPED = gql`
       special
       equipmentIds
       equipment { 
-        objectId name objectCategory
+        objectId name objectCategory isEquipment
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
@@ -325,7 +326,7 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
       }
       
       equipment { 
-        objectId name objectCategory
+        objectId name objectCategory isEquipment
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
@@ -347,7 +348,7 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
         }
         
         equipment { 
-          objectId name objectCategory
+          objectId name objectCategory isEquipment isEquipment
           lethality { attributeValue isGrouped }
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
@@ -362,7 +363,7 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
         }
       }
       actionIds
-      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType }
+      actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType objectUsage }
       
       characterConditions {
         conditionId

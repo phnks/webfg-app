@@ -138,6 +138,9 @@ Resources:
             #if($ctx.args.input.triggeredActionId)
               "triggeredActionId": $util.dynamodb.toDynamoDBJson($ctx.args.input.triggeredActionId),
             #end
+            #if($ctx.args.input.objectUsage)
+              "objectUsage": $util.dynamodb.toDynamoDBJson($ctx.args.input.objectUsage),
+            #end
             "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
           }
         }
@@ -159,7 +162,7 @@ Resources:
             "actionId": $util.dynamodb.toDynamoDBJson($ctx.args.actionId)
           },
           "update": {
-            "expression": "SET #name = :name, #actionCategory = :actionCategory, #sourceAttribute = :sourceAttribute, #targetAttribute = :targetAttribute, #description = :description, #targetType = :targetType, #effectType = :effectType#if($ctx.args.input.triggeredActionId), #triggeredActionId = :triggeredActionId#end",
+            "expression": "SET #name = :name, #actionCategory = :actionCategory, #sourceAttribute = :sourceAttribute, #targetAttribute = :targetAttribute, #description = :description, #targetType = :targetType, #effectType = :effectType#if($ctx.args.input.triggeredActionId), #triggeredActionId = :triggeredActionId#end#if($ctx.args.input.objectUsage), #objectUsage = :objectUsage#end",
             "expressionNames": {
               "#name": "name",
               "#actionCategory": "actionCategory",
@@ -168,7 +171,8 @@ Resources:
               "#description": "description",
               "#targetType": "targetType",
               "#effectType": "effectType"#if($ctx.args.input.triggeredActionId),
-              "#triggeredActionId": "triggeredActionId"#end
+              "#triggeredActionId": "triggeredActionId"#end#if($ctx.args.input.objectUsage),
+              "#objectUsage": "objectUsage"#end
             },
             "expressionValues": {
               ":name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
@@ -178,7 +182,8 @@ Resources:
               ":description": $util.dynamodb.toDynamoDBJson($ctx.args.input.description),
               ":targetType": $util.dynamodb.toDynamoDBJson($ctx.args.input.targetType),
               ":effectType": $util.dynamodb.toDynamoDBJson($ctx.args.input.effectType)#if($ctx.args.input.triggeredActionId),
-              ":triggeredActionId": $util.dynamodb.toDynamoDBJson($ctx.args.input.triggeredActionId)#end
+              ":triggeredActionId": $util.dynamodb.toDynamoDBJson($ctx.args.input.triggeredActionId)#end#if($ctx.args.input.objectUsage),
+              ":objectUsage": $util.dynamodb.toDynamoDBJson($ctx.args.input.objectUsage)#end
             }
           }
         }
