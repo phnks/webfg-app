@@ -74,15 +74,16 @@ const calculateAttributeModifier = (attributeValue, fatigue, attribute) => {
  */
 const getAttributeRange = (attribute, modifier) => {
   const diceSides = getDiceForAttribute(attribute);
+  const roundedModifier = Math.round(modifier); // Ensure modifier is an integer
   
   if (!diceSides) {
     // Static attribute - same value always
-    return { min: modifier, max: modifier };
+    return { min: roundedModifier, max: roundedModifier };
   }
   
   return {
-    min: 1 + modifier,
-    max: diceSides + modifier
+    min: 1 + roundedModifier,
+    max: diceSides + roundedModifier
   };
 };
 

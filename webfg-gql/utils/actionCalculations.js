@@ -439,9 +439,9 @@ const calculateActionTest = (params) => {
     targetCount: override ? 0 : targetEntities.length,
     successPercentage: Math.round(successProbability * 10000) / 100, // Convert to percentage with 2 decimals
     
-    // New dice system information
-    sourceModifier: finalSourceModifier,
-    targetModifier: finalTargetModifier,
+    // New dice system information - ensure all integers are properly rounded
+    sourceModifier: Math.round(finalSourceModifier),
+    targetModifier: Math.round(finalTargetModifier),
     sourceDiceDisplay,
     targetDiceDisplay,
     sourceRange: rangeAnalysis.sourceRange,
