@@ -52,6 +52,11 @@ type FatigueContribution {
   fatigue: Int!
 }
 
+type DiceRange {
+  min: Int!
+  max: Int!
+}
+
 type ActionTestResult {
   difficulty: Float!
   sourceValue: Float!
@@ -70,6 +75,16 @@ type ActionTestResult {
   dicePoolExceeded: Boolean!
   sourceFatigueDetails: [FatigueContribution!]!
   targetFatigueDetails: [FatigueContribution!]!
+  # New dice system fields
+  sourceModifier: Int!
+  targetModifier: Int!
+  sourceDiceDisplay: String!
+  targetDiceDisplay: String!
+  sourceRange: DiceRange!
+  targetRange: DiceRange!
+  guaranteedSuccess: Boolean!
+  guaranteedFailure: Boolean!
+  partialSuccess: Boolean!
 }
 
 input ActionTestInput {

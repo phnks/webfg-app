@@ -288,7 +288,8 @@ exports.handler = async (event) => {
       overrideValue,
       sourceOverride,
       sourceOverrideValue,
-      selectedReadyObjectId
+      selectedReadyObjectId,
+      formula: action.formula || 'CONTEST' // Default to CONTEST if not set
     });
 
     console.log("Calculated action test result:", JSON.stringify(result, null, 2));

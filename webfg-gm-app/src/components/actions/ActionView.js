@@ -235,6 +235,10 @@ const ActionView = ({ startInEditMode = false }) => {
              <span>Object Usage:</span>
              <span>{action.objectUsage || "N/A"}</span>
            </div>
+           <div className="detail-row">
+             <span>Formula:</span>
+             <span>{action.formula || "N/A"}</span>
+           </div>
          </div>
       </div>
       <ErrorPopup error={mutationError} onClose={() => setMutationError(null)} />

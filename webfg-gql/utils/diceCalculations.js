@@ -200,6 +200,123 @@ const analyzeSuccessRanges = (sourceAttribute, sourceModifier, targetAttribute, 
   };
 };
 
+/**
+ * Calculate success probability for SUBTRACT formula
+ * Source rolls dice + modifier, target value is subtracted, result must be > 0
+ * @param {string} sourceAttribute - Source attribute name
+ * @param {number} sourceModifier - Source modifier (attribute - fatigue)
+ * @param {number} targetValue - Target static value (no roll)
+ * @returns {number} - Success probability (0.0 to 1.0)
+ */
+const calculateSubtractSuccessProbability = (sourceAttribute, sourceModifier, targetValue) => {
+  const sourceDiceSides = getDiceForAttribute(sourceAttribute);
+  
+  if (!sourceDiceSides) {
+    // Source is static
+    const finalResult = Math.max(0, sourceModifier - targetValue);
+    return finalResult > 0 ? 1.0 : 0.0;
+  }
+  
+  // Count successful rolls (where source roll + modifier - target > 0)
+  let successfulOutcomes = 0;
+  
+  for (let sourceRoll = 1; sourceRoll <= sourceDiceSides; sourceRoll++) {
+    const sourceTotal = sourceRoll + sourceModifier;
+    const finalResult = Math.max(0, sourceTotal - targetValue);
+    
+    if (finalResult > 0) {
+      successfulOutcomes++;
+    }
+  }
+  
+  return successfulOutcomes / sourceDiceSides;
+};
+
+/**
+ * Analyze success ranges for SUBTRACT formula
+ * @param {string} sourceAttribute - Source attribute name
+ * @param {number} sourceModifier - Source modifier
+ * @param {number} targetValue - Target static value
+ * @returns {object} - Analysis with ranges and success type
+ */
+const analyzeSubtractSuccessRanges = (sourceAttribute, sourceModifier, targetValue) => {
+  const sourceRange = getAttributeRange(sourceAttribute, sourceModifier);
+  
+  // Calculate final result range after subtraction and clamping to 0
+  const minResult = Math.max(0, sourceRange.min - targetValue);
+  const maxResult = Math.max(0, sourceRange.max - targetValue);
+  
+  const resultRange = { min: minResult, max: maxResult };
+  const targetRange = { min: targetValue, max: targetValue }; // Static target
+  
+  // For SUBTRACT, success is any result > 0
+  const guaranteedSuccess = minResult > 0;
+  const guaranteedFailure = maxResult === 0;
+  
+  return {
+    sourceRange,
+    targetRange,
+    resultRange, // Additional field for SUBTRACT showing final result range
+    guaranteedSuccess,
+    guaranteedFailure,
+    partialSuccess: !guaranteedSuccess && !guaranteedFailure
+  };
+};
+
+/**
+ * Calculate success probability for DELTA formula
+ * Delta modifier is applied to source, then compared against static 10
+ * @param {string} sourceAttribute - Source attribute name
+ * @param {number} finalSourceModifier - Source modifier + delta modifier
+ * @returns {number} - Success probability (0.0 to 1.0)
+ */
+const calculateDeltaSuccessProbability = (sourceAttribute, finalSourceModifier) => {
+  const staticTarget = 10;
+  const sourceDiceSides = getDiceForAttribute(sourceAttribute);
+  
+  if (!sourceDiceSides) {
+    // Source is static
+    return finalSourceModifier > staticTarget ? 1.0 : 0.0;
+  }
+  
+  // Count successful rolls (where source roll + final modifier > 10)
+  let successfulOutcomes = 0;
+  
+  for (let sourceRoll = 1; sourceRoll <= sourceDiceSides; sourceRoll++) {
+    const sourceTotal = sourceRoll + finalSourceModifier;
+    
+    if (sourceTotal > staticTarget) {
+      successfulOutcomes++;
+    }
+  }
+  
+  return successfulOutcomes / sourceDiceSides;
+};
+
+/**
+ * Analyze success ranges for DELTA formula
+ * @param {string} sourceAttribute - Source attribute name
+ * @param {number} finalSourceModifier - Source modifier + delta modifier
+ * @returns {object} - Analysis with ranges and success type
+ */
+const analyzeDeltaSuccessRanges = (sourceAttribute, finalSourceModifier) => {
+  const sourceRange = getAttributeRange(sourceAttribute, finalSourceModifier);
+  const staticTarget = 10;
+  const targetRange = { min: staticTarget, max: staticTarget };
+  
+  // For DELTA, success is source total > 10 (target wins ties)
+  const guaranteedSuccess = sourceRange.min > staticTarget;
+  const guaranteedFailure = sourceRange.max <= staticTarget;
+  
+  return {
+    sourceRange,
+    targetRange,
+    guaranteedSuccess,
+    guaranteedFailure,
+    partialSuccess: !guaranteedSuccess && !guaranteedFailure
+  };
+};
+
 module.exports = {
   ATTRIBUTE_DICE_MAP,
   getDiceForAttribute,
@@ -208,5 +325,9 @@ module.exports = {
   getAttributeRange,
   calculateDiceSuccessProbability,
   formatDiceRoll,
-  analyzeSuccessRanges
+  analyzeSuccessRanges,
+  calculateSubtractSuccessProbability,
+  analyzeSubtractSuccessRanges,
+  calculateDeltaSuccessProbability,
+  analyzeDeltaSuccessRanges
 };

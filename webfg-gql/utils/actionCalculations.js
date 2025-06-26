@@ -17,7 +17,11 @@ const {
   getAttributeRange,
   calculateDiceSuccessProbability,
   formatDiceRoll,
-  analyzeSuccessRanges
+  analyzeSuccessRanges,
+  calculateSubtractSuccessProbability,
+  analyzeSubtractSuccessRanges,
+  calculateDeltaSuccessProbability,
+  analyzeDeltaSuccessRanges
 } = require('./diceCalculations');
 
 /**
@@ -309,7 +313,8 @@ const calculateActionTest = (params) => {
     overrideValue = 0,
     sourceOverride = false,
     sourceOverrideValue = 0,
-    selectedReadyObjectId = null
+    selectedReadyObjectId = null,
+    formula = 'CONTEST' // Default to CONTEST if not provided
   } = params;
   
   // Convert attribute names to lowercase for calculation
@@ -383,15 +388,38 @@ const calculateActionTest = (params) => {
   const sourceModifier = calculateAttributeModifier(sourceValue, sourceFatigue, sourceAttribute);
   const targetModifier = calculateAttributeModifier(targetValue, targetFatigue, targetAttribute);
   
-  // Calculate exact success probability using new dice system
-  const successProbability = calculateDiceSuccessProbability(sourceAttribute, sourceModifier, targetAttribute, targetModifier);
+  // Apply formula-specific calculations
+  let successProbability, sourceDiceDisplay, targetDiceDisplay, rangeAnalysis;
+  let finalSourceModifier = sourceModifier; // Will be adjusted for DELTA formula
+  let finalTargetModifier = targetModifier;
   
-  // Get dice information for display
-  const sourceDiceDisplay = formatDiceRoll(sourceAttribute, sourceModifier);
-  const targetDiceDisplay = formatDiceRoll(targetAttribute, targetModifier);
-  
-  // Analyze success ranges
-  const rangeAnalysis = analyzeSuccessRanges(sourceAttribute, sourceModifier, targetAttribute, targetModifier);
+  if (formula === 'CONTEST') {
+    // CONTEST: Both sides roll dice and add their attributes (current implementation)
+    successProbability = calculateDiceSuccessProbability(sourceAttribute, sourceModifier, targetAttribute, targetModifier);
+    sourceDiceDisplay = formatDiceRoll(sourceAttribute, sourceModifier);
+    targetDiceDisplay = formatDiceRoll(targetAttribute, targetModifier);
+    rangeAnalysis = analyzeSuccessRanges(sourceAttribute, sourceModifier, targetAttribute, targetModifier);
+  } else if (formula === 'SUBTRACT') {
+    // SUBTRACT: Source rolls, target value is subtracted from source result, final result must be > 0
+    successProbability = calculateSubtractSuccessProbability(sourceAttribute, sourceModifier, targetValue);
+    sourceDiceDisplay = formatDiceRoll(sourceAttribute, sourceModifier);
+    targetDiceDisplay = `${targetValue} (static)`;
+    rangeAnalysis = analyzeSubtractSuccessRanges(sourceAttribute, sourceModifier, targetValue);
+  } else if (formula === 'DELTA') {
+    // DELTA: Delta modifier applied to source, then compared against static 10
+    const deltaModifier = targetValue - sourceValue; // target attribute - source attribute
+    finalSourceModifier = sourceModifier + deltaModifier; // Adjust modifier for DELTA
+    successProbability = calculateDeltaSuccessProbability(sourceAttribute, finalSourceModifier);
+    sourceDiceDisplay = formatDiceRoll(sourceAttribute, finalSourceModifier);
+    targetDiceDisplay = `10 (static target)`;
+    rangeAnalysis = analyzeDeltaSuccessRanges(sourceAttribute, finalSourceModifier);
+  } else {
+    // Default to CONTEST for unknown formulas
+    successProbability = calculateDiceSuccessProbability(sourceAttribute, sourceModifier, targetAttribute, targetModifier);
+    sourceDiceDisplay = formatDiceRoll(sourceAttribute, sourceModifier);
+    targetDiceDisplay = formatDiceRoll(targetAttribute, targetModifier);
+    rangeAnalysis = analyzeSuccessRanges(sourceAttribute, sourceModifier, targetAttribute, targetModifier);
+  }
   
   console.log('DICE CALCULATION RESULTS:', {
     sourceModifier,
@@ -412,8 +440,8 @@ const calculateActionTest = (params) => {
     successPercentage: Math.round(successProbability * 10000) / 100, // Convert to percentage with 2 decimals
     
     // New dice system information
-    sourceModifier,
-    targetModifier,
+    sourceModifier: finalSourceModifier,
+    targetModifier: finalTargetModifier,
     sourceDiceDisplay,
     targetDiceDisplay,
     sourceRange: rangeAnalysis.sourceRange,

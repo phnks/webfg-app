@@ -293,6 +293,7 @@ export const LIST_ACTIONS = gql`
       effectType
       triggeredActionId
       objectUsage
+      formula
       triggeredAction {
         actionId
         name
@@ -320,6 +321,7 @@ export const GET_ACTION = gql`
       effectType
       triggeredActionId
       objectUsage
+      formula
       triggeredAction {
         actionId
         name
@@ -346,6 +348,7 @@ export const GET_ACTIONS = gql`
       targetType
       effectType
       objectUsage
+      formula
     }
   }
 `;
@@ -558,6 +561,7 @@ export const CREATE_ACTION = gql`
       targetType
       effectType
       objectUsage
+      formula
     }
   }
 `;
@@ -568,6 +572,7 @@ export const UPDATE_ACTION = gql`
       targetType
       effectType
       objectUsage
+      formula
     }
   }
 `;
@@ -1013,6 +1018,7 @@ export const ON_UPDATE_ACTION = gql`
       targetType
       effectType
       objectUsage
+      formula
     } 
   }
 `;

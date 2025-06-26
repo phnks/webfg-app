@@ -25,6 +25,7 @@ const ObjectUsage = [
   "JEWLERY", "DEVICE", "MATERIAL", "CLOTHING", "LIGHT_SOURCE",
   "DOCUMENT", "COMPONENT", "ARTIFACT"
 ];
+const ActionFormula = ["CONTEST", "SUBTRACT", "DELTA"];
 
 const defaultActionForm = {
   name: '',
@@ -35,7 +36,8 @@ const defaultActionForm = {
   targetType: TargetType[0],
   effectType: EffectType[0],
   triggeredActionId: null,
-  objectUsage: ObjectUsage[0]
+  objectUsage: ObjectUsage[0],
+  formula: ActionFormula[0] // Default to CONTEST
 };
 
 const stripTypename = (obj) => {
@@ -63,7 +65,8 @@ const prepareActionInput = (data, isEditing) => {
     description: data.description || "",
     targetType: data.targetType,
     effectType: data.effectType,
-    objectUsage: data.objectUsage
+    objectUsage: data.objectUsage,
+    formula: data.formula || "CONTEST"
   };
   if (data.effectType === 'TRIGGER_ACTION' && data.triggeredActionId) {
     input.triggeredActionId = data.triggeredActionId;
@@ -266,6 +269,19 @@ const ActionForm = ({ action, isEditing = false, onClose, onSuccess }) => {
             required
           >
             {ObjectUsage.map(usage => <option key={usage} value={usage}>{usage}</option>)}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="formula">Formula</label>
+          <select
+            id="formula"
+            name="formula"
+            value={formData.formula || ""}
+            onChange={handleChange}
+            required
+          >
+            {ActionFormula.map(formula => <option key={formula} value={formula}>{formula}</option>)}
           </select>
         </div>
 
