@@ -107,6 +107,15 @@ Cypress.Commands.add('clickCreateButton', () => {
           cy.contains('button', 'Create New Object').click();
         }
       });
+    } else if (url.includes('/conditions')) {
+      // On conditions page
+      cy.get('body').then($body => {
+        if ($body.find('.add-btn').length > 0) {
+          cy.get('.add-btn').click();
+        } else {
+          cy.contains('button', 'Create New Condition').click();
+        }
+      });
     } else {
       // Fallback - try to find any create button
       cy.get('body').then($body => {

@@ -1,7 +1,12 @@
 describe('Simple Condition CRUD Operations', () => {
+  let testConditionName;
+  
   beforeEach(() => {
     cy.visit('/');
     cy.wait(2000);
+    // Generate unique names for this test run
+    const timestamp = Date.now();
+    testConditionName = `Simple Test Condition ${timestamp}`;
   });
 
   it('should navigate to conditions page', () => {
@@ -35,7 +40,7 @@ describe('Simple Condition CRUD Operations', () => {
     
     // Fill the form with a simple condition
     cy.fillBasicConditionInfo({
-      name: 'Simple Test Condition',
+      name: testConditionName,
       description: 'A simple test condition for automated testing'
     });
     
@@ -46,30 +51,42 @@ describe('Simple Condition CRUD Operations', () => {
     // Should redirect to condition detail page
     cy.url().should('include', '/conditions/');
     cy.url().should('not.contain', '/conditions/new');
-    cy.contains('h1', 'Simple Test Condition').should('be.visible');
+    cy.contains('h1', testConditionName).should('be.visible');
     cy.contains('A simple test condition for automated testing').should('be.visible');
   });
 
   it('should list conditions including the created one', () => {
+    // First create a condition to ensure there's at least one
     cy.navigateToConditions();
+    cy.clickCreateButton();
+    cy.fillBasicConditionInfo({
+      name: testConditionName,
+      description: 'A simple test condition for automated testing'
+    });
+    cy.contains('button', 'Create').click({force: true});
+    cy.waitForGraphQL();
     
-    // Should show at least some conditions
-    cy.get('body').should('contain.text', 'Condition');
+    // Now navigate back to list and verify
+    cy.navigateToConditions();
+    cy.get('body').should('contain.text', testConditionName);
   });
 
   after(() => {
-    // Clean up: Delete the test condition we created
+    // Clean up: Delete test conditions with timestamps
+    cy.navigateToConditions();
+    
     cy.get('body').then($body => {
-      // Navigate to conditions if needed and delete test condition
-      if ($body.text().includes('Simple Test Condition')) {
-        cy.navigateToConditions();
-        cy.contains('Simple Test Condition').click({force: true});
-        cy.contains('button', 'Delete').click({force: true});
-        cy.waitForGraphQL();
-        
-        // Should redirect back to conditions list
-        cy.url().should('include', '/conditions');
-        cy.url().should('not.match', /\/conditions\/[a-zA-Z0-9-]+$/);
+      const bodyText = $body.text();
+      if (bodyText.includes('Simple Test Condition')) {
+        // Try to find and delete any remaining Simple Test Condition conditions
+        cy.get('a, span, td').contains(/Simple Test Condition \d+/).then($elements => {
+          if ($elements.length > 0) {
+            cy.wrap($elements.first()).click({force: true});
+            cy.clickDeleteButton();
+            cy.on('window:confirm', () => true);
+            cy.waitForGraphQL();
+          }
+        });
       }
     });
   });

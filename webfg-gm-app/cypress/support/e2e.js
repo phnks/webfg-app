@@ -330,6 +330,128 @@ beforeEach(() => {
         }
       });
       
+    } else if (operation.includes('CreateCondition') || req.body.query?.includes('mutation CreateCondition')) {
+      const mockId = `mock-condition-${Math.random().toString(36).substr(2, 9)}`;
+      const conditionName = req.body.variables?.input?.name || 'Mock Condition';
+      
+      const conditionData = {
+        conditionId: mockId,
+        name: conditionName,
+        description: req.body.variables?.input?.description || 'Mock Description',
+        conditionCategory: req.body.variables?.input?.conditionCategory || 'PHYSICAL',
+        conditionType: req.body.variables?.input?.conditionType || 'HINDER',
+        conditionTarget: req.body.variables?.input?.conditionTarget || 'SPEED'
+      };
+      
+      // Store the condition for subsequent queries
+      mockStorage[mockId] = conditionData;
+      
+      req.reply({
+        statusCode: 200,
+        body: {
+          data: {
+            createCondition: conditionData
+          }
+        }
+      });
+      
+    } else if (operation.includes('ListConditions') || req.body.query?.includes('listConditions')) {
+      // Include created conditions in the list
+      const createdConditions = Object.values(mockStorage).filter(item => item.conditionId);
+      const defaultConditions = [
+        {
+          conditionId: 'mock-condition-1',
+          name: 'Poisoned',
+          description: 'Character is suffering from poison',
+          conditionCategory: 'PHYSICAL',
+          conditionType: 'HINDER',
+          conditionTarget: 'ENDURANCE'
+        },
+        {
+          conditionId: 'mock-condition-2',
+          name: 'Blessed',
+          description: 'Character has divine blessing',
+          conditionCategory: 'MAGICAL',
+          conditionType: 'HELP',
+          conditionTarget: 'RESOLVE'
+        }
+      ];
+      
+      // Handle both regular and enhanced list queries
+      const isEnhanced = operation.includes('Enhanced') || req.body.query?.includes('Enhanced');
+      
+      if (isEnhanced) {
+        req.reply({
+          statusCode: 200,
+          body: {
+            data: {
+              listConditionsEnhanced: {
+                items: [...createdConditions, ...defaultConditions],
+                nextCursor: null
+              }
+            }
+          }
+        });
+      } else {
+        req.reply({
+          statusCode: 200,
+          body: {
+            data: {
+              listConditions: [...createdConditions, ...defaultConditions]
+            }
+          }
+        });
+      }
+      
+    } else if (operation.includes('GetCondition') || req.body.query?.includes('getCondition')) {
+      const conditionId = req.body.variables?.conditionId;
+      
+      // Try to get the condition from stored mock data, otherwise use default
+      const storedCondition = mockStorage[conditionId];
+      const conditionData = storedCondition || {
+        conditionId: conditionId || 'mock-condition-1',
+        name: 'Poisoned',
+        description: 'Character is suffering from poison',
+        conditionCategory: 'PHYSICAL',
+        conditionType: 'HINDER',
+        conditionTarget: 'ENDURANCE'
+      };
+      
+      req.reply({
+        statusCode: 200,
+        body: {
+          data: {
+            getCondition: conditionData
+          }
+        }
+      });
+    } else if (operation.includes('UpdateCondition') || req.body.query?.includes('mutation UpdateCondition')) {
+      req.reply({
+        statusCode: 200,
+        body: {
+          data: {
+            updateCondition: {
+              conditionId: req.body.variables?.conditionId || 'mock-condition-1',
+              name: req.body.variables?.input?.name || 'Updated Condition',
+              description: req.body.variables?.input?.description || 'Updated Description',
+              conditionCategory: req.body.variables?.input?.conditionCategory || 'PHYSICAL',
+              conditionType: req.body.variables?.input?.conditionType || 'HINDER',
+              conditionTarget: req.body.variables?.input?.conditionTarget || 'SPEED'
+            }
+          }
+        }
+      });
+    } else if (operation.includes('DeleteCondition') || req.body.query?.includes('mutation DeleteCondition')) {
+      req.reply({
+        statusCode: 200,
+        body: {
+          data: {
+            deleteCondition: {
+              conditionId: req.body.variables?.conditionId || 'mock-condition-1'
+            }
+          }
+        }
+      });
     } else {
       // For any other GraphQL operations, return a generic success
       req.reply({
