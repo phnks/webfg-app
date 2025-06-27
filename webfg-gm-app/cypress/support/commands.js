@@ -183,24 +183,19 @@ Cypress.Commands.add('fillBasicObjectInfo', (object) => {
 });
 
 Cypress.Commands.add('fillActionForm', (action) => {
-  // Wait for form to be ready
+  // Wait for form to be ready and scroll to top to start
+  cy.scrollTo('top');
   cy.get('input[name="name"]').should('be.visible');
   
+  // Fill name field
   cy.get('input[name="name"]').clear().type(action.name);
-  cy.get('textarea[name="description"]').clear().type(action.description);
   
+  // Fill dropdown fields in the middle section
   // Fill required Category field - default to ATTACK if not specified
   if (action.category) {
     cy.get('select[name="actionCategory"]').select(action.category);
   } else {
     cy.get('select[name="actionCategory"]').select('ATTACK');
-  }
-  
-  // Fill required Target Type field - default to CHARACTER if not specified
-  if (action.targetType) {
-    cy.get('select[name="targetType"]').select(action.targetType);
-  } else {
-    cy.get('select[name="targetType"]').select('CHARACTER');
   }
   
   // Map our test data to actual form field names
@@ -210,10 +205,22 @@ Cypress.Commands.add('fillActionForm', (action) => {
   if (action.target) {
     cy.get('select[name="targetAttribute"]').select(action.target);
   }
+  
+  // Fill required Target Type field - default to CHARACTER if not specified
+  if (action.targetType) {
+    cy.get('select[name="targetType"]').select(action.targetType);
+  } else {
+    cy.get('select[name="targetType"]').select('CHARACTER');
+  }
+  
   if (action.type) {
     // Map test 'type' to actual 'effectType'
     cy.get('select[name="effectType"]').select(action.type);
   }
+  
+  // Scroll down to make the description field visible and fill it
+  cy.get('textarea[name="description"]').scrollIntoView().should('be.visible');
+  cy.get('textarea[name="description"]').clear().type(action.description);
   
   // Wait a moment for all form fields to be filled
   const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;

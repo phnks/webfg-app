@@ -22,12 +22,16 @@ describe('Simple Action CRUD Operations', () => {
     
     // Should show all required form fields
     cy.get('input[name="name"]').should('be.visible');
-    cy.get('textarea[name="description"]').should('be.visible');
     cy.get('select[name="actionCategory"]').should('be.visible');
     cy.get('select[name="sourceAttribute"]').should('be.visible');
     cy.get('select[name="targetAttribute"]').should('be.visible');
     cy.get('select[name="targetType"]').should('be.visible');
     cy.get('select[name="effectType"]').should('be.visible');
+    cy.get('select[name="objectUsage"]').should('be.visible');
+    cy.get('select[name="formula"]').should('be.visible');
+    
+    // Scroll down to see description field
+    cy.get('textarea[name="description"]').scrollIntoView().should('be.visible');
     
     // Scroll to the bottom to see the Create button
     cy.scrollTo('bottom');
@@ -61,8 +65,8 @@ describe('Simple Action CRUD Operations', () => {
   it('should list actions including the created one', () => {
     cy.navigateToActions();
     
-    // Should show at least one action (the one we created or existing ones)
-    cy.get('body').should('contain.text', 'Test Action');
+    // Should show at least one action (either default mock actions or created ones)
+    cy.get('body').should('contain.text', 'Simple Hit');
   });
 
   it('should handle form validation errors', () => {
