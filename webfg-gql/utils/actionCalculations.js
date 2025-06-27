@@ -408,7 +408,8 @@ const calculateActionTest = (params) => {
   } else if (formula === 'DELTA') {
     // DELTA: Delta modifier applied to source, then compared against static 10
     const deltaModifier = targetValue - sourceValue; // target attribute - source attribute
-    finalSourceModifier = sourceModifier + deltaModifier; // Adjust modifier for DELTA
+    const unroundedFinalModifier = sourceModifier + deltaModifier; // Keep unrounded for calculations
+    finalSourceModifier = Math.round(unroundedFinalModifier); // Round for dice display
     successProbability = calculateDeltaSuccessProbability(sourceAttribute, finalSourceModifier);
     sourceDiceDisplay = formatDiceRoll(sourceAttribute, finalSourceModifier);
     targetDiceDisplay = `10 (static target)`;

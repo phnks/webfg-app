@@ -877,7 +877,17 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                             {attributeUsesDice(sourceAttribute) && actionResult.result.sourceFatigue > 0 && (
                               <> - <span style={{color: '#ff6b35'}}>{actionResult.result.sourceFatigue} (fatigue)</span></>
                             )}
-                            {' = '}{sourceModifier} → {sourceDiceDisplay}
+                            {actionResult.action.formula === 'DELTA' ? (
+                              // For DELTA, show the additional calculation step
+                              <>
+                                {' = '}{Math.round(actionResult.result.sourceValue - (actionResult.result.sourceFatigue || 0))}
+                                {' + '}{Math.round(actionResult.result.targetValue - actionResult.result.sourceValue)} (delta)
+                                {' = '}{sourceModifier} → {sourceDiceDisplay}
+                              </>
+                            ) : (
+                              // For other formulas, show the simple calculation
+                              <>{' = '}{Math.round(actionResult.result.sourceValue - (actionResult.result.sourceFatigue || 0))} → {sourceDiceDisplay}</>
+                            )}
                           </span>
                         </div>
                         <div className="modifier-item">
