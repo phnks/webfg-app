@@ -147,9 +147,14 @@ const ObjectView = ({ startInEditMode = false }) => {
     setIsEditing(true);
   };
 
-  const handleEditSuccess = () => {
+  const handleEditSuccess = (updatedObjectId) => {
     setIsEditing(false);
-    refetch();
+    // If we get an updated object ID, navigate to it (in case it changed)
+    if (updatedObjectId && updatedObjectId !== objectId) {
+      navigate(`/objects/${updatedObjectId}`);
+    } else {
+      refetch();
+    }
   };
 
   const handleEditCancel = () => {
