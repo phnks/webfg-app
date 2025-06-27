@@ -73,18 +73,20 @@ describe('Simple Action CRUD Operations', () => {
     cy.navigateToActions();
     cy.clickCreateButton();
     
-    // Try to submit empty form
+    // Try to submit with empty name field (name is required)
+    cy.get('input[name="name"]').clear();
     cy.contains('button', 'Create').click({force: true});
     
-    // Should stay on the same page (not redirect)
+    // Should stay on the same page due to empty name validation
     cy.url().should('include', '/actions/new');
     
-    // Fill only name and try again
+    // Now fill name and submit (should succeed because all other fields have defaults)
     cy.get('input[name="name"]').type('Test Action Name Only');
     cy.contains('button', 'Create').click({force: true});
     
-    // Should still stay on the form (likely validation error)
-    cy.url().should('include', '/actions/new');
+    // Should redirect to action detail page (successful creation)
+    cy.url().should('include', '/actions/');
+    cy.url().should('not.contain', '/actions/new');
   });
 
   after(() => {
