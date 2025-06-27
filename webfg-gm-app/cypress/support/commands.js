@@ -247,8 +247,45 @@ Cypress.Commands.add('fillActionForm', (action) => {
 });
 
 Cypress.Commands.add('fillBasicConditionInfo', (condition) => {
-  cy.get('input').first().clear().type(condition.name); // Name field
-  cy.get('textarea').first().clear().type(condition.description); // Description field
+  // Wait for form to be ready
+  cy.get('input[name="name"]').should('be.visible');
+  
+  // Fill name field (required)
+  cy.get('input[name="name"]').clear().type(condition.name);
+  
+  // Fill description field (optional but commonly provided)
+  if (condition.description) {
+    cy.get('textarea[name="description"]').clear().type(condition.description);
+  }
+  
+  // Fill category field (required, has default but let's be explicit)
+  if (condition.conditionCategory) {
+    cy.get('select[name="conditionCategory"]').select(condition.conditionCategory);
+  } else {
+    // Default to first available option if not specified
+    cy.get('select[name="conditionCategory"]').select(0);
+  }
+  
+  // Fill type field (required, has default but let's be explicit)
+  if (condition.conditionType) {
+    cy.get('select[name="conditionType"]').select(condition.conditionType);
+  } else {
+    // Default to first available option if not specified
+    cy.get('select[name="conditionType"]').select(0);
+  }
+  
+  // Fill target attribute field (required, has default but let's be explicit)
+  if (condition.conditionTarget) {
+    cy.get('select[name="conditionTarget"]').select(condition.conditionTarget);
+  } else {
+    // Default to first available option if not specified
+    cy.get('select[name="conditionTarget"]').select(0);
+  }
+  
+  // Wait a moment for all form fields to be filled
+  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
+  const waitTime = isCI ? 3000 : 1000;
+  cy.wait(waitTime);
 });
 
 // Wait for GraphQL operations

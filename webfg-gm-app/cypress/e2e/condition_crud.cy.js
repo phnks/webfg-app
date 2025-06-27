@@ -43,8 +43,8 @@ describe('Condition CRUD Operations', () => {
       description: 'Being held or restrained'
     });
     
-    // Submit form
-    cy.contains('button', 'Create').click({force: true});
+    // Submit form by clicking the submit button (which may be labeled differently)
+    cy.get('button[type="submit"]').click({force: true});
     cy.waitForGraphQL();
     
     // Should redirect to condition detail page
@@ -62,7 +62,7 @@ describe('Condition CRUD Operations', () => {
       name: testConditionName,
       description: 'Being held or restrained'
     });
-    cy.contains('button', 'Create').click({force: true});
+    cy.get('button[type="submit"]').click({force: true});
     cy.waitForGraphQL();
     
     // Now navigate back to list and verify
@@ -78,7 +78,7 @@ describe('Condition CRUD Operations', () => {
       name: testConditionName,
       description: 'Being held or restrained'
     });
-    cy.contains('button', 'Create').click({force: true});
+    cy.get('button[type="submit"]').click({force: true});
     cy.waitForGraphQL();
     
     // Navigate back to list
@@ -101,7 +101,7 @@ describe('Condition CRUD Operations', () => {
       name: testConditionName,
       description: 'Being held or restrained'
     });
-    cy.contains('button', 'Create').click({force: true});
+    cy.get('button[type="submit"]').click({force: true});
     cy.waitForGraphQL();
     
     // Click edit button (should be on the condition detail page now)
@@ -138,7 +138,7 @@ describe('Condition CRUD Operations', () => {
       name: testConditionName,
       description: 'Being held or restrained'
     });
-    cy.contains('button', 'Create').click({force: true});
+    cy.get('button[type="submit"]').click({force: true});
     cy.waitForGraphQL();
     
     // Click edit and update the description
@@ -191,7 +191,7 @@ describe('Condition CRUD Operations', () => {
     cy.get('input').first().type('Validation Test Condition');
     cy.get('textarea').first().type('Test description');
     
-    cy.contains('button', 'Create').click({force: true});
+    cy.get('button[type="submit"]').click({force: true});
     cy.waitForGraphQL();
     
     // Should redirect after successful submission

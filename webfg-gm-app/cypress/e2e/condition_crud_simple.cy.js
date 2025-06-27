@@ -45,7 +45,7 @@ describe('Simple Condition CRUD Operations', () => {
     });
     
     // Submit the form
-    cy.contains('button', 'Create').click({force: true});
+    cy.get('button[type="submit"]').click({force: true});
     cy.waitForGraphQL();
     
     // Should redirect to condition detail page
@@ -63,7 +63,7 @@ describe('Simple Condition CRUD Operations', () => {
       name: testConditionName,
       description: 'A simple test condition for automated testing'
     });
-    cy.contains('button', 'Create').click({force: true});
+    cy.get('button[type="submit"]').click({force: true});
     cy.waitForGraphQL();
     
     // Now navigate back to list and verify
