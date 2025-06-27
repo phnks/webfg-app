@@ -407,7 +407,10 @@ const calculateActionTest = (params) => {
     rangeAnalysis = analyzeSubtractSuccessRanges(sourceAttribute, sourceModifier, targetValue);
   } else if (formula === 'DELTA') {
     // DELTA: Delta modifier applied to source, then compared against static 10
-    const deltaModifier = targetValue - sourceValue; // target attribute - source attribute
+    // For DELTA, we need to get both source and target values using the TARGET attribute
+    const sourceTargetAttributeValue = groupSourceAttributes(sourceCharacters, targetLower, selectedReadyObjectId);
+    const targetTargetAttributeValue = targetValue; // This is already calculated using target attribute
+    const deltaModifier = targetTargetAttributeValue - sourceTargetAttributeValue; // target's target attr - source's target attr
     const unroundedFinalModifier = sourceModifier + deltaModifier; // Keep unrounded for calculations
     finalSourceModifier = Math.round(unroundedFinalModifier); // Round for dice display
     successProbability = calculateDeltaSuccessProbability(sourceAttribute, finalSourceModifier);

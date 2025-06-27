@@ -870,6 +870,15 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                       
                       <div className="modifier-breakdown">
                         <h6>Dice Roll Calculation</h6>
+                        {actionResult.action.formula === 'DELTA' && (
+                          <div className="modifier-item" style={{marginBottom: '10px', fontStyle: 'italic'}}>
+                            <span className="modifier-label">Delta Calculation:</span>
+                            <span className="modifier-calculation">
+                              Target's {targetAttribute} ({actionResult.result.targetValue}) - 
+                              Source's {targetAttribute} (from backend) = delta modifier
+                            </span>
+                          </div>
+                        )}
                         <div className="modifier-item">
                           <span className="modifier-label">Source {sourceAttribute}:</span>
                           <span className="modifier-calculation">
@@ -881,8 +890,7 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                               // For DELTA, show the additional calculation step
                               <>
                                 {' = '}{Math.round(actionResult.result.sourceValue - (actionResult.result.sourceFatigue || 0))}
-                                {' + '}{Math.round(actionResult.result.targetValue - actionResult.result.sourceValue)} (delta)
-                                {' = '}{sourceModifier} → {sourceDiceDisplay}
+                                {' + delta modifier = '}{sourceModifier} → {sourceDiceDisplay}
                               </>
                             ) : (
                               // For other formulas, show the simple calculation
