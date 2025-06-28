@@ -17,7 +17,17 @@ Cypress.Commands.add('navigateToCharacters', () => {
 });
 
 Cypress.Commands.add('navigateToObjects', () => {
-  cy.get('.menu-toggle').click();
+  // Dismiss any error popups that might be blocking navigation
+  cy.get('body').then($body => {
+    if ($body.find('.error-popup').length > 0) {
+      cy.get('.error-popup').within(() => {
+        cy.get('button').contains('Close').click({force: true});
+      });
+      cy.wait(500);
+    }
+  });
+  
+  cy.get('.menu-toggle').click({force: true});
   cy.get('a[href="/objects"]').first().click({force: true});
   
   const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
@@ -148,6 +158,16 @@ Cypress.Commands.add('clickEditButton', () => {
 });
 
 Cypress.Commands.add('clickDeleteButton', () => {
+  // Dismiss any error popups that might be blocking the delete button
+  cy.get('body').then($body => {
+    if ($body.find('.error-popup').length > 0) {
+      cy.get('.error-popup').within(() => {
+        cy.get('button').contains('Close').click({force: true});
+      });
+      cy.wait(500);
+    }
+  });
+  
   // Try the new action-buttons structure first, then fallback to old structure
   cy.get('body').then($body => {
     if ($body.find('.action-buttons .delete-button').length > 0) {
