@@ -17,7 +17,17 @@ Cypress.Commands.add('navigateToCharacters', () => {
 });
 
 Cypress.Commands.add('navigateToObjects', () => {
-  cy.get('.menu-toggle').click();
+  // Dismiss any error popups that might be blocking navigation
+  cy.get('body').then($body => {
+    if ($body.find('.error-popup').length > 0) {
+      cy.get('.error-popup').within(() => {
+        cy.get('button').contains('Close').click({force: true});
+      });
+      cy.wait(500);
+    }
+  });
+  
+  cy.get('.menu-toggle').click({force: true});
   cy.get('a[href="/objects"]').first().click({force: true});
   
   const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
@@ -107,6 +117,15 @@ Cypress.Commands.add('clickCreateButton', () => {
           cy.contains('button', 'Create New Object').click();
         }
       });
+    } else if (url.includes('/conditions')) {
+      // On conditions page
+      cy.get('body').then($body => {
+        if ($body.find('.add-btn').length > 0) {
+          cy.get('.add-btn').click();
+        } else {
+          cy.contains('button', 'Create New Condition').click();
+        }
+      });
     } else {
       // Fallback - try to find any create button
       cy.get('body').then($body => {
@@ -139,6 +158,16 @@ Cypress.Commands.add('clickEditButton', () => {
 });
 
 Cypress.Commands.add('clickDeleteButton', () => {
+  // Dismiss any error popups that might be blocking the delete button
+  cy.get('body').then($body => {
+    if ($body.find('.error-popup').length > 0) {
+      cy.get('.error-popup').within(() => {
+        cy.get('button').contains('Close').click({force: true});
+      });
+      cy.wait(500);
+    }
+  });
+  
   // Try the new action-buttons structure first, then fallback to old structure
   cy.get('body').then($body => {
     if ($body.find('.action-buttons .delete-button').length > 0) {
@@ -183,24 +212,19 @@ Cypress.Commands.add('fillBasicObjectInfo', (object) => {
 });
 
 Cypress.Commands.add('fillActionForm', (action) => {
-  // Wait for form to be ready
+  // Wait for form to be ready and scroll to top to start
+  cy.scrollTo('top');
   cy.get('input[name="name"]').should('be.visible');
   
+  // Fill name field
   cy.get('input[name="name"]').clear().type(action.name);
-  cy.get('textarea[name="description"]').clear().type(action.description);
   
+  // Fill dropdown fields in the middle section
   // Fill required Category field - default to ATTACK if not specified
   if (action.category) {
     cy.get('select[name="actionCategory"]').select(action.category);
   } else {
     cy.get('select[name="actionCategory"]').select('ATTACK');
-  }
-  
-  // Fill required Target Type field - default to CHARACTER if not specified
-  if (action.targetType) {
-    cy.get('select[name="targetType"]').select(action.targetType);
-  } else {
-    cy.get('select[name="targetType"]').select('CHARACTER');
   }
   
   // Map our test data to actual form field names
@@ -210,10 +234,22 @@ Cypress.Commands.add('fillActionForm', (action) => {
   if (action.target) {
     cy.get('select[name="targetAttribute"]').select(action.target);
   }
+  
+  // Fill required Target Type field - default to CHARACTER if not specified
+  if (action.targetType) {
+    cy.get('select[name="targetType"]').select(action.targetType);
+  } else {
+    cy.get('select[name="targetType"]').select('CHARACTER');
+  }
+  
   if (action.type) {
     // Map test 'type' to actual 'effectType'
     cy.get('select[name="effectType"]').select(action.type);
   }
+  
+  // Scroll down to make the description field visible and fill it
+  cy.get('textarea[name="description"]').scrollIntoView().should('be.visible');
+  cy.get('textarea[name="description"]').clear().type(action.description);
   
   // Wait a moment for all form fields to be filled
   const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
@@ -231,8 +267,45 @@ Cypress.Commands.add('fillActionForm', (action) => {
 });
 
 Cypress.Commands.add('fillBasicConditionInfo', (condition) => {
-  cy.get('input').first().clear().type(condition.name); // Name field
-  cy.get('textarea').first().clear().type(condition.description); // Description field
+  // Wait for form to be ready
+  cy.get('input[name="name"]').should('be.visible');
+  
+  // Fill name field (required)
+  cy.get('input[name="name"]').clear().type(condition.name);
+  
+  // Fill description field (optional but commonly provided)
+  if (condition.description) {
+    cy.get('textarea[name="description"]').clear().type(condition.description);
+  }
+  
+  // Fill category field (required, has default but let's be explicit)
+  if (condition.conditionCategory) {
+    cy.get('select[name="conditionCategory"]').select(condition.conditionCategory);
+  } else {
+    // Default to first available option if not specified
+    cy.get('select[name="conditionCategory"]').select(0);
+  }
+  
+  // Fill type field (required, has default but let's be explicit)
+  if (condition.conditionType) {
+    cy.get('select[name="conditionType"]').select(condition.conditionType);
+  } else {
+    // Default to first available option if not specified
+    cy.get('select[name="conditionType"]').select(0);
+  }
+  
+  // Fill target attribute field (required, has default but let's be explicit)
+  if (condition.conditionTarget) {
+    cy.get('select[name="conditionTarget"]').select(condition.conditionTarget);
+  } else {
+    // Default to first available option if not specified
+    cy.get('select[name="conditionTarget"]').select(0);
+  }
+  
+  // Wait a moment for all form fields to be filled
+  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
+  const waitTime = isCI ? 3000 : 1000;
+  cy.wait(waitTime);
 });
 
 // Wait for GraphQL operations

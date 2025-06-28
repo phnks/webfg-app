@@ -11,6 +11,19 @@ const {
   calculateGroupedAttributesWithSelectedReady
 } = require('./attributeGrouping');
 
+const {
+  attributeUsesDice,
+  calculateAttributeModifier,
+  getAttributeRange,
+  calculateDiceSuccessProbability,
+  formatDiceRoll,
+  analyzeSuccessRanges,
+  calculateSubtractSuccessProbability,
+  analyzeSubtractSuccessRanges,
+  calculateDeltaSuccessProbability,
+  analyzeDeltaSuccessRanges
+} = require('./diceCalculations');
+
 /**
  * Calculate expected number of successes for a given dice pool
  * @param {number} diceCount - Number of dice to roll
@@ -276,7 +289,7 @@ const groupTargetAttributes = (targetEntities, targetAttribute, targetType) => {
 };
 
 /**
- * Calculate action test result with all necessary data
+ * Calculate action test result with new dice-based system
  * @param {Object} params - Parameters for calculation
  * @param {Array} params.sourceCharacters - Array of source characters
  * @param {Array} params.targetEntities - Array of target entities (characters/objects)
@@ -287,7 +300,7 @@ const groupTargetAttributes = (targetEntities, targetAttribute, targetType) => {
  * @param {number} params.overrideValue - Target override value if override is true
  * @param {boolean} params.sourceOverride - Whether to use source override value
  * @param {number} params.sourceOverrideValue - Source override value if sourceOverride is true
- * @returns {Object} Action test result with difficulty and breakdown
+ * @returns {Object} Action test result with dice mechanics and breakdown
  */
 const calculateActionTest = (params) => {
   const {
@@ -300,7 +313,8 @@ const calculateActionTest = (params) => {
     overrideValue = 0,
     sourceOverride = false,
     sourceOverrideValue = 0,
-    selectedReadyObjectId = null
+    selectedReadyObjectId = null,
+    formula = 'CONTEST' // Default to CONTEST if not provided
   } = params;
   
   // Convert attribute names to lowercase for calculation
@@ -329,29 +343,20 @@ const calculateActionTest = (params) => {
   }
   
   // Debug logging
-  console.log('Action test calculation debug:', {
-    sourceAttribute: sourceLower,
-    targetAttribute: targetLower,
+  console.log('NEW DICE SYSTEM - Action test calculation debug:', {
+    sourceAttribute: sourceAttribute,
+    targetAttribute: targetAttribute,
     sourceValue: sourceValue,
     targetValue: targetValue,
     sourceCharacterCount: sourceCharacters.length,
-    targetEntityCount: targetEntities.length,
-    sourceCharacters: sourceCharacters.map(c => ({ name: c.name, [sourceLower]: c[sourceLower] })),
-    targetEntities: targetEntities.map(t => ({ name: t.name, [targetLower]: t[targetLower] }))
+    targetEntityCount: targetEntities.length
   });
   
-  // Calculate dice pool information before fatigue (allow 0 dice for guaranteed actions)
-  const sourceDice = Math.max(0, Math.round(sourceValue));
-  const targetDice = Math.max(0, Math.round(targetValue));
-  
-  // Apply dice pool halving if needed
-  const { adjustedSource, adjustedTarget } = adjustDicePools(sourceDice, targetDice);
-  
   // Calculate total fatigue for source characters and collect details
-  // Only apply source fatigue if not using source override
+  // Only apply source fatigue if not using source override and attribute uses dice
   let sourceFatigue = 0;
   const sourceFatigueDetails = [];
-  if (!sourceOverride) {
+  if (!sourceOverride && attributeUsesDice(sourceAttribute)) {
     sourceCharacters.forEach(character => {
       const characterFatigue = character.fatigue || 0;
       sourceFatigue += characterFatigue;
@@ -364,9 +369,10 @@ const calculateActionTest = (params) => {
   }
   
   // Calculate total fatigue for target characters (objects don't have fatigue)
+  // Only apply target fatigue if not using override and target is character and attribute uses dice
   let targetFatigue = 0;
   const targetFatigueDetails = [];
-  if (targetType === 'CHARACTER') {
+  if (!override && targetType === 'CHARACTER' && attributeUsesDice(targetAttribute)) {
     targetEntities.forEach(character => {
       const characterFatigue = character.fatigue || 0;
       targetFatigue += characterFatigue;
@@ -378,48 +384,90 @@ const calculateActionTest = (params) => {
     });
   }
   
-  // Apply fatigue AFTER halving
-  // Fatigue can reduce dice to 0, but not below 0
-  let finalSourceDice, finalTargetDice;
+  // Calculate final modifiers (attribute value - fatigue, rounded to integers)
+  const sourceModifier = calculateAttributeModifier(sourceValue, sourceFatigue, sourceAttribute);
+  const targetModifier = calculateAttributeModifier(targetValue, targetFatigue, targetAttribute);
   
-  if (adjustedSource === 0) {
-    // If already 0 after halving, fatigue can't reduce it further
-    finalSourceDice = 0;
+  // Apply formula-specific calculations
+  let successProbability, sourceDiceDisplay, targetDiceDisplay, rangeAnalysis;
+  let finalSourceModifier = sourceModifier; // Will be adjusted for DELTA formula
+  let finalTargetModifier = targetModifier;
+  
+  if (formula === 'CONTEST') {
+    // CONTEST: Both sides roll dice and add their attributes (current implementation)
+    successProbability = calculateDiceSuccessProbability(sourceAttribute, sourceModifier, targetAttribute, targetModifier);
+    sourceDiceDisplay = formatDiceRoll(sourceAttribute, sourceModifier);
+    targetDiceDisplay = formatDiceRoll(targetAttribute, targetModifier);
+    rangeAnalysis = analyzeSuccessRanges(sourceAttribute, sourceModifier, targetAttribute, targetModifier);
+  } else if (formula === 'SUBTRACT') {
+    // SUBTRACT: Source rolls, target value is subtracted from source result, final result must be > 0
+    successProbability = calculateSubtractSuccessProbability(sourceAttribute, sourceModifier, targetValue);
+    sourceDiceDisplay = formatDiceRoll(sourceAttribute, sourceModifier);
+    targetDiceDisplay = `${targetValue} (static)`;
+    rangeAnalysis = analyzeSubtractSuccessRanges(sourceAttribute, sourceModifier, targetValue);
+  } else if (formula === 'DELTA') {
+    // DELTA: Delta modifier applied to source, then compared against static 10
+    // For DELTA, we need to get both source and target values using the TARGET attribute
+    const sourceTargetAttributeValue = groupSourceAttributes(sourceCharacters, targetLower, selectedReadyObjectId);
+    const targetTargetAttributeValue = targetValue; // This is already calculated using target attribute
+    const deltaModifier = targetTargetAttributeValue - sourceTargetAttributeValue; // target's target attr - source's target attr
+    const unroundedFinalModifier = sourceModifier + deltaModifier; // Keep unrounded for calculations
+    finalSourceModifier = Math.round(unroundedFinalModifier); // Round for dice display
+    successProbability = calculateDeltaSuccessProbability(sourceAttribute, finalSourceModifier);
+    sourceDiceDisplay = formatDiceRoll(sourceAttribute, finalSourceModifier);
+    targetDiceDisplay = `10 (static target)`;
+    rangeAnalysis = analyzeDeltaSuccessRanges(sourceAttribute, finalSourceModifier);
   } else {
-    // If > 0 after halving, apply fatigue (can reduce to 0, but not below)
-    finalSourceDice = Math.max(0, adjustedSource - sourceFatigue);
+    // Default to CONTEST for unknown formulas
+    successProbability = calculateDiceSuccessProbability(sourceAttribute, sourceModifier, targetAttribute, targetModifier);
+    sourceDiceDisplay = formatDiceRoll(sourceAttribute, sourceModifier);
+    targetDiceDisplay = formatDiceRoll(targetAttribute, targetModifier);
+    rangeAnalysis = analyzeSuccessRanges(sourceAttribute, sourceModifier, targetAttribute, targetModifier);
   }
   
-  if (adjustedTarget === 0) {
-    // If already 0 after halving, fatigue can't reduce it further
-    finalTargetDice = 0;
-  } else {
-    // If > 0 after halving, apply fatigue (can reduce to 0, but not below)
-    finalTargetDice = Math.max(0, adjustedTarget - targetFatigue);
-  }
-  
-  // Calculate difficulty using final dice pools
-  const difficulty = calculateActionDifficulty(finalSourceDice, finalTargetDice);
+  console.log('DICE CALCULATION RESULTS:', {
+    sourceModifier,
+    targetModifier,
+    sourceDiceDisplay,
+    targetDiceDisplay,
+    successProbability,
+    rangeAnalysis
+  });
   
   return {
-    difficulty: Math.round(difficulty * 10000) / 10000, // Round to 4 decimal places
+    // Core results using new dice system
+    difficulty: Math.round(successProbability * 10000) / 10000, // Round to 4 decimal places
     sourceValue,
     targetValue,
     sourceCount: sourceOverride ? 0 : sourceCharacters.length,
     targetCount: override ? 0 : targetEntities.length,
-    successPercentage: Math.round(difficulty * 10000) / 100, // Convert to percentage with 2 decimals
-    // Dice pool information for display
-    sourceDice,
-    targetDice,
-    adjustedSourceDice: adjustedSource,
-    adjustedTargetDice: adjustedTarget,
+    successPercentage: Math.round(successProbability * 10000) / 100, // Convert to percentage with 2 decimals
+    
+    // New dice system information - ensure all integers are properly rounded
+    sourceModifier: Math.round(finalSourceModifier),
+    targetModifier: Math.round(finalTargetModifier),
+    sourceDiceDisplay,
+    targetDiceDisplay,
+    sourceRange: rangeAnalysis.sourceRange,
+    targetRange: rangeAnalysis.targetRange,
+    guaranteedSuccess: rangeAnalysis.guaranteedSuccess,
+    guaranteedFailure: rangeAnalysis.guaranteedFailure,
+    partialSuccess: rangeAnalysis.partialSuccess,
+    
+    // Fatigue information
     sourceFatigue,
     targetFatigue,
-    finalSourceDice,
-    finalTargetDice,
-    dicePoolExceeded: (sourceDice + targetDice) > 20,
     sourceFatigueDetails,
-    targetFatigueDetails
+    targetFatigueDetails,
+    
+    // Legacy fields for backwards compatibility (using placeholder values)
+    sourceDice: 0, // No longer relevant in new system
+    targetDice: 0, // No longer relevant in new system
+    adjustedSourceDice: 0,
+    adjustedTargetDice: 0,
+    finalSourceDice: 0,
+    finalTargetDice: 0,
+    dicePoolExceeded: false // No longer relevant in new system
   };
 };
 

@@ -292,6 +292,22 @@ export const CALCULATE_ACTION_TEST = gql`
         characterName
         fatigue
       }
+      # New dice system fields
+      sourceModifier
+      targetModifier
+      sourceDiceDisplay
+      targetDiceDisplay
+      sourceRange {
+        min
+        max
+      }
+      targetRange {
+        min
+        max
+      }
+      guaranteedSuccess
+      guaranteedFailure
+      partialSuccess
     }
   }
 `;

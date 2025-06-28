@@ -2,6 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client';
 import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, GET_ACTION } from '../../../graphql/operations';
 import { CALCULATE_ACTION_TEST } from '../../../graphql/computedOperations';
+import { 
+  getDiceForAttribute, 
+  attributeUsesDice, 
+  calculateAttributeModifier, 
+  formatDiceRoll, 
+  getAttributeRange,
+  getDiceRange
+} from '../../../utils/diceMapping';
 import './ActionTest.css';
 
 const ActionTestBackend = ({ action, character, onClose }) => {
@@ -36,10 +44,19 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   const [isCalculatingChain, setIsCalculatingChain] = useState(false);
   
   // Lazy query for action test calculation
-  const [calculateTest, { data: testResult, loading: calculating }] = useLazyQuery(
+  const [calculateTest, { data: testResult, loading: calculating, error: calculateError }] = useLazyQuery(
     CALCULATE_ACTION_TEST,
     {
-      fetchPolicy: 'no-cache' // Always get fresh calculation
+      fetchPolicy: 'no-cache', // Always get fresh calculation
+      onError: (error) => {
+        console.error('GraphQL query error:', error);
+        console.error('Error details:', error.message);
+        console.error('Network error:', error.networkError);
+        console.error('GraphQL errors:', error.graphQLErrors);
+      },
+      onCompleted: (data) => {
+        console.log('GraphQL query completed with data:', data);
+      }
     }
   );
   
@@ -52,9 +69,30 @@ const ActionTestBackend = ({ action, character, onClose }) => {
   useEffect(() => {
     setTargetType(action.targetType);
   }, [action]);
+  
+  // Auto-trigger calculation when source and target are selected
+  useEffect(() => {
+    if (selectedSourceIds.length > 0 && selectedTargetIds.length > 0 && !sourceOverride && !override) {
+      console.log('Auto-triggering calculation with sources and targets selected');
+      handleSubmit();
+    }
+  }, [selectedSourceIds, selectedTargetIds]);
 
   // Recursive function to calculate action chain
-  const calculateActionChain = async (currentAction, sourceIds, targetIds, chainResults = []) => {
+  const calculateActionChain = async (currentAction, sourceIds, targetIds, chainResults = [], visitedActions = new Set()) => {
+    // Prevent infinite recursion
+    if (visitedActions.has(currentAction.actionId)) {
+      console.warn(`Circular reference detected for action ${currentAction.actionId}. Stopping recursion.`);
+      return chainResults;
+    }
+    visitedActions.add(currentAction.actionId);
+    
+    // Prevent excessive chain length
+    if (chainResults.length > 10) {
+      console.warn('Action chain exceeded 10 actions. Stopping to prevent infinite loop.');
+      return chainResults;
+    }
+    
     const isFirstAction = chainResults.length === 0;
     const actionIndex = chainResults.length;
     const actionKey = `${currentAction.actionId}_${actionIndex}`;
@@ -98,12 +136,25 @@ const ActionTestBackend = ({ action, character, onClose }) => {
     
     // Calculate test for current action
     console.log('About to call calculateTest with variables:', { input });
-    const result = await calculateTest({
-      variables: { input }
-    });
-    console.log('calculateTest result:', result.data?.calculateActionTest);
-    
-    if (result.data && result.data.calculateActionTest) {
+    console.log('calculateTest function:', calculateTest);
+    console.log('CALCULATE_ACTION_TEST query:', CALCULATE_ACTION_TEST);
+    try {
+      console.log('Executing calculateTest query...');
+      const result = await calculateTest({
+        variables: { input }
+      });
+      console.log('Query execution completed');
+      console.log('calculateTest result:', result.data?.calculateActionTest);
+      console.log('calculateTest full result:', result);
+      console.log('calculateTest error:', result.error);
+      console.log('calculateTest errors:', result.errors);
+      
+      if (!result.data && result.errors) {
+        console.error('GraphQL errors:', result.errors);
+        return chainResults;
+      }
+      
+      if (result.data && result.data.calculateActionTest) {
       const actionResult = {
         action: currentAction,
         result: result.data.calculateActionTest,
@@ -147,13 +198,18 @@ const ActionTestBackend = ({ action, character, onClose }) => {
             newTargetIds
           });
           
-          await calculateActionChain(triggeredAction, newSourceIds, newTargetIds, chainResults);
+          await calculateActionChain(triggeredAction, newSourceIds, newTargetIds, chainResults, visitedActions);
         } else {
           console.log('No triggered action found despite having triggeredActionId');
         }
       } else {
         console.log('No triggered action or not TRIGGER_ACTION type');
       }
+    }
+    } catch (error) {
+      console.error('Error calling calculateTest:', error);
+      console.error('Error stack:', error.stack);
+      return chainResults;
     }
     
     return chainResults;
@@ -781,116 +837,326 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                       actionResult.result.targetValue}
                   </p>
                 
-                {/* Dice Pool Information */}
-                {actionResult.result.dicePoolExceeded && (
-                  <div className="dice-pool-info">
-                    <h5>Dice Pools</h5>
-                    <p className="dice-pool-note">
-                      Total dice exceeded 20, pools were halved:
-                    </p>
-                    <div className="dice-pool-values">
-                      <div className="dice-pool-item">
-                        <span className="dice-label">Source Dice:</span>
-                        <span className="dice-original">{actionResult.result.sourceDice}</span>
-                        <span className="dice-arrow">→</span>
-                        <span className="dice-adjusted">{actionResult.result.adjustedSourceDice}</span>
+                {/* New Dice Rolling Information */}
+                {(() => {
+                  const sourceAttribute = actionResult.action.sourceAttribute;
+                  const targetAttribute = actionResult.action.targetAttribute;
+                  
+                  // Use backend-calculated values
+                  const sourceDiceDisplay = actionResult.result.sourceDiceDisplay || 'N/A';
+                  const targetDiceDisplay = actionResult.result.targetDiceDisplay || 'N/A';
+                  const sourceModifier = actionResult.result.sourceModifier || 0;
+                  const targetModifier = actionResult.result.targetModifier || 0;
+                  
+                  return (
+                    <div className="dice-roll-info">
+                      <h5>Dice Rolls Required</h5>
+                      <div className="dice-roll-values">
+                        <div className="dice-roll-item">
+                          <span className="dice-label">Source ({sourceAttribute}):</span>
+                          <span className="dice-value">{sourceDiceDisplay}</span>
+                          {!attributeUsesDice(sourceAttribute) && (
+                            <span className="static-note"> (No roll needed)</span>
+                          )}
+                        </div>
+                        <div className="dice-roll-item">
+                          <span className="dice-label">Target ({targetAttribute}):</span>
+                          <span className="dice-value">{targetDiceDisplay}</span>
+                          {!attributeUsesDice(targetAttribute) && (
+                            <span className="static-note"> (No roll needed)</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="dice-pool-item">
-                        <span className="dice-label">Target Dice:</span>
-                        <span className="dice-original">{actionResult.result.targetDice}</span>
-                        <span className="dice-arrow">→</span>
-                        <span className="dice-adjusted">{actionResult.result.adjustedTargetDice}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {!actionResult.result.dicePoolExceeded && (
-                  <div className="dice-pool-info">
-                    <h5>Dice to Roll</h5>
-                    <div className="dice-pool-values">
-                      <div className="dice-pool-item">
-                        <span className="dice-label">Source Dice:</span>
-                        <span className="dice-value">{actionResult.result.sourceDice}</span>
-                      </div>
-                      <div className="dice-pool-item">
-                        <span className="dice-label">Target Dice:</span>
-                        <span className="dice-value">{actionResult.result.targetDice}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Fatigue Application */}
-                {(actionResult.result.sourceFatigue > 0 || actionResult.result.targetFatigue > 0) && (
-                  <div className="fatigue-info">
-                    <h5>Fatigue Applied</h5>
-                    <p className="fatigue-note">
-                      Fatigue is applied after dice pool adjustment:
-                    </p>
-                    <div className="fatigue-values">
-                      {actionResult.result.sourceFatigue > 0 && (
-                        <div className="fatigue-item">
-                          <span className="fatigue-label">Source Fatigue:</span>
-                          <div className="fatigue-breakdown">
-                            {actionResult.result.sourceFatigueDetails && actionResult.result.sourceFatigueDetails.length > 0 ? (
+                      
+                      <div className="modifier-breakdown">
+                        <h6>Dice Roll Calculation</h6>
+                        {actionResult.action.formula === 'DELTA' && (
+                          <div className="modifier-item" style={{marginBottom: '10px', fontStyle: 'italic'}}>
+                            <span className="modifier-label">Delta Calculation:</span>
+                            <span className="modifier-calculation">
+                              Target's {targetAttribute} ({actionResult.result.targetValue}) - 
+                              Source's {targetAttribute} (from backend) = delta modifier
+                            </span>
+                          </div>
+                        )}
+                        <div className="modifier-item">
+                          <span className="modifier-label">Source {sourceAttribute}:</span>
+                          <span className="modifier-calculation">
+                            {actionResult.result.sourceValue}
+                            {attributeUsesDice(sourceAttribute) && actionResult.result.sourceFatigue > 0 && (
+                              <> - <span style={{color: '#ff6b35'}}>{actionResult.result.sourceFatigue} (fatigue)</span></>
+                            )}
+                            {actionResult.action.formula === 'DELTA' ? (
+                              // For DELTA, show the additional calculation step
                               <>
-                                {actionResult.result.sourceFatigueDetails.map((detail, idx) => (
-                                  <span key={detail.characterId} className="fatigue-character">
-                                    {detail.characterName}: {detail.fatigue}
-                                    {idx < actionResult.result.sourceFatigueDetails.length - 1 && " + "}
-                                  </span>
-                                ))}
-                                <span className="fatigue-total"> = {actionResult.result.sourceFatigue}</span>
+                                {' = '}{Math.round(actionResult.result.sourceValue - (actionResult.result.sourceFatigue || 0))}
+                                {' + delta modifier = '}{sourceModifier} → {sourceDiceDisplay}
                               </>
                             ) : (
-                              <span className="fatigue-value">-{actionResult.result.sourceFatigue}</span>
+                              // For other formulas, show the simple calculation
+                              <>{' = '}{Math.round(actionResult.result.sourceValue - (actionResult.result.sourceFatigue || 0))} → {sourceDiceDisplay}</>
                             )}
-                          </div>
-                          <span className="fatigue-arrow">→</span>
-                          <span className="fatigue-final">{actionResult.result.finalSourceDice} dice</span>
+                          </span>
                         </div>
-                      )}
-                      {actionResult.result.targetFatigue > 0 && (
-                        <div className="fatigue-item">
-                          <span className="fatigue-label">Target Fatigue:</span>
-                          <div className="fatigue-breakdown">
-                            {actionResult.result.targetFatigueDetails && actionResult.result.targetFatigueDetails.length > 0 ? (
-                              <>
-                                {actionResult.result.targetFatigueDetails.map((detail, idx) => (
-                                  <span key={detail.characterId} className="fatigue-character">
-                                    {detail.characterName}: {detail.fatigue}
-                                    {idx < actionResult.result.targetFatigueDetails.length - 1 && " + "}
-                                  </span>
-                                ))}
-                                <span className="fatigue-total"> = {actionResult.result.targetFatigue}</span>
-                              </>
-                            ) : (
-                              <span className="fatigue-value">-{actionResult.result.targetFatigue}</span>
+                        <div className="modifier-item">
+                          <span className="modifier-label">Target {targetAttribute}:</span>
+                          <span className="modifier-calculation">
+                            {actionResult.result.targetValue}
+                            {attributeUsesDice(targetAttribute) && actionResult.result.targetFatigue > 0 && (
+                              <> - <span style={{color: '#ff6b35'}}>{actionResult.result.targetFatigue} (fatigue)</span></>
                             )}
-                          </div>
-                          <span className="fatigue-arrow">→</span>
-                          <span className="fatigue-final">{actionResult.result.finalTargetDice} dice</span>
+                            {' = '}{targetModifier} → {targetDiceDisplay}
+                          </span>
                         </div>
-                      )}
+                      </div>
+                      
+                      <div className="success-ranges">
+                        <h6>Success Probability</h6>
+                        {(() => {
+                          // Use backend-calculated range analysis
+                          const sourceRange = actionResult.result.sourceRange || { min: 0, max: 0 };
+                          const targetRange = actionResult.result.targetRange || { min: 0, max: 0 };
+                          const guaranteedSuccess = actionResult.result.guaranteedSuccess || false;
+                          const guaranteedFailure = actionResult.result.guaranteedFailure || false;
+                          const partialSuccess = actionResult.result.partialSuccess || false;
+                          
+                          return (
+                            <div className="range-analysis">
+                              <div className="range-item">
+                                <span className="range-label">Source Range ({sourceAttribute}):</span>
+                                <span className={`range-value ${guaranteedSuccess ? 'guaranteed-success' : guaranteedFailure ? 'guaranteed-failure' : 'potential-success'}`}>
+                                  {sourceRange.min}-{sourceRange.max}
+                                </span>
+                              </div>
+                              <div className="range-item">
+                                <span className="range-label">Target Range ({targetAttribute}):</span>
+                                <span className="range-value target-range">
+                                  {targetRange.min}-{targetRange.max}
+                                </span>
+                              </div>
+                              <div className="success-assessment">
+                                {guaranteedSuccess && (
+                                  <span className="success-guaranteed">✓ Guaranteed Success - All source rolls beat all target rolls</span>
+                                )}
+                                {guaranteedFailure && (
+                                  <span className="success-impossible">✗ Guaranteed Failure - No source roll can beat any target roll</span>
+                                )}
+                                {partialSuccess && (
+                                  <span className="success-partial">~ Partial Success - Some combinations succeed</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                      
+                      <div className="dice-guidance">
+                        <h6>Dice Roll Guidance</h6>
+                        {(() => {
+                          // Calculate dice guidance for players
+                          const sourceRange = actionResult.result.sourceRange || { min: 0, max: 0 };
+                          const targetRange = actionResult.result.targetRange || { min: 0, max: 0 };
+                          const sourceModifier = actionResult.result.sourceModifier || 0;
+                          const targetModifier = actionResult.result.targetModifier || 0;
+                          
+                          const sourceUsesDice = attributeUsesDice(sourceAttribute);
+                          const targetUsesDice = attributeUsesDice(targetAttribute);
+                          
+                          // Get dice types
+                          const sourceDiceType = sourceUsesDice ? getDiceForAttribute(sourceAttribute) : null;
+                          const targetDiceType = targetUsesDice ? getDiceForAttribute(targetAttribute) : null;
+                          
+                          if (!sourceUsesDice && !targetUsesDice) {
+                            return (
+                              <div className="guidance-item">
+                                <p>Both attributes are static - no dice rolling required.</p>
+                              </div>
+                            );
+                          }
+                          
+                          if (!sourceUsesDice) {
+                            // Source static vs target dice
+                            const sourceValue = sourceRange.min;
+                            const targetSuccess = [];
+                            const targetFail = [];
+                            const targetMaxRoll = targetDiceType ? getDiceRange(targetDiceType).max : 0;
+                            
+                            if (!targetDiceType || targetMaxRoll <= 0) {
+                              return (
+                                <div className="guidance-item">
+                                  <p>Error: Invalid target dice type.</p>
+                                </div>
+                              );
+                            }
+                            
+                            for (let targetRoll = 1; targetRoll <= targetMaxRoll; targetRoll++) {
+                              const targetTotal = targetRoll + targetModifier;
+                              if (targetTotal >= sourceValue) { // Target wins on tie
+                                targetSuccess.push(targetRoll);
+                              } else {
+                                targetFail.push(targetRoll);
+                              }
+                            }
+                            
+                            return (
+                              <div className="guidance-item">
+                                <p><strong>Source ({sourceAttribute}):</strong> Static value {sourceValue} (no roll needed)</p>
+                                <p><strong>Target ({targetAttribute}) - Roll 1{targetDiceType}:</strong></p>
+                                {targetSuccess.length > 0 && (
+                                  <p>• <span style={{color: '#28a745'}}>Success (defense)</span> on: {targetSuccess.join(', ')} (≥ static {sourceValue})</p>
+                                )}
+                                {targetFail.length > 0 && (
+                                  <p>• <span style={{color: '#dc3545'}}>Failure (defense)</span> on: {targetFail.join(', ')} (&lt; static {sourceValue})</p>
+                                )}
+                              </div>
+                            );
+                          }
+                          
+                          if (!targetUsesDice) {
+                            // Source dice vs target static
+                            const targetValue = targetRange.min;
+                            const sourceSuccess = [];
+                            const sourceFail = [];
+                            const sourceMaxRoll = sourceDiceType ? getDiceRange(sourceDiceType).max : 0;
+                            
+                            if (!sourceDiceType || sourceMaxRoll <= 0) {
+                              return (
+                                <div className="guidance-item">
+                                  <p>Error: Invalid source dice type.</p>
+                                </div>
+                              );
+                            }
+                            
+                            for (let sourceRoll = 1; sourceRoll <= sourceMaxRoll; sourceRoll++) {
+                              const sourceTotal = sourceRoll + sourceModifier;
+                              if (sourceTotal > targetValue) {
+                                sourceSuccess.push(sourceRoll);
+                              } else {
+                                sourceFail.push(sourceRoll);
+                              }
+                            }
+                            
+                            return (
+                              <div className="guidance-item">
+                                <p><strong>Source ({sourceAttribute}) - Roll 1{sourceDiceType}:</strong></p>
+                                {sourceSuccess.length > 0 && (
+                                  <p>• <span style={{color: '#28a745'}}>Success</span> on: {sourceSuccess.join(', ')} (beats static {targetValue})</p>
+                                )}
+                                {sourceFail.length > 0 && (
+                                  <p>• <span style={{color: '#dc3545'}}>Failure</span> on: {sourceFail.join(', ')} (≤ static {targetValue})</p>
+                                )}
+                                <p><strong>Target ({targetAttribute}):</strong> Static value {targetValue} (no roll needed)</p>
+                              </div>
+                            );
+                          }
+                          
+                          // Both use dice - analyze specific roll outcomes
+                          const sourceGuaranteedWin = [];
+                          const sourceGuaranteedLoss = [];
+                          const sourceMixed = [];
+                          const targetGuaranteedWin = [];
+                          const targetGuaranteedLoss = [];
+                          const targetMixed = [];
+                          
+                          console.log('Dice guidance debug:', {
+                            sourceAttribute,
+                            targetAttribute,
+                            sourceDiceType,
+                            targetDiceType,
+                            sourceModifier,
+                            targetModifier,
+                            sourceRange,
+                            targetRange
+                          });
+                          
+                          // Safety check to prevent infinite loops
+                          const sourceMaxRoll = sourceDiceType ? getDiceRange(sourceDiceType).max : 0;
+                          const targetMaxRoll = targetDiceType ? getDiceRange(targetDiceType).max : 0;
+                          
+                          if (!sourceDiceType || !targetDiceType || sourceMaxRoll <= 0 || targetMaxRoll <= 0) {
+                            return (
+                              <div className="guidance-item">
+                                <p>Error: Invalid dice types detected. Cannot generate guidance.</p>
+                              </div>
+                            );
+                          }
+                          
+                          // Analyze source die outcomes
+                          for (let sourceRoll = 1; sourceRoll <= sourceMaxRoll; sourceRoll++) {
+                            const sourceTotal = sourceRoll + sourceModifier;
+                            let winsAgainst = 0;
+                            let totalPossible = 0;
+                            
+                            for (let targetRoll = 1; targetRoll <= targetMaxRoll; targetRoll++) {
+                              const targetTotal = targetRoll + targetModifier;
+                              totalPossible++;
+                              if (sourceTotal > targetTotal) {
+                                winsAgainst++;
+                              }
+                            }
+                            
+                            if (winsAgainst === totalPossible) {
+                              sourceGuaranteedWin.push(sourceRoll);
+                            } else if (winsAgainst === 0) {
+                              sourceGuaranteedLoss.push(sourceRoll);
+                            } else {
+                              sourceMixed.push(sourceRoll);
+                            }
+                          }
+                          
+                          // Analyze target die outcomes  
+                          for (let targetRoll = 1; targetRoll <= targetMaxRoll; targetRoll++) {
+                            const targetTotal = targetRoll + targetModifier;
+                            let winsAgainst = 0;
+                            let totalPossible = 0;
+                            
+                            for (let sourceRoll = 1; sourceRoll <= sourceMaxRoll; sourceRoll++) {
+                              const sourceTotal = sourceRoll + sourceModifier;
+                              totalPossible++;
+                              if (targetTotal >= sourceTotal) { // Target wins on tie
+                                winsAgainst++;
+                              }
+                            }
+                            
+                            if (winsAgainst === totalPossible) {
+                              targetGuaranteedWin.push(targetRoll);
+                            } else if (winsAgainst === 0) {
+                              targetGuaranteedLoss.push(targetRoll);
+                            } else {
+                              targetMixed.push(targetRoll);
+                            }
+                          }
+                          
+                          return (
+                            <div className="guidance-item">
+                              <p><strong>Source ({sourceAttribute}) - Roll 1{sourceDiceType}:</strong></p>
+                              {sourceGuaranteedWin.length > 0 && (
+                                <p>• <span style={{color: '#28a745'}}>Guaranteed success</span> on: {sourceGuaranteedWin.join(', ')}</p>
+                              )}
+                              {sourceMixed.length > 0 && (
+                                <p>• <span style={{color: '#ffc107'}}>Possible success/failure</span> on: {sourceMixed.join(', ')}</p>
+                              )}
+                              {sourceGuaranteedLoss.length > 0 && (
+                                <p>• <span style={{color: '#dc3545'}}>Guaranteed failure</span> on: {sourceGuaranteedLoss.join(', ')}</p>
+                              )}
+                              
+                              <p><strong>Target ({targetAttribute}) - Roll 1{targetDiceType}:</strong></p>
+                              {targetGuaranteedWin.length > 0 && (
+                                <p>• <span style={{color: '#28a745'}}>Guaranteed success (defense)</span> on: {targetGuaranteedWin.join(', ')}</p>
+                              )}
+                              {targetMixed.length > 0 && (
+                                <p>• <span style={{color: '#ffc107'}}>Possible success/failure</span> on: {targetMixed.join(', ')}</p>
+                              )}
+                              {targetGuaranteedLoss.length > 0 && (
+                                <p>• <span style={{color: '#dc3545'}}>Guaranteed failure (defense)</span> on: {targetGuaranteedLoss.join(', ')}</p>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
                     </div>
-                  </div>
-                )}
-                
-                {/* Final Dice Pools */}
-                <div className="final-dice-info">
-                  <h5>Final Dice Pools</h5>
-                  <div className="final-dice-values">
-                    <div className="final-dice-item">
-                      <span className="dice-label">Source:</span>
-                      <span className="dice-final-value">{actionResult.result.finalSourceDice} dice</span>
-                    </div>
-                    <div className="final-dice-item">
-                      <span className="dice-label">Target:</span>
-                      <span className="dice-final-value">{actionResult.result.finalTargetDice} dice</span>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
             );
             })}

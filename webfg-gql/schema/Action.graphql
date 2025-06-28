@@ -11,6 +11,7 @@ type Action {
   triggeredActionId: ID
   triggeredAction: Action
   objectUsage: ObjectUsage
+  formula: ActionFormula
 }
 
 enum ActionCategory {
@@ -54,6 +55,12 @@ enum ObjectUsage {
   ARTIFACT
 }
 
+enum ActionFormula {
+  CONTEST
+  SUBTRACT
+  DELTA
+}
+
 input ActionInput {
   name: String!
   actionCategory: ActionCategory!
@@ -64,4 +71,5 @@ input ActionInput {
   effectType: EffectType!
   triggeredActionId: ID
   objectUsage: ObjectUsage
+  formula: ActionFormula
 }
