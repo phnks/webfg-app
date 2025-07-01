@@ -4,7 +4,7 @@ describe('Object CRUD Operations', () => {
   
   beforeEach(() => {
     cy.visit('/');
-    cy.wait(2000);
+    cy.contains('WEBFG').should('be.visible');
     // Generate unique names for this test run
     const timestamp = Date.now();
     testObjectName = `Test Sword ${timestamp}`;
@@ -117,7 +117,7 @@ describe('Object CRUD Operations', () => {
     cy.waitForGraphQL();
     
     // Wait for the page to update and check if we're back on detail page
-    cy.wait(2000);
+    cy.url().should('not.contain', '/edit');
     
     // Verify the update was successful by checking the page content
     cy.get('body').then($body => {
@@ -144,11 +144,10 @@ describe('Object CRUD Operations', () => {
     
     // Navigate to objects list to find our object
     cy.navigateToObjects();
-    cy.wait(2000);
     
     // Find and click on our test object
     cy.contains(testObjectName).scrollIntoView().click({force: true});
-    cy.wait(1000);
+    cy.url().should('include', '/objects/');
     
     // Dismiss any error popups that might be blocking the UI
     cy.get('body').then($body => {
@@ -171,8 +170,9 @@ describe('Object CRUD Operations', () => {
     cy.url().should('include', '/objects');
     cy.url().should('not.match', /\/objects\/[a-zA-Z0-9-]+$/);
     
-    // Verify we're back on objects list - deletion may take time to reflect
-    cy.wait(3000);
+    // Verify we're back on objects list
+    cy.url().should('include', '/objects');
+    cy.url().should('not.match', /\/objects\/[a-zA-Z0-9-]+$/);
     cy.get('body').should('contain.text', 'Objects');
   });
 
@@ -229,7 +229,7 @@ describe('Object CRUD Operations', () => {
     
     // Navigate back
     cy.go('back');
-    cy.wait(2000);
+    cy.url().should('include', '/objects');
     
     cy.url().should('include', '/objects');
     cy.url().should('not.contain', '/new');
@@ -275,7 +275,7 @@ describe('Object CRUD Operations', () => {
           
           if ($elements.length > 0) {
             cy.wrap($elements.first()).click({force: true});
-            cy.wait(1000);
+            cy.url().should('include', '/objects/');
             
             // Dismiss any error popups
             cy.get('body').then($popupBody => {
@@ -283,7 +283,6 @@ describe('Object CRUD Operations', () => {
                 cy.get('.error-popup').within(() => {
                   cy.get('button').contains('Close').click({force: true});
                 });
-                cy.wait(500);
               }
             });
             

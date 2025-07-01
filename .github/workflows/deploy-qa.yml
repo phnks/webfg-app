@@ -172,9 +172,14 @@ jobs:
         working-directory: . # Run gh commands at repo root
 
   run-cypress-tests:
-    name: Run Cypress Tests on QA
+    name: Run Cypress Tests on QA (Parallel)
     runs-on: ubuntu-latest
     needs: deploy-gm-app-qa # Depends on the GM App deployment job
+    strategy:
+      matrix:
+        # Split tests into groups for parallel execution
+        test-group: [1, 2, 3]
+      fail-fast: false # Continue running other groups even if one fails
     defaults: # Set default working directory for steps in this job
       run:
         working-directory: ./webfg-gm-app
@@ -195,9 +200,24 @@ jobs:
         run: npm ci # Use npm ci for clean install in CI environments
         # working-directory is set by defaults.run
 
-      - name: Run Cypress Tests
+      - name: Run Cypress Tests (Group ${{ matrix.test-group }})
         run: |
           # Set DEPLOYMENT_ID shell variable directly from github.event.number
           DEPLOYMENT_ID="${{ github.event.number }}"
           echo "Using Deployment ID (direct from event): $DEPLOYMENT_ID" # Debugging line
-          bash scripts/run-cypress.sh qa "$DEPLOYMENT_ID" # Pass the shell variable as argument
+          
+          # Run different test groups in parallel
+          case "${{ matrix.test-group }}" in
+            1)
+              echo "Running CRUD tests..."
+              CYPRESS_BASE_URL="https://webfg-gm-app-qa${DEPLOYMENT_ID}.phnks.com" npx cypress run --spec "cypress/e2e/*_crud*.cy.js" --headless --browser electron
+              ;;
+            2)
+              echo "Running simple tests..."
+              CYPRESS_BASE_URL="https://webfg-gm-app-qa${DEPLOYMENT_ID}.phnks.com" npx cypress run --spec "cypress/e2e/*_simple*.cy.js" --headless --browser electron
+              ;;
+            3)
+              echo "Running other tests..."
+              CYPRESS_BASE_URL="https://webfg-gm-app-qa${DEPLOYMENT_ID}.phnks.com" npx cypress run --spec "cypress/e2e/{home_page,search_filter_sort_pagination,*_flow,*_management,*_modal,*_grouping,*_associations}.cy.js" --headless --browser electron
+              ;;
+          esac
