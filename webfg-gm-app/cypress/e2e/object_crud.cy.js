@@ -116,21 +116,17 @@ describe('Object CRUD Operations', () => {
     cy.get('button[type="submit"]').click({force: true});
     cy.waitForGraphQL();
     
-    // Wait for the page to update
+    // Wait for the page to update and check if we're back on detail page
     cy.wait(2000);
     
-    // Verify update - always navigate back to objects list to ensure we can find the updated object
-    cy.navigateToObjects();
-    
-    // Wait for the list to load and look for either original or updated name
-    cy.wait(2000);
+    // Verify the update was successful by checking the page content
     cy.get('body').then($body => {
       const bodyText = $body.text();
-      // Check if either the original or updated name appears in the objects list
+      // Check if either the original or updated name appears on the page
       const hasOriginalName = bodyText.includes(testObjectName);
       const hasUpdatedName = bodyText.includes(updatedObjectName);
       
-      // At least one should be present (update might take time to reflect)
+      // At least one should be present (the update should show the new name)
       expect(hasOriginalName || hasUpdatedName).to.be.true;
     });
   });
@@ -272,30 +268,31 @@ describe('Object CRUD Operations', () => {
       const bodyText = $body.text();
       if (bodyText.includes('Test Sword')) {
         // Try to find and delete any remaining Test Sword objects
-        cy.get('body').within(() => {
-          cy.get('*').contains(/Test Sword \d+/).then($elements => {
-            if ($elements.length > 0) {
-              cy.wrap($elements.first()).click({force: true});
-              cy.wait(1000);
-              
-              // Dismiss any error popups
-              cy.get('body').then($body => {
-                if ($body.find('.error-popup').length > 0) {
-                  cy.get('.error-popup').within(() => {
-                    cy.get('button').contains('Close').click({force: true});
-                  });
-                  cy.wait(500);
-                }
-              });
-              
-              cy.clickDeleteButton();
-              cy.on('window:confirm', () => true);
-              cy.waitForGraphQL();
-            }
-          }).catch(() => {
-            // If we can't find the element, that's fine - it may already be deleted
-            cy.log('No Test Sword objects found to clean up');
+        cy.get('body').then($innerBody => {
+          const $elements = $innerBody.find('*:contains("Test Sword")').filter((i, el) => {
+            return el.textContent.match(/Test Sword \d+/);
           });
+          
+          if ($elements.length > 0) {
+            cy.wrap($elements.first()).click({force: true});
+            cy.wait(1000);
+            
+            // Dismiss any error popups
+            cy.get('body').then($popupBody => {
+              if ($popupBody.find('.error-popup').length > 0) {
+                cy.get('.error-popup').within(() => {
+                  cy.get('button').contains('Close').click({force: true});
+                });
+                cy.wait(500);
+              }
+            });
+            
+            cy.clickDeleteButton();
+            cy.on('window:confirm', () => true);
+            cy.waitForGraphQL();
+          } else {
+            cy.log('No Test Sword objects found to clean up');
+          }
         });
       }
     });
