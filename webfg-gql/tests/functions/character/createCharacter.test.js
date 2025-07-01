@@ -1,17 +1,30 @@
 const { handler } = require('../../../functions/createCharacter');
-const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
 
 // Mock AWS SDK
-jest.mock("@aws-sdk/client-dynamodb");
-jest.mock("@aws-sdk/lib-dynamodb");
+jest.mock("@aws-sdk/client-dynamodb", () => ({
+  DynamoDBClient: jest.fn(() => ({}))
+}));
+
+jest.mock("@aws-sdk/lib-dynamodb", () => ({
+  DynamoDBDocumentClient: {
+    from: jest.fn(() => ({
+      send: jest.fn()
+    }))
+  },
+  PutCommand: jest.fn()
+}));
+
 jest.mock("uuid", () => ({
   v4: jest.fn(() => 'test-uuid-123')
 }));
 
+const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
 const mockSend = jest.fn();
-DynamoDBDocumentClient.from = jest.fn(() => ({
+
+// Setup mock return value
+DynamoDBDocumentClient.from.mockReturnValue({
   send: mockSend
-}));
+});
 
 describe('createCharacter Lambda function', () => {
   const mockEvent = {

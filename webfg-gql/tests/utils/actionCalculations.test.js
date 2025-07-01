@@ -1,260 +1,165 @@
-const { calculateActionResult, processActionEffects, rollDice } = require('../../utils/actionCalculations');
+const { 
+  calculateExpectedSuccesses,
+  adjustDicePools,
+  calculateActionDifficulty
+} = require('../../utils/actionCalculations');
 
 // Mock external dependencies
-jest.mock('../../utils/diceCalculations', () => ({
-  rollMultipleDice: jest.fn(),
-  rollSingleDie: jest.fn()
+jest.mock('../../utils/attributeGrouping', () => ({
+  calculateGroupedAttributes: jest.fn(),
+  calculateReadyGroupedAttributes: jest.fn(),
+  calculateObjectGroupedAttributes: jest.fn(),
+  calculateGroupingFormula: jest.fn(),
+  calculateGroupedAttributesWithSelectedReady: jest.fn()
 }));
 
-const { rollMultipleDice, rollSingleDie } = require('../../utils/diceCalculations');
+jest.mock('../../utils/diceCalculations', () => ({
+  attributeUsesDice: jest.fn(),
+  calculateAttributeModifier: jest.fn(),
+  getAttributeRange: jest.fn(),
+  calculateDiceSuccessProbability: jest.fn(),
+  formatDiceRoll: jest.fn(),
+  analyzeSuccessRanges: jest.fn(),
+  calculateSubtractSuccessProbability: jest.fn(),
+  analyzeSubtractSuccessRanges: jest.fn(),
+  calculateDeltaSuccessProbability: jest.fn(),
+  analyzeDeltaSuccessRanges: jest.fn()
+}));
 
 describe('actionCalculations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('rollDice', () => {
-    test('should roll a single die when count is 1', () => {
-      rollSingleDie.mockReturnValue(6);
-      
-      const result = rollDice(1, 8);
-      
-      expect(rollSingleDie).toHaveBeenCalledWith(8);
-      expect(rollMultipleDice).not.toHaveBeenCalled();
-      expect(result).toBe(6);
+  describe('calculateExpectedSuccesses', () => {
+    test('should calculate expected successes for dice pool', () => {
+      expect(calculateExpectedSuccesses(2)).toBe(1); // 2 * 0.5 = 1
+      expect(calculateExpectedSuccesses(4)).toBe(2); // 4 * 0.5 = 2
+      expect(calculateExpectedSuccesses(10)).toBe(5); // 10 * 0.5 = 5
     });
 
-    test('should roll multiple dice when count > 1', () => {
-      rollMultipleDice.mockReturnValue(15);
-      
-      const result = rollDice(3, 6);
-      
-      expect(rollMultipleDice).toHaveBeenCalledWith(3, 6);
-      expect(rollSingleDie).not.toHaveBeenCalled();
-      expect(result).toBe(15);
+    test('should handle zero dice', () => {
+      expect(calculateExpectedSuccesses(0)).toBe(0);
     });
 
-    test('should return 0 for invalid inputs', () => {
-      expect(rollDice(0, 6)).toBe(0);
-      expect(rollDice(-1, 6)).toBe(0);
-      expect(rollDice(1, 0)).toBe(0);
-      expect(rollDice(1, -1)).toBe(0);
+    test('should handle single die', () => {
+      expect(calculateExpectedSuccesses(1)).toBe(0.5);
     });
 
-    test('should handle edge cases', () => {
-      rollSingleDie.mockReturnValue(1);
-      
-      expect(rollDice(1, 1)).toBe(1);
-      expect(rollSingleDie).toHaveBeenCalledWith(1);
+    test('should handle large dice pools', () => {
+      expect(calculateExpectedSuccesses(20)).toBe(10);
+      expect(calculateExpectedSuccesses(100)).toBe(50);
     });
   });
 
-  describe('calculateActionResult', () => {
-    test('should calculate basic action result', () => {
-      const mockAction = {
-        name: 'Test Attack',
-        diceCount: 2,
-        diceType: 6,
-        modifier: 3,
-        effectType: 'DAMAGE'
-      };
-
-      rollMultipleDice.mockReturnValue(8);
-
-      const result = calculateActionResult(mockAction);
-
-      expect(result.total).toBe(11); // 8 + 3
-      expect(result.diceRoll).toBe(8);
-      expect(result.modifier).toBe(3);
-      expect(result.action).toBe('Test Attack');
+  describe('adjustDicePools', () => {
+    test('should not adjust pools when total is 20 or less', () => {
+      expect(adjustDicePools(10, 10)).toEqual({ adjustedSource: 10, adjustedTarget: 10 });
+      expect(adjustDicePools(5, 15)).toEqual({ adjustedSource: 5, adjustedTarget: 15 });
+      expect(adjustDicePools(0, 20)).toEqual({ adjustedSource: 0, adjustedTarget: 20 });
     });
 
-    test('should handle actions without dice', () => {
-      const mockAction = {
-        name: 'Static Effect',
-        diceCount: 0,
-        diceType: 0,
-        modifier: 5,
-        effectType: 'HEAL'
-      };
-
-      const result = calculateActionResult(mockAction);
-
-      expect(result.total).toBe(5);
-      expect(result.diceRoll).toBe(0);
-      expect(result.modifier).toBe(5);
-      expect(rollSingleDie).not.toHaveBeenCalled();
-      expect(rollMultipleDice).not.toHaveBeenCalled();
+    test('should halve pools when total exceeds 20', () => {
+      expect(adjustDicePools(15, 15)).toEqual({ adjustedSource: 8, adjustedTarget: 8 }); // 15/2 = 7.5 → 8
+      expect(adjustDicePools(12, 10)).toEqual({ adjustedSource: 6, adjustedTarget: 5 }); // 12/2=6, 10/2=5
     });
 
-    test('should handle missing properties gracefully', () => {
-      const mockAction = {
-        name: 'Incomplete Action'
-        // Missing other properties
-      };
-
-      const result = calculateActionResult(mockAction);
-
-      expect(result.total).toBe(0);
-      expect(result.diceRoll).toBe(0);
-      expect(result.modifier).toBe(0);
-      expect(result.action).toBe('Incomplete Action');
+    test('should handle multiple halving rounds', () => {
+      expect(adjustDicePools(50, 50)).toEqual({ adjustedSource: 7, adjustedTarget: 7 }); 
+      // Round 1: 50+50=100 > 20, halve to 25+25=50
+      // Round 2: 25+25=50 > 20, halve to 13+13=26 (rounded)
+      // Round 3: 13+13=26 > 20, halve to 7+7=14
     });
 
-    test('should handle null/undefined action', () => {
-      expect(() => calculateActionResult(null)).not.toThrow();
-      expect(() => calculateActionResult(undefined)).not.toThrow();
-      
-      const nullResult = calculateActionResult(null);
-      expect(nullResult.total).toBe(0);
-      expect(nullResult.action).toBeUndefined();
+    test('should handle edge cases with zero', () => {
+      expect(adjustDicePools(25, 0)).toEqual({ adjustedSource: 13, adjustedTarget: 0 });
+      expect(adjustDicePools(0, 25)).toEqual({ adjustedSource: 0, adjustedTarget: 13 });
+    });
+
+    test('should prevent infinite loops', () => {
+      const result = adjustDicePools(1000, 1000);
+      expect(result.adjustedSource).toBeGreaterThanOrEqual(0);
+      expect(result.adjustedTarget).toBeGreaterThanOrEqual(0);
+      expect(result.adjustedSource + result.adjustedTarget).toBeLessThanOrEqual(20);
     });
   });
 
-  describe('processActionEffects', () => {
-    test('should process damage effects', () => {
-      const actionResult = {
-        total: 10,
-        action: 'Sword Strike',
-        effectType: 'DAMAGE'
-      };
-
-      const target = {
-        id: 'char1',
-        currentHealth: 20,
-        maxHealth: 20
-      };
-
-      const result = processActionEffects(actionResult, target);
-
-      expect(result.newHealth).toBe(10); // 20 - 10
-      expect(result.effectApplied).toBe(true);
-      expect(result.effectType).toBe('DAMAGE');
-      expect(result.amount).toBe(10);
+  describe('calculateActionDifficulty', () => {
+    test('should return 50% for equal zero values', () => {
+      expect(calculateActionDifficulty(0, 0)).toBe(0.5);
     });
 
-    test('should process healing effects', () => {
-      const actionResult = {
-        total: 8,
-        action: 'Healing Potion',
-        effectType: 'HEAL'
-      };
-
-      const target = {
-        id: 'char1',
-        currentHealth: 5,
-        maxHealth: 20
-      };
-
-      const result = processActionEffects(actionResult, target);
-
-      expect(result.newHealth).toBe(13); // 5 + 8
-      expect(result.effectApplied).toBe(true);
-      expect(result.effectType).toBe('HEAL');
-      expect(result.amount).toBe(8);
+    test('should return 100% for unopposed actions', () => {
+      expect(calculateActionDifficulty(5, 0)).toBe(1.0);
+      expect(calculateActionDifficulty(10, 0)).toBe(1.0);
+      expect(calculateActionDifficulty(1, 0)).toBe(1.0);
     });
 
-    test('should not heal above max health', () => {
-      const actionResult = {
-        total: 15,
-        action: 'Major Healing',
-        effectType: 'HEAL'
-      };
-
-      const target = {
-        id: 'char1',
-        currentHealth: 18,
-        maxHealth: 20
-      };
-
-      const result = processActionEffects(actionResult, target);
-
-      expect(result.newHealth).toBe(20); // Capped at max health
-      expect(result.actualAmount).toBe(2); // Only healed 2 points
+    test('should return 0% when no source dice', () => {
+      expect(calculateActionDifficulty(0, 5)).toBe(0.0);
+      expect(calculateActionDifficulty(0, 10)).toBe(0.0);
+      expect(calculateActionDifficulty(0, 1)).toBe(0.0);
     });
 
-    test('should not reduce health below 0', () => {
-      const actionResult = {
-        total: 15,
-        action: 'Massive Attack',
-        effectType: 'DAMAGE'
-      };
+    test('should calculate reasonable probabilities for opposed actions', () => {
+      // Equal dice pools should be around 50%
+      const equalResult = calculateActionDifficulty(5, 5);
+      expect(equalResult).toBeGreaterThan(0);
+      expect(equalResult).toBeLessThan(1);
+      expect(equalResult).toBeCloseTo(0.5, 1); // Within 0.1 of 50%
 
-      const target = {
-        id: 'char1',
-        currentHealth: 5,
-        maxHealth: 20
-      };
+      // More source dice should have higher success probability
+      const advantageResult = calculateActionDifficulty(8, 4);
+      expect(advantageResult).toBeGreaterThan(0.5);
 
-      const result = processActionEffects(actionResult, target);
-
-      expect(result.newHealth).toBe(0); // Capped at 0
-      expect(result.actualAmount).toBe(5); // Only took 5 damage
+      // Fewer source dice should have lower success probability  
+      const disadvantageResult = calculateActionDifficulty(4, 8);
+      expect(disadvantageResult).toBeLessThan(0.5);
     });
 
-    test('should handle unknown effect types', () => {
-      const actionResult = {
-        total: 10,
-        action: 'Unknown Effect',
-        effectType: 'UNKNOWN'
-      };
-
-      const target = {
-        id: 'char1',
-        currentHealth: 15,
-        maxHealth: 20
-      };
-
-      const result = processActionEffects(actionResult, target);
-
-      expect(result.newHealth).toBe(15); // No change
-      expect(result.effectApplied).toBe(false);
-      expect(result.effectType).toBe('UNKNOWN');
+    test('should handle large dice pools properly', () => {
+      // Should still use adjusted pools internally
+      const result = calculateActionDifficulty(50, 50);
+      expect(result).toBeGreaterThan(0);
+      expect(result).toBeLessThan(1);
+      expect(typeof result).toBe('number');
     });
 
-    test('should handle missing target properties', () => {
-      const actionResult = {
-        total: 10,
-        action: 'Test',
-        effectType: 'DAMAGE'
-      };
-
-      const target = {
-        id: 'char1'
-        // Missing health properties
-      };
-
-      const result = processActionEffects(actionResult, target);
-
-      expect(result.effectApplied).toBe(false);
-      expect(result.error).toBeDefined();
+    test('should return valid probabilities', () => {
+      const testCases = [
+        [1, 1], [2, 3], [5, 2], [10, 15], [3, 7]
+      ];
+      
+      testCases.forEach(([source, target]) => {
+        const result = calculateActionDifficulty(source, target);
+        expect(result).toBeGreaterThanOrEqual(0);
+        expect(result).toBeLessThanOrEqual(1);
+        expect(typeof result).toBe('number');
+        expect(Number.isNaN(result)).toBe(false);
+      });
     });
   });
 
   describe('integration tests', () => {
-    test('should process complete action sequence', () => {
-      const mockAction = {
-        name: 'Fireball',
-        diceCount: 3,
-        diceType: 6,
-        modifier: 4,
-        effectType: 'DAMAGE'
-      };
+    test('should work with realistic game scenarios', () => {
+      // Character with 6 strength dice vs armor with 3 protection dice
+      const attackResult = calculateActionDifficulty(6, 3);
+      expect(attackResult).toBeGreaterThan(0.5); // Should favor attacker
 
-      const target = {
-        id: 'enemy1',
-        currentHealth: 25,
-        maxHealth: 25
-      };
+      // Difficult task: 2 dice vs 8 dice opposition
+      const difficultResult = calculateActionDifficulty(2, 8);
+      expect(difficultResult).toBeLessThan(0.3); // Should be very difficult
 
-      rollMultipleDice.mockReturnValue(12); // 3d6 = 12
+      // Easy task: 10 dice vs 1 die opposition
+      const easyResult = calculateActionDifficulty(10, 1);
+      expect(easyResult).toBeGreaterThan(0.8); // Should be very easy
+    });
 
-      const actionResult = calculateActionResult(mockAction);
-      const effectResult = processActionEffects(actionResult, target);
-
-      expect(actionResult.total).toBe(16); // 12 + 4
-      expect(effectResult.newHealth).toBe(9); // 25 - 16
-      expect(effectResult.effectApplied).toBe(true);
+    test('should handle edge cases gracefully', () => {
+      expect(() => calculateActionDifficulty(-1, 5)).not.toThrow();
+      expect(() => calculateActionDifficulty(5, -1)).not.toThrow();
+      expect(() => calculateActionDifficulty(null, 5)).not.toThrow();
+      expect(() => calculateActionDifficulty(5, null)).not.toThrow();
     });
   });
 });
