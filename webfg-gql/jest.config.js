@@ -2,10 +2,12 @@ module.exports = {
   // Test environment
   testEnvironment: 'node',
   
-  // Test file patterns
+  // Test file patterns - include both old and new test locations
   testMatch: [
     '**/__tests__/**/*.js',
-    '**/*.test.js'
+    '**/*.test.js',
+    '<rootDir>/tests/**/*.{js,ts}',
+    '<rootDir>/tests/**/*.(test|spec).{js,ts}'
   ],
   
   // Coverage configuration
@@ -39,13 +41,13 @@ module.exports = {
   // Verbose output
   verbose: true,
   
-  // Coverage thresholds
+  // Coverage thresholds - enforce 90% minimum
   coverageThreshold: {
     global: {
-      branches: 70,
-      functions: 70,
-      lines: 70,
-      statements: 70
+      branches: 90,
+      functions: 90,
+      lines: 90,
+      statements: 90
     }
   }
 };

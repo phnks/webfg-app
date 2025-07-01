@@ -1,7 +1,7 @@
 const { describe, it, expect } = require('@jest/globals');
 
 // Import the utility functions
-const { toInt, toFloat } = require('../stringToNumber');
+const { toInt, toFloat } = require('../../utils/stringToNumber');
 
 describe('toInt function', () => {
   

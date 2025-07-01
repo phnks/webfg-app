@@ -24,8 +24,8 @@ jobs:
       - name: Install GQL dependencies
         run: npm install
 
-      - name: Run GQL unit tests
-        run: npm test
+      - name: Run GQL unit tests with coverage
+        run: npm run test:coverage
 
   test-gm-app-unit:
     name: Run GM App Unit Tests
@@ -45,8 +45,8 @@ jobs:
       - name: Install GM App dependencies
         run: npm install
 
-      - name: Run GM App unit tests
-        run: npm run test:ci
+      - name: Run GM App unit tests with coverage
+        run: npm run test:coverage
 
   deploy-gql-qa:
     name: Deploy GQL to QA (PR-${{ github.event.number }})
