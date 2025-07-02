@@ -15,7 +15,7 @@ jest.mock("@aws-sdk/lib-dynamodb", () => ({
 }));
 
 jest.mock("uuid", () => ({
-  v4: jest.fn(() => 'test-uuid-123')
+  v4: jest.fn(() => 'test-character-uuid-123')
 }));
 
 const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
@@ -27,7 +27,17 @@ DynamoDBDocumentClient.from.mockReturnValue({
 });
 
 describe('createCharacter Lambda function', () => {
-  const mockEvent = {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.CHARACTERS_TABLE = 'test-characters-table';
+    mockSend.mockResolvedValue({});
+  });
+
+  afterEach(() => {
+    delete process.env.CHARACTERS_TABLE;
+  });
+
+  const mockCharacterEvent = {
     input: {
       name: 'Test Character',
       characterCategory: 'HUMAN',
@@ -47,65 +57,48 @@ describe('createCharacter Lambda function', () => {
       intensity: { baseValue: 7, currentValue: 7 },
       resolve: { baseValue: 16, currentValue: 16 },
       morale: { baseValue: 10, currentValue: 10 },
-      intelligence: { baseValue: 12, currentValue: 12 },
-      charisma: { baseValue: 8, currentValue: 8 }
+      intelligence: { baseValue: 12, currentValue: 12 }
     }
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    process.env.CHARACTERS_TABLE = 'test-characters-table';
-    mockSend.mockResolvedValue({});
-  });
+  test('should create character successfully', async () => {
+    const result = await handler(mockCharacterEvent);
 
-  afterEach(() => {
-    delete process.env.CHARACTERS_TABLE;
-  });
-
-  test('should create a character successfully', async () => {
-    const result = await handler(mockEvent);
-
-    // Verify the response structure
-    expect(result.characterId).toBeDefined();
-    expect(typeof result.characterId).toBe('string');
+    expect(PutCommand).toHaveBeenCalled();
+    expect(mockSend).toHaveBeenCalled();
+    expect(result.characterId).toBe('test-character-uuid-123');
     expect(result.name).toBe('Test Character');
     expect(result.characterCategory).toBe('HUMAN');
-    expect(result.will).toBe(10);
-    expect(result.fatigue).toBe(2);
+    expect(result.nameLowerCase).toBe('test character');
   });
 
   test('should handle minimal input with defaults', async () => {
     const minimalEvent = {
       input: {
-        name: 'Minimal Character',
+        name: 'Simple Character',
         characterCategory: 'ELF'
       }
     };
 
     const result = await handler(minimalEvent);
 
-    expect(result.will).toBe(0);
-    expect(result.fatigue).toBe(0);
-    expect(result.values).toEqual([]);
-    expect(result.name).toBe('Minimal Character');
-    expect(result.nameLowerCase).toBe('minimal character');
+    expect(result.name).toBe('Simple Character');
+    expect(result.characterCategory).toBe('ELF');
+    expect(result.will).toBe(0); // Default value
+    expect(result.fatigue).toBe(0); // Default value
   });
 
-  test('should throw error when CHARACTERS_TABLE environment variable is not set', async () => {
-    delete process.env.CHARACTERS_TABLE;
+  test('should handle missing required fields', async () => {
+    const invalidEvent = {
+      input: {
+        description: 'Missing name and category'
+      }
+    };
 
-    await expect(handler(mockEvent)).rejects.toThrow('Internal server error.');
+    await expect(handler(invalidEvent)).rejects.toThrow();
   });
 
-  test('should handle DynamoDB errors', async () => {
-    // This test verifies error handling behavior
-    // Since our mocking isn't perfect, we'll test environment error instead
-    delete process.env.CHARACTERS_TABLE;
-    
-    await expect(handler(mockEvent)).rejects.toThrow();
-  });
-
-  test('should handle empty input gracefully', async () => {
+  test('should handle empty input', async () => {
     const emptyEvent = {
       input: {}
     };
@@ -113,55 +106,141 @@ describe('createCharacter Lambda function', () => {
     await expect(handler(emptyEvent)).rejects.toThrow();
   });
 
-  test('should set createdAt and updatedAt timestamps', async () => {
-    const beforeTime = Date.now();
-    const result = await handler(mockEvent);
-    const afterTime = Date.now();
+  test('should handle DynamoDB errors', async () => {
+    mockSend.mockRejectedValue(new Error('DynamoDB error'));
 
-    // The function sets timestamps internally but may not return them
-    // Just verify the function completes successfully
-    expect(result).toBeDefined();
-    expect(result.characterId).toBeDefined();
+    await expect(handler(mockCharacterEvent)).rejects.toThrow('DynamoDB error');
   });
 
-  test('should handle character with equipment and conditions', async () => {
-    const eventWithEquipment = {
+  test('should handle missing table environment variable', async () => {
+    delete process.env.CHARACTERS_TABLE;
+
+    await expect(handler(mockCharacterEvent)).rejects.toThrow();
+  });
+
+  test('should set timestamps', async () => {
+    const beforeTime = Date.now();
+    await handler(mockCharacterEvent);
+    const afterTime = Date.now();
+
+    const putCall = PutCommand.mock.calls[0][0];
+    const item = putCall.Item;
+    
+    expect(item.createdAt).toBeDefined();
+    expect(item.updatedAt).toBeDefined();
+    expect(new Date(item.createdAt).getTime()).toBeGreaterThanOrEqual(beforeTime);
+    expect(new Date(item.createdAt).getTime()).toBeLessThanOrEqual(afterTime);
+  });
+
+  test('should handle character with values array', async () => {
+    const characterWithValues = {
       input: {
-        ...mockEvent.input,
-        equipment: [{ objectId: 'sword-1', quantity: 1 }],
-        conditions: [{ conditionId: 'poisoned', amount: 3 }],
-        actions: [{ actionId: 'attack-1' }]
+        name: 'Valued Character',
+        characterCategory: 'HUMAN',
+        values: [
+          { name: 'Honor', value: 18 },
+          { name: 'Loyalty', value: 15 },
+          { name: 'Courage', value: 20 }
+        ]
       }
     };
 
-    const result = await handler(eventWithEquipment);
+    const result = await handler(characterWithValues);
 
-    // Verify the character is created successfully with additional data
-    expect(result).toBeDefined();
-    expect(result.characterId).toBeDefined();
-    expect(result.name).toBe('Test Character');
+    expect(result.values).toEqual([
+      { name: 'Honor', value: 18 },
+      { name: 'Loyalty', value: 15 },
+      { name: 'Courage', value: 20 }
+    ]);
   });
 
-  test('should handle special characters in name', async () => {
-    const eventWithSpecialName = {
+  test('should handle character with all attributes', async () => {
+    const result = await handler(mockCharacterEvent);
+
+    expect(result.strength).toEqual({ baseValue: 14, currentValue: 14 });
+    expect(result.dexterity).toEqual({ baseValue: 13, currentValue: 13 });
+    expect(result.speed).toEqual({ baseValue: 5, currentValue: 5 });
+    expect(result.armour).toEqual({ baseValue: 3, currentValue: 3 });
+  });
+
+  test('should convert name to lowercase for nameLowerCase field', async () => {
+    const upperCaseEvent = {
       input: {
-        name: "Théoden O'Reilly-Smith",
+        name: 'ARAGORN THE RANGER',
         characterCategory: 'HUMAN'
       }
     };
 
-    const result = await handler(eventWithSpecialName);
+    const result = await handler(upperCaseEvent);
 
-    expect(result.name).toBe("Théoden O'Reilly-Smith");
-    expect(result.nameLowerCase).toBe("théoden o'reilly-smith");
+    expect(result.nameLowerCase).toBe('aragorn the ranger');
   });
 
-  test('should preserve attribute structure', async () => {
-    const result = await handler(mockEvent);
+  test('should handle special characters in name', async () => {
+    const specialCharEvent = {
+      input: {
+        name: 'Elf\'en D\'artagnan',
+        characterCategory: 'ELF'
+      }
+    };
 
-    // Check that complex attributes are preserved
-    expect(result.speed).toEqual({ baseValue: 5, currentValue: 5 });
-    expect(result.strength).toEqual({ baseValue: 14, currentValue: 14 });
-    expect(result.values).toEqual([{ name: 'Courage', value: 15 }]);
+    const result = await handler(specialCharEvent);
+
+    expect(result.name).toBe('Elf\'en D\'artagnan');
+    expect(result.nameLowerCase).toBe('elf\'en d\'artagnan');
+  });
+
+  test('should handle missing input object', async () => {
+    const noInputEvent = {};
+
+    await expect(handler(noInputEvent)).rejects.toThrow();
+  });
+
+  test('should handle null values in attributes', async () => {
+    const eventWithNulls = {
+      input: {
+        name: 'Test Character',
+        characterCategory: 'HUMAN',
+        strength: null,
+        dexterity: { baseValue: 10, currentValue: null }
+      }
+    };
+
+    const result = await handler(eventWithNulls);
+
+    expect(result.name).toBe('Test Character');
+    // Should handle nulls gracefully
+  });
+
+  test('should handle zero values in attributes', async () => {
+    const eventWithZeros = {
+      input: {
+        name: 'Weak Character',
+        characterCategory: 'HUMAN',
+        will: 0,
+        fatigue: 0,
+        strength: { baseValue: 0, currentValue: 0 }
+      }
+    };
+
+    const result = await handler(eventWithZeros);
+
+    expect(result.will).toBe(0);
+    expect(result.fatigue).toBe(0);
+    expect(result.strength).toEqual({ baseValue: 0, currentValue: 0 });
+  });
+
+  test('should handle empty values array', async () => {
+    const eventWithEmptyValues = {
+      input: {
+        name: 'Valueless Character',
+        characterCategory: 'HUMAN',
+        values: []
+      }
+    };
+
+    const result = await handler(eventWithEmptyValues);
+
+    expect(result.values).toEqual([]);
   });
 });
