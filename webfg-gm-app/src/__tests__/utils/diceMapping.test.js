@@ -6,7 +6,7 @@ import {
   calculateAttributeModifier,
   formatDiceRoll,
   getAttributeRange
-} from '../../src/utils/diceMapping';
+} from '../../utils/diceMapping';
 
 describe('diceMapping utility', () => {
   describe('ATTRIBUTE_DICE_MAP', () => {

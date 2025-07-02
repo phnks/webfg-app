@@ -1,58 +1,63 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing';
-import { BrowserRouter } from 'react-router-dom';
-import App from '../src/App';
+import App from './App';
+
+// react-router-dom is mocked via __mocks__/react-router-dom.js
 
 // Mock all external dependencies
-jest.mock('../src/components/nav/NavBar', () => {
+jest.mock('./components/nav/NavBar', () => {
   return function MockNavBar() {
     return <div data-testid="navbar">Navigation</div>;
   };
 });
 
-jest.mock('../src/components/Home', () => {
+jest.mock('./components/Home', () => {
   return function MockHome() {
     return <div data-testid="home">Home Component</div>;
   };
 });
 
-jest.mock('../src/components/characters/CharacterList', () => {
+jest.mock('./components/characters/CharacterList', () => {
   return function MockCharacterList() {
     return <div data-testid="character-list">Character List</div>;
   };
 });
 
-jest.mock('../src/components/objects/ObjectList', () => {
+jest.mock('./components/objects/ObjectList', () => {
   return function MockObjectList() {
     return <div data-testid="object-list">Object List</div>;
   };
 });
 
-jest.mock('../src/components/actions/ActionList', () => {
+jest.mock('./components/actions/ActionList', () => {
   return function MockActionList() {
     return <div data-testid="action-list">Action List</div>;
   };
 });
 
-jest.mock('../src/components/conditions/ConditionsList', () => {
+jest.mock('./components/conditions/ConditionsList', () => {
   return function MockConditionsList() {
     return <div data-testid="conditions-list">Conditions List</div>;
   };
 });
 
-jest.mock('../src/components/encounters/EncountersList', () => {
+jest.mock('./components/encounters/EncountersList', () => {
   return function MockEncountersList() {
     return <div data-testid="encounters-list">Encounters List</div>;
   };
 });
 
+jest.mock('./context/SelectedCharacterContext', () => ({
+  SelectedCharacterProvider: ({ children }) => <div>{children}</div>,
+  useSelectedCharacter: () => ({ selectedCharacter: null, setSelectedCharacter: jest.fn() })
+}));
+
 const mocks = [];
 
 const AppWrapper = ({ children }) => (
   <MockedProvider mocks={mocks} addTypename={false}>
-    <BrowserRouter>
-      {children}
-    </BrowserRouter>
+    {children}
   </MockedProvider>
 );
 
