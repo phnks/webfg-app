@@ -41,15 +41,14 @@ module.exports = {
   // Verbose output
   verbose: true,
   
-  // Coverage thresholds - start with achievable targets, gradually increase to 90%
-  // TODO: Increase thresholds as test coverage improves
-  // Target: 5% -> 10% -> 25% -> 50% -> 75% -> 90%
+  // Coverage thresholds - MUST ALWAYS BE 90%
+  // NEVER LOWER THESE THRESHOLDS - ADD MORE TESTS INSTEAD
   coverageThreshold: {
     global: {
-      branches: 2,   // Current: ~2.88%, Target: 90%
-      functions: 2,  // Current: ~2.7%, Target: 90%
-      lines: 3,      // Current: ~3.38%, Target: 90%
-      statements: 3  // Current: ~3.22%, Target: 90%
+      branches: 90,   // REQUIRED: 90% coverage
+      functions: 90,  // REQUIRED: 90% coverage  
+      lines: 90,      // REQUIRED: 90% coverage
+      statements: 90  // REQUIRED: 90% coverage
     }
   }
 };

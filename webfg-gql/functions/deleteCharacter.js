@@ -30,8 +30,8 @@ exports.handler = async (event) => {
 
   try {
     const result = await ddbDocClient.send(new DeleteCommand(params));
-    console.log("Successfully deleted character:", result.Attributes);
-    return result.Attributes; // Return the deleted item
+    console.log("Successfully deleted character:", result?.Attributes);
+    return result?.Attributes || null; // Return the deleted item or null if not found
   } catch (error) {
     console.error("Error deleting character:", error);
     throw error;
