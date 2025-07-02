@@ -15,16 +15,18 @@ jest.mock("@aws-sdk/lib-dynamodb", () => ({
 }));
 
 const { DynamoDBDocumentClient, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const mockSend = jest.fn();
+
+// Setup mock return value
+DynamoDBDocumentClient.from.mockReturnValue({
+  send: mockSend
+});
 
 describe('updateCharacter Lambda function', () => {
-  const mockSend = jest.fn();
-  
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.CHARACTERS_TABLE = 'test-characters-table';
-    DynamoDBDocumentClient.from.mockReturnValue({
-      send: mockSend
-    });
+    
     mockSend.mockResolvedValue({
       Attributes: {
         characterId: 'char123',
