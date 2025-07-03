@@ -8,7 +8,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const OBJECTS_TABLE_NAME = process.env.OBJECTS_TABLE_NAME;
 
 exports.handler = async (event) => {
-    console.log('Received event:', JSON.stringify(event, null, 2));
+    // console.log('Received event:', JSON.stringify(event, null, 2));
 
     const { objectId } = event; // Corrected: Access arguments directly from event
 
@@ -23,7 +23,7 @@ exports.handler = async (event) => {
         // Corrected to use send with GetCommand
         const command = new GetCommand(params); 
         const result = await ddbDocClient.send(command); 
-        console.log('DynamoDB Get result:', JSON.stringify(result, null, 2));
+        // console.log('DynamoDB Get result:', JSON.stringify(result, null, 2));
 
         return result.Item;
     } catch (error) {

@@ -126,44 +126,44 @@ const calculateActionDifficulty = (sourceValue, targetValue) => {
  * @returns {number} The ready grouped attribute value (equipment + ready objects)
  */
 const getSingleCharacterSourceAttributeValue = (character, attributeName, selectedReadyObjectId = null) => {
-  console.log('=== [DEBUG getSingleCharacterSourceAttributeValue] START ===', {
-    characterName: character?.name,
-    attributeName,
-    selectedReadyObjectId,
-    hasReadyArray: !!character?.ready,
-    readyCount: character?.ready?.length || 0,
-    readyIds: character?.readyIds || [],
-    readyObjectIds: character?.ready?.map(obj => obj.objectId) || []
-  });
+  // console.log('=== [DEBUG getSingleCharacterSourceAttributeValue] START ===', {
+  //   characterName: character?.name,
+  //   attributeName,
+  //   selectedReadyObjectId,
+  //   hasReadyArray: !!character?.ready,
+  //   readyCount: character?.ready?.length || 0,
+  //   readyIds: character?.readyIds || [],
+  //   readyObjectIds: character?.ready?.map(obj => obj.objectId) || []
+  // });
   
   if (selectedReadyObjectId) {
-    console.log('[DEBUG] Selected ready object ID provided, will calculate with selected ready object');
+    // console.log('[DEBUG] Selected ready object ID provided, will calculate with selected ready object');
     // If a ready object is selected, calculate grouping including that specific object
     const groupedAttributes = calculateGroupedAttributesWithSelectedReady(character, selectedReadyObjectId);
     
-    console.log('[DEBUG after calculateGroupedAttributesWithSelectedReady]', {
-      characterName: character?.name,
-      attributeName,
-      selectedReadyObjectId,
-      groupedValue: groupedAttributes[attributeName],
-      allGroupedAttributes: groupedAttributes
-    });
+    // console.log('[DEBUG after calculateGroupedAttributesWithSelectedReady]', {
+    //   characterName: character?.name,
+    //   attributeName,
+    //   selectedReadyObjectId,
+    //   groupedValue: groupedAttributes[attributeName],
+    //   allGroupedAttributes: groupedAttributes
+    // });
     
     if (groupedAttributes[attributeName] !== undefined) {
       const finalValue = groupedAttributes[attributeName];
-      console.log(`[DEBUG] RETURNING GROUPED VALUE WITH SELECTED READY: ${finalValue}`);
+      // console.log(`[DEBUG] RETURNING GROUPED VALUE WITH SELECTED READY: ${finalValue}`);
       return finalValue;
     } else {
-      console.log('[DEBUG] Grouped attributes did not contain the requested attribute, falling through');
+      // console.log('[DEBUG] Grouped attributes did not contain the requested attribute, falling through');
     }
   } else {
-    console.log('[DEBUG] No ready object selected, using equipment-only grouping');
+    // console.log('[DEBUG] No ready object selected, using equipment-only grouping');
     // If no ready object is selected, use equipment-only grouping
     const groupedAttributes = calculateGroupedAttributes(character);
     
     if (groupedAttributes[attributeName] !== undefined) {
       const equipmentValue = groupedAttributes[attributeName];
-      console.log(`[DEBUG] RETURNING EQUIPMENT-ONLY GROUPED VALUE: ${equipmentValue}`);
+      // console.log(`[DEBUG] RETURNING EQUIPMENT-ONLY GROUPED VALUE: ${equipmentValue}`);
       return equipmentValue;
     }
   }
@@ -171,10 +171,10 @@ const getSingleCharacterSourceAttributeValue = (character, attributeName, select
   // Fallback to base attribute value
   if (character[attributeName] && character[attributeName].attribute) {
     const baseValue = character[attributeName].attribute.attributeValue || 0;
-    console.log(`[DEBUG] FALLING BACK TO BASE ATTRIBUTE VALUE: ${baseValue}`);
+    // console.log(`[DEBUG] FALLING BACK TO BASE ATTRIBUTE VALUE: ${baseValue}`);
     return baseValue;
   }
-  console.log('[DEBUG] NO VALUE FOUND, RETURNING 0');
+  // console.log('[DEBUG] NO VALUE FOUND, RETURNING 0');
   return 0;
 };
 
@@ -343,14 +343,14 @@ const calculateActionTest = (params) => {
   }
   
   // Debug logging
-  console.log('NEW DICE SYSTEM - Action test calculation debug:', {
-    sourceAttribute: sourceAttribute,
-    targetAttribute: targetAttribute,
-    sourceValue: sourceValue,
-    targetValue: targetValue,
-    sourceCharacterCount: sourceCharacters.length,
-    targetEntityCount: targetEntities.length
-  });
+  // console.log('NEW DICE SYSTEM - Action test calculation debug:', {
+  //   sourceAttribute: sourceAttribute,
+  //   targetAttribute: targetAttribute,
+  //   sourceValue: sourceValue,
+  //   targetValue: targetValue,
+  //   sourceCharacterCount: sourceCharacters.length,
+  //   targetEntityCount: targetEntities.length
+  // });
   
   // Calculate total fatigue for source characters and collect details
   // Only apply source fatigue if not using source override and attribute uses dice
@@ -425,14 +425,14 @@ const calculateActionTest = (params) => {
     rangeAnalysis = analyzeSuccessRanges(sourceAttribute, sourceModifier, targetAttribute, targetModifier);
   }
   
-  console.log('DICE CALCULATION RESULTS:', {
-    sourceModifier,
-    targetModifier,
-    sourceDiceDisplay,
-    targetDiceDisplay,
-    successProbability,
-    rangeAnalysis
-  });
+  // console.log('DICE CALCULATION RESULTS:', {
+  //   sourceModifier,
+  //   targetModifier,
+  //   sourceDiceDisplay,
+  //   targetDiceDisplay,
+  //   successProbability,
+  //   rangeAnalysis
+  // });
   
   return {
     // Core results using new dice system

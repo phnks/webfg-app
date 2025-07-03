@@ -119,7 +119,7 @@ exports.handler = async (event) => {
       // __typename: "Encounter" // Let's try omitting this from the explicit shape
     };
 
-    console.log("Returning explicitly shaped payload (no __typename):", JSON.stringify(returnPayload));
+    // console.log("Returning explicitly shaped payload (no __typename):", JSON.stringify(returnPayload));
     return returnPayload; // Return the shaped data
 
   } catch (error) {

@@ -7,7 +7,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const OBJECTS_TABLE_NAME = process.env.OBJECTS_TABLE_NAME;
 
 exports.handler = async (event) => {
-  console.log("resolveObjectParts Lambda invoked, event:", JSON.stringify(event, null, 2));
+  // console.log("resolveObjectParts Lambda invoked, event:", JSON.stringify(event, null, 2));
 
   if (!OBJECTS_TABLE_NAME) {
     console.error("OBJECTS_TABLE environment variable not set.");
@@ -23,11 +23,11 @@ exports.handler = async (event) => {
   // Changed from partsIds to equipmentIds
   const equipmentIds = parentObject.equipmentIds;
   if (!equipmentIds || equipmentIds.length === 0) {
-    console.log("No equipmentIds found on parent object or equipmentIds array is empty.");
+    // console.log("No equipmentIds found on parent object or equipmentIds array is empty.");
     return [];
   }
 
-  console.log(`Fetching details for equipmentIds: ${equipmentIds.join(", ")} from table ${OBJECTS_TABLE_NAME}`);
+  // console.log(`Fetching details for equipmentIds: ${equipmentIds.join(", ")} from table ${OBJECTS_TABLE_NAME}`);
 
   const keys = equipmentIds.map(id => ({ objectId: id }));
 
@@ -51,7 +51,7 @@ exports.handler = async (event) => {
     const data = await ddbDocClient.send(new BatchGetCommand(params));
     const resolvedEquipment = data.Responses && data.Responses[OBJECTS_TABLE_NAME] ? data.Responses[OBJECTS_TABLE_NAME] : [];
 
-    console.log(`Successfully fetched ${resolvedEquipment.length} equipment items.`);
+    // console.log(`Successfully fetched ${resolvedEquipment.length} equipment items.`);
 
     // Ensure the returned equipment items are in the same order as parentObject.equipmentIds
     const orderedEquipment = [];

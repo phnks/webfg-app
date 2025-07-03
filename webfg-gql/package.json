@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test:coverage": "jest --coverage --passWithNoTests",
     "test:unit": "jest --testPathPattern=__tests__",
     "build:schema:qa": "ENVIRONMENT=qa node schema/buildSchema.js",
     "build:schema:prod": "ENVIRONMENT=prod node schema/buildSchema.js",

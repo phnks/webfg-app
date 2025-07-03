@@ -6,16 +6,16 @@ const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
-  console.log("Received event:", JSON.stringify(event, null, 2));
+  // console.log("Received event:", JSON.stringify(event, null, 2));
   
   const actionIds = event.source?.actionIds || [];
   
   if (!actionIds.length) {
-    console.log("No action IDs found in the source");
+    // console.log("No action IDs found in the source");
     return [];
   }
   
-  console.log(`Processing ${actionIds.length} action IDs`);
+  // console.log(`Processing ${actionIds.length} action IDs`);
   
   // Process in batches of 25 (DynamoDB batch limit)
   const batchSize = 25;
@@ -28,13 +28,13 @@ exports.handler = async (event) => {
   let actions = [];
   const tableName = process.env.ACTIONS_TABLE;
   
-  console.log(`Using table: ${tableName}`);
+  // console.log(`Using table: ${tableName}`);
   
   try {
     for (const batch of batches) {
       const keys = batch.map(id => ({ actionId: id }));
       
-      console.log(`Fetching batch of ${keys.length} items`);
+      // console.log(`Fetching batch of ${keys.length} items`);
       
       const command = new BatchGetCommand({
         RequestItems: {
@@ -47,12 +47,12 @@ exports.handler = async (event) => {
       const response = await docClient.send(command);
       
       if (response.Responses && response.Responses[tableName]) {
-        console.log(`Retrieved ${response.Responses[tableName].length} actions`);
+        // console.log(`Retrieved ${response.Responses[tableName].length} actions`);
         actions = actions.concat(response.Responses[tableName]);
       }
     }
     
-    console.log(`Returning ${actions.length} actions total`);
+    // console.log(`Returning ${actions.length} actions total`);
     return actions;
   } catch (error) {
     console.error('Error fetching actions:', error);

@@ -15,7 +15,7 @@ const objectsTable = process.env.OBJECTS_TABLE; // Assuming OBJECTS_TABLE env va
 exports.handler = async (event) => {
   const { encounterId, objectId } = event.arguments;
 
-  console.log(`Attempting to remove object ${objectId} from encounter ${encounterId}`);
+  // console.log(`Attempting to remove object ${objectId} from encounter ${encounterId}`);
 
   if (!encounterId || !objectId) {
     throw new Error("Missing required arguments: encounterId, objectId");
@@ -84,7 +84,7 @@ exports.handler = async (event) => {
     });
 
     const { Attributes: updatedEncounter } = await docClient.send(updateCommand);
-    console.log(`Successfully removed object ${objectId} from encounter ${encounterId}`);
+    // console.log(`Successfully removed object ${objectId} from encounter ${encounterId}`);
     return updatedEncounter;
 
   } catch (error) {

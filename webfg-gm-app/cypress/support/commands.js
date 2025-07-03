@@ -3,10 +3,9 @@ Cypress.Commands.add('navigateToCharacters', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/characters"]').first().click({force: true});
   
-  // Longer waits for CI environment
-  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
-  const waitTime = isCI ? 4000 : 2000;
-  cy.wait(waitTime);
+  // Wait for the characters page to load instead of hardcoded wait
+  cy.url().should('include', '/characters');
+  cy.get('body').should('be.visible');
   
   // Ensure menu is closed by clicking somewhere else if it's still open
   cy.get('body').then($body => {
@@ -23,16 +22,16 @@ Cypress.Commands.add('navigateToObjects', () => {
       cy.get('.error-popup').within(() => {
         cy.get('button').contains('Close').click({force: true});
       });
-      cy.wait(500);
     }
   });
   
   cy.get('.menu-toggle').click({force: true});
   cy.get('a[href="/objects"]').first().click({force: true});
   
-  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
-  const waitTime = isCI ? 4000 : 2000;
-  cy.wait(waitTime);
+  // Wait for the objects page to load instead of hardcoded wait
+  cy.url().should('include', '/objects');
+  // Use a more flexible approach for finding the page content
+  cy.get('body').should('be.visible');
   
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
@@ -45,9 +44,9 @@ Cypress.Commands.add('navigateToActions', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/actions"]').first().click({force: true});
   
-  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
-  const waitTime = isCI ? 4000 : 2000;
-  cy.wait(waitTime);
+  // Wait for the actions page to load instead of hardcoded wait
+  cy.url().should('include', '/actions');
+  cy.get('body').should('be.visible');
   
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
@@ -60,9 +59,9 @@ Cypress.Commands.add('navigateToConditions', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/conditions"]').first().click({force: true});
   
-  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
-  const waitTime = isCI ? 4000 : 2000;
-  cy.wait(waitTime);
+  // Wait for the conditions page to load instead of hardcoded wait
+  cy.url().should('include', '/conditions');
+  cy.get('body').should('be.visible');
   
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
@@ -75,9 +74,9 @@ Cypress.Commands.add('navigateToEncounters', () => {
   cy.get('.menu-toggle').click();
   cy.get('a[href="/encounters"]').first().click();
   
-  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
-  const waitTime = isCI ? 4000 : 2000;
-  cy.wait(waitTime);
+  // Wait for the encounters page to load instead of hardcoded wait
+  cy.url().should('include', '/encounters');
+  cy.get('body').should('be.visible');
   
   cy.get('body').then($body => {
     if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
@@ -137,12 +136,21 @@ Cypress.Commands.add('clickCreateButton', () => {
       });
     }
   });
-  cy.wait(500);
+  // Wait for navigation to creation page or form to appear
+  cy.get('body').then($body => {
+    // Check if we navigated to a new page or if a form appeared
+    if ($body.find('input[name="name"], form').length > 0) {
+      cy.get('input[name="name"], form').should('be.visible');
+    } else {
+      cy.url().should('include', '/new');
+    }
+  });
 });
 
 Cypress.Commands.add('clickSaveButton', () => {
   cy.get('button[type="submit"]').contains('Save').click();
-  cy.wait(1000);
+  // Wait for the save operation to complete by checking for success indicators
+  cy.get('body').should('not.contain', 'Saving...');
 });
 
 Cypress.Commands.add('clickEditButton', () => {
@@ -154,7 +162,8 @@ Cypress.Commands.add('clickEditButton', () => {
       cy.get('button').contains('Edit').click({force: true});
     }
   });
-  cy.wait(500);
+  // Wait for edit form to appear
+  cy.get('input, textarea, select').should('be.visible');
 });
 
 Cypress.Commands.add('clickDeleteButton', () => {
@@ -164,7 +173,6 @@ Cypress.Commands.add('clickDeleteButton', () => {
       cy.get('.error-popup').within(() => {
         cy.get('button').contains('Close').click({force: true});
       });
-      cy.wait(500);
     }
   });
   
@@ -176,12 +184,10 @@ Cypress.Commands.add('clickDeleteButton', () => {
       cy.get('button').contains('Delete').click({force: true});
     }
   });
-  cy.wait(500);
 });
 
 Cypress.Commands.add('clickCancelButton', () => {
   cy.get('button').contains('Cancel').click();
-  cy.wait(500);
 });
 
 // Simplified form helpers that work with actual UI
@@ -205,10 +211,8 @@ Cypress.Commands.add('fillBasicObjectInfo', (object) => {
     cy.get('select[name="objectCategory"]').select(0);
   }
   
-  // Wait a moment for all form fields to be filled
-  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
-  const waitTime = isCI ? 3000 : 1000;
-  cy.wait(waitTime);
+  // Wait for form fields to be properly filled
+  cy.get('input[name="name"]').should('have.value', object.name);
 });
 
 Cypress.Commands.add('fillActionForm', (action) => {
@@ -251,10 +255,8 @@ Cypress.Commands.add('fillActionForm', (action) => {
   cy.get('textarea[name="description"]').scrollIntoView().should('be.visible');
   cy.get('textarea[name="description"]').clear().type(action.description);
   
-  // Wait a moment for all form fields to be filled
-  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
-  const waitTime = isCI ? 3000 : 1000;
-  cy.wait(waitTime);
+  // Wait for form fields to be properly filled
+  cy.get('input[name="name"]').should('have.value', action.name);
   
   // Handle trigger actions if the form supports them
   if (action.type === 'TRIGGER_ACTION' && action.triggersAction) {
@@ -302,18 +304,22 @@ Cypress.Commands.add('fillBasicConditionInfo', (condition) => {
     cy.get('select[name="conditionTarget"]').select(0);
   }
   
-  // Wait a moment for all form fields to be filled
-  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
-  const waitTime = isCI ? 3000 : 1000;
-  cy.wait(waitTime);
+  // Wait for form fields to be properly filled
+  cy.get('input[name="name"]').should('have.value', condition.name);
 });
 
 // Wait for GraphQL operations
 Cypress.Commands.add('waitForGraphQL', () => {
-  // Longer waits for CI environment vs local development
-  const isCI = Cypress.env('CI') || Cypress.config('isInteractive') === false;
-  const waitTime = isCI ? 8000 : 4000; // Double the wait time in CI
-  cy.wait(waitTime);
+  // Wait for network requests to complete instead of hardcoded wait
+  // This will wait for any pending XHR/fetch requests to complete
+  cy.get('body').should('not.contain', 'Loading...');
+  
+  // Additional fallback: wait for any loading indicators to disappear
+  cy.get('body').then($body => {
+    if ($body.find('.loading, .spinner, [data-testid="loading"]').length > 0) {
+      cy.get('.loading, .spinner, [data-testid="loading"]').should('not.exist');
+    }
+  });
 });
 
 // Submit form helper

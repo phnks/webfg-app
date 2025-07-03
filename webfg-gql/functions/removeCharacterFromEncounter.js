@@ -9,7 +9,7 @@ const tableName = process.env.ENCOUNTERS_TABLE;
 exports.handler = async (event) => {
   const { encounterId, characterId } = event.arguments;
 
-  console.log(`Attempting to remove character ${characterId} from encounter ${encounterId}`);
+  // console.log(`Attempting to remove character ${characterId} from encounter ${encounterId}`);
 
   if (!encounterId || !characterId) {
     throw new Error("Missing required arguments: encounterId, characterId");
@@ -50,7 +50,7 @@ exports.handler = async (event) => {
     });
 
     const { Attributes: updatedEncounter } = await docClient.send(updateCommand);
-    console.log(`Successfully removed character ${characterId} from encounter ${encounterId}`);
+    // console.log(`Successfully removed character ${characterId} from encounter ${encounterId}`);
     return updatedEncounter;
 
   } catch (error) {

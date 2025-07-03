@@ -7,7 +7,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const tableName = process.env.CONDITION_TABLE_NAME;
 
 exports.handler = async (event) => {
-  console.log('DeleteCondition input:', JSON.stringify(event, null, 2));
+  // console.log('DeleteCondition input:', JSON.stringify(event, null, 2));
   
   const { conditionId } = event;
   
@@ -33,7 +33,7 @@ exports.handler = async (event) => {
     };
     
     await ddbDocClient.send(new DeleteCommand(deleteParams));
-    console.log('Deleted condition:', conditionId);
+    // console.log('Deleted condition:', conditionId);
     
     return condition;
   } catch (error) {

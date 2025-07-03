@@ -6,6 +6,14 @@ build/
 
 # testing
 /coverage
+coverage/
+**/coverage/
+cypress-results.json
+cypress-output.log
+cypress-full-run.log
+**/cypress/screenshots/
+**/cypress/videos/
+**/cypress/reports/
 
 # production
 /build

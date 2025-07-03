@@ -7,7 +7,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const tableName = process.env.CHARACTER_TABLE_NAME;
 
 exports.handler = async (event) => {
-  console.log('RemoveConditionFromCharacter input:', JSON.stringify(event, null, 2));
+  // console.log('RemoveConditionFromCharacter input:', JSON.stringify(event, null, 2));
   
   const { characterId, conditionId } = event;
   
@@ -31,7 +31,7 @@ exports.handler = async (event) => {
     const updatedConditions = currentConditions.filter(c => c.conditionId !== conditionId);
     
     if (updatedConditions.length === currentConditions.length) {
-      console.log('Condition not found on character');
+      // console.log('Condition not found on character');
       return character;
     }
     
@@ -46,7 +46,7 @@ exports.handler = async (event) => {
     };
     
     const result = await ddbDocClient.send(new UpdateCommand(updateParams));
-    console.log('Removed condition from character:', characterId);
+    // console.log('Removed condition from character:', characterId);
     return result.Attributes;
   } catch (error) {
     console.error('Error removing condition from character:', error);

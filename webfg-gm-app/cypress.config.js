@@ -6,10 +6,17 @@ module.exports = {
     baseUrl: 'http://localhost:3000',
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     
-    // Longer timeouts for CI environment
-    defaultCommandTimeout: process.env.CI ? 10000 : 4000,
-    requestTimeout: process.env.CI ? 10000 : 5000,
-    responseTimeout: process.env.CI ? 30000 : 10000,
-    pageLoadTimeout: process.env.CI ? 60000 : 30000,
+    // Optimized timeouts - reduced since we're removing hardcoded waits
+    defaultCommandTimeout: process.env.CI ? 8000 : 3000,
+    requestTimeout: process.env.CI ? 8000 : 4000,
+    responseTimeout: process.env.CI ? 15000 : 8000,
+    pageLoadTimeout: process.env.CI ? 30000 : 15000,
+    
+    // Enable test isolation and optimize for speed
+    testIsolation: true,
+    
+    // Video settings for faster execution
+    video: false,
+    screenshotOnRunFailure: true,
   },
 };

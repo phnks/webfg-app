@@ -6,7 +6,7 @@ const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 exports.handler = async (event) => {
-  console.log("Received event for resolveGroupedAttributes:", JSON.stringify(event, null, 2));
+  // console.log("Received event for resolveGroupedAttributes:", JSON.stringify(event, null, 2));
 
   // Source contains the parent Character or Object
   const entity = event.source;
@@ -14,11 +14,11 @@ exports.handler = async (event) => {
   
   // Log if character has conditions
   if (typeName === 'Character' && entity.characterConditions && entity.characterConditions.length > 0) {
-    console.log(`[DEBUG] Character ${entity.name || 'unknown'} has ${entity.characterConditions.length} conditions:`, entity.characterConditions);
+    // console.log(`[DEBUG] Character ${entity.name || 'unknown'} has ${entity.characterConditions.length} conditions:`, entity.characterConditions);
   }
 
   if (!entity) {
-    console.log("No entity found, returning empty grouped attributes.");
+    // console.log("No entity found, returning empty grouped attributes.");
     return {
       speed: null,
       weight: null,
@@ -44,20 +44,20 @@ exports.handler = async (event) => {
     if (typeName === 'Character') {
       // For characters, we need to ensure we have full equipment data
       const enrichedCharacter = await enrichCharacterWithEquipment(entity);
-      console.log("Enriched character equipment:", JSON.stringify(enrichedCharacter.equipment, null, 2));
+      // console.log("Enriched character equipment:", JSON.stringify(enrichedCharacter.equipment, null, 2));
       
       // Log if we found conditions during enrichment
       if (enrichedCharacter.conditions && enrichedCharacter.conditions.length > 0) {
-        console.log(`[DEBUG] Enriched character with ${enrichedCharacter.conditions.length} conditions:`, JSON.stringify(enrichedCharacter.conditions, null, 2));
+        // console.log(`[DEBUG] Enriched character with ${enrichedCharacter.conditions.length} conditions:`, JSON.stringify(enrichedCharacter.conditions, null, 2));
       } else {
-        console.log(`[DEBUG] Enriched character has NO conditions`); 
+        // console.log(`[DEBUG] Enriched character has NO conditions`); 
       }
       
       groupedAttributes = calculateGroupedAttributes(enrichedCharacter);
     } else if (typeName === 'Object') {
       // For objects, we need to ensure we have full equipment data
       const enrichedObject = await enrichObjectWithEquipment(entity);
-      console.log("Enriched object equipment:", JSON.stringify(enrichedObject.equipment, null, 2));
+      // console.log("Enriched object equipment:", JSON.stringify(enrichedObject.equipment, null, 2));
       groupedAttributes = calculateObjectGroupedAttributes(enrichedObject);
     } else {
       throw new Error(`Unknown entity type: ${typeName}`);
@@ -82,11 +82,11 @@ exports.handler = async (event) => {
       morale: groupedAttributes.morale || null
     };
 
-    console.log("Calculated grouped attributes:", JSON.stringify(result, null, 2));
+    // console.log("Calculated grouped attributes:", JSON.stringify(result, null, 2));
     
     // Debug: Check for expected attribute changes due to conditions
     if (typeName === 'Character' && entity.characterConditions && entity.characterConditions.length > 0) {
-      console.log(`[DEBUG] Checking for expected condition effects:`);
+      // console.log(`[DEBUG] Checking for expected condition effects:`);
       const enrichedCharacter = await enrichCharacterWithEquipment(entity);
       
       if (enrichedCharacter.conditions) {
@@ -96,10 +96,10 @@ exports.handler = async (event) => {
             const baseValue = entity[targetAttr]?.attribute?.attributeValue;
             const groupedValue = result[targetAttr];
             
-            console.log(`[DEBUG] Condition '${condition.name}' targeting ${targetAttr}:`);
-            console.log(`  - Base value: ${baseValue}`);
-            console.log(`  - Expected ${condition.conditionType === 'HELP' ? '+' : '-'}${condition.amount}`);
-            console.log(`  - Grouped value: ${groupedValue}`);
+            // console.log(`[DEBUG] Condition '${condition.name}' targeting ${targetAttr}:`);
+            // console.log(`  - Base value: ${baseValue}`);
+            // console.log(`  - Expected ${condition.conditionType === 'HELP' ? '+' : '-'}${condition.amount}`);
+            // console.log(`  - Grouped value: ${groupedValue}`);
           }
         });
       }

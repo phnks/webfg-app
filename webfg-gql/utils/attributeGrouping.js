@@ -165,63 +165,63 @@ const calculateGroupedAttributes = (character) => {
   });
   
   // Now apply conditions (HELP/HINDER) to the grouped values
-  console.log(`[DEBUG] Starting to apply conditions for character ${character.name || 'unknown'} (${character.characterId || 'no-id'})`);
-  console.log(`[DEBUG-GROUP] Character conditions:`, JSON.stringify(character.conditions, null, 2));
+  // console.log(`[DEBUG] Starting to apply conditions for character ${character.name || 'unknown'} (${character.characterId || 'no-id'})`);
+  // console.log(`[DEBUG-GROUP] Character conditions:`, JSON.stringify(character.conditions, null, 2));
   
   if (character.conditions && character.conditions.length > 0) {
-    console.log(`[DEBUG] Found ${character.conditions.length} conditions to process`);
+    // console.log(`[DEBUG] Found ${character.conditions.length} conditions to process`);
     
     character.conditions.forEach(condition => {
-      console.log(`[DEBUG] Processing condition: ${JSON.stringify(condition)}`);
-      console.log(`[DEBUG-GROUP] Condition amount type: ${typeof condition.amount}, value: ${condition.amount}`);
+      // console.log(`[DEBUG] Processing condition: ${JSON.stringify(condition)}`);
+      // console.log(`[DEBUG-GROUP] Condition amount type: ${typeof condition.amount}, value: ${condition.amount}`);
       
       if (!condition.conditionTarget || !condition.conditionType || condition.amount === undefined) {
-        console.log(`[DEBUG] Skipping invalid condition: ${condition.name || 'unnamed'} - missing required fields`);
-        console.log(`[DEBUG-GROUP] Missing fields check: target=${!!condition.conditionTarget}, type=${!!condition.conditionType}, amount=${condition.amount !== undefined}`);
+        // console.log(`[DEBUG] Skipping invalid condition: ${condition.name || 'unnamed'} - missing required fields`);
+        // console.log(`[DEBUG-GROUP] Missing fields check: target=${!!condition.conditionTarget}, type=${!!condition.conditionType}, amount=${condition.amount !== undefined}`);
         return; // Skip invalid conditions
       }
       
       // Convert condition target to lowercase to match attribute names
       const targetAttribute = condition.conditionTarget.toLowerCase();
-      console.log(`[DEBUG] Condition target attribute: ${targetAttribute}`);
+      // console.log(`[DEBUG] Condition target attribute: ${targetAttribute}`);
       
       // Only apply if this is a valid attribute and we have a value for it
       if (ATTRIBUTE_NAMES.includes(targetAttribute) && groupedAttributes[targetAttribute] !== undefined) {
         const currentValue = groupedAttributes[targetAttribute];
         let newValue = currentValue;
         
-        console.log(`[DEBUG] Before applying condition: ${targetAttribute} = ${currentValue}`);
+        // console.log(`[DEBUG] Before applying condition: ${targetAttribute} = ${currentValue}`);
         
         // Ensure amount is a number - use our helper for guaranteed numeric value
         const amount = toInt(condition.amount, 0); // If amount is missing/invalid, use 0 (no effect)
-        console.log(`[DEBUG-GROUP] Using amount: ${amount} (original value: ${condition.amount}, type: ${typeof condition.amount})`);
+        // console.log(`[DEBUG-GROUP] Using amount: ${amount} (original value: ${condition.amount}, type: ${typeof condition.amount})`);
         
         // Skip conditions with zero amount (no effect)
         if (amount === 0) {
-          console.log(`[DEBUG-GROUP] SKIPPING due to zero amount for ${condition.name}`);
+          // console.log(`[DEBUG-GROUP] SKIPPING due to zero amount for ${condition.name}`);
           return;
         }
         
         if (condition.conditionType === 'HELP') {
           newValue = currentValue + amount;
-          console.log(`[DEBUG] Applying HELP condition: ${currentValue} + ${amount} = ${newValue}`);
+          // console.log(`[DEBUG] Applying HELP condition: ${currentValue} + ${amount} = ${newValue}`);
         } else if (condition.conditionType === 'HINDER') {
           newValue = currentValue - amount;
-          console.log(`[DEBUG] Applying HINDER condition: ${currentValue} - ${amount} = ${newValue}`);
+          // console.log(`[DEBUG] Applying HINDER condition: ${currentValue} - ${amount} = ${newValue}`);
         }
         
         // Round to 2 decimal places
         groupedAttributes[targetAttribute] = Math.round(newValue * 100) / 100;
-        console.log(`[DEBUG] After applying condition (rounded): ${targetAttribute} = ${groupedAttributes[targetAttribute]}`);
+        // console.log(`[DEBUG] After applying condition (rounded): ${targetAttribute} = ${groupedAttributes[targetAttribute]}`);
       } else {
-        console.log(`[DEBUG] Cannot apply condition: target=${targetAttribute}, valid=${ATTRIBUTE_NAMES.includes(targetAttribute)}, hasValue=${groupedAttributes[targetAttribute] !== undefined}`);
+        // console.log(`[DEBUG] Cannot apply condition: target=${targetAttribute}, valid=${ATTRIBUTE_NAMES.includes(targetAttribute)}, hasValue=${groupedAttributes[targetAttribute] !== undefined}`);
       }
     });
   } else {
-    console.log('[DEBUG] No conditions to apply');
+    // console.log('[DEBUG] No conditions to apply');
   }
   
-  console.log('[DEBUG] Final grouped attributes after conditions:', JSON.stringify(groupedAttributes));
+  // console.log('[DEBUG] Final grouped attributes after conditions:', JSON.stringify(groupedAttributes));
   
   return groupedAttributes;
 };
@@ -345,38 +345,38 @@ const calculateReadyGroupedAttributes = (character) => {
     const groupedValue = calculateGroupingFormula(valuesToGroup);
     
     // Debug logging for ready grouped calculation
-    if (attributeName === 'dexterity' && character.name === 'The Guy') {
-      console.log(`[DEBUG READY] Calculating ready grouped dexterity for The Guy:`);
-      console.log(`[DEBUG READY] Character base value: ${charAttrInfo.value}, isGrouped: ${charAttrInfo.isGrouped}`);
-      console.log(`[DEBUG READY] Equipment items: ${JSON.stringify(character.equipment?.map(item => ({
-        name: item.name,
-        dexterity: item.dexterity,
-        extracted: extractAttributeInfo(item[attributeName])
-      })) || [])}`);
-      console.log(`[DEBUG READY] Ready items: ${JSON.stringify(character.ready?.map(item => ({
-        name: item.name,
-        dexterity: item.dexterity,
-        extracted: extractAttributeInfo(item[attributeName])
-      })) || [])}`);
-      console.log(`[DEBUG READY] Values to group: ${JSON.stringify(valuesToGroup)}`);
-      console.log(`[DEBUG READY] Grouped value before rounding: ${groupedValue}`);
-    }
+    // if (attributeName === 'dexterity' && character.name === 'The Guy') {
+    //   console.log(`[DEBUG READY] Calculating ready grouped dexterity for The Guy:`);
+    //   console.log(`[DEBUG READY] Character base value: ${charAttrInfo.value}, isGrouped: ${charAttrInfo.isGrouped}`);
+    //   console.log(`[DEBUG READY] Equipment items: ${JSON.stringify(character.equipment?.map(item => ({
+    //     name: item.name,
+    //     dexterity: item.dexterity,
+    //     extracted: extractAttributeInfo(item[attributeName])
+    //   })) || [])}`);
+    //   console.log(`[DEBUG READY] Ready items: ${JSON.stringify(character.ready?.map(item => ({
+    //     name: item.name,
+    //     dexterity: item.dexterity,
+    //     extracted: extractAttributeInfo(item[attributeName])
+    //   })) || [])}`);
+    //   console.log(`[DEBUG READY] Values to group: ${JSON.stringify(valuesToGroup)}`);
+    //   console.log(`[DEBUG READY] Grouped value before rounding: ${groupedValue}`);
+    // }
     
     // No fatigue applied here anymore - it's handled at action test level
     groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
   });
   
   // Now apply conditions (HELP/HINDER) to the grouped values
-  console.log(`[DEBUG] Starting to apply conditions for ready grouped attributes for character ${character.name || 'unknown'} (${character.characterId || 'no-id'})`);
+  // console.log(`[DEBUG] Starting to apply conditions for ready grouped attributes for character ${character.name || 'unknown'} (${character.characterId || 'no-id'})`);
   
   if (character.conditions && character.conditions.length > 0) {
-    console.log(`[DEBUG] Found ${character.conditions.length} conditions to process for ready grouped attributes`);
+    // console.log(`[DEBUG] Found ${character.conditions.length} conditions to process for ready grouped attributes`);
     
     character.conditions.forEach(condition => {
-      console.log(`[DEBUG] Processing condition for ready attributes: ${JSON.stringify(condition)}`);
+      // console.log(`[DEBUG] Processing condition for ready attributes: ${JSON.stringify(condition)}`);
       
       if (!condition.conditionTarget || !condition.conditionType || condition.amount === undefined) {
-        console.log(`[DEBUG] Skipping invalid condition: ${condition.name || 'unnamed'} - missing required fields`);
+        // console.log(`[DEBUG] Skipping invalid condition: ${condition.name || 'unnamed'} - missing required fields`);
         return; // Skip invalid conditions
       }
       
@@ -388,35 +388,35 @@ const calculateReadyGroupedAttributes = (character) => {
         const currentValue = groupedAttributes[targetAttribute];
         let newValue = currentValue;
         
-        console.log(`[DEBUG] Before applying condition to ready attributes: ${targetAttribute} = ${currentValue}`);
+        // console.log(`[DEBUG] Before applying condition to ready attributes: ${targetAttribute} = ${currentValue}`);
         
         // Ensure amount is a number - use our helper for guaranteed numeric value
         const amount = toInt(condition.amount, 0); // If amount is missing/invalid, use 0 (no effect)
         
         // Skip conditions with zero amount (no effect)
         if (amount === 0) {
-          console.log(`[DEBUG] SKIPPING ready condition due to zero amount for ${condition.name}`);
+          // console.log(`[DEBUG] SKIPPING ready condition due to zero amount for ${condition.name}`);
           return;
         }
         
         if (condition.conditionType === 'HELP') {
           newValue = currentValue + amount;
-          console.log(`[DEBUG] Applying HELP condition to ready attributes: ${currentValue} + ${amount} = ${newValue}`);
+          // console.log(`[DEBUG] Applying HELP condition to ready attributes: ${currentValue} + ${amount} = ${newValue}`);
         } else if (condition.conditionType === 'HINDER') {
           newValue = currentValue - amount;
-          console.log(`[DEBUG] Applying HINDER condition to ready attributes: ${currentValue} - ${amount} = ${newValue}`);
+          // console.log(`[DEBUG] Applying HINDER condition to ready attributes: ${currentValue} - ${amount} = ${newValue}`);
         }
         
         // Round to 2 decimal places
         groupedAttributes[targetAttribute] = Math.round(newValue * 100) / 100;
-        console.log(`[DEBUG] After applying condition to ready attributes (rounded): ${targetAttribute} = ${groupedAttributes[targetAttribute]}`);
+        // console.log(`[DEBUG] After applying condition to ready attributes (rounded): ${targetAttribute} = ${groupedAttributes[targetAttribute]}`);
       }
     });
   } else {
-    console.log('[DEBUG] No conditions to apply to ready grouped attributes');
+    // console.log('[DEBUG] No conditions to apply to ready grouped attributes');
   }
   
-  console.log('[DEBUG] Final ready grouped attributes after conditions:', JSON.stringify(groupedAttributes));
+  // console.log('[DEBUG] Final ready grouped attributes after conditions:', JSON.stringify(groupedAttributes));
   
   return groupedAttributes;
 };
@@ -486,25 +486,25 @@ const calculateObjectGroupedAttributes = (object) => {
 const calculateGroupedAttributesWithSelectedReady = (character, selectedReadyObjectId) => {
   const groupedAttributes = {};
   
-  console.log('[DEBUG calculateGroupedAttributesWithSelectedReady]', {
-    characterName: character?.name,
-    selectedReadyObjectId,
-    hasReadyArray: !!character?.ready,
-    readyCount: character?.ready?.length || 0,
-    readyObjects: character?.ready?.map(obj => ({ objectId: obj.objectId, name: obj.name })) || []
-  });
+  // console.log('[DEBUG calculateGroupedAttributesWithSelectedReady]', {
+  //   characterName: character?.name,
+  //   selectedReadyObjectId,
+  //   hasReadyArray: !!character?.ready,
+  //   readyCount: character?.ready?.length || 0,
+  //   readyObjects: character?.ready?.map(obj => ({ objectId: obj.objectId, name: obj.name })) || []
+  // });
   
   if (!character || !selectedReadyObjectId) {
-    console.log('[DEBUG] Fallback: no character or selectedReadyObjectId');
+    // console.log('[DEBUG] Fallback: no character or selectedReadyObjectId');
     return calculateGroupedAttributes(character); // Fallback to equipment-only
   }
   
   // Find the selected ready object
   const selectedReadyObject = character.ready?.find(obj => obj.objectId === selectedReadyObjectId);
-  console.log('[DEBUG] Found selected ready object:', selectedReadyObject ? { objectId: selectedReadyObject.objectId, name: selectedReadyObject.name } : 'NOT FOUND');
+  // console.log('[DEBUG] Found selected ready object:', selectedReadyObject ? { objectId: selectedReadyObject.objectId, name: selectedReadyObject.name } : 'NOT FOUND');
   
   if (!selectedReadyObject) {
-    console.log('[DEBUG] Fallback: selected ready object not found in character.ready array');
+    // console.log('[DEBUG] Fallback: selected ready object not found in character.ready array');
     return calculateGroupedAttributes(character); // Fallback if object not found
   }
   
@@ -559,20 +559,20 @@ const calculateGroupedAttributesWithSelectedReady = (character, selectedReadyObj
       valuesToGroup.push(readyValue);
       
       // Debug logging for dexterity specifically
-      if (attributeName === 'dexterity') {
-        console.log('[DEBUG selected ready object dexterity]', {
-          objectName: selectedReadyObject.name,
-          readyAttrInfo,
-          readyValue,
-          addedToGroup: true
-        });
-      }
+      // if (attributeName === 'dexterity') {
+      //   console.log('[DEBUG selected ready object dexterity]', {
+      //     objectName: selectedReadyObject.name,
+      //     readyAttrInfo,
+      //     readyValue,
+      //     addedToGroup: true
+      //   });
+      // }
     } else if (attributeName === 'dexterity') {
-      console.log('[DEBUG selected ready object dexterity NOT grouped]', {
-        objectName: selectedReadyObject.name,
-        readyAttrInfo,
-        reason: !readyAttrInfo ? 'no attribute info' : 'not grouped'
-      });
+      // console.log('[DEBUG selected ready object dexterity NOT grouped]', {
+      //   objectName: selectedReadyObject.name,
+      //   readyAttrInfo,
+      //   reason: !readyAttrInfo ? 'no attribute info' : 'not grouped'
+      // });
     }
     
     // Calculate final grouped value
@@ -591,14 +591,14 @@ const calculateGroupedAttributesWithSelectedReady = (character, selectedReadyObj
     }
     
     // Debug logging for dexterity calculation
-    if (attributeName === 'dexterity') {
-      console.log('[DEBUG calculateGroupedAttributesWithSelectedReady dexterity result]', {
-        characterName: character.name,
-        selectedObjectName: selectedReadyObject.name,
-        valuesToGroup,
-        finalValue: groupedAttributes[attributeName]
-      });
-    }
+    // if (attributeName === 'dexterity') {
+    //   console.log('[DEBUG calculateGroupedAttributesWithSelectedReady dexterity result]', {
+    //     characterName: character.name,
+    //     selectedObjectName: selectedReadyObject.name,
+    //     valuesToGroup,
+    //     finalValue: groupedAttributes[attributeName]
+    //   });
+    // }
   });
   
   return groupedAttributes;

@@ -8,7 +8,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const OBJECTS_TABLE_NAME = process.env.OBJECTS_TABLE_NAME;
 
 exports.handler = async (event) => {
-    console.log('Received event:', JSON.stringify(event, null, 2));
+    // console.log('Received event:', JSON.stringify(event, null, 2));
 
     const { input } = event;
     const objectId = uuidv4();
@@ -58,7 +58,7 @@ exports.handler = async (event) => {
         };
 
         await ddbDocClient.send(new PutCommand(params));
-        console.log('DynamoDB Put result: Success');
+        // console.log('DynamoDB Put result: Success');
 
         return item;
     } catch (error) {

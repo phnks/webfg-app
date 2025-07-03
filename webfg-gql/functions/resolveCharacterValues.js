@@ -11,13 +11,13 @@ const docClient = DynamoDBDocumentClient.from(client, translateConfig);
 const valuesTable = process.env.VALUES_TABLE;
 
 exports.handler = async (event) => {
-  console.log("Received event for resolveCharacterValues:", JSON.stringify(event, null, 2));
+  // console.log("Received event for resolveCharacterValues:", JSON.stringify(event, null, 2));
 
   // Source contains the parent Character object
   const characterData = event.source;
 
   if (!characterData || !characterData.valueData || characterData.valueData.length === 0) {
-    console.log("No valueData found on character, returning empty array.");
+    // console.log("No valueData found on character, returning empty array.");
     return []; // No values to resolve
   }
 
@@ -69,7 +69,7 @@ exports.handler = async (event) => {
       };
     });
 
-    console.log("Resolved values:", JSON.stringify(resolvedValues, null, 2));
+    // console.log("Resolved values:", JSON.stringify(resolvedValues, null, 2));
     return resolvedValues;
 
   } catch (error) {
