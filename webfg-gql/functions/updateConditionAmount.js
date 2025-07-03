@@ -8,7 +8,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const tableName = process.env.CHARACTER_TABLE_NAME;
 
 exports.handler = async (event) => {
-  console.log('UpdateConditionAmount input:', JSON.stringify(event, null, 2));
+  // console.log('UpdateConditionAmount input:', JSON.stringify(event, null, 2));
   
   const { characterId, conditionId, amount } = event;
   
@@ -18,7 +18,7 @@ exports.handler = async (event) => {
 
   // Parse amount to number using our helper - guaranteed to be a number
   const parsedAmount = toInt(amount, 1); // Default to 1 for invalid values
-  console.log(`[DEBUG-AMOUNT] amount=${amount}, parsedAmount=${parsedAmount}, type=${typeof parsedAmount}`);
+  // console.log(`[DEBUG-AMOUNT] amount=${amount}, parsedAmount=${parsedAmount}, type=${typeof parsedAmount}`);
   
   // Validate amount (must be at least 1)
   if (parsedAmount < 1) {
@@ -50,7 +50,7 @@ exports.handler = async (event) => {
     
     // Update the condition amount (ensure it's stored as a number)
     currentConditions[conditionIndex].amount = parsedAmount;
-    console.log(`[DEBUG-AMOUNT] Updated condition at index ${conditionIndex} to amount=${parsedAmount}, result:`, JSON.stringify(currentConditions[conditionIndex], null, 2));
+    // console.log(`[DEBUG-AMOUNT] Updated condition at index ${conditionIndex} to amount=${parsedAmount}, result:`, JSON.stringify(currentConditions[conditionIndex], null, 2));
     
     const updateParams = {
       TableName: tableName,
@@ -63,7 +63,7 @@ exports.handler = async (event) => {
     };
     
     const result = await ddbDocClient.send(new UpdateCommand(updateParams));
-    console.log(`Updated condition ${conditionId} amount to ${amount} for character ${characterId}`);
+    // console.log(`Updated condition ${conditionId} amount to ${amount} for character ${characterId}`);
     return result.Attributes;
   } catch (error) {
     console.error('Error updating condition amount:', error);

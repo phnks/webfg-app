@@ -8,7 +8,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const tableName = process.env.CHARACTER_TABLE_NAME;
 
 exports.handler = async (event) => {
-  console.log('AddConditionToCharacter input:', JSON.stringify(event, null, 2));
+  // console.log('AddConditionToCharacter input:', JSON.stringify(event, null, 2));
   
   const { characterId, conditionId, amount = 1 } = event;
   
@@ -18,7 +18,7 @@ exports.handler = async (event) => {
   
   // Parse amount to ensure it's a number using our helper
   const parsedAmount = toInt(amount, 1); // Default to 1 if value is invalid
-  console.log(`[DEBUG-ADD] amount=${amount}, parsed=${parsedAmount}, type=${typeof parsedAmount}`);
+  // console.log(`[DEBUG-ADD] amount=${amount}, parsed=${parsedAmount}, type=${typeof parsedAmount}`);
   
   // Validate the amount (0 is not allowed for new conditions)
   if (parsedAmount <= 0) {
@@ -47,7 +47,7 @@ exports.handler = async (event) => {
     if (existingConditionIndex >= 0) {
       // If already exists, update the amount
       currentConditions[existingConditionIndex].amount = parsedAmount;
-      console.log(`[DEBUG-ADD] Updated existing condition: ${JSON.stringify(currentConditions[existingConditionIndex], null, 2)}`);
+      // console.log(`[DEBUG-ADD] Updated existing condition: ${JSON.stringify(currentConditions[existingConditionIndex], null, 2)}`);
     } else {
       // Add the new condition with amount
       const newCondition = {
@@ -55,7 +55,7 @@ exports.handler = async (event) => {
         amount: parsedAmount
       };
       currentConditions.push(newCondition);
-      console.log(`[DEBUG-ADD] Added new condition: ${JSON.stringify(newCondition, null, 2)}`);
+      // console.log(`[DEBUG-ADD] Added new condition: ${JSON.stringify(newCondition, null, 2)}`);
     }
     
     const updateParams = {
@@ -69,7 +69,7 @@ exports.handler = async (event) => {
     };
     
     const result = await ddbDocClient.send(new UpdateCommand(updateParams));
-    console.log('Added/updated condition for character:', characterId);
+    // console.log('Added/updated condition for character:', characterId);
     return result.Attributes;
   } catch (error) {
     console.error('Error adding condition to character:', error);

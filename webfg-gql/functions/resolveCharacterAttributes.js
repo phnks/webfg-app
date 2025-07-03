@@ -10,13 +10,13 @@ const docClient = DynamoDBDocumentClient.from(client, translateConfig);
 const attributesTable = process.env.ATTRIBUTES_TABLE;
 
 exports.handler = async (event) => {
-  console.log("Received event for resolveCharacterAttributes:", JSON.stringify(event, null, 2));
+  // console.log("Received event for resolveCharacterAttributes:", JSON.stringify(event, null, 2));
 
   // Source contains the parent Character object
   const characterData = event.source;
 
   if (!characterData || !characterData.attributeData || characterData.attributeData.length === 0) {
-    console.log("No attributeData found on character, returning empty array.");
+    // console.log("No attributeData found on character, returning empty array.");
     return []; // No attributes to resolve
   }
 
@@ -71,7 +71,7 @@ exports.handler = async (event) => {
       };
     });
 
-    console.log("Resolved attributes:", JSON.stringify(resolvedAttributes, null, 2));
+    // console.log("Resolved attributes:", JSON.stringify(resolvedAttributes, null, 2));
     return resolvedAttributes;
 
   } catch (error) {

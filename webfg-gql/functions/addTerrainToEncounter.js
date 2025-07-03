@@ -11,7 +11,7 @@ exports.handler = async (event) => {
   const { encounterId, input } = event.arguments;
   const { type, startX, startY, length, color } = input;
 
-  console.log(`Attempting to add terrain type ${type} to encounter ${encounterId}`);
+  // console.log(`Attempting to add terrain type ${type} to encounter ${encounterId}`);
 
   if (!encounterId || !input || !type || startX === undefined || startY === undefined || length === undefined) {
     throw new Error("Missing required arguments: encounterId, input.{type, startX, startY, length}");
@@ -57,7 +57,7 @@ exports.handler = async (event) => {
     });
 
     const { Attributes: updatedEncounter } = await docClient.send(updateCommand);
-    console.log(`Successfully added terrain ${terrainId} to encounter ${encounterId}`);
+    // console.log(`Successfully added terrain ${terrainId} to encounter ${encounterId}`);
     return updatedEncounter;
 
   } catch (error) {

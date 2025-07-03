@@ -10,7 +10,7 @@ exports.handler = async (event) => {
   const { encounterId, input } = event.arguments;
   const { terrainId, startX, startY } = input;
 
-  console.log(`Attempting to update terrain ${terrainId} in encounter ${encounterId} to start at (${startX}, ${startY})`);
+  // console.log(`Attempting to update terrain ${terrainId} in encounter ${encounterId} to start at (${startX}, ${startY})`);
 
   if (!encounterId || !input || !terrainId || startX === undefined || startY === undefined) {
     throw new Error("Missing required arguments: encounterId, input.{terrainId, startX, startY}");
@@ -51,7 +51,7 @@ exports.handler = async (event) => {
     });
 
     const { Attributes: updatedEncounter } = await docClient.send(updateCommand);
-    console.log(`Successfully updated terrain ${terrainId} position in encounter ${encounterId}`);
+    // console.log(`Successfully updated terrain ${terrainId} position in encounter ${encounterId}`);
     return updatedEncounter;
 
   } catch (error) {

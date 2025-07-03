@@ -6,7 +6,7 @@ const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
-  console.log("Received event:", JSON.stringify(event, null, 2));
+  // console.log("Received event:", JSON.stringify(event, null, 2));
 
   const tableName = process.env.CHARACTERS_TABLE;
   if (!tableName) {
@@ -54,7 +54,7 @@ exports.handler = async (event) => {
 
   try {
     await ddbDocClient.send(new PutCommand(params));
-    console.log("Successfully created character:", item);
+    // console.log("Successfully created character:", item);
     return item; // Return the created item
   } catch (error) {
     console.error("Error creating character:", error);

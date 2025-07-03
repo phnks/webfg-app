@@ -41,14 +41,14 @@ module.exports = {
   // Verbose output
   verbose: true,
   
-  // Coverage thresholds - TEMPORARILY DISABLED TO FIX GITHUB ACTIONS
-  // TODO: Re-enable with 90% once we have sufficient tests
-  // coverageThreshold: {
-  //   global: {
-  //     branches: 90,   // REQUIRED: 90% coverage
-  //     functions: 90,  // REQUIRED: 90% coverage  
-  //     lines: 90,      // REQUIRED: 90% coverage
-  //     statements: 90  // REQUIRED: 90% coverage
-  //   }
-  // }
+  // Coverage thresholds - MUST ALWAYS BE 90%
+  // NEVER LOWER THESE THRESHOLDS - ADD MORE TESTS INSTEAD
+  coverageThreshold: {
+    global: {
+      branches: 90,   // REQUIRED: 90% coverage
+      functions: 90,  // REQUIRED: 90% coverage  
+      lines: 90,      // REQUIRED: 90% coverage
+      statements: 90  // REQUIRED: 90% coverage
+    }
+  }
 };

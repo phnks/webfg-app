@@ -5,7 +5,7 @@ const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
-  console.log("Received event for updateCharacter:", JSON.stringify(event, null, 2));
+  // console.log("Received event for updateCharacter:", JSON.stringify(event, null, 2));
 
   const tableName = process.env.CHARACTERS_TABLE;
   if (!tableName) {
@@ -80,12 +80,12 @@ exports.handler = async (event) => {
     ReturnValues: "ALL_NEW",
   };
 
-  console.log("Attempting to update character with params:", JSON.stringify(params, null, 2));
+  // console.log("Attempting to update character with params:", JSON.stringify(params, null, 2));
 
   try {
     const result = await ddbDocClient.send(new UpdateCommand(params));
     if (result && result.Attributes && Object.keys(result.Attributes).length > 0) {
-      console.log("Successfully updated character:", result.Attributes);
+      // console.log("Successfully updated character:", result.Attributes);
       return result.Attributes;
     } else {
       console.error(`UpdateCharacter Lambda: Character with ID ${characterId} not found`);

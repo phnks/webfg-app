@@ -11,7 +11,7 @@ const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 100;
 
 exports.handler = async (event) => {
-    console.log('Received event:', JSON.stringify(event, null, 2));
+    // console.log('Received event:', JSON.stringify(event, null, 2));
 
     const { filter } = event;
 
@@ -102,7 +102,7 @@ exports.handler = async (event) => {
     }
 
     try {
-        console.log("Executing Scan with params:", JSON.stringify(params, null, 2));
+        // console.log("Executing Scan with params:", JSON.stringify(params, null, 2));
         
         // Execute scan
         let allItems = [];
@@ -145,7 +145,7 @@ exports.handler = async (event) => {
             nextCursor = Buffer.from(JSON.stringify(lastEvaluatedKey)).toString('base64');
         }
 
-        console.log(`Returning ${items.length} actions, hasNextPage: ${hasNextPage}`);
+        // console.log(`Returning ${items.length} actions, hasNextPage: ${hasNextPage}`);
 
         return {
             items,

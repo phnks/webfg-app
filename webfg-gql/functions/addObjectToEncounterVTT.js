@@ -17,7 +17,7 @@ const objectsTable = process.env.OBJECTS_TABLE; // Assuming OBJECTS_TABLE env va
 exports.handler = async (event) => {
   const { encounterId, objectId, x, y } = event.arguments;
 
-  console.log(`Attempting to add object ${objectId} to encounter ${encounterId} at (${x}, ${y})`);
+  // console.log(`Attempting to add object ${objectId} to encounter ${encounterId} at (${x}, ${y})`);
 
   if (!encounterId || !objectId || x === undefined || y === undefined) {
     throw new Error("Missing required arguments: encounterId, objectId, x, y");
@@ -87,8 +87,8 @@ exports.handler = async (event) => {
     });
 
     const { Attributes: updatedEncounter } = await docClient.send(updateCommand);
-    console.log(`Successfully added/updated object ${objectId} in encounter ${encounterId}`);
-    console.log('Lambda returning updated encounter:', updatedEncounter); // Added log
+    // console.log(`Successfully added/updated object ${objectId} in encounter ${encounterId}`);
+    // console.log('Lambda returning updated encounter:', updatedEncounter); // Added log
 
     return updatedEncounter;
 

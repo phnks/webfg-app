@@ -5,7 +5,7 @@ const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
-  console.log("Received event:", JSON.stringify(event, null, 2));
+  // console.log("Received event:", JSON.stringify(event, null, 2));
 
   const tableName = process.env.CHARACTERS_TABLE;
   if (!tableName) {
@@ -30,7 +30,7 @@ exports.handler = async (event) => {
 
   try {
     const result = await ddbDocClient.send(new DeleteCommand(params));
-    console.log("Successfully deleted character:", result?.Attributes);
+    // console.log("Successfully deleted character:", result?.Attributes);
     return result?.Attributes || null; // Return the deleted item or null if not found
   } catch (error) {
     console.error("Error deleting character:", error);

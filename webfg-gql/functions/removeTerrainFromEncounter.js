@@ -9,7 +9,7 @@ const tableName = process.env.ENCOUNTERS_TABLE;
 exports.handler = async (event) => {
   const { encounterId, terrainId } = event.arguments;
 
-  console.log(`Attempting to remove terrain ${terrainId} from encounter ${encounterId}`);
+  // console.log(`Attempting to remove terrain ${terrainId} from encounter ${encounterId}`);
 
   if (!encounterId || !terrainId) {
     throw new Error("Missing required arguments: encounterId, terrainId");
@@ -50,7 +50,7 @@ exports.handler = async (event) => {
     });
 
     const { Attributes: updatedEncounter } = await docClient.send(updateCommand);
-    console.log(`Successfully removed terrain ${terrainId} from encounter ${encounterId}`);
+    // console.log(`Successfully removed terrain ${terrainId} from encounter ${encounterId}`);
     return updatedEncounter;
 
   } catch (error) {
