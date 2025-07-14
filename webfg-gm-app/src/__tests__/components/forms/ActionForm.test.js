@@ -1,13 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing';
+import { BrowserRouter } from 'react-router-dom';
 import ActionForm from '../../../components/forms/ActionForm';
 import { CREATE_ACTION, UPDATE_ACTION } from '../../../graphql/operations';
-
-// Mock react-router-dom
-jest.mock('react-router-dom', () => ({
-  useNavigate: () => jest.fn()
-}));
 
 const createActionMocks = [
   {
@@ -38,9 +34,11 @@ const createActionMocks = [
 ];
 
 const ActionFormWrapper = ({ apolloMocks = createActionMocks, children }) => (
-  <MockedProvider mocks={apolloMocks} addTypename={false}>
-    {children}
-  </MockedProvider>
+  <BrowserRouter>
+    <MockedProvider mocks={apolloMocks} addTypename={false}>
+      {children}
+    </MockedProvider>
+  </BrowserRouter>
 );
 
 describe('ActionForm Component', () => {

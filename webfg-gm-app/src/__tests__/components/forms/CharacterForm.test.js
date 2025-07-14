@@ -1,13 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing';
+import { BrowserRouter } from 'react-router-dom';
 import CharacterForm from '../../../components/forms/CharacterForm';
 import { CREATE_CHARACTER, UPDATE_CHARACTER } from '../../../graphql/operations';
-
-// Mock react-router-dom
-jest.mock('react-router-dom', () => ({
-  useNavigate: () => jest.fn()
-}));
+import { SelectedCharacterProvider } from '../../../context/SelectedCharacterContext';
 
 const createCharacterMocks = [
   {
@@ -36,9 +33,13 @@ const createCharacterMocks = [
 ];
 
 const CharacterFormWrapper = ({ apolloMocks = createCharacterMocks, children }) => (
-  <MockedProvider mocks={apolloMocks} addTypename={false}>
-    {children}
-  </MockedProvider>
+  <BrowserRouter>
+    <MockedProvider mocks={apolloMocks} addTypename={false}>
+      <SelectedCharacterProvider>
+        {children}
+      </SelectedCharacterProvider>
+    </MockedProvider>
+  </BrowserRouter>
 );
 
 describe('CharacterForm Component', () => {
