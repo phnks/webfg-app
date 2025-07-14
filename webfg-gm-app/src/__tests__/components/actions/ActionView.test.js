@@ -1,75 +1,262 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import { MockedProvider } from '@apollo/client/testing';
-import { MemoryRouter } from 'react-router-dom';
 import ActionView from '../../../components/actions/ActionView';
 
-// Mock react-router-dom
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ id: '1' }),
-  useNavigate: () => jest.fn()
-}));
+const mockAction = {
+  actionId: '1',
+  name: 'Sword Attack',
+  type: 'COMBAT',
+  description: 'A powerful sword strike',
+  difficulty: 5,
+  damage: '2d6+3',
+  range: 'REACH',
+  duration: 'INSTANT',
+  requirements: 'Must have a sword equipped',
+  effects: 'Deals slashing damage'
+};
 
-const mocks = [];
-
-const ActionViewWrapper = ({ apolloMocks = mocks, children }) => (
-  <MockedProvider mocks={apolloMocks} addTypename={false}>
-    <MemoryRouter>
+const ActionViewWrapper = ({ children }) => (
+  <BrowserRouter>
+    <MockedProvider mocks={[]} addTypename={false}>
       {children}
-    </MemoryRouter>
-  </MockedProvider>
+    </MockedProvider>
+  </BrowserRouter>
 );
 
 describe('ActionView Component', () => {
   test('renders without crashing', () => {
     render(
       <ActionViewWrapper>
-        <ActionView />
+        <ActionView action={mockAction} />
       </ActionViewWrapper>
     );
   });
 
-  test('displays loading state initially', () => {
+  test('displays action name', () => {
     render(
       <ActionViewWrapper>
-        <ActionView />
+        <ActionView action={mockAction} />
       </ActionViewWrapper>
     );
     
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Sword Attack')).toBeInTheDocument();
   });
 
-  test('renders with action ID from URL params', () => {
+  test('displays action type', () => {
     render(
       <ActionViewWrapper>
-        <ActionView />
+        <ActionView action={mockAction} />
       </ActionViewWrapper>
     );
     
-    // Component should render and attempt to load action with ID '1'
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('COMBAT')).toBeInTheDocument();
   });
 
-  test('has proper CSS classes applied', () => {
+  test('displays action description', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('A powerful sword strike')).toBeInTheDocument();
+  });
+
+  test('displays action difficulty', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('5')).toBeInTheDocument();
+  });
+
+  test('displays action damage', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('2d6+3')).toBeInTheDocument();
+  });
+
+  test('displays action range', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('REACH')).toBeInTheDocument();
+  });
+
+  test('displays action duration', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('INSTANT')).toBeInTheDocument();
+  });
+
+  test('displays action requirements', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('Must have a sword equipped')).toBeInTheDocument();
+  });
+
+  test('displays action effects', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('Deals slashing damage')).toBeInTheDocument();
+  });
+
+  test('displays edit button', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('Edit')).toBeInTheDocument();
+  });
+
+  test('displays delete button', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+  });
+
+  test('handles null action gracefully', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={null} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('Action not found')).toBeInTheDocument();
+  });
+
+  test('handles action with missing properties', () => {
+    const incompleteAction = {
+      actionId: '1',
+      name: 'Simple Action'
+    };
+    
+    render(
+      <ActionViewWrapper>
+        <ActionView action={incompleteAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('Simple Action')).toBeInTheDocument();
+  });
+
+  test('applies correct CSS classes', () => {
     const { container } = render(
       <ActionViewWrapper>
-        <ActionView />
+        <ActionView action={mockAction} />
       </ActionViewWrapper>
     );
     
-    expect(container.querySelector('.action-view-container')).toBeInTheDocument();
+    expect(container.querySelector('.action-view')).toBeInTheDocument();
   });
 
-  test('component structure includes main sections', () => {
+  test('handles click events on buttons', () => {
+    const mockOnEdit = jest.fn();
+    const mockOnDelete = jest.fn();
+    
     render(
       <ActionViewWrapper>
-        <ActionView />
+        <ActionView 
+          action={mockAction} 
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />
       </ActionViewWrapper>
     );
     
-    // Component should have basic structure even in loading state
-    const container = document.querySelector('.action-view-container');
-    expect(container).toBeInTheDocument();
+    const editButton = screen.getByText('Edit');
+    const deleteButton = screen.getByText('Delete');
+    
+    fireEvent.click(editButton);
+    fireEvent.click(deleteButton);
+    
+    expect(mockOnEdit).toHaveBeenCalled();
+    expect(mockOnDelete).toHaveBeenCalled();
+  });
+
+  test('displays action difficulty label', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('Difficulty:')).toBeInTheDocument();
+  });
+
+  test('displays action damage label', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('Damage:')).toBeInTheDocument();
+  });
+
+  test('displays action range label', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('Range:')).toBeInTheDocument();
+  });
+
+  test('displays action duration label', () => {
+    render(
+      <ActionViewWrapper>
+        <ActionView action={mockAction} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('Duration:')).toBeInTheDocument();
+  });
+
+  test('handles undefined properties gracefully', () => {
+    const actionWithUndefined = {
+      actionId: '1',
+      name: 'Test Action',
+      type: undefined,
+      description: undefined
+    };
+    
+    render(
+      <ActionViewWrapper>
+        <ActionView action={actionWithUndefined} />
+      </ActionViewWrapper>
+    );
+    
+    expect(screen.getByText('Test Action')).toBeInTheDocument();
   });
 });

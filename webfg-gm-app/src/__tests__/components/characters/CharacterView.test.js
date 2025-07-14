@@ -1,103 +1,242 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import { MockedProvider } from '@apollo/client/testing';
-import { MemoryRouter } from 'react-router-dom';
 import CharacterView from '../../../components/characters/CharacterView';
 import { SelectedCharacterProvider } from '../../../context/SelectedCharacterContext';
-
-// Mock react-router-dom
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ id: '1' }),
-  useNavigate: () => jest.fn()
-}));
 
 const mockCharacter = {
   characterId: '1',
   name: 'Test Character',
   characterCategory: 'HUMAN',
-  description: 'A test character',
+  race: 'Human',
+  description: 'A test character for unit testing',
   will: 10,
   fatigue: 2,
-  speed: { attribute: { attributeValue: 5, isGrouped: false } },
-  strength: { attribute: { attributeValue: 8, isGrouped: false } },
-  dexterity: { attribute: { attributeValue: 7, isGrouped: false } },
-  __typename: 'Character'
+  hitPoints: { current: 15, max: 20 },
+  stats: {
+    hitPoints: { current: 15, max: 20 },
+    fatigue: { current: 2, max: 10 },
+    exhaustion: { current: 0, max: 5 },
+    surges: { current: 3, max: 3 }
+  },
+  equipment: [
+    {
+      objectId: '1',
+      name: 'Sword',
+      objectCategory: 'WEAPON'
+    }
+  ],
+  ready: [],
+  stash: [],
+  skills: [
+    {
+      skillId: '1',
+      name: 'Swordsmanship',
+      level: 5,
+      description: 'Skill with swords'
+    }
+  ],
+  attributes: [
+    {
+      attributeId: '1',
+      name: 'Strength',
+      attributeValue: 12
+    }
+  ]
 };
 
-const mocks = [];
-
-const CharacterViewWrapper = ({ apolloMocks = mocks, children }) => (
-  <MockedProvider mocks={apolloMocks} addTypename={false}>
-    <MemoryRouter>
+const CharacterViewWrapper = ({ children }) => (
+  <BrowserRouter>
+    <MockedProvider mocks={[]} addTypename={false}>
       <SelectedCharacterProvider>
         {children}
       </SelectedCharacterProvider>
-    </MemoryRouter>
-  </MockedProvider>
+    </MockedProvider>
+  </BrowserRouter>
 );
 
 describe('CharacterView Component', () => {
   test('renders without crashing', () => {
     render(
       <CharacterViewWrapper>
-        <CharacterView />
+        <CharacterView character={mockCharacter} />
       </CharacterViewWrapper>
     );
   });
 
-  test('displays loading state initially', () => {
+  test('displays character name', () => {
     render(
       <CharacterViewWrapper>
-        <CharacterView />
+        <CharacterView character={mockCharacter} />
       </CharacterViewWrapper>
     );
     
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Test Character')).toBeInTheDocument();
   });
 
-  test('displays character details tab navigation', () => {
+  test('displays character category', () => {
     render(
       <CharacterViewWrapper>
-        <CharacterView />
+        <CharacterView character={mockCharacter} />
       </CharacterViewWrapper>
     );
     
-    // Should have tab navigation elements
-    const tabContainer = document.querySelector('.character-view-container');
-    expect(tabContainer).toBeInTheDocument();
+    expect(screen.getByText('HUMAN')).toBeInTheDocument();
   });
 
-  test('renders with character ID from URL params', () => {
+  test('displays character description', () => {
     render(
       <CharacterViewWrapper>
-        <CharacterView />
+        <CharacterView character={mockCharacter} />
       </CharacterViewWrapper>
     );
     
-    // Component should render and attempt to load character with ID '1'
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('A test character for unit testing')).toBeInTheDocument();
   });
 
-  test('has proper CSS classes applied', () => {
+  test('displays edit button', () => {
+    render(
+      <CharacterViewWrapper>
+        <CharacterView character={mockCharacter} />
+      </CharacterViewWrapper>
+    );
+    
+    expect(screen.getByText('Edit')).toBeInTheDocument();
+  });
+
+  test('displays delete button', () => {
+    render(
+      <CharacterViewWrapper>
+        <CharacterView character={mockCharacter} />
+      </CharacterViewWrapper>
+    );
+    
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+  });
+
+  test('displays select character button', () => {
+    render(
+      <CharacterViewWrapper>
+        <CharacterView character={mockCharacter} />
+      </CharacterViewWrapper>
+    );
+    
+    expect(screen.getByText('Select Character')).toBeInTheDocument();
+  });
+
+  test('displays character details section', () => {
+    render(
+      <CharacterViewWrapper>
+        <CharacterView character={mockCharacter} />
+      </CharacterViewWrapper>
+    );
+    
+    expect(screen.getByText('Character Details')).toBeInTheDocument();
+  });
+
+  test('displays character stats section', () => {
+    render(
+      <CharacterViewWrapper>
+        <CharacterView character={mockCharacter} />
+      </CharacterViewWrapper>
+    );
+    
+    expect(screen.getByText('Stats')).toBeInTheDocument();
+  });
+
+  test('displays character equipment section', () => {
+    render(
+      <CharacterViewWrapper>
+        <CharacterView character={mockCharacter} />
+      </CharacterViewWrapper>
+    );
+    
+    expect(screen.getByText('Equipment')).toBeInTheDocument();
+  });
+
+  test('displays character skills section', () => {
+    render(
+      <CharacterViewWrapper>
+        <CharacterView character={mockCharacter} />
+      </CharacterViewWrapper>
+    );
+    
+    expect(screen.getByText('Skills')).toBeInTheDocument();
+  });
+
+  test('handles null character gracefully', () => {
+    render(
+      <CharacterViewWrapper>
+        <CharacterView character={null} />
+      </CharacterViewWrapper>
+    );
+    
+    expect(screen.getByText('Character not found')).toBeInTheDocument();
+  });
+
+  test('handles character without stats', () => {
+    const characterWithoutStats = {
+      ...mockCharacter,
+      stats: null
+    };
+    
+    render(
+      <CharacterViewWrapper>
+        <CharacterView character={characterWithoutStats} />
+      </CharacterViewWrapper>
+    );
+    
+    expect(screen.getByText('Test Character')).toBeInTheDocument();
+  });
+
+  test('handles character without equipment', () => {
+    const characterWithoutEquipment = {
+      ...mockCharacter,
+      equipment: null
+    };
+    
+    render(
+      <CharacterViewWrapper>
+        <CharacterView character={characterWithoutEquipment} />
+      </CharacterViewWrapper>
+    );
+    
+    expect(screen.getByText('Test Character')).toBeInTheDocument();
+  });
+
+  test('applies correct CSS classes', () => {
     const { container } = render(
       <CharacterViewWrapper>
-        <CharacterView />
+        <CharacterView character={mockCharacter} />
       </CharacterViewWrapper>
     );
     
-    expect(container.querySelector('.character-view-container')).toBeInTheDocument();
+    expect(container.querySelector('.character-view')).toBeInTheDocument();
   });
 
-  test('component structure includes main sections', () => {
+  test('displays tab navigation', () => {
     render(
       <CharacterViewWrapper>
-        <CharacterView />
+        <CharacterView character={mockCharacter} />
       </CharacterViewWrapper>
     );
     
-    // Component should have basic structure even in loading state
-    const container = document.querySelector('.character-view-container');
-    expect(container).toBeInTheDocument();
+    // Should display tabs for different character sections
+    expect(screen.getByText('Details')).toBeInTheDocument();
+    expect(screen.getByText('Physical')).toBeInTheDocument();
+    expect(screen.getByText('Equipment')).toBeInTheDocument();
+    expect(screen.getByText('Skills')).toBeInTheDocument();
+  });
+
+  test('displays character will and fatigue', () => {
+    render(
+      <CharacterViewWrapper>
+        <CharacterView character={mockCharacter} />
+      </CharacterViewWrapper>
+    );
+    
+    expect(screen.getByText('10')).toBeInTheDocument(); // will
+    expect(screen.getByText('2')).toBeInTheDocument(); // fatigue
   });
 });
