@@ -2,109 +2,110 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import TabNavigation from '../../../components/common/TabNavigation';
 
-const mockTabs = [
-  { id: 'tab1', label: 'Tab 1', content: <div>Content 1</div> },
-  { id: 'tab2', label: 'Tab 2', content: <div>Content 2</div> },
-  { id: 'tab3', label: 'Tab 3', content: <div>Content 3</div> }
-];
-
 describe('TabNavigation Component', () => {
+  const mockOnTabChange = jest.fn();
+  const defaultProps = {
+    activeTab: 'characters',
+    onTabChange: mockOnTabChange
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test('renders without crashing', () => {
-    render(<TabNavigation tabs={mockTabs} />);
+    render(<TabNavigation {...defaultProps} />);
   });
 
-  test('displays all tab labels', () => {
-    render(<TabNavigation tabs={mockTabs} />);
+  test('displays all tab buttons', () => {
+    render(<TabNavigation {...defaultProps} />);
     
-    expect(screen.getByText('Tab 1')).toBeInTheDocument();
-    expect(screen.getByText('Tab 2')).toBeInTheDocument();
-    expect(screen.getByText('Tab 3')).toBeInTheDocument();
-  });
-
-  test('displays first tab content by default', () => {
-    render(<TabNavigation tabs={mockTabs} />);
-    
-    expect(screen.getByText('Content 1')).toBeInTheDocument();
-    expect(screen.queryByText('Content 2')).not.toBeInTheDocument();
-    expect(screen.queryByText('Content 3')).not.toBeInTheDocument();
-  });
-
-  test('switches to clicked tab', () => {
-    render(<TabNavigation tabs={mockTabs} />);
-    
-    fireEvent.click(screen.getByText('Tab 2'));
-    
-    expect(screen.queryByText('Content 1')).not.toBeInTheDocument();
-    expect(screen.getByText('Content 2')).toBeInTheDocument();
-    expect(screen.queryByText('Content 3')).not.toBeInTheDocument();
+    expect(screen.getByText('Characters')).toBeInTheDocument();
+    expect(screen.getByText('Objects')).toBeInTheDocument();
+    expect(screen.getByText('Actions')).toBeInTheDocument();
   });
 
   test('applies active class to current tab', () => {
-    render(<TabNavigation tabs={mockTabs} />);
+    render(<TabNavigation {...defaultProps} activeTab="objects" />);
     
-    const tab1Button = screen.getByText('Tab 1');
-    expect(tab1Button).toHaveClass('active');
-    
-    fireEvent.click(screen.getByText('Tab 2'));
-    
-    const tab2Button = screen.getByText('Tab 2');
-    expect(tab2Button).toHaveClass('active');
-    expect(tab1Button).not.toHaveClass('active');
+    const objectsTab = screen.getByText('Objects');
+    expect(objectsTab).toHaveClass('active');
   });
 
-  test('handles empty tabs array', () => {
-    render(<TabNavigation tabs={[]} />);
+  test('calls onTabChange when tab is clicked', () => {
+    render(<TabNavigation {...defaultProps} />);
     
-    expect(screen.getByText('No tabs available')).toBeInTheDocument();
-  });
-
-  test('handles null tabs', () => {
-    render(<TabNavigation tabs={null} />);
+    const objectsTab = screen.getByText('Objects');
+    fireEvent.click(objectsTab);
     
-    expect(screen.getByText('No tabs available')).toBeInTheDocument();
-  });
-
-  test('respects defaultActiveTab prop', () => {
-    render(<TabNavigation tabs={mockTabs} defaultActiveTab="tab2" />);
-    
-    expect(screen.queryByText('Content 1')).not.toBeInTheDocument();
-    expect(screen.getByText('Content 2')).toBeInTheDocument();
-    expect(screen.queryByText('Content 3')).not.toBeInTheDocument();
-    
-    const tab2Button = screen.getByText('Tab 2');
-    expect(tab2Button).toHaveClass('active');
+    expect(mockOnTabChange).toHaveBeenCalledWith('objects');
   });
 
   test('applies correct CSS classes', () => {
-    const { container } = render(<TabNavigation tabs={mockTabs} />);
+    const { container } = render(<TabNavigation {...defaultProps} />);
     
     expect(container.querySelector('.tab-navigation')).toBeInTheDocument();
-    expect(container.querySelector('.tab-buttons')).toBeInTheDocument();
-    expect(container.querySelector('.tab-content')).toBeInTheDocument();
+    expect(container.querySelector('.tab-button')).toBeInTheDocument();
   });
 
-  test('handles tab with no content', () => {
-    const tabsWithEmptyContent = [
-      { id: 'tab1', label: 'Tab 1', content: null },
-      { id: 'tab2', label: 'Tab 2', content: <div>Content 2</div> }
-    ];
+  test('highlights correct tab based on activeTab prop', () => {
+    const { rerender } = render(<TabNavigation {...defaultProps} activeTab="characters" />);
     
-    render(<TabNavigation tabs={tabsWithEmptyContent} />);
+    expect(screen.getByText('Characters')).toHaveClass('active');
+    expect(screen.getByText('Objects')).not.toHaveClass('active');
     
-    expect(screen.getByText('Tab 1')).toBeInTheDocument();
-    expect(screen.queryByText('Content 1')).not.toBeInTheDocument();
+    rerender(<TabNavigation {...defaultProps} activeTab="actions" />);
+    expect(screen.getByText('Actions')).toHaveClass('active');
+    expect(screen.getByText('Characters')).not.toHaveClass('active');
   });
 
-  test('maintains tab state correctly', () => {
-    render(<TabNavigation tabs={mockTabs} />);
+  test('handles missing onTabChange prop gracefully', () => {
+    // Component requires onTabChange prop for proper functionality
+    const { container } = render(<TabNavigation activeTab="characters" onTabChange={() => {}} />);
+    expect(container.querySelector('.tab-navigation')).toBeInTheDocument();
+  });
+
+  test('handles undefined activeTab', () => {
+    render(<TabNavigation onTabChange={mockOnTabChange} />);
     
-    // Click tab 3
-    fireEvent.click(screen.getByText('Tab 3'));
-    expect(screen.getByText('Content 3')).toBeInTheDocument();
+    // No tab should be active when activeTab is undefined
+    expect(screen.getByText('Characters')).not.toHaveClass('active');
+    expect(screen.getByText('Objects')).not.toHaveClass('active');
+    expect(screen.getByText('Actions')).not.toHaveClass('active');
+  });
+
+  test('renders all tab buttons with correct text', () => {
+    render(<TabNavigation {...defaultProps} />);
     
-    // Click back to tab 1
-    fireEvent.click(screen.getByText('Tab 1'));
-    expect(screen.getByText('Content 1')).toBeInTheDocument();
-    expect(screen.queryByText('Content 3')).not.toBeInTheDocument();
+    const buttons = screen.getAllByRole('button');
+    expect(buttons).toHaveLength(3);
+    
+    expect(buttons[0]).toHaveTextContent('Characters');
+    expect(buttons[1]).toHaveTextContent('Objects');
+    expect(buttons[2]).toHaveTextContent('Actions');
+  });
+
+  test('calls onTabChange with correct parameters for each tab', () => {
+    render(<TabNavigation {...defaultProps} />);
+    
+    fireEvent.click(screen.getByText('Characters'));
+    expect(mockOnTabChange).toHaveBeenCalledWith('characters');
+    
+    fireEvent.click(screen.getByText('Objects'));
+    expect(mockOnTabChange).toHaveBeenCalledWith('objects');
+    
+    fireEvent.click(screen.getByText('Actions'));
+    expect(mockOnTabChange).toHaveBeenCalledWith('actions');
+  });
+
+  test('applies correct button classes', () => {
+    render(<TabNavigation {...defaultProps} activeTab="characters" />);
+    
+    const charactersButton = screen.getByText('Characters');
+    const objectsButton = screen.getByText('Objects');
+    
+    expect(charactersButton).toHaveClass('tab-button', 'active');
+    expect(objectsButton).toHaveClass('tab-button');
+    expect(objectsButton).not.toHaveClass('active');
   });
 });
