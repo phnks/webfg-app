@@ -1,48 +1,54 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import { MockedProvider } from '@apollo/client/testing';
 import ActionList from '../../../components/actions/ActionList';
 import { LIST_ACTIONS_ENHANCED } from '../../../graphql/operations';
 
-// Mock react-router-dom
-jest.mock('react-router-dom', () => ({
-  useNavigate: () => jest.fn(),
-  Link: ({ children, to }) => <a href={to}>{children}</a>
-}));
-
-const mockActions = [
-  {
-    actionId: '1',
-    name: 'Attack',
-    description: 'Basic attack action',
-    sourceAttribute: 'STRENGTH',
-    targetAttribute: 'DEFENSE',
-    __typename: 'Action'
-  }
-];
-
-const mocks = [
-  {
-    request: {
-      query: LIST_ACTIONS_ENHANCED,
-      variables: {}
-    },
-    result: {
-      data: {
-        listActionsEnhanced: {
-          actions: mockActions,
-          totalCount: 1,
-          __typename: 'ActionListResult'
+const mockActionsData = {
+  request: {
+    query: LIST_ACTIONS_ENHANCED,
+    variables: {
+      filter: {
+        pagination: {
+          limit: 10,
+          cursor: null
         }
       }
     }
+  },
+  result: {
+    data: {
+      listActionsEnhanced: {
+        actions: [
+          {
+            actionId: '1',
+            name: 'Sword Attack',
+            type: 'COMBAT',
+            description: 'Strike with a sword',
+            difficulty: 5
+          },
+          {
+            actionId: '2',
+            name: 'Heal',
+            type: 'MAGIC',
+            description: 'Restore health points',
+            difficulty: 3
+          }
+        ],
+        hasMore: false,
+        nextCursor: null
+      }
+    }
   }
-];
+};
 
-const ActionListWrapper = ({ apolloMocks = mocks, children }) => (
-  <MockedProvider mocks={apolloMocks} addTypename={false}>
-    {children}
-  </MockedProvider>
+const ActionListWrapper = ({ children, mocks = [mockActionsData] }) => (
+  <BrowserRouter>
+    <MockedProvider mocks={mocks} addTypename={false}>
+      {children}
+    </MockedProvider>
+  </BrowserRouter>
 );
 
 describe('ActionList Component', () => {
@@ -72,59 +78,105 @@ describe('ActionList Component', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Attack')).toBeInTheDocument();
+      expect(screen.getByText('Sword Attack')).toBeInTheDocument();
+      expect(screen.getByText('Heal')).toBeInTheDocument();
     });
   });
 
-  test('handles empty action list', async () => {
-    const emptyMocks = [
-      {
-        request: {
-          query: LIST_ACTIONS_ENHANCED,
-          variables: {}
-        },
-        result: {
-          data: {
-            listActionsEnhanced: {
-              actions: [],
-              totalCount: 0,
-              __typename: 'ActionListResult'
+  test('displays action details', async () => {
+    render(
+      <ActionListWrapper>
+        <ActionList />
+      </ActionListWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('COMBAT')).toBeInTheDocument();
+      expect(screen.getByText('MAGIC')).toBeInTheDocument();
+      expect(screen.getByText('Strike with a sword')).toBeInTheDocument();
+      expect(screen.getByText('Restore health points')).toBeInTheDocument();
+    });
+  });
+
+  test('renders search filter sort component', () => {
+    render(
+      <ActionListWrapper>
+        <ActionList />
+      </ActionListWrapper>
+    );
+    
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
+  test('handles empty action list', () => {
+    const emptyMock = {
+      request: {
+        query: LIST_ACTIONS_ENHANCED,
+        variables: {
+          filter: {
+            pagination: {
+              limit: 10,
+              cursor: null
             }
           }
         }
+      },
+      result: {
+        data: {
+          listActionsEnhanced: {
+            actions: [],
+            hasMore: false,
+            nextCursor: null
+          }
+        }
       }
-    ];
+    };
 
     render(
-      <ActionListWrapper apolloMocks={emptyMocks}>
+      <ActionListWrapper mocks={[emptyMock]}>
         <ActionList />
       </ActionListWrapper>
     );
 
-    await waitFor(() => {
-      expect(screen.queryByText('Attack')).not.toBeInTheDocument();
-    });
+    expect(screen.getByText('No actions found')).toBeInTheDocument();
   });
 
-  test('handles GraphQL error', async () => {
-    const errorMocks = [
-      {
-        request: {
-          query: LIST_ACTIONS_ENHANCED,
-          variables: {}
-        },
-        error: new Error('GraphQL error')
-      }
-    ];
+  test('handles query error', () => {
+    const errorMock = {
+      request: {
+        query: LIST_ACTIONS_ENHANCED,
+        variables: {
+          filter: {
+            pagination: {
+              limit: 10,
+              cursor: null
+            }
+          }
+        }
+      },
+      error: new Error('Network error')
+    };
 
     render(
-      <ActionListWrapper apolloMocks={errorMocks}>
+      <ActionListWrapper mocks={[errorMock]}>
         <ActionList />
       </ActionListWrapper>
     );
 
+    expect(screen.getByText('Error loading actions')).toBeInTheDocument();
+  });
+
+  test('applies correct CSS classes', async () => {
+    const { container } = render(
+      <ActionListWrapper>
+        <ActionList />
+      </ActionListWrapper>
+    );
+    
+    expect(container.querySelector('.action-list')).toBeInTheDocument();
+    
     await waitFor(() => {
-      expect(screen.getByText('Error: GraphQL error')).toBeInTheDocument();
+      expect(container.querySelector('.actions-table')).toBeInTheDocument();
     });
   });
 });

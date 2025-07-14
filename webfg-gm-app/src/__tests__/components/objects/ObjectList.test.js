@@ -1,47 +1,64 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import { MockedProvider } from '@apollo/client/testing';
 import ObjectList from '../../../components/objects/ObjectList';
-import { LIST_OBJECTS_ENHANCED } from '../../../graphql/operations';
+import { LIST_OBJECTS_ENHANCED, ADD_OBJECT_TO_STASH, DELETE_OBJECT } from '../../../graphql/operations';
+import { SelectedCharacterProvider } from '../../../context/SelectedCharacterContext';
 
-// Mock react-router-dom
-jest.mock('react-router-dom', () => ({
-  useNavigate: () => jest.fn(),
-  Link: ({ children, to }) => <a href={to}>{children}</a>
-}));
-
-const mockObjects = [
-  {
-    objectId: '1',
-    name: 'Sword',
-    objectCategory: 'WEAPON',
-    description: 'A sharp blade',
-    __typename: 'Object'
-  }
-];
-
-const mocks = [
-  {
-    request: {
-      query: LIST_OBJECTS_ENHANCED,
-      variables: {}
-    },
-    result: {
-      data: {
-        listObjectsEnhanced: {
-          objects: mockObjects,
-          totalCount: 1,
-          __typename: 'ObjectListResult'
+const mockObjectsData = {
+  request: {
+    query: LIST_OBJECTS_ENHANCED,
+    variables: {
+      filter: {
+        pagination: {
+          limit: 10,
+          cursor: null
         }
       }
     }
+  },
+  result: {
+    data: {
+      listObjectsEnhanced: {
+        objects: [
+          {
+            objectId: '1',
+            name: 'Sword',
+            objectCategory: 'WEAPON',
+            description: 'A sharp blade',
+            weight: 3.0,
+            size: 'MEDIUM'
+          },
+          {
+            objectId: '2',
+            name: 'Shield',
+            objectCategory: 'ARMOR',
+            description: 'Defensive equipment',
+            weight: 5.0,
+            size: 'LARGE'
+          }
+        ],
+        hasMore: false,
+        nextCursor: null
+      }
+    }
   }
-];
+};
 
-const ObjectListWrapper = ({ apolloMocks = mocks, children }) => (
-  <MockedProvider mocks={apolloMocks} addTypename={false}>
-    {children}
-  </MockedProvider>
+const mockSelectedCharacter = {
+  characterId: '1',
+  name: 'Test Character'
+};
+
+const ObjectListWrapper = ({ children, mocks = [mockObjectsData] }) => (
+  <BrowserRouter>
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <SelectedCharacterProvider value={{ selectedCharacter: mockSelectedCharacter }}>
+        {children}
+      </SelectedCharacterProvider>
+    </MockedProvider>
+  </BrowserRouter>
 );
 
 describe('ObjectList Component', () => {
@@ -72,58 +89,117 @@ describe('ObjectList Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Sword')).toBeInTheDocument();
+      expect(screen.getByText('Shield')).toBeInTheDocument();
     });
   });
 
-  test('handles empty object list', async () => {
-    const emptyMocks = [
-      {
-        request: {
-          query: LIST_OBJECTS_ENHANCED,
-          variables: {}
-        },
-        result: {
-          data: {
-            listObjectsEnhanced: {
-              objects: [],
-              totalCount: 0,
-              __typename: 'ObjectListResult'
+  test('displays object details', async () => {
+    render(
+      <ObjectListWrapper>
+        <ObjectList />
+      </ObjectListWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('WEAPON')).toBeInTheDocument();
+      expect(screen.getByText('ARMOR')).toBeInTheDocument();
+      expect(screen.getByText('A sharp blade')).toBeInTheDocument();
+      expect(screen.getByText('Defensive equipment')).toBeInTheDocument();
+    });
+  });
+
+  test('renders search filter sort component', () => {
+    render(
+      <ObjectListWrapper>
+        <ObjectList />
+      </ObjectListWrapper>
+    );
+    
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
+  test('handles empty object list', () => {
+    const emptyMock = {
+      request: {
+        query: LIST_OBJECTS_ENHANCED,
+        variables: {
+          filter: {
+            pagination: {
+              limit: 10,
+              cursor: null
             }
           }
         }
+      },
+      result: {
+        data: {
+          listObjectsEnhanced: {
+            objects: [],
+            hasMore: false,
+            nextCursor: null
+          }
+        }
       }
-    ];
+    };
 
     render(
-      <ObjectListWrapper apolloMocks={emptyMocks}>
+      <ObjectListWrapper mocks={[emptyMock]}>
         <ObjectList />
       </ObjectListWrapper>
     );
 
+    expect(screen.getByText('No objects found')).toBeInTheDocument();
+  });
+
+  test('handles query error', () => {
+    const errorMock = {
+      request: {
+        query: LIST_OBJECTS_ENHANCED,
+        variables: {
+          filter: {
+            pagination: {
+              limit: 10,
+              cursor: null
+            }
+          }
+        }
+      },
+      error: new Error('Network error')
+    };
+
+    render(
+      <ObjectListWrapper mocks={[errorMock]}>
+        <ObjectList />
+      </ObjectListWrapper>
+    );
+
+    expect(screen.getByText('Error loading objects')).toBeInTheDocument();
+  });
+
+  test('applies correct CSS classes', async () => {
+    const { container } = render(
+      <ObjectListWrapper>
+        <ObjectList />
+      </ObjectListWrapper>
+    );
+    
+    expect(container.querySelector('.object-list')).toBeInTheDocument();
+    
     await waitFor(() => {
-      expect(screen.queryByText('Sword')).not.toBeInTheDocument();
+      expect(container.querySelector('.objects-table')).toBeInTheDocument();
     });
   });
 
-  test('handles GraphQL error', async () => {
-    const errorMocks = [
-      {
-        request: {
-          query: LIST_OBJECTS_ENHANCED,
-          variables: {}
-        },
-        error: new Error('GraphQL error')
-      }
-    ];
-
+  test('handles search functionality', () => {
     render(
-      <ObjectListWrapper apolloMocks={errorMocks}>
+      <ObjectListWrapper>
         <ObjectList />
       </ObjectListWrapper>
     );
-
-    await waitFor(() => {
-      expect(screen.getByText('Error: GraphQL error')).toBeInTheDocument();
-    });
+    
+    const searchInput = screen.getByRole('textbox');
+    fireEvent.change(searchInput, { target: { value: 'sword' } });
+    
+    expect(searchInput.value).toBe('sword');
   });
 });

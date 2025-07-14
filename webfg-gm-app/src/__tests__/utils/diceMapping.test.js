@@ -1,201 +1,114 @@
-import {
-  ATTRIBUTE_DICE_MAP,
-  getDiceForAttribute,
-  attributeUsesDice,
-  getDiceRange,
-  calculateAttributeModifier,
-  formatDiceRoll,
-  getAttributeRange
+import { 
+  getDiceFromValue, 
+  getValueFromDice, 
+  parseDiceString, 
+  formatDiceString,
+  validateDiceString 
 } from '../../utils/diceMapping';
 
-describe('diceMapping utility', () => {
-  describe('ATTRIBUTE_DICE_MAP', () => {
-    test('should contain all expected attributes', () => {
-      expect(ATTRIBUTE_DICE_MAP).toHaveProperty('SPEED', 'd4');
-      expect(ATTRIBUTE_DICE_MAP).toHaveProperty('STRENGTH', 'd8');
-      expect(ATTRIBUTE_DICE_MAP).toHaveProperty('DEXTERITY', 'd6');
-      expect(ATTRIBUTE_DICE_MAP).toHaveProperty('AGILITY', 'd10');
-      expect(ATTRIBUTE_DICE_MAP).toHaveProperty('CHARISMA', 'd100');
-      expect(ATTRIBUTE_DICE_MAP).toHaveProperty('INTELLIGENCE', 'd20');
-      expect(ATTRIBUTE_DICE_MAP).toHaveProperty('RESOLVE', 'd12');
+describe('diceMapping utils', () => {
+  describe('getDiceFromValue', () => {
+    test('converts basic values to dice', () => {
+      expect(getDiceFromValue(10)).toEqual({ dice: '2d6', modifier: -2 });
+      expect(getDiceFromValue(12)).toEqual({ dice: '2d6', modifier: 0 });
+      expect(getDiceFromValue(14)).toEqual({ dice: '2d6', modifier: 2 });
     });
 
-    test('should have null values for static attributes', () => {
-      expect(ATTRIBUTE_DICE_MAP.WEIGHT).toBeNull();
-      expect(ATTRIBUTE_DICE_MAP.SIZE).toBeNull();
-      expect(ATTRIBUTE_DICE_MAP.LETHALITY).toBeNull();
-      expect(ATTRIBUTE_DICE_MAP.ARMOUR).toBeNull();
-      expect(ATTRIBUTE_DICE_MAP.ARMOR).toBeNull();
-      expect(ATTRIBUTE_DICE_MAP.ENDURANCE).toBeNull();
-      expect(ATTRIBUTE_DICE_MAP.PERCEPTION).toBeNull();
-      expect(ATTRIBUTE_DICE_MAP.INTENSITY).toBeNull();
-      expect(ATTRIBUTE_DICE_MAP.MORALE).toBeNull();
+    test('handles edge cases', () => {
+      expect(getDiceFromValue(6)).toEqual({ dice: '1d6', modifier: 0 });
+      expect(getDiceFromValue(18)).toEqual({ dice: '3d6', modifier: 0 });
+    });
+
+    test('handles invalid values', () => {
+      expect(getDiceFromValue(0)).toEqual({ dice: '1d6', modifier: -6 });
+      expect(getDiceFromValue(-5)).toEqual({ dice: '1d6', modifier: -11 });
     });
   });
 
-  describe('getDiceForAttribute', () => {
-    test('should return correct dice for dice-based attributes', () => {
-      expect(getDiceForAttribute('SPEED')).toBe('d4');
-      expect(getDiceForAttribute('STRENGTH')).toBe('d8');
-      expect(getDiceForAttribute('DEXTERITY')).toBe('d6');
-      expect(getDiceForAttribute('AGILITY')).toBe('d10');
-      expect(getDiceForAttribute('CHARISMA')).toBe('d100');
-      expect(getDiceForAttribute('INTELLIGENCE')).toBe('d20');
-      expect(getDiceForAttribute('RESOLVE')).toBe('d12');
+  describe('getValueFromDice', () => {
+    test('converts dice to values', () => {
+      expect(getValueFromDice('2d6', 0)).toBe(12);
+      expect(getValueFromDice('2d6', 2)).toBe(14);
+      expect(getValueFromDice('2d6', -2)).toBe(10);
     });
 
-    test('should return null for static attributes', () => {
-      expect(getDiceForAttribute('WEIGHT')).toBeNull();
-      expect(getDiceForAttribute('SIZE')).toBeNull();
-      expect(getDiceForAttribute('LETHALITY')).toBeNull();
-      expect(getDiceForAttribute('ARMOR')).toBeNull();
+    test('handles different dice types', () => {
+      expect(getValueFromDice('1d6', 0)).toBe(6);
+      expect(getValueFromDice('3d6', 0)).toBe(18);
+      expect(getValueFromDice('4d6', 0)).toBe(24);
     });
 
-    test('should be case insensitive', () => {
-      expect(getDiceForAttribute('speed')).toBe('d4');
-      expect(getDiceForAttribute('Speed')).toBe('d4');
-      expect(getDiceForAttribute('SPEED')).toBe('d4');
-      expect(getDiceForAttribute('weight')).toBeNull();
-      expect(getDiceForAttribute('Weight')).toBeNull();
-    });
-
-    test('should handle null/undefined input', () => {
-      expect(getDiceForAttribute(null)).toBeNull();
-      expect(getDiceForAttribute(undefined)).toBeNull();
-      expect(getDiceForAttribute('')).toBeNull();
-    });
-
-    test('should return null for unknown attributes', () => {
-      expect(getDiceForAttribute('UNKNOWN_ATTRIBUTE')).toBeNull();
-      expect(getDiceForAttribute('MAGIC')).toBeNull();
+    test('handles modifiers', () => {
+      expect(getValueFromDice('2d6', 5)).toBe(17);
+      expect(getValueFromDice('2d6', -5)).toBe(7);
     });
   });
 
-  describe('attributeUsesDice', () => {
-    test('should return true for dice-based attributes', () => {
-      expect(attributeUsesDice('SPEED')).toBe(true);
-      expect(attributeUsesDice('STRENGTH')).toBe(true);
-      expect(attributeUsesDice('DEXTERITY')).toBe(true);
-      expect(attributeUsesDice('AGILITY')).toBe(true);
-      expect(attributeUsesDice('CHARISMA')).toBe(true);
-      expect(attributeUsesDice('INTELLIGENCE')).toBe(true);
-      expect(attributeUsesDice('RESOLVE')).toBe(true);
+  describe('parseDiceString', () => {
+    test('parses standard dice strings', () => {
+      expect(parseDiceString('2d6+2')).toEqual({ dice: '2d6', modifier: 2 });
+      expect(parseDiceString('3d6-1')).toEqual({ dice: '3d6', modifier: -1 });
+      expect(parseDiceString('1d6')).toEqual({ dice: '1d6', modifier: 0 });
     });
 
-    test('should return false for static attributes', () => {
-      expect(attributeUsesDice('WEIGHT')).toBe(false);
-      expect(attributeUsesDice('SIZE')).toBe(false);
-      expect(attributeUsesDice('LETHALITY')).toBe(false);
-      expect(attributeUsesDice('ARMOR')).toBe(false);
-      expect(attributeUsesDice('ENDURANCE')).toBe(false);
+    test('handles whitespace', () => {
+      expect(parseDiceString(' 2d6 + 2 ')).toEqual({ dice: '2d6', modifier: 2 });
+      expect(parseDiceString('3d6 - 1')).toEqual({ dice: '3d6', modifier: -1 });
     });
 
-    test('should return false for unknown attributes', () => {
-      expect(attributeUsesDice('UNKNOWN_ATTRIBUTE')).toBe(false);
-      expect(attributeUsesDice(null)).toBe(false);
-      expect(attributeUsesDice(undefined)).toBe(false);
+    test('handles invalid strings', () => {
+      expect(parseDiceString('invalid')).toEqual({ dice: '1d6', modifier: 0 });
+      expect(parseDiceString('')).toEqual({ dice: '1d6', modifier: 0 });
+      expect(parseDiceString(null)).toEqual({ dice: '1d6', modifier: 0 });
     });
   });
 
-  describe('getDiceRange', () => {
-    test('should return correct ranges for different dice types', () => {
-      expect(getDiceRange('d4')).toEqual({ min: 1, max: 4 });
-      expect(getDiceRange('d6')).toEqual({ min: 1, max: 6 });
-      expect(getDiceRange('d8')).toEqual({ min: 1, max: 8 });
-      expect(getDiceRange('d10')).toEqual({ min: 1, max: 10 });
-      expect(getDiceRange('d12')).toEqual({ min: 1, max: 12 });
-      expect(getDiceRange('d20')).toEqual({ min: 1, max: 20 });
-      expect(getDiceRange('d100')).toEqual({ min: 1, max: 100 });
+  describe('formatDiceString', () => {
+    test('formats dice with positive modifiers', () => {
+      expect(formatDiceString('2d6', 2)).toBe('2d6+2');
+      expect(formatDiceString('3d6', 5)).toBe('3d6+5');
     });
 
-    test('should handle edge cases', () => {
-      expect(getDiceRange(null)).toEqual({ min: 0, max: 0 });
-      expect(getDiceRange(undefined)).toEqual({ min: 0, max: 0 });
-      expect(getDiceRange('')).toEqual({ min: 0, max: 0 });
+    test('formats dice with negative modifiers', () => {
+      expect(formatDiceString('2d6', -2)).toBe('2d6-2');
+      expect(formatDiceString('3d6', -5)).toBe('3d6-5');
     });
 
-    test('should handle custom dice types', () => {
-      expect(getDiceRange('d3')).toEqual({ min: 1, max: 3 });
-      expect(getDiceRange('d30')).toEqual({ min: 1, max: 30 });
-    });
-  });
-
-  describe('calculateAttributeModifier', () => {
-    test('should return attribute value for static attributes', () => {
-      expect(calculateAttributeModifier(10, 3, 'WEIGHT')).toBe(10);
-      expect(calculateAttributeModifier(15, 5, 'SIZE')).toBe(15);
-      expect(calculateAttributeModifier(7.8, 2, 'ARMOR')).toBe(8); // Should round
+    test('formats dice with no modifier', () => {
+      expect(formatDiceString('2d6', 0)).toBe('2d6');
+      expect(formatDiceString('1d6', 0)).toBe('1d6');
     });
 
-    test('should subtract fatigue for dice-based attributes', () => {
-      expect(calculateAttributeModifier(10, 3, 'STRENGTH')).toBe(7);
-      expect(calculateAttributeModifier(15, 5, 'DEXTERITY')).toBe(10);
-      expect(calculateAttributeModifier(8, 2, 'SPEED')).toBe(6);
-    });
-
-    test('should not allow negative modifiers for dice-based attributes', () => {
-      expect(calculateAttributeModifier(5, 10, 'STRENGTH')).toBe(0);
-      expect(calculateAttributeModifier(3, 8, 'DEXTERITY')).toBe(0);
-      expect(calculateAttributeModifier(0, 5, 'SPEED')).toBe(0);
-    });
-
-    test('should handle null/undefined values', () => {
-      expect(calculateAttributeModifier(null, 3, 'STRENGTH')).toBe(0);
-      expect(calculateAttributeModifier(10, null, 'STRENGTH')).toBe(10);
-      expect(calculateAttributeModifier(null, null, 'STRENGTH')).toBe(0);
-      expect(calculateAttributeModifier(undefined, undefined, 'WEIGHT')).toBe(0);
-    });
-
-    test('should round decimal values', () => {
-      expect(calculateAttributeModifier(10.4, 0, 'WEIGHT')).toBe(10);
-      expect(calculateAttributeModifier(10.5, 0, 'WEIGHT')).toBe(11);
-      expect(calculateAttributeModifier(10.7, 2.3, 'STRENGTH')).toBe(8); // 10.7 - 2.3 = 8.4, rounded down
-      expect(calculateAttributeModifier(10.7, 2.2, 'STRENGTH')).toBe(9); // 10.7 - 2.2 = 8.5, rounded up
+    test('handles edge cases', () => {
+      expect(formatDiceString('', 0)).toBe('');
+      expect(formatDiceString('2d6', null)).toBe('2d6');
+      expect(formatDiceString('2d6', undefined)).toBe('2d6');
     });
   });
 
-  describe('formatDiceRoll', () => {
-    test('should format dice-based attributes correctly', () => {
-      expect(formatDiceRoll('STRENGTH', 5)).toBe('1d8+5');
-      expect(formatDiceRoll('DEXTERITY', 3)).toBe('1d6+3');
-      expect(formatDiceRoll('SPEED', 0)).toBe('1d4+0');
-      expect(formatDiceRoll('CHARISMA', 10)).toBe('1d100+10');
+  describe('validateDiceString', () => {
+    test('validates correct dice strings', () => {
+      expect(validateDiceString('2d6')).toBe(true);
+      expect(validateDiceString('3d6+2')).toBe(true);
+      expect(validateDiceString('1d6-1')).toBe(true);
+      expect(validateDiceString('4d6+10')).toBe(true);
     });
 
-    test('should format static attributes correctly', () => {
-      expect(formatDiceRoll('WEIGHT', 10)).toBe('Static: 10');
-      expect(formatDiceRoll('SIZE', 5)).toBe('Static: 5');
-      expect(formatDiceRoll('ARMOR', 0)).toBe('Static: 0');
+    test('rejects invalid dice strings', () => {
+      expect(validateDiceString('invalid')).toBe(false);
+      expect(validateDiceString('2x6')).toBe(false);
+      expect(validateDiceString('d6')).toBe(false);
+      expect(validateDiceString('2d')).toBe(false);
+      expect(validateDiceString('')).toBe(false);
+      expect(validateDiceString(null)).toBe(false);
+      expect(validateDiceString(undefined)).toBe(false);
     });
 
-    test('should handle unknown attributes as static', () => {
-      expect(formatDiceRoll('UNKNOWN', 7)).toBe('Static: 7');
-      expect(formatDiceRoll(null, 5)).toBe('Static: 5');
-    });
-  });
-
-  describe('getAttributeRange', () => {
-    test('should return correct ranges for dice-based attributes', () => {
-      expect(getAttributeRange('STRENGTH', 5)).toEqual({ min: 6, max: 13 }); // 1d8+5 = 1+5 to 8+5
-      expect(getAttributeRange('DEXTERITY', 3)).toEqual({ min: 4, max: 9 }); // 1d6+3 = 1+3 to 6+3
-      expect(getAttributeRange('SPEED', 0)).toEqual({ min: 1, max: 4 }); // 1d4+0 = 1+0 to 4+0
-      expect(getAttributeRange('CHARISMA', 10)).toEqual({ min: 11, max: 110 }); // 1d100+10
-    });
-
-    test('should return same min/max for static attributes', () => {
-      expect(getAttributeRange('WEIGHT', 10)).toEqual({ min: 10, max: 10 });
-      expect(getAttributeRange('SIZE', 5)).toEqual({ min: 5, max: 5 });
-      expect(getAttributeRange('ARMOR', 0)).toEqual({ min: 0, max: 0 });
-    });
-
-    test('should handle unknown attributes as static', () => {
-      expect(getAttributeRange('UNKNOWN', 7)).toEqual({ min: 7, max: 7 });
-      expect(getAttributeRange(null, 5)).toEqual({ min: 5, max: 5 });
-    });
-
-    test('should handle negative modifiers correctly', () => {
-      expect(getAttributeRange('STRENGTH', -2)).toEqual({ min: -1, max: 6 }); // 1d8-2 = 1-2 to 8-2
-      expect(getAttributeRange('WEIGHT', -5)).toEqual({ min: -5, max: -5 }); // Static -5
+    test('handles edge cases', () => {
+      expect(validateDiceString('0d6')).toBe(false);
+      expect(validateDiceString('2d0')).toBe(false);
+      expect(validateDiceString('2d6+')).toBe(false);
+      expect(validateDiceString('2d6-')).toBe(false);
     });
   });
 });
