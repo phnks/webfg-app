@@ -45,6 +45,11 @@ describe('resolveAttributeBreakdown', () => {
       CONDITIONS_TABLE: 'test-conditions-table',
       AWS_REGION: 'us-east-1'
     };
+    
+    // Setup default mock return values
+    calculateAttributeBreakdown.mockReturnValue([]);
+    calculateObjectAttributeBreakdown.mockReturnValue([]);
+    mockSend.mockResolvedValue({ Item: null });
   });
 
   afterEach(() => {
@@ -141,17 +146,31 @@ describe('resolveAttributeBreakdown', () => {
         arguments: { attributeName: 'strength' }
       };
 
-      // Mock DynamoDB responses
+      // Mock DynamoDB responses for equipment and conditions
       mockSend
-        .mockResolvedValueOnce({ Item: mockEquipment[0] })
-        .mockResolvedValueOnce({ Item: mockEquipment[1] })
-        .mockResolvedValueOnce({ Item: mockCondition });
+        .mockResolvedValueOnce({ Item: mockEquipment[0] }) // First equipment
+        .mockResolvedValueOnce({ Item: mockEquipment[1] }) // Second equipment  
+        .mockResolvedValueOnce({ Item: mockCondition });   // Condition
 
       calculateAttributeBreakdown.mockReturnValue(mockBreakdown);
 
       const result = await handler(event);
 
       expect(calculateAttributeBreakdown).toHaveBeenCalled();
+      expect(calculateAttributeBreakdown).toHaveBeenCalledWith(
+        expect.objectContaining({
+          characterId: 'char-1',
+          name: 'Test Character',
+          equipment: expect.arrayContaining([
+            expect.objectContaining({ objectId: 'obj-1' }),
+            expect.objectContaining({ objectId: 'obj-2' })
+          ]),
+          conditions: expect.arrayContaining([
+            expect.objectContaining({ conditionId: 'cond-1', amount: 2 })
+          ])
+        }),
+        'strength'
+      );
       expect(result).toEqual(mockBreakdown);
     });
 

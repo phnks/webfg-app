@@ -33,6 +33,10 @@ describe('resolveReadyGroupedAttributes', () => {
       CONDITIONS_TABLE: 'test-conditions-table',
       AWS_REGION: 'us-east-1'
     };
+    
+    // Setup default mock return values
+    calculateReadyGroupedAttributes.mockReturnValue({});
+    mockSend.mockResolvedValue({ Item: null });
   });
 
   afterEach(() => {
