@@ -6,13 +6,13 @@ const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 exports.handler = async (event) => {
-  console.log("Received event for resolveReadyGroupedAttributes:", JSON.stringify(event, null, 2));
+  // console.log("Received event for resolveReadyGroupedAttributes:", JSON.stringify(event, null, 2));
 
   // Source contains the parent Character
   const character = event.source;
   
   if (!character) {
-    console.log("No character found, returning empty ready grouped attributes.");
+    // console.log("No character found, returning empty ready grouped attributes.");
     return {
       speed: null,
       weight: null,
@@ -35,10 +35,10 @@ exports.handler = async (event) => {
   try {
     // Enrich character with both equipment and ready objects
     const enrichedCharacter = await enrichCharacterWithEquipmentAndReady(character);
-    console.log("Enriched character with equipment and ready objects:", {
-      equipment: enrichedCharacter.equipment?.length || 0,
-      ready: enrichedCharacter.ready?.length || 0
-    });
+    // console.log("Enriched character with equipment and ready objects:", {
+    //   equipment: enrichedCharacter.equipment?.length || 0,
+    //   ready: enrichedCharacter.ready?.length || 0
+    // });
     
     // Calculate ready grouped attributes (includes character + equipment + ready)
     const readyGroupedAttributes = calculateReadyGroupedAttributes(enrichedCharacter);
@@ -62,7 +62,7 @@ exports.handler = async (event) => {
       morale: readyGroupedAttributes.morale !== undefined ? readyGroupedAttributes.morale : null
     };
 
-    console.log("Calculated ready grouped attributes:", JSON.stringify(result, null, 2));
+    // console.log("Calculated ready grouped attributes:", JSON.stringify(result, null, 2));
     return result;
 
   } catch (error) {

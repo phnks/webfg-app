@@ -7,7 +7,7 @@ const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 exports.handler = async (event) => {
-  console.log("Received event for resolveAttributeBreakdown:", JSON.stringify(event, null, 2));
+  // console.log("Received event for resolveAttributeBreakdown:", JSON.stringify(event, null, 2));
 
   // Source contains the parent Character or Object
   const entity = event.source;
@@ -15,12 +15,12 @@ exports.handler = async (event) => {
   const attributeName = event.arguments.attributeName;
 
   if (!entity) {
-    console.log("No entity found, returning empty breakdown.");
+    // console.log("No entity found, returning empty breakdown.");
     return [];
   }
 
   if (!attributeName) {
-    console.log("No attribute name provided, returning empty breakdown.");
+    // console.log("No attribute name provided, returning empty breakdown.");
     return [];
   }
 
@@ -30,18 +30,18 @@ exports.handler = async (event) => {
     if (typeName === 'Character') {
       // For characters, we need to ensure we have full equipment data
       const enrichedCharacter = await enrichCharacterWithEquipment(entity);
-      console.log("Enriched character for breakdown:", JSON.stringify(enrichedCharacter, null, 2));
+      // console.log("Enriched character for breakdown:", JSON.stringify(enrichedCharacter, null, 2));
       breakdown = calculateAttributeBreakdown(enrichedCharacter, attributeName);
     } else if (typeName === 'Object') {
       // For objects, we need to ensure we have full equipment data
       const enrichedObject = await enrichObjectWithEquipment(entity);
-      console.log("Enriched object for breakdown:", JSON.stringify(enrichedObject, null, 2));
+      // console.log("Enriched object for breakdown:", JSON.stringify(enrichedObject, null, 2));
       breakdown = calculateObjectAttributeBreakdown(enrichedObject, attributeName);
     } else {
       throw new Error(`Unknown entity type: ${typeName}`);
     }
 
-    console.log(`Calculated breakdown for ${attributeName}:`, JSON.stringify(breakdown, null, 2));
+    // console.log(`Calculated breakdown for ${attributeName}:`, JSON.stringify(breakdown, null, 2));
     return breakdown;
 
   } catch (error) {
@@ -75,7 +75,7 @@ async function enrichCharacterWithEquipment(character) {
   // Enrich with conditions
   const conditions = [];
   if (character.characterConditions && character.characterConditions.length > 0) {
-    console.log("[DEBUG] Character has characterConditions:", JSON.stringify(character.characterConditions));
+    // console.log("[DEBUG] Character has characterConditions:", JSON.stringify(character.characterConditions));
     
     for (const charCondition of character.characterConditions) {
       try {
@@ -90,7 +90,7 @@ async function enrichCharacterWithEquipment(character) {
             ...result.Item,
             amount: toInt(charCondition.amount, 1)
           };
-          console.log(`[DEBUG] Added condition with amount:`, JSON.stringify(conditionWithAmount));
+          // console.log(`[DEBUG] Added condition with amount:`, JSON.stringify(conditionWithAmount));
           conditions.push(conditionWithAmount);
         }
       } catch (error) {
@@ -98,7 +98,7 @@ async function enrichCharacterWithEquipment(character) {
       }
     }
   } else {
-    console.log("[DEBUG] Character has no characterConditions");
+    // console.log("[DEBUG] Character has no characterConditions");
   }
 
   return { ...character, equipment, conditions };

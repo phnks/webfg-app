@@ -348,6 +348,76 @@ npm test  # ✅ All pass
 
 **Remember**: The tests are there to protect you and the codebase. Respect them, and they'll save you from countless bugs and angry users!
 
+## 🚨 CRITICAL: 90% Test Coverage Requirement 🚨
+
+**MANDATORY FOR ALL DEVELOPERS AND CLAUDE CODE AGENTS:**
+
+### Coverage Requirements
+- **Total project coverage MUST be 90% minimum**
+- This applies to:
+  - Functions: 90%
+  - Lines: 90% 
+  - Statements: 90%
+  - Branches: 90%
+
+### Non-Negotiable Rules
+
+1. **NEVER lower coverage thresholds** - Coverage must always remain at 90%
+2. **If tests don't meet 90%, ADD MORE TESTS** - Do not adjust the coverage requirement
+3. **Tests must be REAL, not hardcoded successes** - Jest coverage enforcement prevents faking it
+4. **Coverage enforcement is configured in package.json and jest.config.js** for both projects
+
+### What This Means
+
+#### ❌ WRONG APPROACH:
+```javascript
+// BAD: Lowering thresholds when coverage is insufficient
+"coverageThreshold": {
+  "global": {
+    "branches": 5,    // ❌ This defeats the purpose!
+    "functions": 5,   // ❌ Never do this!
+    "lines": 5,       // ❌ Absolutely forbidden!
+    "statements": 5   // ❌ Fix your code coverage instead!
+  }
+}
+```
+
+#### ✅ CORRECT APPROACH:
+```javascript
+// GOOD: Always maintain 90% coverage
+"coverageThreshold": {
+  "global": {
+    "branches": 90,   // ✅ Required: Always 90%
+    "functions": 90,  // ✅ Required: Always 90%
+    "lines": 90,      // ✅ Required: Always 90%
+    "statements": 90  // ✅ Required: Always 90%
+  }
+}
+```
+
+### When Coverage Falls Below 90%
+
+1. **Run coverage report**: `npm test -- --coverage`
+2. **Identify uncovered code**: Look at the coverage report
+3. **Write comprehensive tests**: Add unit tests for uncovered functions/lines
+4. **Test edge cases**: Cover error scenarios, null inputs, boundary conditions
+5. **Verify coverage**: Re-run tests until 90% is achieved
+
+### Examples of Required Test Coverage
+
+- **Lambda Functions**: Test success cases, error handling, validation, DynamoDB failures
+- **Utility Functions**: Test all exported functions, edge cases, null/undefined inputs
+- **React Components**: Test rendering, props, user interactions, error states
+- **Resolvers**: Test GraphQL resolvers with various inputs and error scenarios
+
+### Enforcement
+
+- **Local Development**: Tests fail if coverage < 90%
+- **CI/CD Pipeline**: GitHub Actions will fail the build if coverage < 90%
+- **No Exceptions**: This rule applies to ALL code changes, no matter how small
+
+**This requirement ensures code quality, prevents regression bugs, and maintains the reliability of the WEBFG system.**
+
 ## Frontend Testing with Puppeteer
 
 **WHEN TO TEST**: Always test frontend changes after deploying to QA environment. This ensures your changes work correctly in the deployed environment.

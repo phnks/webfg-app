@@ -7,7 +7,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const OBJECTS_TABLE_NAME = process.env.OBJECTS_TABLE_NAME;
 
 exports.handler = async (event) => {
-    console.log('Received event:', JSON.stringify(event, null, 2));
+    // console.log('Received event:', JSON.stringify(event, null, 2));
 
     const { objectId, input } = event;
     const updatedAt = new Date().toISOString();
@@ -56,7 +56,7 @@ exports.handler = async (event) => {
     try {
         const command = new UpdateCommand(params);
         const result = await ddbDocClient.send(command);
-        console.log('DynamoDB Update result:', JSON.stringify(result, null, 2));
+        // console.log('DynamoDB Update result:', JSON.stringify(result, null, 2));
 
         return result.Attributes;
     } catch (error) {

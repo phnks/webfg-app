@@ -7,7 +7,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const OBJECTS_TABLE = process.env.OBJECTS_TABLE;
 
 exports.handler = async (event) => {
-  console.log("resolveCharacterObjects Lambda invoked, event:", JSON.stringify(event, null, 2));
+  // console.log("resolveCharacterObjects Lambda invoked, event:", JSON.stringify(event, null, 2));
 
   if (!OBJECTS_TABLE) {
     console.error("OBJECTS_TABLE environment variable not set.");
@@ -16,7 +16,7 @@ exports.handler = async (event) => {
 
   const character = event.source;
   if (!character) {
-    console.warn("No source character provided to resolveCharacterObjects.");
+    // console.warn("No source character provided to resolveCharacterObjects.");
     return [];
   }
 
@@ -43,11 +43,11 @@ exports.handler = async (event) => {
   // Get object IDs from the character
   const objectIds = character[idFieldName];
   if (!objectIds || objectIds.length === 0) {
-    console.log(`No ${idFieldName} found on character or ${idFieldName} array is empty.`);
+    // console.log(`No ${idFieldName} found on character or ${idFieldName} array is empty.`);
     return [];
   }
 
-  console.log(`Fetching details for ${objectIds.length} ${idFieldName} from table ${OBJECTS_TABLE}`);
+  // console.log(`Fetching details for ${objectIds.length} ${idFieldName} from table ${OBJECTS_TABLE}`);
 
   // DynamoDB BatchGetItem has a limit of 100 items per request
   // We'll process in batches if needed
@@ -72,7 +72,7 @@ exports.handler = async (event) => {
         ? data.Responses[OBJECTS_TABLE] 
         : [];
 
-      console.log(`Successfully fetched ${resolvedObjects.length} objects from batch.`);
+      // console.log(`Successfully fetched ${resolvedObjects.length} objects from batch.`);
       result.push(...resolvedObjects);
     } catch (error) {
       console.error(`Error fetching ${fieldName} batch with BatchGetCommand:`, error);
@@ -94,6 +94,6 @@ exports.handler = async (event) => {
     });
   }
 
-  console.log(`Returning ${orderedObjects.length} objects for character ${character.characterId}'s ${fieldName}`);
+  // console.log(`Returning ${orderedObjects.length} objects for character ${character.characterId}'s ${fieldName}`);
   return orderedObjects;
 };

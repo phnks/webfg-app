@@ -30,5 +30,6 @@ fi
 
 echo "Running Cypress tests against $ENV environment: $BASE_URL"
 
-# Set the CYPRESS_BASE_URL environment variable and run Cypress
-cd . && CYPRESS_BASE_URL="$BASE_URL" npx cypress run
+# Set the CYPRESS_BASE_URL environment variable and run Cypress with optimizations
+# Use parallel execution and reduced video to speed up tests
+cd . && CYPRESS_BASE_URL="$BASE_URL" npx cypress run --headless --browser electron

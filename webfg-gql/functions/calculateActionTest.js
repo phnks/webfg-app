@@ -13,7 +13,7 @@ const actionsTable = process.env.ACTIONS_TABLE;
 const conditionsTable = process.env.CONDITIONS_TABLE;
 
 exports.handler = async (event) => {
-  console.log("Received event for calculateActionTest:", JSON.stringify(event, null, 2));
+  // console.log("Received event for calculateActionTest:", JSON.stringify(event, null, 2));
 
   const input = event.input || event.arguments?.input;
   const {
@@ -58,11 +58,11 @@ exports.handler = async (event) => {
       // Fetch equipment for each source character
       for (const source of sources) {
         // Debug: Log the source character's attributes with fatigue
-        console.log(`Source character ${source.name} attributes:`, {
-          dexterity: source.dexterity,
-          strength: source.strength,
-          // Add other attributes as needed for debugging
-        });
+        // console.log(`Source character ${source.name} attributes:`, {
+        //   dexterity: source.dexterity,
+        //   strength: source.strength,
+        //   // Add other attributes as needed for debugging
+        // });
         
         if (source.equipmentIds && source.equipmentIds.length > 0) {
           const equipmentKeys = source.equipmentIds.map(id => ({ objectId: id }));
@@ -96,11 +96,11 @@ exports.handler = async (event) => {
         }
 
         // Fetch conditions for each source character
-        console.log(`Fetching conditions for source character ${source.name} (${source.characterId}):`, {
-          hasCharacterConditions: !!source.characterConditions,
-          characterConditionsLength: source.characterConditions?.length,
-          characterConditions: source.characterConditions
-        });
+        // console.log(`Fetching conditions for source character ${source.name} (${source.characterId}):`, {
+        //   hasCharacterConditions: !!source.characterConditions,
+        //   characterConditionsLength: source.characterConditions?.length,
+        //   characterConditions: source.characterConditions
+        // });
         source.conditions = [];
         if (source.characterConditions && source.characterConditions.length > 0) {
           for (const characterCondition of source.characterConditions) {
@@ -112,12 +112,12 @@ exports.handler = async (event) => {
               }));
               
               if (result.Item) {
-                console.log(`Successfully fetched condition ${conditionId}:`, {
-                  conditionName: result.Item.name,
-                  conditionType: result.Item.conditionType,
-                  conditionTarget: result.Item.conditionTarget,
-                  amountFromCharacterCondition: characterCondition.amount
-                });
+                // console.log(`Successfully fetched condition ${conditionId}:`, {
+                //   conditionName: result.Item.name,
+                //   conditionType: result.Item.conditionType,
+                //   conditionTarget: result.Item.conditionTarget,
+                //   amountFromCharacterCondition: characterCondition.amount
+                // });
                 // Add the amount from characterCondition to the condition object
                 source.conditions.push({
                   ...result.Item,
@@ -185,11 +185,11 @@ exports.handler = async (event) => {
           }
 
           // Fetch conditions for each target character
-          console.log(`Fetching conditions for target character ${target.name} (${target.characterId}):`, {
-            hasCharacterConditions: !!target.characterConditions,
-            characterConditionsLength: target.characterConditions?.length,
-            characterConditions: target.characterConditions
-          });
+          // console.log(`Fetching conditions for target character ${target.name} (${target.characterId}):`, {
+          //   hasCharacterConditions: !!target.characterConditions,
+          //   characterConditionsLength: target.characterConditions?.length,
+          //   characterConditions: target.characterConditions
+          // });
           target.conditions = [];
           if (target.characterConditions && target.characterConditions.length > 0) {
             for (const characterCondition of target.characterConditions) {
@@ -201,12 +201,12 @@ exports.handler = async (event) => {
                 }));
                 
                 if (result.Item) {
-                  console.log(`Successfully fetched TARGET condition ${conditionId}:`, {
-                    conditionName: result.Item.name,
-                    conditionType: result.Item.conditionType,
-                    conditionTarget: result.Item.conditionTarget,
-                    amountFromCharacterCondition: characterCondition.amount
-                  });
+                  // console.log(`Successfully fetched TARGET condition ${conditionId}:`, {
+                  //   conditionName: result.Item.name,
+                  //   conditionType: result.Item.conditionType,
+                  //   conditionTarget: result.Item.conditionTarget,
+                  //   amountFromCharacterCondition: characterCondition.amount
+                  // });
                   // Add the amount from characterCondition to the condition object
                   target.conditions.push({
                     ...result.Item,
@@ -258,24 +258,24 @@ exports.handler = async (event) => {
     }
 
     // Debug: Log target entities before calculation
-    console.log("=== PRE-CALCULATION DEBUG ===");
-    console.log("Target entities summary:", targetEntities.map(target => ({
-      name: target.name,
-      characterId: target.characterId,
-      hasConditions: !!target.conditions,
-      conditionsCount: target.conditions?.length || 0,
-      conditions: target.conditions?.map(c => ({
-        name: c.name,
-        type: c.conditionType,
-        target: c.conditionTarget,
-        amount: c.amount
-      })) || []
-    })));
-    console.log("Action details:", {
-      sourceAttribute: action.sourceAttribute,
-      targetAttribute: action.targetAttribute,
-      targetType: targetType
-    });
+    // console.log("=== PRE-CALCULATION DEBUG ===");
+    // console.log("Target entities summary:", targetEntities.map(target => ({
+    //   name: target.name,
+    //   characterId: target.characterId,
+    //   hasConditions: !!target.conditions,
+    //   conditionsCount: target.conditions?.length || 0,
+    //   conditions: target.conditions?.map(c => ({
+    //     name: c.name,
+    //     type: c.conditionType,
+    //     target: c.conditionTarget,
+    //     amount: c.amount
+    //   })) || []
+    // })));
+    // console.log("Action details:", {
+    //   sourceAttribute: action.sourceAttribute,
+    //   targetAttribute: action.targetAttribute,
+    //   targetType: targetType
+    // });
 
     // Calculate the action test
     const result = calculateActionTest({
@@ -292,7 +292,7 @@ exports.handler = async (event) => {
       formula: action.formula || 'CONTEST' // Default to CONTEST if not set
     });
 
-    console.log("Calculated action test result:", JSON.stringify(result, null, 2));
+    // console.log("Calculated action test result:", JSON.stringify(result, null, 2));
     return result;
 
   } catch (error) {

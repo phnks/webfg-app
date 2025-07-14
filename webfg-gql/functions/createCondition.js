@@ -8,7 +8,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const tableName = process.env.CONDITION_TABLE_NAME;
 
 exports.handler = async (event) => {
-  console.log('CreateCondition input:', JSON.stringify(event, null, 2));
+  // console.log('CreateCondition input:', JSON.stringify(event, null, 2));
   
   const conditionId = uuidv4();
   const input = event.input;
@@ -18,7 +18,7 @@ exports.handler = async (event) => {
     name: input.name,
     nameLowerCase: input.name.toLowerCase(),
     description: input.description,
-    descriptionLowerCase: input.description.toLowerCase(),
+    descriptionLowerCase: input.description ? input.description.toLowerCase() : undefined,
     conditionCategory: input.conditionCategory,
     conditionType: input.conditionType,
     conditionTarget: input.conditionTarget
@@ -31,7 +31,7 @@ exports.handler = async (event) => {
   
   try {
     await ddbDocClient.send(new PutCommand(params));
-    console.log('Created condition:', conditionId);
+    // console.log('Created condition:', conditionId);
     return condition;
   } catch (error) {
     console.error('Error creating condition:', error);

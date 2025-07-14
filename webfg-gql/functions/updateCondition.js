@@ -7,7 +7,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const tableName = process.env.CONDITION_TABLE_NAME;
 
 exports.handler = async (event) => {
-  console.log('UpdateCondition input:', JSON.stringify(event, null, 2));
+  // console.log('UpdateCondition input:', JSON.stringify(event, null, 2));
   
   const { conditionId, input } = event;
   
@@ -35,7 +35,7 @@ exports.handler = async (event) => {
   if (input.description !== undefined) {
     updateExpressionParts.push(`#descriptionLowerCase = :descriptionLowerCase`);
     expressionAttributeNames[`#descriptionLowerCase`] = 'descriptionLowerCase';
-    expressionAttributeValues[`:descriptionLowerCase`] = input.description.toLowerCase();
+    expressionAttributeValues[`:descriptionLowerCase`] = input.description ? input.description.toLowerCase() : '';
   }
   
   if (updateExpressionParts.length === 0) {
@@ -53,7 +53,7 @@ exports.handler = async (event) => {
   
   try {
     const result = await ddbDocClient.send(new UpdateCommand(params));
-    console.log('Updated condition:', conditionId);
+    // console.log('Updated condition:', conditionId);
     return result.Attributes;
   } catch (error) {
     console.error('Error updating condition:', error);

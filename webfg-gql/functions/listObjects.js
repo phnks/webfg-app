@@ -8,7 +8,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const OBJECTS_TABLE_NAME = process.env.OBJECTS_TABLE_NAME;
 
 exports.handler = async (event) => {
-    console.log('Received event:', JSON.stringify(event, null, 2));
+    // console.log('Received event:', JSON.stringify(event, null, 2));
 
     const { filter } = event; // Corrected: Access arguments directly from event
 
@@ -64,25 +64,25 @@ exports.handler = async (event) => {
     }
 
     try {
-        console.log("Executing Scan with params:", JSON.stringify(params, null, 2));
+        // console.log("Executing Scan with params:", JSON.stringify(params, null, 2));
         const command = new ScanCommand(params);
         const result = await ddbDocClient.send(command);
 
         // Detailed logging of items before returning
         if (result.Items) {
-            console.log(`Found ${result.Items.length} items. Logging structure of first few items:`);
+            // console.log(`Found ${result.Items.length} items. Logging structure of first few items:`);
             result.Items.slice(0, 3).forEach((item, index) => { // Log first 3 items
-                console.log(`Item ${index} (${item.objectId || 'NO ID'}):`, JSON.stringify(item, null, 2));
+                // console.log(`Item ${index} (${item.objectId || 'NO ID'}):`, JSON.stringify(item, null, 2));
             });
             // Check specifically if any item HAS a version field
              const itemsWithVersion = result.Items.filter(item => item.hasOwnProperty('version') || item.hasOwnProperty('_version'));
              if (itemsWithVersion.length > 0) {
-                 console.warn(`WARNING: Found ${itemsWithVersion.length} items with a 'version' or '_version' field!`);
+                 // console.warn(`WARNING: Found ${itemsWithVersion.length} items with a 'version' or '_version' field!`);
              } else {
-                 console.log("Confirmed: No items returned by scan have 'version' or '_version' field.");
+                 // console.log("Confirmed: No items returned by scan have 'version' or '_version' field.");
              }
         } else {
-            console.log('DynamoDB Scan returned no items.');
+            // console.log('DynamoDB Scan returned no items.');
         }
 
         return result.Items || []; // Return empty array if Items is null/undefined

@@ -10,13 +10,13 @@ const docClient = DynamoDBDocumentClient.from(client, translateConfig);
 const skillsTable = process.env.SKILLS_TABLE;
 
 exports.handler = async (event) => {
-  console.log("Received event for resolveCharacterSkills:", JSON.stringify(event, null, 2));
+  // console.log("Received event for resolveCharacterSkills:", JSON.stringify(event, null, 2));
 
   // Source contains the parent Character object
   const characterData = event.source;
 
   if (!characterData || !characterData.skillData || characterData.skillData.length === 0) {
-    console.log("No skillData found on character, returning empty array.");
+    // console.log("No skillData found on character, returning empty array.");
     return []; // No skills to resolve
   }
 
@@ -76,7 +76,7 @@ exports.handler = async (event) => {
       };
     });
 
-    console.log("Resolved skills:", JSON.stringify(resolvedSkills, null, 2));
+    // console.log("Resolved skills:", JSON.stringify(resolvedSkills, null, 2));
     return resolvedSkills;
 
   } catch (error) {
