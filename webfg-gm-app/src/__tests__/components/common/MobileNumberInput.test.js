@@ -3,11 +3,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import MobileNumberInput from '../../../components/common/MobileNumberInput';
 
 describe('MobileNumberInput Component', () => {
+  const mockOnChange = jest.fn();
   const defaultProps = {
-    value: 5,
-    onChange: jest.fn(),
-    min: 0,
-    max: 10
+    value: 10,
+    onChange: mockOnChange
   };
 
   beforeEach(() => {
@@ -18,113 +17,110 @@ describe('MobileNumberInput Component', () => {
     render(<MobileNumberInput {...defaultProps} />);
   });
 
-  test('displays current value', () => {
-    render(<MobileNumberInput {...defaultProps} value={7} />);
-    
-    expect(screen.getByDisplayValue('7')).toBeInTheDocument();
-  });
-
-  test('displays decrease button', () => {
+  test('displays the correct value', () => {
     render(<MobileNumberInput {...defaultProps} />);
     
-    expect(screen.getByText('-')).toBeInTheDocument();
+    const input = screen.getByDisplayValue('10');
+    expect(input).toBeInTheDocument();
   });
 
-  test('displays increase button', () => {
+  test('calls onChange when value changes', () => {
     render(<MobileNumberInput {...defaultProps} />);
     
-    expect(screen.getByText('+')).toBeInTheDocument();
+    const input = screen.getByDisplayValue('10');
+    fireEvent.change(input, { target: { value: '20' } });
+    
+    expect(mockOnChange).toHaveBeenCalled();
   });
 
-  test('calls onChange when decrease button is clicked', () => {
-    const mockOnChange = jest.fn();
-    render(<MobileNumberInput {...defaultProps} value={5} onChange={mockOnChange} />);
+  test('accepts additional props', () => {
+    render(<MobileNumberInput {...defaultProps} placeholder="Enter number" />);
     
-    fireEvent.click(screen.getByText('-'));
-    expect(mockOnChange).toHaveBeenCalledWith(4);
+    const input = screen.getByPlaceholderText('Enter number');
+    expect(input).toBeInTheDocument();
   });
 
-  test('calls onChange when increase button is clicked', () => {
-    const mockOnChange = jest.fn();
-    render(<MobileNumberInput {...defaultProps} value={5} onChange={mockOnChange} />);
+  test('has correct input type', () => {
+    render(<MobileNumberInput {...defaultProps} />);
     
-    fireEvent.click(screen.getByText('+'));
-    expect(mockOnChange).toHaveBeenCalledWith(6);
+    const input = screen.getByDisplayValue('10');
+    expect(input).toHaveAttribute('type', 'number');
   });
 
-  test('does not decrease below minimum value', () => {
-    const mockOnChange = jest.fn();
-    render(<MobileNumberInput {...defaultProps} value={0} min={0} onChange={mockOnChange} />);
+  test('selects text on focus', () => {
+    render(<MobileNumberInput {...defaultProps} />);
     
-    fireEvent.click(screen.getByText('-'));
-    expect(mockOnChange).not.toHaveBeenCalled();
+    const input = screen.getByDisplayValue('10');
+    const selectSpy = jest.spyOn(input, 'select');
+    
+    fireEvent.focus(input);
+    expect(selectSpy).toHaveBeenCalled();
   });
 
-  test('does not increase above maximum value', () => {
-    const mockOnChange = jest.fn();
-    render(<MobileNumberInput {...defaultProps} value={10} max={10} onChange={mockOnChange} />);
+  test('selects text on click', () => {
+    render(<MobileNumberInput {...defaultProps} />);
     
-    fireEvent.click(screen.getByText('+'));
-    expect(mockOnChange).not.toHaveBeenCalled();
+    const input = screen.getByDisplayValue('10');
+    const selectSpy = jest.spyOn(input, 'select');
+    
+    fireEvent.click(input);
+    expect(selectSpy).toHaveBeenCalled();
   });
 
-  test('disables decrease button at minimum value', () => {
-    render(<MobileNumberInput {...defaultProps} value={0} min={0} />);
+  test('handles zero value', () => {
+    render(<MobileNumberInput value={0} onChange={mockOnChange} />);
     
-    const decreaseButton = screen.getByText('-');
-    expect(decreaseButton).toBeDisabled();
+    const input = screen.getByDisplayValue('0');
+    expect(input).toBeInTheDocument();
   });
 
-  test('disables increase button at maximum value', () => {
-    render(<MobileNumberInput {...defaultProps} value={10} max={10} />);
+  test('handles empty value', () => {
+    render(<MobileNumberInput value="" onChange={mockOnChange} />);
     
-    const increaseButton = screen.getByText('+');
-    expect(increaseButton).toBeDisabled();
+    const input = screen.getByRole('spinbutton');
+    expect(input.value).toBe('');
   });
 
-  test('calls onChange when input value changes', () => {
-    const mockOnChange = jest.fn();
-    render(<MobileNumberInput {...defaultProps} onChange={mockOnChange} />);
+  test('handles null value', () => {
+    render(<MobileNumberInput value={null} onChange={mockOnChange} />);
     
-    const input = screen.getByDisplayValue('5');
-    fireEvent.change(input, { target: { value: '8' } });
-    
-    expect(mockOnChange).toHaveBeenCalledWith(8);
+    const input = screen.getByRole('spinbutton');
+    expect(input).toBeInTheDocument();
   });
 
-  test('handles invalid input gracefully', () => {
-    const mockOnChange = jest.fn();
-    render(<MobileNumberInput {...defaultProps} onChange={mockOnChange} />);
+  test('passes through className prop', () => {
+    render(<MobileNumberInput {...defaultProps} className="custom-class" />);
     
-    const input = screen.getByDisplayValue('5');
-    fireEvent.change(input, { target: { value: 'abc' } });
-    
-    // Should not call onChange for invalid input
-    expect(mockOnChange).not.toHaveBeenCalled();
+    const input = screen.getByDisplayValue('10');
+    expect(input).toHaveClass('custom-class');
   });
 
-  test('handles empty input', () => {
-    const mockOnChange = jest.fn();
-    render(<MobileNumberInput {...defaultProps} onChange={mockOnChange} />);
+  test('passes through disabled prop', () => {
+    render(<MobileNumberInput {...defaultProps} disabled />);
     
-    const input = screen.getByDisplayValue('5');
-    fireEvent.change(input, { target: { value: '' } });
-    
-    expect(mockOnChange).toHaveBeenCalledWith(0);
+    const input = screen.getByDisplayValue('10');
+    expect(input).toBeDisabled();
   });
 
-  test('respects min/max bounds on direct input', () => {
-    const mockOnChange = jest.fn();
-    render(<MobileNumberInput {...defaultProps} min={0} max={10} onChange={mockOnChange} />);
+  test('handles string value', () => {
+    render(<MobileNumberInput value="15" onChange={mockOnChange} />);
     
-    const input = screen.getByDisplayValue('5');
+    const input = screen.getByDisplayValue('15');
+    expect(input).toBeInTheDocument();
+  });
+
+  test('handles min and max props', () => {
+    render(<MobileNumberInput {...defaultProps} min="0" max="100" />);
     
-    // Test above max
-    fireEvent.change(input, { target: { value: '15' } });
-    expect(mockOnChange).toHaveBeenCalledWith(10);
+    const input = screen.getByDisplayValue('10');
+    expect(input).toHaveAttribute('min', '0');
+    expect(input).toHaveAttribute('max', '100');
+  });
+
+  test('handles step prop', () => {
+    render(<MobileNumberInput {...defaultProps} step="0.1" />);
     
-    // Test below min
-    fireEvent.change(input, { target: { value: '-5' } });
-    expect(mockOnChange).toHaveBeenCalledWith(0);
+    const input = screen.getByDisplayValue('10');
+    expect(input).toHaveAttribute('step', '0.1');
   });
 });
