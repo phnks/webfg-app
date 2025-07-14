@@ -15,6 +15,13 @@ describe('getCharacterActions', () => {
     };
     DynamoDBDocumentClient.from = jest.fn().mockReturnValue(mockDocClient);
     
+    // Set default mock return value
+    mockSend.mockResolvedValue({
+      Responses: {
+        'test-actions-table': []
+      }
+    });
+    
     process.env = {
       ...originalEnv,
       ACTIONS_TABLE: 'test-actions-table'
