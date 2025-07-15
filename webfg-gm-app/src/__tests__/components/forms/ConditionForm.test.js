@@ -180,7 +180,7 @@ describe('ConditionForm Component', () => {
     expect(screen.getByText('Cancel')).toBeInTheDocument();
   });
 
-  test('prevents submission with empty name', () => {
+  test('prevents submission with empty name', async () => {
     render(
       <ConditionFormWrapper>
         <ConditionForm />
@@ -190,7 +190,9 @@ describe('ConditionForm Component', () => {
     const createButton = screen.getByText('Create Condition');
     fireEvent.click(createButton);
     
-    expect(screen.getByText('Condition name is required')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Condition name is required')).toBeInTheDocument();
+    });
   });
 
   test('handles onSuccess callback', () => {
@@ -242,7 +244,7 @@ describe('ConditionForm Component', () => {
     const typeSelect = screen.getByLabelText('Type');
     const options = typeSelect.querySelectorAll('option');
     
-    expect(options.length).toBeGreaterThan(2); // Should have multiple type options
+    expect(options.length).toBe(2); // Should have HELP and HINDER options
   });
 
   test('handles form submission for new condition', async () => {

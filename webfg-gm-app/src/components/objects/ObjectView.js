@@ -15,7 +15,7 @@ import AttributeGroups from "../common/AttributeGroups";
 import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
 import "./ObjectView.css";
 
-const ObjectView = ({ startInEditMode = false }) => {
+const ObjectView = ({ startInEditMode = false, object = null }) => {
   const { objectId } = useParams();
   const navigate = useNavigate();
   const { selectedCharacter } = useSelectedCharacter();
@@ -32,9 +32,10 @@ const ObjectView = ({ startInEditMode = false }) => {
   const [breakdownAttributeName, setBreakdownAttributeName] = useState('');
   const [selectedAttributeKey, setSelectedAttributeKey] = useState(null);
 
-  // Initial query to get object data
+  // Initial query to get object data (skip if object prop is provided)
   const { data, loading, error, refetch } = useQuery(GET_OBJECT_WITH_GROUPED, {
     variables: { objectId },
+    skip: !!object, // Skip GraphQL query if object prop is provided
     onCompleted: (data) => {
       if (data && data.getObject) {
         setCurrentObject(data.getObject);
@@ -63,8 +64,9 @@ const ObjectView = ({ startInEditMode = false }) => {
     }
   );
 
-  // Subscribe to object updates
+  // Subscribe to object updates (skip if object prop is provided)
   useSubscription(ON_UPDATE_OBJECT, {
+    skip: !!object,
     onData: ({ data }) => {
       const updatedObject = data.data.onUpdateObject;
       if (updatedObject && updatedObject.objectId === objectId) {
@@ -77,8 +79,9 @@ const ObjectView = ({ startInEditMode = false }) => {
     }
   });
 
-  // Subscribe to object deletions
+  // Subscribe to object deletions (skip if object prop is provided)
   useSubscription(ON_DELETE_OBJECT, {
+    skip: !!object,
     onData: ({ data }) => {
       const deletedObject = data.data.onDeleteObject;
       if (deletedObject && deletedObject.objectId === objectId) {
@@ -90,10 +93,14 @@ const ObjectView = ({ startInEditMode = false }) => {
 
   // Ensure we're using the most recent data
   useEffect(() => {
-    if (data && data.getObject) {
+    if (object) {
+      // Use the object prop if provided
+      setCurrentObject(object);
+    } else if (data && data.getObject) {
+      // Otherwise use GraphQL query data
       setCurrentObject(data.getObject);
     }
-  }, [data]);
+  }, [data, object]);
 
   // Set edit mode when prop changes
   useEffect(() => {
@@ -200,7 +207,7 @@ const ObjectView = ({ startInEditMode = false }) => {
     }
   };
 
-  if (loading) return <div className="loading">Loading object details...</div>;
+  if (loading && !object) return <div className="loading">Loading object details...</div>;
   if (error) return <div className="error">Error: {error.message}</div>;
   if (!currentObject) return <div className="error">Object not found</div>;
 
@@ -262,6 +269,13 @@ const ObjectView = ({ startInEditMode = false }) => {
             <span>Category:</span>
             <span>{currentObject.objectCategory || "N/A"}</span>
           </div>
+          
+          {currentObject.description && (
+            <div className="detail-row">
+              <span>Description:</span>
+              <span>{currentObject.description}</span>
+            </div>
+          )}
           
           <div className="detail-row">
             <span>Is Equipment:</span>

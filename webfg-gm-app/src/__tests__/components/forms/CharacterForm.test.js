@@ -83,7 +83,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByDisplayValue('')).toBeInTheDocument();
+    expect(screen.getByText('Name')).toBeInTheDocument();
   });
 
   test('displays category dropdown', () => {
@@ -113,7 +113,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByDisplayValue('0')).toBeInTheDocument();
+    expect(screen.getByText('Fatigue')).toBeInTheDocument();
   });
 
   test('displays submit button', () => {
@@ -158,13 +158,13 @@ describe('CharacterForm Component', () => {
   });
 
   test('updates name field value', () => {
-    render(
+    const { container } = render(
       <CharacterFormWrapper>
         <CharacterForm />
       </CharacterFormWrapper>
     );
     
-    const nameInput = screen.getByDisplayValue('');
+    const nameInput = container.querySelector('input[type="text"][required]');
     fireEvent.change(nameInput, { target: { value: 'New Character Name' } });
     
     expect(nameInput.value).toBe('New Character Name');

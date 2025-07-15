@@ -1,8 +1,54 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { MockedProvider } from '@apollo/client/testing';
 import ActionView from '../../../components/actions/ActionView';
+
+// Mock all the complex dependencies to avoid GraphQL complexity
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({ actionId: 'test-action-id' }),
+  useNavigate: () => jest.fn(),
+  Link: ({ children, ...props }) => <a {...props}>{children}</a>
+}));
+
+jest.mock('@apollo/client', () => ({
+  useQuery: () => ({
+    data: null,
+    loading: false,
+    error: null,
+    refetch: jest.fn()
+  }),
+  useMutation: () => [jest.fn(), { loading: false }],
+  useSubscription: () => ({ data: null, loading: false }),
+  gql: jest.fn(() => ({}))
+}));
+
+jest.mock('../../../context/SelectedCharacterContext', () => ({
+  useSelectedCharacter: () => ({
+    selectedCharacter: {
+      characterId: '1',
+      name: 'Test Character'
+    }
+  })
+}));
+
+jest.mock('../../../components/forms/ActionForm', () => {
+  return function MockActionForm() {
+    return <div data-testid="action-form">Action Form</div>;
+  };
+});
+
+jest.mock('../../../components/actions/test/ActionTestBackend', () => {
+  return function MockActionTestBackend() {
+    return <div data-testid="action-test-backend">Action Test Backend</div>;
+  };
+});
+
+jest.mock('../../../components/common/ErrorPopup', () => {
+  return function MockErrorPopup() {
+    return <div data-testid="error-popup">Error Popup</div>;
+  };
+});
 
 const mockAction = {
   actionId: '1',
@@ -19,9 +65,7 @@ const mockAction = {
 
 const ActionViewWrapper = ({ children }) => (
   <BrowserRouter>
-    <MockedProvider mocks={[]} addTypename={false}>
-      {children}
-    </MockedProvider>
+    {children}
   </BrowserRouter>
 );
 
@@ -29,7 +73,7 @@ describe('ActionView Component', () => {
   test('renders without crashing', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
   });
@@ -37,7 +81,7 @@ describe('ActionView Component', () => {
   test('displays action name', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -47,7 +91,7 @@ describe('ActionView Component', () => {
   test('displays action type', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -57,7 +101,7 @@ describe('ActionView Component', () => {
   test('displays action description', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -67,7 +111,7 @@ describe('ActionView Component', () => {
   test('displays action difficulty', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -77,7 +121,7 @@ describe('ActionView Component', () => {
   test('displays action damage', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -87,7 +131,7 @@ describe('ActionView Component', () => {
   test('displays action range', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -97,7 +141,7 @@ describe('ActionView Component', () => {
   test('displays action duration', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -107,7 +151,7 @@ describe('ActionView Component', () => {
   test('displays action requirements', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -117,7 +161,7 @@ describe('ActionView Component', () => {
   test('displays action effects', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -127,7 +171,7 @@ describe('ActionView Component', () => {
   test('displays edit button', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -137,7 +181,7 @@ describe('ActionView Component', () => {
   test('displays delete button', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -147,7 +191,7 @@ describe('ActionView Component', () => {
   test('handles null action gracefully', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={null} />
+        <ActionView actionProp={null} />
       </ActionViewWrapper>
     );
     
@@ -162,7 +206,7 @@ describe('ActionView Component', () => {
     
     render(
       <ActionViewWrapper>
-        <ActionView action={incompleteAction} />
+        <ActionView actionProp={incompleteAction} />
       </ActionViewWrapper>
     );
     
@@ -172,7 +216,7 @@ describe('ActionView Component', () => {
   test('applies correct CSS classes', () => {
     const { container } = render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -186,7 +230,7 @@ describe('ActionView Component', () => {
     render(
       <ActionViewWrapper>
         <ActionView 
-          action={mockAction} 
+          actionProp={mockAction} 
           onEdit={mockOnEdit}
           onDelete={mockOnDelete}
         />
@@ -206,7 +250,7 @@ describe('ActionView Component', () => {
   test('displays action difficulty label', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -216,7 +260,7 @@ describe('ActionView Component', () => {
   test('displays action damage label', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -226,7 +270,7 @@ describe('ActionView Component', () => {
   test('displays action range label', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -236,7 +280,7 @@ describe('ActionView Component', () => {
   test('displays action duration label', () => {
     render(
       <ActionViewWrapper>
-        <ActionView action={mockAction} />
+        <ActionView actionProp={mockAction} />
       </ActionViewWrapper>
     );
     
@@ -253,7 +297,7 @@ describe('ActionView Component', () => {
     
     render(
       <ActionViewWrapper>
-        <ActionView action={actionWithUndefined} />
+        <ActionView actionProp={actionWithUndefined} />
       </ActionViewWrapper>
     );
     
