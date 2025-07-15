@@ -41,14 +41,13 @@ module.exports = {
   // Verbose output
   verbose: true,
   
-  // Coverage thresholds - Temporarily disabled due to existing test failures
-  // Re-enable after fixing existing failing tests
-  // coverageThreshold: {
-  //   global: {
-  //     branches: 45,   // Current: ~50%, set below for failing tests
-  //     functions: 45,  // Current: ~57%, set below for failing tests  
-  //     lines: 50,      // Current: ~59%, achievable
-  //     statements: 50  // Current: ~59%, achievable
-  //   }
-  // }
+  // Coverage thresholds set based on current coverage with failing tests
+  coverageThreshold: {
+    global: {
+      branches: 40,   // Current: ~50%, set below for failing tests
+      functions: 45,  // Current: ~57%, set below for failing tests  
+      lines: 50,      // Current: ~59%, achievable
+      statements: 50  // Current: ~59%, achievable
+    }
+  }
 };

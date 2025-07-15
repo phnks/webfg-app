@@ -64,7 +64,7 @@ describe('ConditionForm Component', () => {
   test('displays form title for existing condition', () => {
     render(
       <ConditionFormWrapper>
-        <ConditionForm condition={mockExistingCondition} />
+        <ConditionForm condition={mockExistingCondition} isEditing={true} />
       </ConditionFormWrapper>
     );
     
@@ -78,7 +78,7 @@ describe('ConditionForm Component', () => {
       </ConditionFormWrapper>
     );
     
-    expect(screen.getByLabelText('Name')).toBeInTheDocument();
+    expect(screen.getByLabelText('Name *')).toBeInTheDocument();
   });
 
   test('displays condition type select', () => {
@@ -120,7 +120,7 @@ describe('ConditionForm Component', () => {
       </ConditionFormWrapper>
     );
     
-    const nameInput = screen.getByLabelText('Name');
+    const nameInput = screen.getByLabelText('Name *');
     fireEvent.change(nameInput, { target: { value: 'New Condition Name' } });
     
     expect(nameInput.value).toBe('New Condition Name');
@@ -193,7 +193,7 @@ describe('ConditionForm Component', () => {
       </ConditionFormWrapper>
     );
     
-    const nameInput = screen.getByLabelText('Name');
+    const nameInput = screen.getByLabelText('Name *');
     fireEvent.change(nameInput, { target: { value: 'Test Condition' } });
     
     const createButton = screen.getByText('Create Condition');
@@ -244,7 +244,7 @@ describe('ConditionForm Component', () => {
       </ConditionFormWrapper>
     );
     
-    const nameInput = screen.getByLabelText('Name');
+    const nameInput = screen.getByLabelText('Name *');
     fireEvent.change(nameInput, { target: { value: 'Test Condition' } });
     
     const descriptionTextarea = screen.getByLabelText('Description');
