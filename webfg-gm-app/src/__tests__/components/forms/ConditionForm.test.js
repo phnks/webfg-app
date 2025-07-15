@@ -58,13 +58,13 @@ describe('ConditionForm Component', () => {
       </ConditionFormWrapper>
     );
     
-    expect(screen.getByText('Create Condition')).toBeInTheDocument();
+    expect(screen.getByText('Create New Condition')).toBeInTheDocument();
   });
 
   test('displays form title for existing condition', () => {
     render(
       <ConditionFormWrapper>
-        <ConditionForm existingCondition={mockExistingCondition} />
+        <ConditionForm condition={mockExistingCondition} />
       </ConditionFormWrapper>
     );
     
@@ -104,7 +104,7 @@ describe('ConditionForm Component', () => {
   test('fills form with existing condition data', () => {
     render(
       <ConditionFormWrapper>
-        <ConditionForm existingCondition={mockExistingCondition} />
+        <ConditionForm condition={mockExistingCondition} />
       </ConditionFormWrapper>
     );
     
@@ -152,14 +152,14 @@ describe('ConditionForm Component', () => {
     expect(descriptionTextarea.value).toBe('New description');
   });
 
-  test('displays save button', () => {
+  test('displays create button', () => {
     render(
       <ConditionFormWrapper>
         <ConditionForm />
       </ConditionFormWrapper>
     );
     
-    expect(screen.getByText('Save')).toBeInTheDocument();
+    expect(screen.getByText('Create Condition')).toBeInTheDocument();
   });
 
   test('displays cancel button', () => {
@@ -179,10 +179,10 @@ describe('ConditionForm Component', () => {
       </ConditionFormWrapper>
     );
     
-    const saveButton = screen.getByText('Save');
-    fireEvent.click(saveButton);
+    const createButton = screen.getByText('Create Condition');
+    fireEvent.click(createButton);
     
-    expect(screen.getByText('Name is required')).toBeInTheDocument();
+    expect(screen.getByText('Condition name is required')).toBeInTheDocument();
   });
 
   test('handles onSave callback', () => {
@@ -196,8 +196,8 @@ describe('ConditionForm Component', () => {
     const nameInput = screen.getByLabelText('Name');
     fireEvent.change(nameInput, { target: { value: 'Test Condition' } });
     
-    const saveButton = screen.getByText('Save');
-    fireEvent.click(saveButton);
+    const createButton = screen.getByText('Create Condition');
+    fireEvent.click(createButton);
   });
 
   test('handles onCancel callback', () => {
@@ -250,8 +250,8 @@ describe('ConditionForm Component', () => {
     const descriptionTextarea = screen.getByLabelText('Description');
     fireEvent.change(descriptionTextarea, { target: { value: 'A test condition' } });
     
-    const saveButton = screen.getByText('Save');
-    fireEvent.click(saveButton);
+    const createButton = screen.getByText('Create Condition');
+    fireEvent.click(createButton);
     
     await waitFor(() => {
       expect(nameInput.value).toBe('Test Condition');

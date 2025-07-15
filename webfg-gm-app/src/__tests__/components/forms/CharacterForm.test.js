@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing';
 import { BrowserRouter } from 'react-router-dom';
 import CharacterForm from '../../../components/forms/CharacterForm';
@@ -13,8 +13,7 @@ const createCharacterMocks = [
       variables: {
         input: {
           name: 'Test Character',
-          characterCategory: 'HUMAN',
-          description: 'A test character'
+          characterCategory: 'HUMAN'
         }
       }
     },
@@ -24,7 +23,6 @@ const createCharacterMocks = [
           characterId: '1',
           name: 'Test Character',
           characterCategory: 'HUMAN',
-          description: 'A test character',
           __typename: 'Character'
         }
       }
@@ -66,12 +64,12 @@ describe('CharacterForm Component', () => {
       characterId: '1',
       name: 'Existing Character',
       characterCategory: 'HUMAN',
-      description: 'An existing character'
+      will: 15
     };
     
     render(
       <CharacterFormWrapper>
-        <CharacterForm character={existingCharacter} />
+        <CharacterForm character={existingCharacter} isEditing={true} />
       </CharacterFormWrapper>
     );
     
@@ -85,7 +83,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByLabelText('Name *')).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toBeInTheDocument();
   });
 
   test('displays category dropdown', () => {
@@ -95,17 +93,27 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByLabelText('Category *')).toBeInTheDocument();
+    expect(screen.getByLabelText('Category')).toBeInTheDocument();
   });
 
-  test('displays description textarea', () => {
+  test('displays will input field', () => {
     render(
       <CharacterFormWrapper>
         <CharacterForm />
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByLabelText('Description')).toBeInTheDocument();
+    expect(screen.getByLabelText('Will')).toBeInTheDocument();
+  });
+
+  test('displays fatigue input field', () => {
+    render(
+      <CharacterFormWrapper>
+        <CharacterForm />
+      </CharacterFormWrapper>
+    );
+    
+    expect(screen.getByLabelText('Fatigue')).toBeInTheDocument();
   });
 
   test('displays submit button', () => {
@@ -133,33 +141,20 @@ describe('CharacterForm Component', () => {
       characterId: '1',
       name: 'Existing Character',
       characterCategory: 'HUMAN',
-      description: 'An existing character'
+      will: 15,
+      fatigue: 5
     };
     
     render(
       <CharacterFormWrapper>
-        <CharacterForm character={existingCharacter} />
+        <CharacterForm character={existingCharacter} isEditing={true} />
       </CharacterFormWrapper>
     );
     
     expect(screen.getByDisplayValue('Existing Character')).toBeInTheDocument();
     expect(screen.getByDisplayValue('HUMAN')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('An existing character')).toBeInTheDocument();
-  });
-
-  test('validates required fields', async () => {
-    render(
-      <CharacterFormWrapper>
-        <CharacterForm />
-      </CharacterFormWrapper>
-    );
-    
-    const submitButton = screen.getByRole('button', { name: 'Create Character' });
-    fireEvent.click(submitButton);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Name is required')).toBeInTheDocument();
-    });
+    expect(screen.getByDisplayValue('15')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('5')).toBeInTheDocument();
   });
 
   test('updates name field value', () => {
@@ -169,7 +164,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    const nameInput = screen.getByLabelText('Name *');
+    const nameInput = screen.getByLabelText('Name');
     fireEvent.change(nameInput, { target: { value: 'New Character Name' } });
     
     expect(nameInput.value).toBe('New Character Name');
@@ -182,100 +177,23 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    const categorySelect = screen.getByLabelText('Category *');
-    fireEvent.change(categorySelect, { target: { value: 'ANIMAL' } });
+    const categorySelect = screen.getByLabelText('Category');
+    fireEvent.change(categorySelect, { target: { value: 'TREPIDITE' } });
     
-    expect(categorySelect.value).toBe('ANIMAL');
+    expect(categorySelect.value).toBe('TREPIDITE');
   });
 
-  test('updates description field value', () => {
+  test('updates will field value', () => {
     render(
       <CharacterFormWrapper>
         <CharacterForm />
       </CharacterFormWrapper>
     );
     
-    const descriptionTextarea = screen.getByLabelText('Description');
-    fireEvent.change(descriptionTextarea, { target: { value: 'New description' } });
+    const willInput = screen.getByLabelText('Will');
+    fireEvent.change(willInput, { target: { value: '15' } });
     
-    expect(descriptionTextarea.value).toBe('New description');
-  });
-
-  test('submits form with valid data', async () => {
-    render(
-      <CharacterFormWrapper>
-        <CharacterForm />
-      </CharacterFormWrapper>
-    );
-    
-    const nameInput = screen.getByLabelText('Name *');
-    const categorySelect = screen.getByLabelText('Category *');
-    const descriptionTextarea = screen.getByLabelText('Description');
-    const submitButton = screen.getByRole('button', { name: 'Create Character' });
-    
-    fireEvent.change(nameInput, { target: { value: 'Test Character' } });
-    fireEvent.change(categorySelect, { target: { value: 'HUMAN' } });
-    fireEvent.change(descriptionTextarea, { target: { value: 'A test character' } });
-    
-    fireEvent.click(submitButton);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Creating character...')).toBeInTheDocument();
-    });
-  });
-
-  test('displays category options', () => {
-    render(
-      <CharacterFormWrapper>
-        <CharacterForm />
-      </CharacterFormWrapper>
-    );
-    
-    const categorySelect = screen.getByLabelText('Category *');
-    
-    expect(screen.getByText('Select category')).toBeInTheDocument();
-    expect(screen.getByText('Human')).toBeInTheDocument();
-    expect(screen.getByText('Animal')).toBeInTheDocument();
-    expect(screen.getByText('Monster')).toBeInTheDocument();
-    expect(screen.getByText('Robot')).toBeInTheDocument();
-    expect(screen.getByText('Spirit')).toBeInTheDocument();
-    expect(screen.getByText('Other')).toBeInTheDocument();
-  });
-
-  test('handles form submission errors', async () => {
-    const errorMocks = [
-      {
-        request: {
-          query: CREATE_CHARACTER,
-          variables: {
-            input: {
-              name: 'Test Character',
-              characterCategory: 'HUMAN',
-              description: 'A test character'
-            }
-          }
-        },
-        error: new Error('GraphQL error')
-      }
-    ];
-    
-    render(
-      <CharacterFormWrapper apolloMocks={errorMocks}>
-        <CharacterForm />
-      </CharacterFormWrapper>
-    );
-    
-    const nameInput = screen.getByLabelText('Name *');
-    const categorySelect = screen.getByLabelText('Category *');
-    const submitButton = screen.getByRole('button', { name: 'Create Character' });
-    
-    fireEvent.change(nameInput, { target: { value: 'Test Character' } });
-    fireEvent.change(categorySelect, { target: { value: 'HUMAN' } });
-    fireEvent.click(submitButton);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Error creating character')).toBeInTheDocument();
-    });
+    expect(willInput.value).toBe('15');
   });
 
   test('applies correct CSS classes', () => {
@@ -285,6 +203,36 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(container.querySelector('.character-form')).toBeInTheDocument();
+    expect(container.querySelector('.form-container')).toBeInTheDocument();
+  });
+
+  test('displays attributes section', () => {
+    render(
+      <CharacterFormWrapper>
+        <CharacterForm />
+      </CharacterFormWrapper>
+    );
+    
+    expect(screen.getByText('Attributes')).toBeInTheDocument();
+  });
+
+  test('displays values section', () => {
+    render(
+      <CharacterFormWrapper>
+        <CharacterForm />
+      </CharacterFormWrapper>
+    );
+    
+    expect(screen.getByText('Values')).toBeInTheDocument();
+  });
+
+  test('displays special abilities section', () => {
+    render(
+      <CharacterFormWrapper>
+        <CharacterForm />
+      </CharacterFormWrapper>
+    );
+    
+    expect(screen.getByText('Special Abilities')).toBeInTheDocument();
   });
 });

@@ -57,7 +57,7 @@ describe('ActionForm Component', () => {
       </ActionFormWrapper>
     );
     
-    expect(screen.getByText('Create New Action')).toBeInTheDocument();
+    expect(screen.getByText('Create Action')).toBeInTheDocument();
   });
 
   test('displays form title for editing existing action', () => {

@@ -62,13 +62,13 @@ describe('ObjectForm Component', () => {
       </ObjectFormWrapper>
     );
     
-    expect(screen.getByText('Create Object')).toBeInTheDocument();
+    expect(screen.getByText('Create New Object')).toBeInTheDocument();
   });
 
   test('displays form title for existing object', () => {
     render(
       <ObjectFormWrapper>
-        <ObjectForm existingObject={mockExistingObject} />
+        <ObjectForm object={mockExistingObject} isEditing={true} />
       </ObjectFormWrapper>
     );
     
@@ -108,7 +108,7 @@ describe('ObjectForm Component', () => {
   test('fills form with existing object data', () => {
     render(
       <ObjectFormWrapper>
-        <ObjectForm existingObject={mockExistingObject} />
+        <ObjectForm object={mockExistingObject} isEditing={true} />
       </ObjectFormWrapper>
     );
     
@@ -156,14 +156,14 @@ describe('ObjectForm Component', () => {
     expect(checkbox.checked).toBe(false);
   });
 
-  test('displays save button', () => {
+  test('displays create button', () => {
     render(
       <ObjectFormWrapper>
         <ObjectForm />
       </ObjectFormWrapper>
     );
     
-    expect(screen.getByText('Save')).toBeInTheDocument();
+    expect(screen.getByText('Create Object')).toBeInTheDocument();
   });
 
   test('displays cancel button', () => {
@@ -186,8 +186,8 @@ describe('ObjectForm Component', () => {
     const nameInput = screen.getByLabelText('Name');
     fireEvent.change(nameInput, { target: { value: 'Test Object' } });
     
-    const saveButton = screen.getByText('Save');
-    fireEvent.click(saveButton);
+    const createButton = screen.getByText('Create Object');
+    fireEvent.click(createButton);
     
     // Should not throw errors
     await waitFor(() => {
@@ -202,8 +202,8 @@ describe('ObjectForm Component', () => {
       </ObjectFormWrapper>
     );
     
-    const saveButton = screen.getByText('Save');
-    fireEvent.click(saveButton);
+    const createButton = screen.getByText('Create Object');
+    fireEvent.click(createButton);
     
     expect(screen.getByText('Name is required')).toBeInTheDocument();
   });
@@ -229,8 +229,8 @@ describe('ObjectForm Component', () => {
     const nameInput = screen.getByLabelText('Name');
     fireEvent.change(nameInput, { target: { value: 'Test Object' } });
     
-    const saveButton = screen.getByText('Save');
-    fireEvent.click(saveButton);
+    const createButton = screen.getByText('Create Object');
+    fireEvent.click(createButton);
   });
 
   test('handles onCancel callback', () => {
