@@ -1,20 +1,26 @@
 const { handler } = require('../../../functions/addActionToCharacter');
-const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
 
-jest.mock('@aws-sdk/lib-dynamodb');
+// Mock the AWS SDK
+const mockSend = jest.fn();
+jest.mock('@aws-sdk/client-dynamodb', () => ({
+  DynamoDBClient: jest.fn(() => ({}))
+}));
+
+jest.mock('@aws-sdk/lib-dynamodb', () => ({
+  DynamoDBDocumentClient: {
+    from: jest.fn(() => ({
+      send: mockSend
+    }))
+  },
+  GetCommand: jest.fn((params) => params),
+  UpdateCommand: jest.fn((params) => params)
+}));
 
 describe('addActionToCharacter', () => {
-  let mockDocClient;
-  const mockSend = jest.fn();
   const originalEnv = process.env;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDocClient = {
-      send: mockSend
-    };
-    DynamoDBDocumentClient.from = jest.fn().mockReturnValue(mockDocClient);
-    
     process.env = {
       ...originalEnv,
       CHARACTERS_TABLE: 'test-characters-table'
@@ -34,16 +40,16 @@ describe('addActionToCharacter', () => {
         }
       };
 
+      // Mock GetCommand to return no character
       mockSend.mockResolvedValueOnce({ Item: null });
 
       await expect(handler(event)).rejects.toThrow('Character with ID char123 not found');
       
+      // Verify the GetCommand was called with correct parameters
       expect(mockSend).toHaveBeenCalledWith(
         expect.objectContaining({
-          input: {
-            TableName: 'test-characters-table',
-            Key: { characterId: 'char123' }
-          }
+          TableName: 'test-characters-table',
+          Key: { characterId: 'char123' }
         })
       );
     });

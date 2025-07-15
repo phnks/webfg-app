@@ -25,6 +25,34 @@ const { calculateReadyGroupedAttributes } = require('../../../utils/attributeGro
 describe('resolveReadyGroupedAttributes', () => {
   const originalEnv = process.env;
   
+  // Mock data used across all tests
+  const mockCharacter = {
+    characterId: 'char-1',
+    name: 'Test Character',
+    equipmentIds: ['obj-1'],
+    readyIds: ['obj-2'],
+    characterConditions: [{ conditionId: 'cond-1', amount: 2 }]
+  };
+
+  const mockEquipment = {
+    objectId: 'obj-1',
+    name: 'Sword',
+    strength: { attributeValue: 3, isGrouped: true }
+  };
+
+  const mockReadyObject = {
+    objectId: 'obj-2',
+    name: 'Potion',
+    dexterity: { attributeValue: 2, isGrouped: true }
+  };
+
+  const mockCondition = {
+    conditionId: 'cond-1',
+    name: 'Blessing',
+    conditionType: 'HELP',
+    conditionTarget: 'strength'
+  };
+  
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = {
@@ -34,8 +62,8 @@ describe('resolveReadyGroupedAttributes', () => {
       AWS_REGION: 'us-east-1'
     };
     
-    // Setup default mock return values
-    calculateReadyGroupedAttributes.mockReturnValue({});
+    // Setup minimal default mock return values 
+    // Don't set calculateReadyGroupedAttributes here - let tests set it specifically
     mockSend.mockResolvedValue({ Item: null });
   });
 
@@ -98,32 +126,6 @@ describe('resolveReadyGroupedAttributes', () => {
   });
 
   describe('character processing', () => {
-    const mockCharacter = {
-      characterId: 'char-1',
-      name: 'Test Character',
-      equipmentIds: ['obj-1'],
-      readyIds: ['obj-2'],
-      characterConditions: [{ conditionId: 'cond-1', amount: 2 }]
-    };
-
-    const mockEquipment = {
-      objectId: 'obj-1',
-      name: 'Sword',
-      strength: { attributeValue: 3, isGrouped: true }
-    };
-
-    const mockReadyObject = {
-      objectId: 'obj-2',
-      name: 'Potion',
-      dexterity: { attributeValue: 2, isGrouped: true }
-    };
-
-    const mockCondition = {
-      conditionId: 'cond-1',
-      name: 'Blessing',
-      conditionType: 'HELP',
-      conditionTarget: 'strength'
-    };
 
     it('should process character with equipment, ready objects, and conditions', async () => {
       const event = {
@@ -136,6 +138,8 @@ describe('resolveReadyGroupedAttributes', () => {
         .mockResolvedValueOnce({ Item: mockReadyObject })   // Ready object fetch
         .mockResolvedValueOnce({ Item: mockCondition });    // Condition fetch
 
+      // Clear previous mocks and set specific return value
+      calculateReadyGroupedAttributes.mockClear();
       calculateReadyGroupedAttributes.mockReturnValue({
         strength: 15,
         dexterity: 8,
@@ -332,6 +336,8 @@ describe('resolveReadyGroupedAttributes', () => {
         source: { characterId: 'char-1' }
       };
 
+      // Clear previous mocks and set specific return value
+      calculateReadyGroupedAttributes.mockClear();
       calculateReadyGroupedAttributes.mockReturnValue({
         strength: 10
         // Other attributes not defined (undefined)
@@ -339,6 +345,7 @@ describe('resolveReadyGroupedAttributes', () => {
 
       const result = await handler(event);
 
+      expect(calculateReadyGroupedAttributes).toHaveBeenCalled();
       expect(result.strength).toBe(10);
       expect(result.dexterity).toBe(null);
       expect(result.speed).toBe(null);
@@ -373,6 +380,8 @@ describe('resolveReadyGroupedAttributes', () => {
         source: { characterId: 'char-1' }
       };
 
+      // Clear previous mocks and set implementation to throw
+      calculateReadyGroupedAttributes.mockClear();
       calculateReadyGroupedAttributes.mockImplementation(() => {
         throw new Error('Calculation error');
       });
@@ -469,6 +478,8 @@ describe('resolveReadyGroupedAttributes', () => {
         .mockResolvedValueOnce({ Item: { conditionId: 'cond-1', name: 'Blessing' } })
         .mockResolvedValueOnce({ Item: { conditionId: 'cond-2', name: 'Curse' } });
 
+      // Clear previous mocks and set specific return value
+      calculateReadyGroupedAttributes.mockClear();
       calculateReadyGroupedAttributes.mockReturnValue({
         strength: 18,
         dexterity: 12,
