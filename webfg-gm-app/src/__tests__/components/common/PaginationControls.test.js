@@ -3,15 +3,19 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import PaginationControls from '../../../components/common/PaginationControls';
 
 describe('PaginationControls Component', () => {
+  const mockOnNext = jest.fn();
+  const mockOnPrevious = jest.fn();
+  const mockOnPageSizeChange = jest.fn();
+
   const defaultProps = {
     hasNextPage: true,
-    onNext: jest.fn(),
-    onPrevious: jest.fn(),
-    onPageSizeChange: jest.fn(),
+    onNext: mockOnNext,
+    onPrevious: mockOnPrevious,
+    onPageSizeChange: mockOnPageSizeChange,
     pageSize: 10,
     currentItemCount: 25,
     isLoading: false,
-    hasPreviousPage: true
+    hasPreviousPage: false
   };
 
   beforeEach(() => {
@@ -23,115 +27,149 @@ describe('PaginationControls Component', () => {
   });
 
   test('displays current item count', () => {
-    render(<PaginationControls {...defaultProps} currentItemCount={25} />);
+    render(<PaginationControls {...defaultProps} />);
     
     expect(screen.getByText('25 items')).toBeInTheDocument();
   });
 
-  test('displays page size selector', () => {
+  test('displays page size selector with correct options', () => {
     render(<PaginationControls {...defaultProps} />);
     
     expect(screen.getByLabelText('Items per page:')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('10')).toBeInTheDocument();
-  });
-
-  test('displays page size options', () => {
-    render(<PaginationControls {...defaultProps} />);
     
-    const select = screen.getByLabelText('Items per page:');
+    const select = screen.getByDisplayValue('10');
     expect(select).toBeInTheDocument();
     
-    const options = [10, 25, 50, 100];
-    options.forEach(option => {
-      expect(screen.getByText(option.toString())).toBeInTheDocument();
-    });
+    // Check all options are present
+    expect(screen.getByText('10')).toBeInTheDocument();
+    expect(screen.getByText('25')).toBeInTheDocument();
+    expect(screen.getByText('50')).toBeInTheDocument();
+    expect(screen.getByText('100')).toBeInTheDocument();
   });
 
-  test('calls onPageSizeChange when page size changes', () => {
-    const mockOnPageSizeChange = jest.fn();
-    render(<PaginationControls {...defaultProps} onPageSizeChange={mockOnPageSizeChange} />);
+  test('displays pagination buttons', () => {
+    render(<PaginationControls {...defaultProps} />);
     
-    const select = screen.getByLabelText('Items per page:');
+    expect(screen.getByText('← Previous')).toBeInTheDocument();
+    expect(screen.getByText('Next →')).toBeInTheDocument();
+  });
+
+  test('calls onNext when next button is clicked', () => {
+    render(<PaginationControls {...defaultProps} />);
+    
+    const nextButton = screen.getByText('Next →');
+    fireEvent.click(nextButton);
+    
+    expect(mockOnNext).toHaveBeenCalledTimes(1);
+  });
+
+  test('calls onPrevious when previous button is clicked', () => {
+    const props = { ...defaultProps, hasPreviousPage: true };
+    render(<PaginationControls {...props} />);
+    
+    const previousButton = screen.getByText('← Previous');
+    fireEvent.click(previousButton);
+    
+    expect(mockOnPrevious).toHaveBeenCalledTimes(1);
+  });
+
+  test('calls onPageSizeChange when page size is changed', () => {
+    render(<PaginationControls {...defaultProps} />);
+    
+    const select = screen.getByDisplayValue('10');
     fireEvent.change(select, { target: { value: '25' } });
     
     expect(mockOnPageSizeChange).toHaveBeenCalledWith(25);
   });
 
-  test('shows Previous button when hasPreviousPage is true', () => {
-    render(<PaginationControls {...defaultProps} hasPreviousPage={true} />);
+  test('disables previous button when hasPreviousPage is false', () => {
+    render(<PaginationControls {...defaultProps} />);
     
     const previousButton = screen.getByText('← Previous');
-    expect(previousButton).toBeInTheDocument();
+    expect(previousButton).toBeDisabled();
+  });
+
+  test('disables next button when hasNextPage is false', () => {
+    const props = { ...defaultProps, hasNextPage: false };
+    render(<PaginationControls {...props} />);
+    
+    const nextButton = screen.getByText('Next →');
+    expect(nextButton).toBeDisabled();
+  });
+
+  test('disables buttons when loading', () => {
+    const props = { ...defaultProps, isLoading: true };
+    render(<PaginationControls {...props} />);
+    
+    const previousButton = screen.getByText('← Previous');
+    const nextButton = screen.getByText('Next →');
+    
+    expect(previousButton).toBeDisabled();
+    expect(nextButton).toBeDisabled();
+  });
+
+  test('disables page size selector when loading', () => {
+    const props = { ...defaultProps, isLoading: true };
+    render(<PaginationControls {...props} />);
+    
+    const select = screen.getByDisplayValue('10');
+    expect(select).toBeDisabled();
+  });
+
+  test('enables previous button when hasPreviousPage is true', () => {
+    const props = { ...defaultProps, hasPreviousPage: true };
+    render(<PaginationControls {...props} />);
+    
+    const previousButton = screen.getByText('← Previous');
     expect(previousButton).not.toBeDisabled();
   });
 
-  test('shows Next button when hasNextPage is true', () => {
-    render(<PaginationControls {...defaultProps} hasNextPage={true} />);
+  test('applies correct CSS classes', () => {
+    const { container } = render(<PaginationControls {...defaultProps} />);
     
-    const nextButton = screen.getByText('Next →');
-    expect(nextButton).toBeInTheDocument();
-    expect(nextButton).not.toBeDisabled();
+    expect(container.querySelector('.pagination-controls')).toBeInTheDocument();
+    expect(container.querySelector('.pagination-info')).toBeInTheDocument();
+    expect(container.querySelector('.item-count')).toBeInTheDocument();
+    expect(container.querySelector('.page-size-selector')).toBeInTheDocument();
+    expect(container.querySelector('.page-size-select')).toBeInTheDocument();
+    expect(container.querySelector('.pagination-buttons')).toBeInTheDocument();
+    expect(container.querySelector('.pagination-btn.previous')).toBeInTheDocument();
+    expect(container.querySelector('.pagination-btn.next')).toBeInTheDocument();
   });
 
-  test('disables Previous button when hasPreviousPage is false', () => {
-    render(<PaginationControls {...defaultProps} hasPreviousPage={false} />);
+  test('handles default props correctly', () => {
+    const minimalProps = {
+      hasNextPage: true,
+      onNext: mockOnNext,
+      onPrevious: mockOnPrevious,
+      onPageSizeChange: mockOnPageSizeChange
+    };
     
-    const previousButton = screen.getByText('← Previous');
-    expect(previousButton).toBeDisabled();
-  });
-
-  test('disables Next button when hasNextPage is false', () => {
-    render(<PaginationControls {...defaultProps} hasNextPage={false} />);
-    
-    const nextButton = screen.getByText('Next →');
-    expect(nextButton).toBeDisabled();
-  });
-
-  test('calls onPrevious when Previous button is clicked', () => {
-    const mockOnPrevious = jest.fn();
-    render(<PaginationControls {...defaultProps} onPrevious={mockOnPrevious} hasPreviousPage={true} />);
-    
-    fireEvent.click(screen.getByText('← Previous'));
-    expect(mockOnPrevious).toHaveBeenCalled();
-  });
-
-  test('calls onNext when Next button is clicked', () => {
-    const mockOnNext = jest.fn();
-    render(<PaginationControls {...defaultProps} onNext={mockOnNext} hasNextPage={true} />);
-    
-    fireEvent.click(screen.getByText('Next →'));
-    expect(mockOnNext).toHaveBeenCalled();
-  });
-
-  test('disables controls when loading', () => {
-    render(<PaginationControls {...defaultProps} isLoading={true} />);
-    
-    const select = screen.getByLabelText('Items per page:');
-    const previousButton = screen.getByText('← Previous');
-    const nextButton = screen.getByText('Next →');
-    
-    expect(select).toBeDisabled();
-    expect(previousButton).toBeDisabled();
-    expect(nextButton).toBeDisabled();
-  });
-
-  test('displays zero items correctly', () => {
-    render(<PaginationControls {...defaultProps} currentItemCount={0} />);
-    
-    expect(screen.getByText('0 items')).toBeInTheDocument();
-  });
-
-  test('uses default props correctly', () => {
-    render(
-      <PaginationControls 
-        hasNextPage={false}
-        onNext={jest.fn()}
-        onPrevious={jest.fn()}
-        onPageSizeChange={jest.fn()}
-      />
-    );
+    render(<PaginationControls {...minimalProps} />);
     
     expect(screen.getByText('0 items')).toBeInTheDocument();
     expect(screen.getByDisplayValue('10')).toBeInTheDocument();
+    expect(screen.getByText('← Previous')).toBeDisabled();
+  });
+
+  test('handles different page sizes', () => {
+    const props = { ...defaultProps, pageSize: 50 };
+    render(<PaginationControls {...props} />);
+    
+    expect(screen.getByDisplayValue('50')).toBeInTheDocument();
+  });
+
+  test('handles zero items', () => {
+    const props = { ...defaultProps, currentItemCount: 0 };
+    render(<PaginationControls {...props} />);
+    
+    expect(screen.getByText('0 items')).toBeInTheDocument();
+  });
+
+  test('handles large item counts', () => {
+    const props = { ...defaultProps, currentItemCount: 1000 };
+    render(<PaginationControls {...props} />);
+    
+    expect(screen.getByText('1000 items')).toBeInTheDocument();
   });
 });
