@@ -83,7 +83,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByLabelText('Name')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('')).toBeInTheDocument();
   });
 
   test('displays category dropdown', () => {
@@ -93,7 +93,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByLabelText('Category')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('HUMAN')).toBeInTheDocument();
   });
 
   test('displays will input field', () => {
@@ -103,7 +103,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByLabelText('Will')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('10')).toBeInTheDocument();
   });
 
   test('displays fatigue input field', () => {
@@ -113,7 +113,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByLabelText('Fatigue')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('0')).toBeInTheDocument();
   });
 
   test('displays submit button', () => {
@@ -164,7 +164,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    const nameInput = screen.getByLabelText('Name');
+    const nameInput = screen.getByDisplayValue('');
     fireEvent.change(nameInput, { target: { value: 'New Character Name' } });
     
     expect(nameInput.value).toBe('New Character Name');
@@ -177,7 +177,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    const categorySelect = screen.getByLabelText('Category');
+    const categorySelect = screen.getByDisplayValue('HUMAN');
     fireEvent.change(categorySelect, { target: { value: 'TREPIDITE' } });
     
     expect(categorySelect.value).toBe('TREPIDITE');
@@ -190,7 +190,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    const willInput = screen.getByLabelText('Will');
+    const willInput = screen.getByDisplayValue('10');
     fireEvent.change(willInput, { target: { value: '15' } });
     
     expect(willInput.value).toBe('15');

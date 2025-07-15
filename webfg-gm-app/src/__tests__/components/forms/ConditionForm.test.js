@@ -9,10 +9,12 @@ const mockCreateCondition = {
   request: {
     query: CREATE_CONDITION,
     variables: {
-      condition: {
+      input: {
         name: 'Test Condition',
-        conditionType: 'STATUS',
-        description: 'A test condition'
+        conditionCategory: 'PHYSICAL',
+        conditionType: 'HELP',
+        conditionTarget: 'SPEED',
+        description: ''
       }
     }
   },
@@ -21,7 +23,9 @@ const mockCreateCondition = {
       createCondition: {
         conditionId: '1',
         name: 'Test Condition',
-        conditionType: 'STATUS'
+        conditionCategory: 'PHYSICAL',
+        conditionType: 'HELP',
+        conditionTarget: 'SPEED'
       }
     }
   }
@@ -30,7 +34,9 @@ const mockCreateCondition = {
 const mockExistingCondition = {
   conditionId: '1',
   name: 'Existing Condition',
-  conditionType: 'DEBUFF',
+  conditionCategory: 'PHYSICAL',
+  conditionType: 'HINDER',
+  conditionTarget: 'SPEED',
   description: 'An existing condition'
 };
 
@@ -104,12 +110,14 @@ describe('ConditionForm Component', () => {
   test('fills form with existing condition data', () => {
     render(
       <ConditionFormWrapper>
-        <ConditionForm condition={mockExistingCondition} />
+        <ConditionForm condition={mockExistingCondition} isEditing={true} />
       </ConditionFormWrapper>
     );
     
     expect(screen.getByDisplayValue('Existing Condition')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('DEBUFF')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('HINDER')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('PHYSICAL')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('SPEED')).toBeInTheDocument();
     expect(screen.getByDisplayValue('An existing condition')).toBeInTheDocument();
   });
 
@@ -134,9 +142,9 @@ describe('ConditionForm Component', () => {
     );
     
     const typeSelect = screen.getByLabelText('Type');
-    fireEvent.change(typeSelect, { target: { value: 'BUFF' } });
+    fireEvent.change(typeSelect, { target: { value: 'HINDER' } });
     
-    expect(typeSelect.value).toBe('BUFF');
+    expect(typeSelect.value).toBe('HINDER');
   });
 
   test('handles description change', () => {
@@ -185,11 +193,11 @@ describe('ConditionForm Component', () => {
     expect(screen.getByText('Condition name is required')).toBeInTheDocument();
   });
 
-  test('handles onSave callback', () => {
-    const mockOnSave = jest.fn();
+  test('handles onSuccess callback', () => {
+    const mockOnSuccess = jest.fn();
     render(
       <ConditionFormWrapper>
-        <ConditionForm onSave={mockOnSave} />
+        <ConditionForm onSuccess={mockOnSuccess} />
       </ConditionFormWrapper>
     );
     
@@ -200,18 +208,18 @@ describe('ConditionForm Component', () => {
     fireEvent.click(createButton);
   });
 
-  test('handles onCancel callback', () => {
-    const mockOnCancel = jest.fn();
+  test('handles onClose callback', () => {
+    const mockOnClose = jest.fn();
     render(
       <ConditionFormWrapper>
-        <ConditionForm onCancel={mockOnCancel} />
+        <ConditionForm onClose={mockOnClose} />
       </ConditionFormWrapper>
     );
     
     const cancelButton = screen.getByText('Cancel');
     fireEvent.click(cancelButton);
     
-    expect(mockOnCancel).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
   test('applies correct CSS classes', () => {

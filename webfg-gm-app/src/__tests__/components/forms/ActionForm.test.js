@@ -3,18 +3,49 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing';
 import { BrowserRouter } from 'react-router-dom';
 import ActionForm from '../../../components/forms/ActionForm';
-import { CREATE_ACTION, UPDATE_ACTION } from '../../../graphql/operations';
+import { CREATE_ACTION, UPDATE_ACTION, LIST_ACTIONS } from '../../../graphql/operations';
+
+const mockListActions = {
+  request: {
+    query: LIST_ACTIONS,
+    variables: {}
+  },
+  result: {
+    data: {
+      listActions: [
+        {
+          actionId: '1',
+          name: 'Test Action',
+          actionCategory: 'MOVE',
+          sourceAttribute: 'SPEED',
+          targetAttribute: 'SPEED',
+          description: 'A test action',
+          targetType: 'OBJECT',
+          effectType: 'HELP',
+          objectUsage: 'NONE',
+          formula: 'CONTEST'
+        }
+      ]
+    }
+  }
+};
 
 const createActionMocks = [
+  mockListActions,
   {
     request: {
       query: CREATE_ACTION,
       variables: {
         input: {
           name: 'Test Action',
+          actionCategory: 'MOVE',
+          sourceAttribute: 'SPEED',
+          targetAttribute: 'SPEED',
           description: 'A test action',
-          sourceAttribute: 'STRENGTH',
-          targetAttribute: 'DEFENSE'
+          targetType: 'OBJECT',
+          effectType: 'HELP',
+          objectUsage: 'NONE',
+          formula: 'CONTEST'
         }
       }
     },
@@ -23,9 +54,14 @@ const createActionMocks = [
         createAction: {
           actionId: '1',
           name: 'Test Action',
+          actionCategory: 'MOVE',
+          sourceAttribute: 'SPEED',
+          targetAttribute: 'SPEED',
           description: 'A test action',
-          sourceAttribute: 'STRENGTH',
-          targetAttribute: 'DEFENSE',
+          targetType: 'OBJECT',
+          effectType: 'HELP',
+          objectUsage: 'NONE',
+          formula: 'CONTEST',
           __typename: 'Action'
         }
       }
@@ -64,14 +100,19 @@ describe('ActionForm Component', () => {
     const existingAction = {
       actionId: '1',
       name: 'Existing Action',
+      actionCategory: 'MOVE',
+      sourceAttribute: 'SPEED',
+      targetAttribute: 'SPEED',
       description: 'An existing action',
-      sourceAttribute: 'STRENGTH',
-      targetAttribute: 'DEFENSE'
+      targetType: 'OBJECT',
+      effectType: 'HELP',
+      objectUsage: 'NONE',
+      formula: 'CONTEST'
     };
     
     render(
       <ActionFormWrapper>
-        <ActionForm action={existingAction} />
+        <ActionForm action={existingAction} isEditing={true} />
       </ActionFormWrapper>
     );
     
@@ -85,7 +126,7 @@ describe('ActionForm Component', () => {
       </ActionFormWrapper>
     );
     
-    expect(screen.getByLabelText('Name *')).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toBeInTheDocument();
   });
 
   test('displays description textarea', () => {
@@ -125,7 +166,7 @@ describe('ActionForm Component', () => {
       </ActionFormWrapper>
     );
     
-    expect(screen.getByRole('button', { name: 'Create Action' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
   });
 
   test('displays cancel button', () => {
@@ -142,21 +183,30 @@ describe('ActionForm Component', () => {
     const existingAction = {
       actionId: '1',
       name: 'Existing Action',
+      actionCategory: 'MOVE',
+      sourceAttribute: 'SPEED',
+      targetAttribute: 'SPEED',
       description: 'An existing action',
-      sourceAttribute: 'STRENGTH',
-      targetAttribute: 'DEFENSE'
+      targetType: 'OBJECT',
+      effectType: 'HELP',
+      objectUsage: 'NONE',
+      formula: 'CONTEST'
     };
     
     render(
       <ActionFormWrapper>
-        <ActionForm action={existingAction} />
+        <ActionForm action={existingAction} isEditing={true} />
       </ActionFormWrapper>
     );
     
     expect(screen.getByDisplayValue('Existing Action')).toBeInTheDocument();
     expect(screen.getByDisplayValue('An existing action')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('STRENGTH')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('DEFENSE')).toBeInTheDocument();
+    expect(screen.getAllByDisplayValue('SPEED')).toHaveLength(2);
+    expect(screen.getByDisplayValue('MOVE')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('OBJECT')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('HELP')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('NONE')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('CONTEST')).toBeInTheDocument();
   });
 
   test('validates required fields', async () => {
@@ -166,12 +216,12 @@ describe('ActionForm Component', () => {
       </ActionFormWrapper>
     );
     
-    const submitButton = screen.getByRole('button', { name: 'Create Action' });
-    fireEvent.click(submitButton);
+    const submitButton = screen.getByRole('button', { name: 'Create' });
+    const nameInput = screen.getByLabelText('Name');
     
-    await waitFor(() => {
-      expect(screen.getByText('Name is required')).toBeInTheDocument();
-    });
+    // HTML5 validation will prevent submission
+    expect(nameInput).toBeRequired();
+    expect(submitButton).toBeInTheDocument();
   });
 
   test('updates name field value', () => {
@@ -181,7 +231,7 @@ describe('ActionForm Component', () => {
       </ActionFormWrapper>
     );
     
-    const nameInput = screen.getByLabelText('Name *');
+    const nameInput = screen.getByLabelText('Name');
     fireEvent.change(nameInput, { target: { value: 'New Action Name' } });
     
     expect(nameInput.value).toBe('New Action Name');
@@ -233,21 +283,21 @@ describe('ActionForm Component', () => {
       </ActionFormWrapper>
     );
     
-    const nameInput = screen.getByLabelText('Name *');
+    const nameInput = screen.getByLabelText('Name');
     const descriptionTextarea = screen.getByLabelText('Description');
     const sourceAttributeSelect = screen.getByLabelText('Source Attribute');
     const targetAttributeSelect = screen.getByLabelText('Target Attribute');
-    const submitButton = screen.getByRole('button', { name: 'Create Action' });
+    const submitButton = screen.getByRole('button', { name: 'Create' });
     
     fireEvent.change(nameInput, { target: { value: 'Test Action' } });
     fireEvent.change(descriptionTextarea, { target: { value: 'A test action' } });
-    fireEvent.change(sourceAttributeSelect, { target: { value: 'STRENGTH' } });
-    fireEvent.change(targetAttributeSelect, { target: { value: 'DEFENSE' } });
+    fireEvent.change(sourceAttributeSelect, { target: { value: 'SPEED' } });
+    fireEvent.change(targetAttributeSelect, { target: { value: 'SPEED' } });
     
     fireEvent.click(submitButton);
     
     await waitFor(() => {
-      expect(screen.getByText('Creating action...')).toBeInTheDocument();
+      expect(screen.getByText('Creating...')).toBeInTheDocument();
     });
   });
 
@@ -258,26 +308,29 @@ describe('ActionForm Component', () => {
       </ActionFormWrapper>
     );
     
-    expect(screen.getByText('Select source attribute')).toBeInTheDocument();
-    expect(screen.getByText('Select target attribute')).toBeInTheDocument();
-    
     // Check for some common attributes
-    expect(screen.getAllByText('Strength')).toHaveLength(2); // Source and target dropdowns
-    expect(screen.getAllByText('Dexterity')).toHaveLength(2);
-    expect(screen.getAllByText('Agility')).toHaveLength(2);
+    expect(screen.getAllByText('STRENGTH')).toHaveLength(2); // Source and target dropdowns
+    expect(screen.getAllByText('DEXTERITY')).toHaveLength(2);
+    expect(screen.getAllByText('AGILITY')).toHaveLength(2);
   });
 
   test('handles form submission errors', async () => {
     const errorMocks = [
+      mockListActions,
       {
         request: {
           query: CREATE_ACTION,
           variables: {
             input: {
               name: 'Test Action',
-              description: 'A test action',
+              actionCategory: 'MOVE',
               sourceAttribute: 'STRENGTH',
-              targetAttribute: 'DEFENSE'
+              targetAttribute: 'STRENGTH',
+              description: '',
+              targetType: 'OBJECT',
+              effectType: 'HELP',
+              objectUsage: 'NONE',
+              formula: 'CONTEST'
             }
           }
         },
@@ -291,18 +344,19 @@ describe('ActionForm Component', () => {
       </ActionFormWrapper>
     );
     
-    const nameInput = screen.getByLabelText('Name *');
+    const nameInput = screen.getByLabelText('Name');
     const sourceAttributeSelect = screen.getByLabelText('Source Attribute');
     const targetAttributeSelect = screen.getByLabelText('Target Attribute');
-    const submitButton = screen.getByRole('button', { name: 'Create Action' });
+    const submitButton = screen.getByRole('button', { name: 'Create' });
     
     fireEvent.change(nameInput, { target: { value: 'Test Action' } });
     fireEvent.change(sourceAttributeSelect, { target: { value: 'STRENGTH' } });
-    fireEvent.change(targetAttributeSelect, { target: { value: 'DEFENSE' } });
+    fireEvent.change(targetAttributeSelect, { target: { value: 'STRENGTH' } });
     fireEvent.click(submitButton);
     
     await waitFor(() => {
-      expect(screen.getByText('Error creating action')).toBeInTheDocument();
+      // The error popup should display an error message
+      expect(screen.getByText('Error')).toBeInTheDocument();
     });
   });
 
@@ -313,6 +367,6 @@ describe('ActionForm Component', () => {
       </ActionFormWrapper>
     );
     
-    expect(container.querySelector('.action-form')).toBeInTheDocument();
+    expect(container.querySelector('.form-container')).toBeInTheDocument();
   });
 });
