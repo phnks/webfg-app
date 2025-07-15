@@ -9,6 +9,17 @@ jest.mock('react-router-dom', () => ({
   useParams: () => ({ id: '1' })
 }));
 
+// Mock QuickAdjustWidget since it's used in CharacterDetails
+jest.mock('../../../components/common/QuickAdjustWidget', () => {
+  return function MockQuickAdjustWidget({ currentValue, onAdjust }) {
+    return (
+      <div data-testid="quick-adjust-widget">
+        Widget for {currentValue}
+      </div>
+    );
+  };
+});
+
 const mockCharacter = {
   characterId: '1',
   name: 'Test Character',
