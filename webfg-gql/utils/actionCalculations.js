@@ -57,7 +57,7 @@ const adjustDicePools = (sourceDice, targetDice) => {
     }
   }
   
-  return { adjustedSource, adjustedTarget };
+  return { source: adjustedSource, target: adjustedTarget };
 };
 
 /**
@@ -87,7 +87,7 @@ const calculateActionDifficulty = (sourceValue, targetValue) => {
   let targetDice = Math.max(0, Math.floor(targetValue));
   
   // Adjust dice pools if total exceeds 20
-  const { adjustedSource, adjustedTarget } = adjustDicePools(sourceDice, targetDice);
+  const { source: adjustedSource, target: adjustedTarget } = adjustDicePools(sourceDice, targetDice);
   
   // Calculate expected successes for each side
   const sourceSuccesses = calculateExpectedSuccesses(adjustedSource);
