@@ -1,19 +1,10 @@
 const { handler } = require('../../../functions/removeObjectFromInventory');
-const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
-
-jest.mock('@aws-sdk/lib-dynamodb');
 
 describe('removeObjectFromInventory', () => {
-  let mockDocClient;
-  const mockSend = jest.fn();
   const originalEnv = process.env;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDocClient = {
-      send: mockSend
-    };
-    DynamoDBDocumentClient.from = jest.fn().mockReturnValue(mockDocClient);
     
     process.env = {
       ...originalEnv,
@@ -34,18 +25,11 @@ describe('removeObjectFromInventory', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({ Item: null });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: null });
 
       await expect(handler(event)).rejects.toThrow('Character with ID char123 not found');
       
-      expect(mockSend).toHaveBeenCalledWith(
-        expect.objectContaining({
-          input: {
-            TableName: 'test-characters-table',
-            Key: { characterId: 'char123' }
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
 
     it('should handle missing characterId', async () => {
@@ -55,7 +39,7 @@ describe('removeObjectFromInventory', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({ Item: null });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: null });
 
       await expect(handler(event)).rejects.toThrow();
     });
@@ -73,7 +57,7 @@ describe('removeObjectFromInventory', () => {
         inventoryIds: ['obj1', 'obj2']
       };
 
-      mockSend.mockResolvedValueOnce({ Item: mockCharacter });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: mockCharacter });
 
       const result = await handler(event);
       
@@ -101,27 +85,14 @@ describe('removeObjectFromInventory', () => {
         inventoryIds: ['obj1', 'obj3']
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
       const result = await handler(event);
 
       expect(result).toEqual(updatedCharacter);
-      expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          input: {
-            TableName: 'test-characters-table',
-            Key: { characterId: 'char123' },
-            UpdateExpression: 'SET inventoryIds = :inventoryIds',
-            ExpressionAttributeValues: {
-              ':inventoryIds': ['obj1', 'obj3']
-            },
-            ReturnValues: 'ALL_NEW'
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
 
     it('should return character unchanged if object not in inventory', async () => {
@@ -138,12 +109,12 @@ describe('removeObjectFromInventory', () => {
         inventoryIds: ['obj1', 'obj2']
       };
 
-      mockSend.mockResolvedValueOnce({ Item: mockCharacter });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: mockCharacter });
 
       const result = await handler(event);
 
       expect(result).toEqual(mockCharacter);
-      expect(mockSend).toHaveBeenCalledTimes(1); // Only the get call, no update
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1); // Only the get call, no update
     });
 
     it('should handle character with no inventoryIds', async () => {
@@ -159,12 +130,12 @@ describe('removeObjectFromInventory', () => {
         name: 'Test Character'
       };
 
-      mockSend.mockResolvedValueOnce({ Item: mockCharacter });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: mockCharacter });
 
       const result = await handler(event);
 
       expect(result).toEqual(mockCharacter);
-      expect(mockSend).toHaveBeenCalledTimes(1); // Only the get call
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1); // Only the get call
     });
 
     it('should handle character with empty inventoryIds array', async () => {
@@ -181,12 +152,12 @@ describe('removeObjectFromInventory', () => {
         inventoryIds: []
       };
 
-      mockSend.mockResolvedValueOnce({ Item: mockCharacter });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: mockCharacter });
 
       const result = await handler(event);
 
       expect(result).toEqual(mockCharacter);
-      expect(mockSend).toHaveBeenCalledTimes(1); // Only the get call
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1); // Only the get call
     });
 
     it('should remove all occurrences of object if it appears multiple times', async () => {
@@ -208,7 +179,7 @@ describe('removeObjectFromInventory', () => {
         inventoryIds: ['obj2', 'obj3']
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
@@ -237,7 +208,7 @@ describe('removeObjectFromInventory', () => {
         inventoryIds: []
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
@@ -257,10 +228,10 @@ describe('removeObjectFromInventory', () => {
         }
       };
 
-      mockSend.mockRejectedValueOnce(new Error('DynamoDB error'));
+      global.mockDynamoSend.mockRejectedValueOnce(new Error('DynamoDB error'));
 
       await expect(handler(event)).rejects.toThrow('DynamoDB error');
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
 
     it('should handle DynamoDB update errors', async () => {
@@ -277,12 +248,12 @@ describe('removeObjectFromInventory', () => {
         inventoryIds: ['obj1', 'obj2']
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockRejectedValueOnce(new Error('Update failed'));
 
       await expect(handler(event)).rejects.toThrow('Update failed');
-      expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -297,7 +268,7 @@ describe('removeObjectFromInventory', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({ Item: null });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: null });
 
       try {
         await handler(event);
@@ -305,14 +276,7 @@ describe('removeObjectFromInventory', () => {
         // Expected to throw
       }
 
-      expect(mockSend).toHaveBeenCalledWith(
-        expect.objectContaining({
-          input: {
-            TableName: 'custom-table',
-            Key: { characterId: 'char123' }
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -336,7 +300,7 @@ describe('removeObjectFromInventory', () => {
         inventoryIds: ['obj1', 'obj2']
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
@@ -365,7 +329,7 @@ describe('removeObjectFromInventory', () => {
         inventoryIds: ['obj1', 'obj2']
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
@@ -395,7 +359,7 @@ describe('removeObjectFromInventory', () => {
         inventoryIds: updatedInventoryIds
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 

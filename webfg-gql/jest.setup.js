@@ -10,34 +10,44 @@ process.env.ACTIONS_TABLE = 'test-table';
 process.env.CONDITIONS_TABLE = 'test-table';
 process.env.ENCOUNTER_TABLE = 'test-encounter-table';
 
-// Mock AWS SDK globally
+// Mock AWS SDK globally - robust approach for CI
 const mockSend = jest.fn();
-const mockDynamoDBClient = jest.fn(() => ({
+
+// Create mock client that always returns the same send function
+const mockDynamoDBClient = jest.fn().mockImplementation(() => ({
   send: mockSend
 }));
+
+// Create mock document client
 const mockDynamoDBDocumentClient = {
-  from: jest.fn(() => ({
+  from: jest.fn().mockImplementation(() => ({
     send: mockSend
   }))
 };
 
+// Mock the AWS SDK modules
 jest.mock('@aws-sdk/client-dynamodb', () => ({
   DynamoDBClient: mockDynamoDBClient
 }));
 
 jest.mock('@aws-sdk/lib-dynamodb', () => ({
   DynamoDBDocumentClient: mockDynamoDBDocumentClient,
-  PutCommand: jest.fn(),
-  GetCommand: jest.fn(),
-  UpdateCommand: jest.fn(),
-  DeleteCommand: jest.fn(),
-  ScanCommand: jest.fn(),
-  QueryCommand: jest.fn(),
-  BatchGetCommand: jest.fn()
+  PutCommand: jest.fn().mockImplementation((input) => input),
+  GetCommand: jest.fn().mockImplementation((input) => input),
+  UpdateCommand: jest.fn().mockImplementation((input) => input),
+  DeleteCommand: jest.fn().mockImplementation((input) => input),
+  ScanCommand: jest.fn().mockImplementation((input) => input),
+  QueryCommand: jest.fn().mockImplementation((input) => input),
+  BatchGetCommand: jest.fn().mockImplementation((input) => input)
 }));
 
 // Export mock send function for use in tests
 global.mockDynamoSend = mockSend;
+
+// Ensure mock is available before any tests run
+beforeEach(() => {
+  global.mockDynamoSend = mockSend;
+});
 
 // Global test utilities
 global.createMockEvent = (body = {}, pathParameters = {}, headers = {}) => ({

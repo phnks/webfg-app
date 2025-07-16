@@ -16,12 +16,15 @@ const Timeline = ({ currentTime, history, onSelectCharacter }) => {
   // Collect all unique action IDs (Keep this for fetching action names)
   const actionIds = React.useMemo(() => {
     const ids = new Set();
-    history.forEach(event => {
-      // Add check for event existence before accessing actionId
-      if (event && event.actionId) {
-        ids.add(event.actionId);
-      }
-    });
+    // Handle null/undefined history
+    if (history && Array.isArray(history)) {
+      history.forEach(event => {
+        // Add check for event existence before accessing actionId
+        if (event && event.actionId) {
+          ids.add(event.actionId);
+        }
+      });
+    }
     return Array.from(ids);
   }, [history]);
 
@@ -63,9 +66,14 @@ const Timeline = ({ currentTime, history, onSelectCharacter }) => {
   };
 
   // Sort events by time, filtering out any null/undefined entries first
-  const timelineEvents = [...history]
-    .filter(event => event != null) // Add filter for null/undefined
-    .sort((a, b) => a.time - b.time);
+  const timelineEvents = React.useMemo(() => {
+    if (!history || !Array.isArray(history)) {
+      return [];
+    }
+    return [...history]
+      .filter(event => event != null && event.time != null) // Add filter for null/undefined
+      .sort((a, b) => a.time - b.time);
+  }, [history]);
 
   // Only measure heights when events change
   React.useEffect(() => {
@@ -110,7 +118,7 @@ const Timeline = ({ currentTime, history, onSelectCharacter }) => {
                 borderLeft: event.time <= currentTime ? '3px solid #F44336' : '3px solid #ddd'
               }}
             >
-              <div className="event-time">{event.time.toFixed(1)}s</div>
+              <div className="event-time">{event.time && typeof event.time === 'number' ? event.time.toFixed(1) : '0.0'}s</div>
               <div 
                 className="event-content"
                 onClick={() => event.characterId && onSelectCharacter(event.characterId)}
@@ -135,7 +143,7 @@ const Timeline = ({ currentTime, history, onSelectCharacter }) => {
           }}
         >
           <div className="time-marker"></div>
-          <div className="current-time">{currentTime.toFixed(1)}s</div>
+          <div className="current-time">{currentTime && typeof currentTime === 'number' ? currentTime.toFixed(1) : '0.0'}s</div>
         </div>
       </div>
     </div>

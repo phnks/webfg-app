@@ -156,7 +156,7 @@ const ConditionForm = ({ condition, isEditing = false, onClose, onSuccess }) => 
 
   return (
     <div className="form-container">
-      {error && <ErrorPopup message={error} onClose={() => setError(null)} />}
+      {error && <ErrorPopup error={{ message: error }} onClose={() => setError(null)} />}
       
       <form onSubmit={handleSubmit} className="condition-form">
         <h2>{isEditing ? 'Edit Condition' : 'Create New Condition'}</h2>

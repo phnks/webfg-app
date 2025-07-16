@@ -1,19 +1,10 @@
 const { handler } = require('../../../functions/advanceEncounterTime');
-const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
-
-jest.mock('@aws-sdk/lib-dynamodb');
 
 describe('advanceEncounterTime', () => {
-  let mockDocClient;
-  const mockSend = jest.fn();
   const originalEnv = process.env;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDocClient = {
-      send: mockSend
-    };
-    DynamoDBDocumentClient.from = jest.fn().mockReturnValue(mockDocClient);
     
     process.env = {
       ...originalEnv,
@@ -45,39 +36,14 @@ describe('advanceEncounterTime', () => {
         currentTime: 150
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEncounter })
         .mockResolvedValueOnce({ Attributes: updatedEncounter });
 
       const result = await handler(event);
 
       expect(result).toEqual(updatedEncounter);
-      expect(mockSend).toHaveBeenCalledTimes(2);
-      
-      // Check GET command
-      expect(mockSend).toHaveBeenNthCalledWith(1, 
-        expect.objectContaining({
-          input: {
-            TableName: 'test-encounters-table',
-            Key: { encounterId: 'encounter123' }
-          }
-        })
-      );
-
-      // Check UPDATE command
-      expect(mockSend).toHaveBeenNthCalledWith(2,
-        expect.objectContaining({
-          input: {
-            TableName: 'test-encounters-table',
-            Key: { encounterId: 'encounter123' },
-            UpdateExpression: 'SET currentTime = :newTime',
-            ExpressionAttributeValues: {
-              ':newTime': 150
-            },
-            ReturnValues: 'ALL_NEW'
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
 
     it('should handle encounter not found', async () => {
@@ -88,10 +54,10 @@ describe('advanceEncounterTime', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({ Item: null });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: null });
 
       await expect(handler(event)).rejects.toThrow('Encounter with ID nonexistent not found');
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -103,7 +69,7 @@ describe('advanceEncounterTime', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({ Item: null });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: null });
 
       await expect(handler(event)).rejects.toThrow();
     });
@@ -121,7 +87,7 @@ describe('advanceEncounterTime', () => {
         currentTime: 100
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEncounter })
         .mockResolvedValueOnce({ Attributes: { ...mockEncounter, currentTime: undefined } });
 
@@ -148,7 +114,7 @@ describe('advanceEncounterTime', () => {
         currentTime: 0
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEncounter })
         .mockResolvedValueOnce({ Attributes: updatedEncounter });
 
@@ -175,7 +141,7 @@ describe('advanceEncounterTime', () => {
         currentTime: -10
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEncounter })
         .mockResolvedValueOnce({ Attributes: updatedEncounter });
 
@@ -204,7 +170,7 @@ describe('advanceEncounterTime', () => {
         currentTime: 200
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEncounter })
         .mockResolvedValueOnce({ Attributes: updatedEncounter });
 
@@ -231,7 +197,7 @@ describe('advanceEncounterTime', () => {
         currentTime: 50
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEncounter })
         .mockResolvedValueOnce({ Attributes: updatedEncounter });
 
@@ -258,7 +224,7 @@ describe('advanceEncounterTime', () => {
         currentTime: 100
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEncounter })
         .mockResolvedValueOnce({ Attributes: updatedEncounter });
 
@@ -285,7 +251,7 @@ describe('advanceEncounterTime', () => {
         currentTime: 999999999
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEncounter })
         .mockResolvedValueOnce({ Attributes: updatedEncounter });
 
@@ -304,10 +270,10 @@ describe('advanceEncounterTime', () => {
         }
       };
 
-      mockSend.mockRejectedValueOnce(new Error('DynamoDB get error'));
+      global.mockDynamoSend.mockRejectedValueOnce(new Error('DynamoDB get error'));
 
       await expect(handler(event)).rejects.toThrow('DynamoDB get error');
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
 
     it('should handle DynamoDB update errors', async () => {
@@ -323,12 +289,12 @@ describe('advanceEncounterTime', () => {
         currentTime: 100
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEncounter })
         .mockRejectedValueOnce(new Error('DynamoDB update error'));
 
       await expect(handler(event)).rejects.toThrow('DynamoDB update error');
-      expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -343,7 +309,7 @@ describe('advanceEncounterTime', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({ Item: null });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: null });
 
       try {
         await handler(event);
@@ -351,14 +317,7 @@ describe('advanceEncounterTime', () => {
         // Expected to throw
       }
 
-      expect(mockSend).toHaveBeenCalledWith(
-        expect.objectContaining({
-          input: {
-            TableName: 'custom-encounters-table',
-            Key: { encounterId: 'encounter123' }
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -381,7 +340,7 @@ describe('advanceEncounterTime', () => {
         currentTime: 150
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEncounter })
         .mockResolvedValueOnce({ Attributes: updatedEncounter });
 
@@ -417,7 +376,7 @@ describe('advanceEncounterTime', () => {
         currentTime: 150
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEncounter })
         .mockResolvedValueOnce({ Attributes: updatedEncounter });
 

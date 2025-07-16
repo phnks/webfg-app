@@ -13,7 +13,7 @@ import ActionTestBackend from "./test/ActionTestBackend";
 import "./ActionView.css";
 import ErrorPopup from '../common/ErrorPopup';
 
-const ActionView = ({ startInEditMode = false }) => {
+const ActionView = ({ startInEditMode = false, actionProp = null }) => {
   const { actionId } = useParams();
   const navigate = useNavigate();
   const { selectedCharacter } = useSelectedCharacter();
@@ -24,10 +24,10 @@ const ActionView = ({ startInEditMode = false }) => {
   const [mutationError, setMutationError] = useState(null);
   const [fullCharacterData, setFullCharacterData] = useState(null);
 
-  // Initial query to get action data
-  // Get action data
-  const { loading, error, refetch } = useQuery(GET_ACTION, {
+  // Initial query to get action data (skip if actionProp is provided)
+  const { data, loading, error, refetch } = useQuery(GET_ACTION, {
     variables: { actionId },
+    skip: !!actionProp, // Skip GraphQL query if actionProp is provided
     onCompleted: (data) => {
       if (data && data.getAction) {
         setCurrentAction(data.getAction);
@@ -48,6 +48,17 @@ const ActionView = ({ startInEditMode = false }) => {
 
   const [deleteAction] = useMutation(DELETE_ACTION);
   const [addActionToCharacter] = useMutation(ADD_ACTION_TO_CHARACTER);
+
+  // Set action data from prop or query
+  useEffect(() => {
+    if (actionProp) {
+      // Use the actionProp if provided
+      setCurrentAction(actionProp);
+    } else if (data && data.getAction) {
+      // Otherwise use GraphQL query data
+      setCurrentAction(data.getAction);
+    }
+  }, [actionProp, data]);
 
   // Set edit mode when prop changes
   useEffect(() => {

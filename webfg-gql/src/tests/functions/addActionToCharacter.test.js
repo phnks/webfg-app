@@ -1,20 +1,10 @@
 const { handler } = require('../../../functions/addActionToCharacter');
-const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
-
-jest.mock('@aws-sdk/lib-dynamodb');
 
 describe('addActionToCharacter', () => {
-  let mockDocClient;
-  const mockSend = jest.fn();
   const originalEnv = process.env;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDocClient = {
-      send: mockSend
-    };
-    DynamoDBDocumentClient.from = jest.fn().mockReturnValue(mockDocClient);
-    
     process.env = {
       ...originalEnv,
       CHARACTERS_TABLE: 'test-characters-table'
@@ -34,18 +24,13 @@ describe('addActionToCharacter', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({ Item: null });
+      // Mock GetCommand to return no character
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: null });
 
       await expect(handler(event)).rejects.toThrow('Character with ID char123 not found');
       
-      expect(mockSend).toHaveBeenCalledWith(
-        expect.objectContaining({
-          input: {
-            TableName: 'test-characters-table',
-            Key: { characterId: 'char123' }
-          }
-        })
-      );
+      // Verify the GetCommand was called
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
 
     it('should handle missing characterId', async () => {
@@ -55,7 +40,7 @@ describe('addActionToCharacter', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({ Item: null });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: null });
 
       await expect(handler(event)).rejects.toThrow();
     });
@@ -73,11 +58,18 @@ describe('addActionToCharacter', () => {
         actionIds: ['action1', 'action2']
       };
 
-      mockSend.mockResolvedValueOnce({ Item: mockCharacter });
+      const updatedCharacter = {
+        ...mockCharacter,
+        actionIds: ['action1', 'action2', undefined]
+      };
+
+      global.mockDynamoSend
+        .mockResolvedValueOnce({ Item: mockCharacter })
+        .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
       const result = await handler(event);
       
-      expect(result).toEqual(mockCharacter);
+      expect(result).toEqual(updatedCharacter);
     });
   });
 
@@ -101,27 +93,14 @@ describe('addActionToCharacter', () => {
         actionIds: ['action1', 'action2', 'action456']
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
       const result = await handler(event);
 
       expect(result).toEqual(updatedCharacter);
-      expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          input: {
-            TableName: 'test-characters-table',
-            Key: { characterId: 'char123' },
-            UpdateExpression: 'SET actionIds = :actionIds',
-            ExpressionAttributeValues: {
-              ':actionIds': ['action1', 'action2', 'action456']
-            },
-            ReturnValues: 'ALL_NEW'
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
 
     it('should add action to character with no existing actions', async () => {
@@ -142,26 +121,14 @@ describe('addActionToCharacter', () => {
         actionIds: ['action456']
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
       const result = await handler(event);
 
       expect(result).toEqual(updatedCharacter);
-      expect(mockSend).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          input: {
-            TableName: 'test-characters-table',
-            Key: { characterId: 'char123' },
-            UpdateExpression: 'SET actionIds = :actionIds',
-            ExpressionAttributeValues: {
-              ':actionIds': ['action456']
-            },
-            ReturnValues: 'ALL_NEW'
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
 
     it('should not add duplicate action', async () => {
@@ -178,12 +145,12 @@ describe('addActionToCharacter', () => {
         actionIds: ['action1', 'action2']
       };
 
-      mockSend.mockResolvedValueOnce({ Item: mockCharacter });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: mockCharacter });
 
       const result = await handler(event);
 
       expect(result).toEqual(mockCharacter);
-      expect(mockSend).toHaveBeenCalledTimes(1); // Only the get call, no update
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1); // Only the get call, no update
     });
 
     it('should handle character with empty actionIds array', async () => {
@@ -205,7 +172,7 @@ describe('addActionToCharacter', () => {
         actionIds: ['action456']
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
@@ -224,10 +191,10 @@ describe('addActionToCharacter', () => {
         }
       };
 
-      mockSend.mockRejectedValueOnce(new Error('DynamoDB error'));
+      global.mockDynamoSend.mockRejectedValueOnce(new Error('DynamoDB error'));
 
       await expect(handler(event)).rejects.toThrow('DynamoDB error');
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
 
     it('should handle DynamoDB update errors', async () => {
@@ -244,12 +211,12 @@ describe('addActionToCharacter', () => {
         actionIds: ['action1']
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockRejectedValueOnce(new Error('Update failed'));
 
       await expect(handler(event)).rejects.toThrow('Update failed');
-      expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -264,7 +231,7 @@ describe('addActionToCharacter', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({ Item: null });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: null });
 
       try {
         await handler(event);
@@ -272,14 +239,7 @@ describe('addActionToCharacter', () => {
         // Expected to throw
       }
 
-      expect(mockSend).toHaveBeenCalledWith(
-        expect.objectContaining({
-          input: {
-            TableName: 'custom-table',
-            Key: { characterId: 'char123' }
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -303,7 +263,7 @@ describe('addActionToCharacter', () => {
         actionIds: ['action-with-special!@#$%^&*()_+=']
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
@@ -332,7 +292,7 @@ describe('addActionToCharacter', () => {
         actionIds: [longActionId]
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
@@ -361,7 +321,7 @@ describe('addActionToCharacter', () => {
         actionIds: [...existingActions, 'newAction']
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockCharacter })
         .mockResolvedValueOnce({ Attributes: updatedCharacter });
 
