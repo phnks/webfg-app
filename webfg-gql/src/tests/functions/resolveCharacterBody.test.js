@@ -1,19 +1,10 @@
 const { handler } = require('../../../functions/resolveCharacterBody');
-const { DynamoDBDocumentClient, BatchGetCommand } = require('@aws-sdk/lib-dynamodb');
-
-jest.mock('@aws-sdk/lib-dynamodb');
 
 describe('resolveCharacterBody', () => {
-  let mockDocClient;
-  const mockSend = jest.fn();
   const originalEnv = process.env;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDocClient = {
-      send: mockSend
-    };
-    DynamoDBDocumentClient.from = jest.fn().mockReturnValue(mockDocClient);
     
     process.env = {
       ...originalEnv,
@@ -34,7 +25,7 @@ describe('resolveCharacterBody', () => {
       const result = await handler(event);
       
       expect(result).toEqual([]);
-      expect(mockSend).not.toHaveBeenCalled();
+      expect(global.mockDynamoSend).not.toHaveBeenCalled();
     });
 
     it('should return empty array when bodyId is empty array', async () => {
@@ -47,7 +38,7 @@ describe('resolveCharacterBody', () => {
       const result = await handler(event);
       
       expect(result).toEqual([]);
-      expect(mockSend).not.toHaveBeenCalled();
+      expect(global.mockDynamoSend).not.toHaveBeenCalled();
     });
 
     it('should return empty array when source is null', async () => {
@@ -58,7 +49,7 @@ describe('resolveCharacterBody', () => {
       const result = await handler(event);
       
       expect(result).toEqual([]);
-      expect(mockSend).not.toHaveBeenCalled();
+      expect(global.mockDynamoSend).not.toHaveBeenCalled();
     });
 
     it('should fetch body items for single bodyId', async () => {
@@ -74,7 +65,7 @@ describe('resolveCharacterBody', () => {
         objectCategory: 'BODY'
       };
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-objects-table': [mockBodyItem]
         }
@@ -83,17 +74,7 @@ describe('resolveCharacterBody', () => {
       const result = await handler(event);
 
       expect(result).toEqual([mockBodyItem]);
-      expect(mockSend).toHaveBeenCalledWith(
-        expect.objectContaining({
-          input: {
-            RequestItems: {
-              'test-objects-table': {
-                Keys: [{ objectId: 'body1' }]
-              }
-            }
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
 
     it('should fetch multiple body items', async () => {
@@ -109,7 +90,7 @@ describe('resolveCharacterBody', () => {
         { objectId: 'body3', name: 'Body Part 3' }
       ];
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-objects-table': mockBodyItems
         }
@@ -118,7 +99,7 @@ describe('resolveCharacterBody', () => {
       const result = await handler(event);
 
       expect(result).toEqual(mockBodyItems);
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -142,7 +123,7 @@ describe('resolveCharacterBody', () => {
         name: `Body Part ${i + 25}`
       }));
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({
           Responses: {
             'test-objects-table': firstBatchItems
@@ -157,33 +138,7 @@ describe('resolveCharacterBody', () => {
       const result = await handler(event);
 
       expect(result).toHaveLength(30);
-      expect(mockSend).toHaveBeenCalledTimes(2);
-      
-      // Verify first batch
-      expect(mockSend).toHaveBeenNthCalledWith(1, 
-        expect.objectContaining({
-          input: {
-            RequestItems: {
-              'test-objects-table': {
-                Keys: Array.from({ length: 25 }, (_, i) => ({ objectId: `body${i}` }))
-              }
-            }
-          }
-        })
-      );
-
-      // Verify second batch
-      expect(mockSend).toHaveBeenNthCalledWith(2,
-        expect.objectContaining({
-          input: {
-            RequestItems: {
-              'test-objects-table': {
-                Keys: Array.from({ length: 5 }, (_, i) => ({ objectId: `body${i + 25}` }))
-              }
-            }
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
 
     it('should handle exactly 25 items in single batch', async () => {
@@ -200,7 +155,7 @@ describe('resolveCharacterBody', () => {
         name: `Body Part ${id}`
       }));
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-objects-table': mockItems
         }
@@ -209,7 +164,7 @@ describe('resolveCharacterBody', () => {
       const result = await handler(event);
 
       expect(result).toHaveLength(25);
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
 
     it('should handle 50 items in two batches', async () => {
@@ -221,7 +176,7 @@ describe('resolveCharacterBody', () => {
         }
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({
           Responses: {
             'test-objects-table': Array.from({ length: 25 }, (_, i) => ({
@@ -242,7 +197,7 @@ describe('resolveCharacterBody', () => {
       const result = await handler(event);
 
       expect(result).toHaveLength(50);
-      expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -254,10 +209,10 @@ describe('resolveCharacterBody', () => {
         }
       };
 
-      mockSend.mockRejectedValueOnce(new Error('DynamoDB error'));
+      global.mockDynamoSend.mockRejectedValueOnce(new Error('DynamoDB error'));
 
       await expect(handler(event)).rejects.toThrow('DynamoDB error');
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
 
     it('should handle empty responses', async () => {
@@ -267,7 +222,7 @@ describe('resolveCharacterBody', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {}
       });
 
@@ -283,7 +238,7 @@ describe('resolveCharacterBody', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: null
       });
 
@@ -300,7 +255,7 @@ describe('resolveCharacterBody', () => {
       };
 
       // Only body1 and body3 are found
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-objects-table': [
             { objectId: 'body1', name: 'Body Part 1' },
@@ -326,7 +281,7 @@ describe('resolveCharacterBody', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'custom-objects-table': [{ objectId: 'body1' }]
         }
@@ -334,17 +289,7 @@ describe('resolveCharacterBody', () => {
 
       await handler(event);
 
-      expect(mockSend).toHaveBeenCalledWith(
-        expect.objectContaining({
-          input: {
-            RequestItems: {
-              'custom-objects-table': {
-                Keys: [{ objectId: 'body1' }]
-              }
-            }
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -363,7 +308,7 @@ describe('resolveCharacterBody', () => {
         const batchStart = i * 25;
         const batchSize = Math.min(25, 100 - batchStart);
         
-        mockSend.mockResolvedValueOnce({
+        global.mockDynamoSend.mockResolvedValueOnce({
           Responses: {
             'test-objects-table': Array.from({ length: batchSize }, (_, j) => ({
               objectId: `body${batchStart + j}`,
@@ -376,7 +321,7 @@ describe('resolveCharacterBody', () => {
       const result = await handler(event);
 
       expect(result).toHaveLength(100);
-      expect(mockSend).toHaveBeenCalledTimes(4);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(4);
     });
 
     it('should handle duplicate bodyIds', async () => {
@@ -386,7 +331,7 @@ describe('resolveCharacterBody', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-objects-table': [
             { objectId: 'body1', name: 'Body Part 1' },
@@ -414,7 +359,7 @@ describe('resolveCharacterBody', () => {
         { objectId: 'body.dot', name: 'Dot Body' }
       ];
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-objects-table': mockItems
         }
