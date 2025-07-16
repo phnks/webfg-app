@@ -187,7 +187,8 @@ describe('EncountersList Component', () => {
       // The component shows creation date, not time
       expect(screen.getAllByText(/Created:/).length).toBeGreaterThan(0);
       // Date formatting depends on locale, so look for more flexible pattern
-      expect(screen.getByText(/Created:.*2023/)).toBeInTheDocument();
+      // Using getAllByText since we have multiple encounters with 2023 dates
+      expect(screen.getAllByText(/Created:.*2023/).length).toBeGreaterThan(0);
     });
   });
 
