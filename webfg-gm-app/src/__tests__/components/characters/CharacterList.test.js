@@ -1,8 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
 import CharacterList from '../../../components/characters/CharacterList';
-import { LIST_CHARACTERS_ENHANCED } from '../../../graphql/operations';
 import { SelectedCharacterProvider } from '../../../context/SelectedCharacterContext';
 
 // Mock react-router-dom
@@ -11,45 +9,75 @@ jest.mock('react-router-dom', () => ({
   Link: ({ children, to }) => <a href={to}>{children}</a>
 }));
 
+// Mock Apollo Client
+jest.mock('@apollo/client', () => ({
+  useQuery: jest.fn(),
+  useMutation: jest.fn(() => [jest.fn(), { loading: false }]),
+  gql: jest.fn()
+}));
+
+// Mock components
+jest.mock('../../../components/common/SearchFilterSort', () => {
+  return function MockSearchFilterSort() {
+    return <div data-testid="search-filter-sort">Search Filter Sort</div>;
+  };
+});
+
+jest.mock('../../../components/common/PaginationControls', () => {
+  return function MockPaginationControls() {
+    return <div data-testid="pagination-controls">Pagination Controls</div>;
+  };
+});
+
+jest.mock('../../../components/common/ErrorPopup', () => {
+  return function MockErrorPopup() {
+    return <div data-testid="error-popup">Error Popup</div>;
+  };
+});
+
+const { useQuery, useMutation } = require('@apollo/client');
+
 const mockCharacters = [
   {
     characterId: '1',
     name: 'Test Character',
     characterCategory: 'HUMAN',
     will: 10,
-    fatigue: 2,
-    __typename: 'Character'
+    fatigue: 2
   }
 ];
 
-const mocks = [
-  {
-    request: {
-      query: LIST_CHARACTERS_ENHANCED,
-      variables: {}
-    },
-    result: {
-      data: {
-        listCharactersEnhanced: {
-          characters: mockCharacters,
-          totalCount: 1,
-          __typename: 'CharacterListResult'
-        }
-      }
-    }
-  }
-];
-
-const CharacterListWrapper = ({ apolloMocks = mocks, children }) => (
-  <MockedProvider mocks={apolloMocks} addTypename={false}>
-    <SelectedCharacterProvider>
-      {children}
-    </SelectedCharacterProvider>
-  </MockedProvider>
+const CharacterListWrapper = ({ children }) => (
+  <SelectedCharacterProvider>
+    {children}
+  </SelectedCharacterProvider>
 );
 
 describe('CharacterList Component', () => {
+  beforeAll(() => {
+    // Mock console to avoid test output noise
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
+  
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+  
+  beforeEach(() => {
+    // Reset all mocks before each test
+    jest.clearAllMocks();
+  });
+  
   test('renders without crashing', () => {
+    useQuery.mockReturnValue({
+      data: null,
+      loading: true,
+      error: null
+    });
+    
+    useMutation.mockReturnValue([jest.fn(), { loading: false }]);
+    
     render(
       <CharacterListWrapper>
         <CharacterList />
@@ -58,16 +86,39 @@ describe('CharacterList Component', () => {
   });
 
   test('displays loading state initially', () => {
+    useQuery.mockReturnValue({
+      data: null,
+      loading: true,
+      error: null
+    });
+    
+    useMutation.mockReturnValue([jest.fn(), { loading: false }]);
+    
     render(
       <CharacterListWrapper>
         <CharacterList />
       </CharacterListWrapper>
     );
     
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Loading characters...')).toBeInTheDocument();
   });
 
   test('displays characters after loading', async () => {
+    useQuery.mockReturnValue({
+      data: {
+        listCharactersEnhanced: {
+          items: mockCharacters,
+          nextCursor: null,
+          hasNextPage: false,
+          totalCount: 1
+        }
+      },
+      loading: false,
+      error: null
+    });
+    
+    useMutation.mockReturnValue([jest.fn(), { loading: false }]);
+    
     render(
       <CharacterListWrapper>
         <CharacterList />
@@ -80,26 +131,23 @@ describe('CharacterList Component', () => {
   });
 
   test('handles empty character list', async () => {
-    const emptyMocks = [
-      {
-        request: {
-          query: LIST_CHARACTERS_ENHANCED,
-          variables: {}
-        },
-        result: {
-          data: {
-            listCharactersEnhanced: {
-              characters: [],
-              totalCount: 0,
-              __typename: 'CharacterListResult'
-            }
-          }
+    useQuery.mockReturnValue({
+      data: {
+        listCharactersEnhanced: {
+          items: [],
+          nextCursor: null,
+          hasNextPage: false,
+          totalCount: 0
         }
-      }
-    ];
+      },
+      loading: false,
+      error: null
+    });
+
+    useMutation.mockReturnValue([jest.fn(), { loading: false }]);
 
     render(
-      <CharacterListWrapper apolloMocks={emptyMocks}>
+      <CharacterListWrapper>
         <CharacterList />
       </CharacterListWrapper>
     );
@@ -110,18 +158,16 @@ describe('CharacterList Component', () => {
   });
 
   test('handles GraphQL error', async () => {
-    const errorMocks = [
-      {
-        request: {
-          query: LIST_CHARACTERS_ENHANCED,
-          variables: {}
-        },
-        error: new Error('GraphQL error')
-      }
-    ];
+    useQuery.mockReturnValue({
+      data: null,
+      loading: false,
+      error: new Error('GraphQL error')
+    });
+
+    useMutation.mockReturnValue([jest.fn(), { loading: false }]);
 
     render(
-      <CharacterListWrapper apolloMocks={errorMocks}>
+      <CharacterListWrapper>
         <CharacterList />
       </CharacterListWrapper>
     );

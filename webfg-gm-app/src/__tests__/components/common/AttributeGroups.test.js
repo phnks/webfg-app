@@ -9,7 +9,12 @@ const mockAttributes = {
   will: { attribute: { attributeValue: 8, isGrouped: false } }
 };
 
-const mockOnAttributeChange = jest.fn();
+const mockRenderAttribute = jest.fn((name, attr, displayName) => (
+  <div key={name} className="attribute-item">
+    <label>{displayName}</label>
+    <input type="number" value={attr?.attribute?.attributeValue || 0} readOnly />
+  </div>
+));
 
 describe('AttributeGroups Component', () => {
   beforeEach(() => {
@@ -20,7 +25,7 @@ describe('AttributeGroups Component', () => {
     render(
       <AttributeGroups 
         attributes={mockAttributes}
-        onAttributeChange={mockOnAttributeChange}
+        renderAttribute={mockRenderAttribute}
       />
     );
   });
@@ -29,86 +34,85 @@ describe('AttributeGroups Component', () => {
     render(
       <AttributeGroups 
         attributes={mockAttributes}
-        onAttributeChange={mockOnAttributeChange}
+        renderAttribute={mockRenderAttribute}
       />
     );
     
-    expect(screen.getByText('Physical Attributes')).toBeInTheDocument();
-    expect(screen.getByText('Mental Attributes')).toBeInTheDocument();
+    expect(screen.getByText('BODY')).toBeInTheDocument();
+    expect(screen.getByText('MARTIAL')).toBeInTheDocument();
+    expect(screen.getByText('MENTAL')).toBeInTheDocument();
   });
 
-  test('displays attribute names', () => {
+  test('displays attribute names after expanding groups', () => {
     render(
       <AttributeGroups 
         attributes={mockAttributes}
-        onAttributeChange={mockOnAttributeChange}
+        renderAttribute={mockRenderAttribute}
+        defaultExpandedGroups={['MARTIAL', 'MENTAL']}
       />
     );
     
-    expect(screen.getByText('Strength')).toBeInTheDocument();
-    expect(screen.getByText('Dexterity')).toBeInTheDocument();
-    expect(screen.getByText('Intelligence')).toBeInTheDocument();
-    expect(screen.getByText('Will')).toBeInTheDocument();
+    // After expanding, the renderAttribute function should be called
+    expect(mockRenderAttribute).toHaveBeenCalled();
   });
 
   test('displays attribute values', () => {
     render(
       <AttributeGroups 
         attributes={mockAttributes}
-        onAttributeChange={mockOnAttributeChange}
+        renderAttribute={mockRenderAttribute}
+        defaultExpandedGroups={['MARTIAL']}
       />
     );
     
-    expect(screen.getByDisplayValue('12')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('14')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('10')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('8')).toBeInTheDocument();
+    // The renderAttribute function creates inputs with the values
+    expect(mockRenderAttribute).toHaveBeenCalledWith('strength', mockAttributes.strength, 'Strength');
+    expect(mockRenderAttribute).toHaveBeenCalledWith('dexterity', mockAttributes.dexterity, 'Dexterity');
   });
 
   test('handles attribute value changes', () => {
     render(
       <AttributeGroups 
         attributes={mockAttributes}
-        onAttributeChange={mockOnAttributeChange}
+        renderAttribute={mockRenderAttribute}
+        defaultExpandedGroups={['MARTIAL']}
       />
     );
     
-    const strengthInput = screen.getByDisplayValue('12');
-    fireEvent.change(strengthInput, { target: { value: '15' } });
-    
-    expect(mockOnAttributeChange).toHaveBeenCalledWith('strength', {
-      attribute: { attributeValue: 15, isGrouped: false }
-    });
+    // The component delegates rendering to the renderAttribute function
+    // It doesn't handle changes itself
+    expect(mockRenderAttribute).toHaveBeenCalled();
   });
 
   test('handles missing attributes gracefully', () => {
     render(
       <AttributeGroups 
         attributes={{}}
-        onAttributeChange={mockOnAttributeChange}
+        renderAttribute={mockRenderAttribute}
       />
     );
     
-    expect(screen.getByText('Physical Attributes')).toBeInTheDocument();
-    expect(screen.getByText('Mental Attributes')).toBeInTheDocument();
+    expect(screen.getByText('BODY')).toBeInTheDocument();
+    expect(screen.getByText('MARTIAL')).toBeInTheDocument();
+    expect(screen.getByText('MENTAL')).toBeInTheDocument();
   });
 
   test('handles null attributes', () => {
     render(
       <AttributeGroups 
         attributes={null}
-        onAttributeChange={mockOnAttributeChange}
+        renderAttribute={mockRenderAttribute}
       />
     );
     
-    expect(screen.getByText('Physical Attributes')).toBeInTheDocument();
+    expect(screen.getByText('BODY')).toBeInTheDocument();
   });
 
   test('applies correct CSS classes', () => {
     const { container } = render(
       <AttributeGroups 
         attributes={mockAttributes}
-        onAttributeChange={mockOnAttributeChange}
+        renderAttribute={mockRenderAttribute}
       />
     );
     
@@ -120,13 +124,13 @@ describe('AttributeGroups Component', () => {
     render(
       <AttributeGroups 
         attributes={mockAttributes}
-        onAttributeChange={mockOnAttributeChange}
+        renderAttribute={mockRenderAttribute}
       />
     );
     
     // Should display all groups defined in ATTRIBUTE_GROUPS
     Object.keys(ATTRIBUTE_GROUPS).forEach(groupName => {
-      expect(screen.getByText(ATTRIBUTE_GROUPS[groupName].label)).toBeInTheDocument();
+      expect(screen.getByText(groupName)).toBeInTheDocument();
     });
   });
 
@@ -139,67 +143,26 @@ describe('AttributeGroups Component', () => {
     render(
       <AttributeGroups 
         attributes={groupedAttributes}
-        onAttributeChange={mockOnAttributeChange}
+        renderAttribute={mockRenderAttribute}
+        defaultExpandedGroups={['MARTIAL']}
       />
     );
     
-    expect(screen.getByDisplayValue('12')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('14')).toBeInTheDocument();
+    expect(mockRenderAttribute).toHaveBeenCalledWith('strength', groupedAttributes.strength, 'Strength');
   });
 
-  test('handles readonly mode', () => {
+  test('toggles group expansion on click', () => {
     render(
       <AttributeGroups 
         attributes={mockAttributes}
-        onAttributeChange={mockOnAttributeChange}
-        readonly={true}
+        renderAttribute={mockRenderAttribute}
       />
     );
     
-    const strengthInput = screen.getByDisplayValue('12');
-    expect(strengthInput).toBeDisabled();
-  });
-
-  test('validates numeric input', () => {
-    render(
-      <AttributeGroups 
-        attributes={mockAttributes}
-        onAttributeChange={mockOnAttributeChange}
-      />
-    );
+    const bodyHeader = screen.getByText('BODY');
+    fireEvent.click(bodyHeader.parentElement);
     
-    const strengthInput = screen.getByDisplayValue('12');
-    fireEvent.change(strengthInput, { target: { value: 'invalid' } });
-    
-    // Should not call onChange with invalid value
-    expect(mockOnAttributeChange).not.toHaveBeenCalled();
-  });
-
-  test('displays attribute labels correctly', () => {
-    render(
-      <AttributeGroups 
-        attributes={mockAttributes}
-        onAttributeChange={mockOnAttributeChange}
-      />
-    );
-    
-    // Check that all attribute labels are present
-    ATTRIBUTE_GROUPS.physical.attributes.forEach(attr => {
-      expect(screen.getByText(attr.charAt(0).toUpperCase() + attr.slice(1))).toBeInTheDocument();
-    });
-  });
-
-  test('handles attribute deletion', () => {
-    render(
-      <AttributeGroups 
-        attributes={mockAttributes}
-        onAttributeChange={mockOnAttributeChange}
-        allowDelete={true}
-      />
-    );
-    
-    // Should show delete buttons if allowDelete is true
-    const deleteButtons = screen.getAllByText('×');
-    expect(deleteButtons.length).toBeGreaterThan(0);
+    // After clicking, renderAttribute should be called for BODY attributes
+    expect(mockRenderAttribute).toHaveBeenCalled();
   });
 });

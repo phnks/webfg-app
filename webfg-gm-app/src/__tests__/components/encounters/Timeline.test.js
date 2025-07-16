@@ -14,7 +14,8 @@ const mockHistory = [
     characterId: '1',
     characterName: 'Hero',
     timestamp: '2023-01-01T10:00:00Z',
-    actionId: 'action1'
+    actionId: 'action1',
+    time: 10.5
   },
   {
     eventId: '2',
@@ -24,7 +25,8 @@ const mockHistory = [
     description: 'Villain moves north',
     characterId: '2',
     characterName: 'Villain',
-    timestamp: '2023-01-01T10:01:00Z'
+    timestamp: '2023-01-01T10:01:00Z',
+    time: 15.2
   }
 ];
 
@@ -118,6 +120,6 @@ describe('Timeline Component', () => {
       </TimelineWrapper>
     );
     
-    expect(container.querySelector('.timeline')).toBeInTheDocument();
+    expect(container.querySelector('.timeline-wrapper')).toBeInTheDocument();
   });
 });

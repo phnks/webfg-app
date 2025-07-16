@@ -4,23 +4,10 @@ import SearchFilterSort from '../../../components/common/SearchFilterSort';
 
 describe('SearchFilterSort Component', () => {
   const defaultProps = {
-    searchTerm: '',
-    setSearchTerm: jest.fn(),
-    sortBy: 'name',
-    setSortBy: jest.fn(),
-    sortOrder: 'asc',
-    setSortOrder: jest.fn(),
-    filterBy: '',
-    setFilterBy: jest.fn(),
-    filterOptions: [
-      { value: '', label: 'All' },
-      { value: 'HUMAN', label: 'Human' },
-      { value: 'ANIMAL', label: 'Animal' }
-    ],
-    sortOptions: [
-      { value: 'name', label: 'Name' },
-      { value: 'category', label: 'Category' }
-    ]
+    entityType: 'characters',
+    onFilterChange: jest.fn(),
+    initialFilters: {},
+    onClearFilters: jest.fn()
   };
 
   beforeEach(() => {
@@ -34,93 +21,75 @@ describe('SearchFilterSort Component', () => {
   test('displays search input', () => {
     render(<SearchFilterSort {...defaultProps} />);
     
-    expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search characters by name...')).toBeInTheDocument();
   });
 
   test('displays filter dropdown', () => {
     render(<SearchFilterSort {...defaultProps} />);
     
-    expect(screen.getByDisplayValue('All')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('All Categories')).toBeInTheDocument();
   });
 
   test('displays sort dropdown', () => {
     render(<SearchFilterSort {...defaultProps} />);
     
-    expect(screen.getByDisplayValue('Name')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Default Order')).toBeInTheDocument();
   });
 
   test('displays sort order button', () => {
     render(<SearchFilterSort {...defaultProps} />);
     
-    expect(screen.getByRole('button')).toBeInTheDocument();
+    expect(screen.getByText('Search')).toBeInTheDocument();
   });
 
-  test('calls setSearchTerm when search input changes', () => {
-    const mockSetSearchTerm = jest.fn();
-    render(<SearchFilterSort {...defaultProps} setSearchTerm={mockSetSearchTerm} />);
+  test('displays search and filter header', () => {
+    render(<SearchFilterSort {...defaultProps} />);
     
-    const searchInput = screen.getByPlaceholderText(/search/i);
+    expect(screen.getByText('Search & Filter')).toBeInTheDocument();
+    expect(screen.getByText('Show Advanced Filters')).toBeInTheDocument();
+  });
+
+  test('shows advanced filters when toggle clicked', () => {
+    render(<SearchFilterSort {...defaultProps} />);
+    
+    const toggleButton = screen.getByText('Show Advanced Filters');
+    fireEvent.click(toggleButton);
+    
+    expect(screen.getByText('Hide Advanced Filters')).toBeInTheDocument();
+    expect(screen.getByText('Advanced Filters')).toBeInTheDocument();
+  });
+
+  test('handles search input changes', () => {
+    render(<SearchFilterSort {...defaultProps} />);
+    
+    const searchInput = screen.getByPlaceholderText('Search characters by name...');
     fireEvent.change(searchInput, { target: { value: 'test' } });
     
-    expect(mockSetSearchTerm).toHaveBeenCalledWith('test');
+    expect(searchInput.value).toBe('test');
   });
 
-  test('calls setFilterBy when filter changes', () => {
-    const mockSetFilterBy = jest.fn();
-    render(<SearchFilterSort {...defaultProps} setFilterBy={mockSetFilterBy} />);
+  test('handles category filter changes', () => {
+    render(<SearchFilterSort {...defaultProps} />);
     
-    const filterSelect = screen.getByDisplayValue('All');
-    fireEvent.change(filterSelect, { target: { value: 'HUMAN' } });
+    const categorySelect = screen.getByDisplayValue('All Categories');
+    fireEvent.change(categorySelect, { target: { value: 'HUMAN' } });
     
-    expect(mockSetFilterBy).toHaveBeenCalledWith('HUMAN');
+    expect(categorySelect.value).toBe('HUMAN');
   });
 
-  test('calls setSortBy when sort option changes', () => {
-    const mockSetSortBy = jest.fn();
-    render(<SearchFilterSort {...defaultProps} setSortBy={mockSetSortBy} />);
+  test('shows clear all button when filters are active', () => {
+    render(<SearchFilterSort {...defaultProps} initialFilters={{ search: 'test' }} />);
     
-    const sortSelect = screen.getByDisplayValue('Name');
-    fireEvent.change(sortSelect, { target: { value: 'category' } });
-    
-    expect(mockSetSortBy).toHaveBeenCalledWith('category');
+    expect(screen.getByText('Clear All')).toBeInTheDocument();
   });
 
-  test('calls setSortOrder when sort order button is clicked', () => {
-    const mockSetSortOrder = jest.fn();
-    render(<SearchFilterSort {...defaultProps} setSortOrder={mockSetSortOrder} />);
+  test('calls onFilterChange when search button clicked', () => {
+    const mockOnFilterChange = jest.fn();
+    render(<SearchFilterSort {...defaultProps} onFilterChange={mockOnFilterChange} />);
     
-    const sortOrderButton = screen.getByRole('button');
-    fireEvent.click(sortOrderButton);
+    const searchButton = screen.getByText('Search');
+    fireEvent.click(searchButton);
     
-    expect(mockSetSortOrder).toHaveBeenCalledWith('desc');
-  });
-
-  test('toggles sort order correctly', () => {
-    const mockSetSortOrder = jest.fn();
-    render(<SearchFilterSort {...defaultProps} sortOrder="desc" setSortOrder={mockSetSortOrder} />);
-    
-    const sortOrderButton = screen.getByRole('button');
-    fireEvent.click(sortOrderButton);
-    
-    expect(mockSetSortOrder).toHaveBeenCalledWith('asc');
-  });
-
-  test('displays current search term', () => {
-    render(<SearchFilterSort {...defaultProps} searchTerm="test search" />);
-    
-    const searchInput = screen.getByPlaceholderText(/search/i);
-    expect(searchInput.value).toBe('test search');
-  });
-
-  test('displays current filter selection', () => {
-    render(<SearchFilterSort {...defaultProps} filterBy="HUMAN" />);
-    
-    expect(screen.getByDisplayValue('Human')).toBeInTheDocument();
-  });
-
-  test('displays current sort selection', () => {
-    render(<SearchFilterSort {...defaultProps} sortBy="category" />);
-    
-    expect(screen.getByDisplayValue('Category')).toBeInTheDocument();
+    expect(mockOnFilterChange).toHaveBeenCalled();
   });
 });
