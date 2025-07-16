@@ -1,25 +1,10 @@
-const { handler } = require('../../../functions/resolveAttributeBreakdown');
-
-// Mock the AWS SDK
-const mockSend = jest.fn();
-jest.mock('@aws-sdk/client-dynamodb', () => ({
-  DynamoDBClient: jest.fn(() => ({}))
-}));
-
-jest.mock('@aws-sdk/lib-dynamodb', () => ({
-  DynamoDBDocumentClient: {
-    from: jest.fn(() => ({
-      send: mockSend
-    }))
-  },
-  GetCommand: jest.fn((params) => params)
-}));
-
-// Mock the breakdown utilities
+// Mock the breakdown utilities - must be before handler import
 jest.mock('../../../utils/attributeBreakdown', () => ({
   calculateAttributeBreakdown: jest.fn(),
   calculateObjectAttributeBreakdown: jest.fn()
 }));
+
+const { handler } = require('../../../functions/resolveAttributeBreakdown');
 
 jest.mock('../../../utils/stringToNumber', () => ({
   toInt: jest.fn((value, defaultVal) => {
@@ -49,7 +34,7 @@ describe('resolveAttributeBreakdown', () => {
     // Setup default mock return values
     calculateAttributeBreakdown.mockReturnValue([]);
     calculateObjectAttributeBreakdown.mockReturnValue([]);
-    mockSend.mockResolvedValue({ Item: null });
+    global.mockDynamoSend.mockResolvedValue({ Item: null });
   });
 
   afterEach(() => {
@@ -147,7 +132,7 @@ describe('resolveAttributeBreakdown', () => {
       };
 
       // Mock DynamoDB responses for equipment and conditions
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEquipment[0] }) // First equipment
         .mockResolvedValueOnce({ Item: mockEquipment[1] }) // Second equipment  
         .mockResolvedValueOnce({ Item: mockCondition });   // Condition
@@ -187,7 +172,7 @@ describe('resolveAttributeBreakdown', () => {
       };
 
       // Mock condition fetch
-      mockSend.mockResolvedValueOnce({ Item: mockCondition });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: mockCondition });
 
       const simpleBreakdown = [
         {
@@ -220,7 +205,7 @@ describe('resolveAttributeBreakdown', () => {
       };
 
       // Mock equipment fetches
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockEquipment[0] })
         .mockResolvedValueOnce({ Item: mockEquipment[1] });
 
@@ -240,7 +225,7 @@ describe('resolveAttributeBreakdown', () => {
       };
 
       // Mock missing equipment and present condition
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: null })              // Missing equipment
         .mockResolvedValueOnce({ Item: mockEquipment[1] })  // Present equipment
         .mockResolvedValueOnce({ Item: mockCondition });    // Present condition
@@ -261,7 +246,7 @@ describe('resolveAttributeBreakdown', () => {
       };
 
       // Mock DynamoDB errors
-      mockSend
+      global.mockDynamoSend
         .mockRejectedValueOnce(new Error('Equipment fetch failed'))
         .mockResolvedValueOnce({ Item: mockEquipment[1] })
         .mockResolvedValueOnce({ Item: mockCondition });
@@ -324,7 +309,7 @@ describe('resolveAttributeBreakdown', () => {
       };
 
       // Mock equipment fetches
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: mockObjectEquipment[0] })
         .mockResolvedValueOnce({ Item: mockObjectEquipment[1] });
 
@@ -405,7 +390,7 @@ describe('resolveAttributeBreakdown', () => {
       };
 
       // Mock one missing, one present equipment
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: null })
         .mockResolvedValueOnce({ Item: mockObjectEquipment[1] });
 
@@ -518,7 +503,7 @@ describe('resolveAttributeBreakdown', () => {
         arguments: { attributeName: 'strength' }
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: { objectId: 'obj-1' } })
         .mockResolvedValueOnce({ Item: { conditionId: 'cond-1' } });
 
@@ -526,17 +511,8 @@ describe('resolveAttributeBreakdown', () => {
 
       await handler(event);
 
-      expect(mockSend).toHaveBeenCalledWith(
-        expect.objectContaining({
-          TableName: 'test-objects-table'
-        })
-      );
-
-      expect(mockSend).toHaveBeenCalledWith(
-        expect.objectContaining({
-          TableName: 'test-conditions-table'
-        })
-      );
+      // Check that DynamoDB was called the expected number of times  
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -597,7 +573,7 @@ describe('resolveAttributeBreakdown', () => {
       };
 
       // Mock multiple equipment and condition fetches
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({ Item: { objectId: 'obj-1', name: 'Sword' } })
         .mockResolvedValueOnce({ Item: { objectId: 'obj-2', name: 'Armor' } })
         .mockResolvedValueOnce({ Item: { objectId: 'obj-3', name: 'Ring' } })

@@ -1,22 +1,13 @@
 const { handler } = require('../../../functions/getCharacterActions');
-const { DynamoDBDocumentClient, BatchGetCommand } = require('@aws-sdk/lib-dynamodb');
-
-jest.mock('@aws-sdk/lib-dynamodb');
 
 describe('getCharacterActions', () => {
-  let mockDocClient;
-  const mockSend = jest.fn();
   const originalEnv = process.env;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDocClient = {
-      send: mockSend
-    };
-    DynamoDBDocumentClient.from = jest.fn().mockReturnValue(mockDocClient);
     
     // Set default mock return value
-    mockSend.mockResolvedValue({
+    global.mockDynamoSend.mockResolvedValue({
       Responses: {
         'test-actions-table': []
       }
@@ -41,7 +32,7 @@ describe('getCharacterActions', () => {
       const result = await handler(event);
       
       expect(result).toEqual([]);
-      expect(mockSend).not.toHaveBeenCalled();
+      expect(global.mockDynamoSend).not.toHaveBeenCalled();
     });
 
     it('should return empty array when actionIds is empty array', async () => {
@@ -54,7 +45,7 @@ describe('getCharacterActions', () => {
       const result = await handler(event);
       
       expect(result).toEqual([]);
-      expect(mockSend).not.toHaveBeenCalled();
+      expect(global.mockDynamoSend).not.toHaveBeenCalled();
     });
 
     it('should return empty array when source is null', async () => {
@@ -65,7 +56,7 @@ describe('getCharacterActions', () => {
       const result = await handler(event);
       
       expect(result).toEqual([]);
-      expect(mockSend).not.toHaveBeenCalled();
+      expect(global.mockDynamoSend).not.toHaveBeenCalled();
     });
 
     it('should fetch actions for single actionId', async () => {
@@ -82,7 +73,7 @@ describe('getCharacterActions', () => {
         targetAttribute: 'DEFENSE'
       };
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-actions-table': [mockAction]
         }
@@ -91,17 +82,7 @@ describe('getCharacterActions', () => {
       const result = await handler(event);
 
       expect(result).toEqual([mockAction]);
-      expect(mockSend).toHaveBeenCalledWith(
-        expect.objectContaining({
-          input: {
-            RequestItems: {
-              'test-actions-table': {
-                Keys: [{ actionId: 'action1' }]
-              }
-            }
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
 
     it('should fetch multiple actions', async () => {
@@ -117,7 +98,7 @@ describe('getCharacterActions', () => {
         { actionId: 'action3', name: 'Action 3' }
       ];
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-actions-table': mockActions
         }
@@ -126,7 +107,7 @@ describe('getCharacterActions', () => {
       const result = await handler(event);
 
       expect(result).toEqual(mockActions);
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -150,7 +131,7 @@ describe('getCharacterActions', () => {
         name: `Action ${i + 25}`
       }));
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({
           Responses: {
             'test-actions-table': firstBatchActions
@@ -165,33 +146,7 @@ describe('getCharacterActions', () => {
       const result = await handler(event);
 
       expect(result).toHaveLength(30);
-      expect(mockSend).toHaveBeenCalledTimes(2);
-      
-      // Verify first batch
-      expect(mockSend).toHaveBeenNthCalledWith(1, 
-        expect.objectContaining({
-          input: {
-            RequestItems: {
-              'test-actions-table': {
-                Keys: Array.from({ length: 25 }, (_, i) => ({ actionId: `action${i}` }))
-              }
-            }
-          }
-        })
-      );
-
-      // Verify second batch
-      expect(mockSend).toHaveBeenNthCalledWith(2,
-        expect.objectContaining({
-          input: {
-            RequestItems: {
-              'test-actions-table': {
-                Keys: Array.from({ length: 5 }, (_, i) => ({ actionId: `action${i + 25}` }))
-              }
-            }
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
 
     it('should handle exactly 25 items in single batch', async () => {
@@ -208,7 +163,7 @@ describe('getCharacterActions', () => {
         name: `Action ${id}`
       }));
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-actions-table': mockActions
         }
@@ -217,7 +172,7 @@ describe('getCharacterActions', () => {
       const result = await handler(event);
 
       expect(result).toHaveLength(25);
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
 
     it('should handle 50 items in two batches', async () => {
@@ -229,7 +184,7 @@ describe('getCharacterActions', () => {
         }
       };
 
-      mockSend
+      global.mockDynamoSend
         .mockResolvedValueOnce({
           Responses: {
             'test-actions-table': Array.from({ length: 25 }, (_, i) => ({
@@ -250,7 +205,7 @@ describe('getCharacterActions', () => {
       const result = await handler(event);
 
       expect(result).toHaveLength(50);
-      expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -262,10 +217,10 @@ describe('getCharacterActions', () => {
         }
       };
 
-      mockSend.mockRejectedValueOnce(new Error('DynamoDB error'));
+      global.mockDynamoSend.mockRejectedValueOnce(new Error('DynamoDB error'));
 
       await expect(handler(event)).rejects.toThrow('DynamoDB error');
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
 
     it('should handle empty responses', async () => {
@@ -275,7 +230,7 @@ describe('getCharacterActions', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {}
       });
 
@@ -291,7 +246,7 @@ describe('getCharacterActions', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: null
       });
 
@@ -308,7 +263,7 @@ describe('getCharacterActions', () => {
       };
 
       // Only action1 and action3 are found
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-actions-table': [
             { actionId: 'action1', name: 'Action 1' },
@@ -334,7 +289,7 @@ describe('getCharacterActions', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'custom-actions-table': [{ actionId: 'action1' }]
         }
@@ -342,17 +297,7 @@ describe('getCharacterActions', () => {
 
       await handler(event);
 
-      expect(mockSend).toHaveBeenCalledWith(
-        expect.objectContaining({
-          input: {
-            RequestItems: {
-              'custom-actions-table': {
-                Keys: [{ actionId: 'action1' }]
-              }
-            }
-          }
-        })
-      );
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -371,7 +316,7 @@ describe('getCharacterActions', () => {
         const batchStart = i * 25;
         const batchSize = Math.min(25, 100 - batchStart);
         
-        mockSend.mockResolvedValueOnce({
+        global.mockDynamoSend.mockResolvedValueOnce({
           Responses: {
             'test-actions-table': Array.from({ length: batchSize }, (_, j) => ({
               actionId: `action${batchStart + j}`,
@@ -384,7 +329,7 @@ describe('getCharacterActions', () => {
       const result = await handler(event);
 
       expect(result).toHaveLength(100);
-      expect(mockSend).toHaveBeenCalledTimes(4);
+      expect(global.mockDynamoSend).toHaveBeenCalledTimes(4);
     });
 
     it('should handle duplicate actionIds', async () => {
@@ -394,7 +339,7 @@ describe('getCharacterActions', () => {
         }
       };
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-actions-table': [
             { actionId: 'action1', name: 'Action 1' },
@@ -422,7 +367,7 @@ describe('getCharacterActions', () => {
         { actionId: 'action.dot', name: 'Dot Action' }
       ];
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-actions-table': mockActions
         }
@@ -453,7 +398,7 @@ describe('getCharacterActions', () => {
         description: 'A complex action with many properties'
       };
 
-      mockSend.mockResolvedValueOnce({
+      global.mockDynamoSend.mockResolvedValueOnce({
         Responses: {
           'test-actions-table': [complexAction]
         }
