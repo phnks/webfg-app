@@ -149,6 +149,20 @@
   background-color: #0069d9;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.remove-action-button {
+  transition: background-color 0.2s;
+}
+
+.remove-action-button:hover {
+  background-color: #c82333 !important;
+}
+
 .overlay {
   position: fixed;
   top: 0;
@@ -363,7 +377,13 @@
     width: 100%;
   }
 
-  .test-action-button {
+  .test-action-button,
+  .remove-action-button {
+    width: 100%;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
     width: 100%;
   }
 

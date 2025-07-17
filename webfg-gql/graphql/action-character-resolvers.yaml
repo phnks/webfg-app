@@ -49,6 +49,23 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Ref ActionsTableName
 
+  RemoveActionFromCharacterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/removeActionFromCharacter.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
+
   AddActionToCharacterDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
@@ -68,6 +85,16 @@ Resources:
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
         LambdaFunctionArn: !GetAtt GetCharacterActionsFunction.Arn
+
+  RemoveActionFromCharacterDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: RemoveActionFromCharacter
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt RemoveActionFromCharacterFunction.Arn
 
   AddActionToCharacterResolver:
     Type: AWS::AppSync::Resolver
@@ -104,3 +131,21 @@ Resources:
         }
       ResponseMappingTemplate: |
         $util.toJson($context.result)
+
+  RemoveActionFromCharacterResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: removeActionFromCharacter
+      DataSourceName: !GetAtt RemoveActionFromCharacterDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)

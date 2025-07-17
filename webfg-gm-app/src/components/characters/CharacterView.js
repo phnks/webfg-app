@@ -11,7 +11,8 @@ import {
   MOVE_OBJECT_FROM_READY_TO_EQUIPMENT,
   MOVE_OBJECT_FROM_EQUIPMENT_TO_STASH,
   REMOVE_CONDITION_FROM_CHARACTER,
-  UPDATE_CONDITION_AMOUNT
+  UPDATE_CONDITION_AMOUNT,
+  REMOVE_ACTION_FROM_CHARACTER
 } from "../../graphql/operations";
 import { GET_CHARACTER_WITH_GROUPED } from "../../graphql/computedOperations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
@@ -122,6 +123,16 @@ const CharacterView = ({ startInEditMode = false }) => {
       console.error("Error updating condition amount:", err);
       setMutationError({ 
         message: err.message || "Error updating condition amount", 
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  });
+
+  const [removeActionFromCharacter] = useMutation(REMOVE_ACTION_FROM_CHARACTER, {
+    onError: (err) => {
+      console.error("Error removing action from character:", err);
+      setMutationError({ 
+        message: err.message || "Error removing action from character", 
         stack: err.stack || "No stack trace available."
       });
     }
@@ -336,6 +347,24 @@ const CharacterView = ({ startInEditMode = false }) => {
       console.error("Error updating condition amount:", err);
       setMutationError({ 
         message: "Failed to update condition amount. " + (err.message || ""),
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  };
+
+  // Handler for removing an action from character
+  const handleRemoveAction = async (actionId) => {
+    try {
+      await removeActionFromCharacter({
+        variables: { characterId, actionId }
+      });
+      
+      // Refetch to update the UI
+      refetch();
+    } catch (err) {
+      console.error("Error removing action:", err);
+      setMutationError({ 
+        message: "Failed to remove action. " + (err.message || ""),
         stack: err.stack || "No stack trace available."
       });
     }
@@ -624,12 +653,32 @@ const CharacterView = ({ startInEditMode = false }) => {
                       </div>
                       <div className="action-description">{action.description}</div>
                     </div>
-                    <button 
-                      onClick={() => handleTestAction(action)} 
-                      className="test-action-button"
-                    >
-                      Test
-                    </button>
+                    <div className="action-buttons">
+                      <button 
+                        onClick={() => handleTestAction(action)} 
+                        className="test-action-button"
+                      >
+                        Test
+                      </button>
+                      <button 
+                        type="button"
+                        className="remove-action-button" 
+                        onClick={() => handleRemoveAction(action.actionId)}
+                        style={{
+                          backgroundColor: '#dc3545',
+                          color: 'white',
+                          padding: '4px 10px',
+                          borderRadius: '4px',
+                          border: 'none',
+                          fontSize: '0.9em',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          marginLeft: '8px'
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
