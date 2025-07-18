@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ErrorPopup from '../common/ErrorPopup';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useRecentlyViewed } from '../../context/RecentlyViewedContext';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import {
   GET_ENCOUNTER,
@@ -22,6 +23,7 @@ import './EncounterDetail.css';
 const EncounterDetail = () => {
   const { encounterId } = useParams();
   const navigate = useNavigate();
+  const { addRecentlyViewed } = useRecentlyViewed();
   const [mutationError, setMutationError] = useState(null);
   const [showAddCharacterModal, setShowAddCharacterModal] = useState(false);
   const [selectedCharacterId, setSelectedCharacterId] = useState('');
@@ -38,7 +40,17 @@ const EncounterDetail = () => {
   // Queries
   const { loading, error, data } = useQuery(GET_ENCOUNTER, {
     variables: { encounterId },
-    fetchPolicy: 'network-only'
+    fetchPolicy: 'network-only',
+    onCompleted: (data) => {
+      if (data && data.getEncounter) {
+        // Add to recently viewed
+        addRecentlyViewed({
+          id: data.getEncounter.encounterId,
+          name: data.getEncounter.name,
+          type: 'encounter'
+        });
+      }
+    }
   });
 
   const { data: charactersData } = useQuery(LIST_CHARACTERS);

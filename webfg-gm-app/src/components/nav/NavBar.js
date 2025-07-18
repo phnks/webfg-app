@@ -9,6 +9,7 @@ import {
   ON_CREATE_ENCOUNTER, ON_UPDATE_ENCOUNTER, ON_DELETE_ENCOUNTER,
   LIST_ENCOUNTERS
 } from '../../graphql/operations';
+import { useRecentlyViewed } from '../../context/RecentlyViewedContext';
 import './NavBar.css';
 
 const NavBar = ({ characterList = [], objectList = [], actionList = [], conditionList = [] }) => {
@@ -16,6 +17,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [], conditio
   const [activeSection, setActiveSection] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
+  const { recentlyViewed } = useRecentlyViewed();
 
   // Maintain local state for lists that includes subscription updates
   const [characters, setCharacters] = useState(characterList);
@@ -392,103 +394,31 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [], conditio
               <h3>{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}</h3>
               <button className="add-btn" onClick={handleNewItem}>+ New</button>
             </div>
-
-            {activeSection === 'characters' && (
-              <ul className="item-list">
-                {characters.length > 0 ? characters.map(char => (
-                  <li key={char.characterId}>
-                    <NavLink
-                      to={`/characters/${char.characterId}`}
-                      onClick={closeMenu}
-                      className={({ isActive }) => isActive ? 'active' : ''}
-                    >
-                      <div className="item-name">{char.name}</div>
-                      {char.race && <div className="item-meta">{char.race}</div>}
-                    </NavLink>
-                  </li>
-                )) : (
-                  <li className="empty-message">No characters available</li>
-                )}
-              </ul>
-            )}
-
-            {activeSection === 'objects' && (
-              <ul className="item-list">
-                {objects.length > 0 ? objects.map(obj => (
-                  <li key={obj.objectId}>
-                    <NavLink
-                      to={`/objects/${obj.objectId}`}
-                      onClick={closeMenu}
-                      className={({ isActive }) => isActive ? 'active' : ''}
-                    >
-                      <div className="item-name">{obj.name}</div>
-                      {obj.objectCategory && <div className="item-meta">{obj.objectCategory}</div>}
-                    </NavLink>
-                  </li>
-                )) : (
-                  <li className="empty-message">No objects available</li>
-                )}
-              </ul>
-            )}
-
-            {activeSection === 'actions' && (
-              <ul className="item-list">
-                {actions.length > 0 ? actions.map(action => (
-                  <li key={action.actionId}>
-                    <NavLink
-                      to={`/actions/${action.actionId}`}
-                      onClick={closeMenu}
-                      className={({ isActive }) => isActive ? 'active' : ''}
-                    >
-                      <div className="item-name">{action.name}</div>
-                      {action.type && <div className="item-meta">{action.type}</div>}
-                    </NavLink>
-                  </li>
-                )) : (
-                  <li className="empty-message">No actions available</li>
-                )}
-              </ul>
-            )}
-
-            {activeSection === 'conditions' && (
-              <ul className="item-list">
-                {conditions.length > 0 ? conditions.map(condition => (
-                  <li key={condition.conditionId}>
-                    <NavLink
-                      to={`/conditions/${condition.conditionId}`}
-                      onClick={closeMenu}
-                      className={({ isActive }) => isActive ? 'active' : ''}
-                    >
-                      <div className="item-name">{condition.name}</div>
-                      {condition.conditionType && <div className="item-meta">{condition.conditionType}</div>}
-                    </NavLink>
-                  </li>
-                )) : (
-                  <li className="empty-message">No conditions available</li>
-                )}
-              </ul>
-            )}
-
-            {activeSection === 'encounters' && (
-              <ul className="item-list">
-                {encounters.length > 0 ? encounters.map(encounter => (
-                  <li key={encounter.encounterId}>
-                    <NavLink
-                      to={`/encounters/${encounter.encounterId}`}
-                      onClick={closeMenu}
-                      className={({ isActive }) => isActive ? 'active' : ''}
-                    >
-                      <div className="item-name">{encounter.name}</div>
-                      <div className="item-meta">Time: {encounter.currentTime}s</div>
-                    </NavLink>
-                  </li>
-                )) : (
-                  <li className="empty-message">No encounters available</li>
-                )}
-              </ul>
-            )}
           </div>
         )}
+
+        {/* Recently Viewed Section - Always shown when sidebar is open */}
+        <div className="section-list">
+          <div className="section-header">
+            <h3>Recently Viewed</h3>
+          </div>
+          <ul className="item-list">
+            {recentlyViewed.length > 0 ? recentlyViewed.map((item, index) => (
+              <li key={`${item.type}-${item.id}-${index}`}>
+                <NavLink
+                  to={`/${item.type}s/${item.id}`}
+                  onClick={closeMenu}
+                  className={({ isActive }) => isActive ? 'active' : ''}
+                >
+                  <div className="item-name">{item.name}</div>
+                  <div className="item-meta">{item.type}</div>
+                </NavLink>
+              </li>
+            )) : (
+              <li className="empty-message">No recently viewed items</li>
+            )}
+          </ul>
+        </div>
       </div>
 
       {isOpen && <div className="menu-overlay" onClick={closeMenu}></div>}

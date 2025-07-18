@@ -33,6 +33,14 @@ jest.mock('../../../context/SelectedCharacterContext', () => ({
   })
 }));
 
+jest.mock('../../../context/RecentlyViewedContext', () => ({
+  useRecentlyViewed: () => ({
+    recentlyViewed: [],
+    addRecentlyViewed: jest.fn(),
+    clearRecentlyViewed: jest.fn()
+  })
+}));
+
 jest.mock('../../../components/forms/ObjectForm', () => {
   return function MockObjectForm() {
     return <div data-testid="object-form">Object Form</div>;
