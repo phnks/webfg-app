@@ -39,6 +39,7 @@ exports.handler = async (event) => {
   if (input.name !== undefined) {
     addUpdateField("nameLowerCase", input.name.toLowerCase());
   }
+  addUpdateField("description", input.description);
   addUpdateField("characterCategory", input.characterCategory);
   addUpdateField("will", input.will);
   addUpdateField("fatigue", input.fatigue);

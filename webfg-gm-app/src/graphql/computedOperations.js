@@ -61,6 +61,7 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
     getCharacter(characterId: $characterId) {
       characterId
       name
+      description
       characterCategory
       will
       fatigue
@@ -195,6 +196,7 @@ export const GET_OBJECT_WITH_GROUPED = gql`
     getObject(objectId: $objectId) {
       objectId
       name
+      description
       objectCategory
       isEquipment
       
@@ -405,6 +407,7 @@ export const LIST_OBJECTS_WITH_GROUPED = gql`
     listObjects {
       objectId
       name
+      description
       objectCategory
       
       # Object attributes

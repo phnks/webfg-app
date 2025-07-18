@@ -12,6 +12,7 @@ const CharacterDetails = ({ character, onUpdate }) => {
       // Build the complete character input with all required fields
       const characterInput = {
         name: character.name,
+        description: character.description || "",
         characterCategory: character.characterCategory,
         will: newValue,
         fatigue: character.fatigue || 0,
@@ -62,6 +63,7 @@ const CharacterDetails = ({ character, onUpdate }) => {
       // Build the complete character input with all required fields
       const characterInput = {
         name: character.name,
+        description: character.description || "",
         characterCategory: character.characterCategory,
         will: character.will || 0,
         fatigue: newValue,
@@ -117,13 +119,15 @@ const CharacterDetails = ({ character, onUpdate }) => {
             <td>{character.characterId}</td>
           </tr>
           <tr>
-            <td>Name:</td>
-            <td>{character.name}</td>
-          </tr>
-          <tr>
             <td>Category:</td>
             <td>{character.characterCategory}</td>
           </tr>
+          {character.description && (
+            <tr>
+              <td>Description:</td>
+              <td>{character.description}</td>
+            </tr>
+          )}
           <tr>
             <td>Will:</td>
             <td>

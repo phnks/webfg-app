@@ -64,6 +64,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const createInitialFormData = () => {
     const initialData = {
       name: "",
+      description: "",
       characterCategory: "HUMAN",
       will: 10,
       fatigue: 0,
@@ -90,6 +91,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     if (isEditing && character) {
       const updatedFormData = {
         name: character.name || "",
+        description: character.description || "",
         characterCategory: character.characterCategory || "HUMAN",
         will: character.will !== null && character.will !== undefined ? character.will : 10,
         fatigue: character.fatigue || 0,
@@ -222,6 +224,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       // Prepare the input data for mutation
       const input = {
         name: formData.name,
+        description: formData.description || "",
         characterCategory: formData.characterCategory,
         will: formData.will !== null && formData.will !== undefined && formData.will !== '' ? parseInt(formData.will) : 10,
         fatigue: formData.fatigue !== null && formData.fatigue !== undefined && formData.fatigue !== '' ? parseInt(formData.fatigue) : 0,
@@ -313,6 +316,15 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 required
+              />
+            </div>
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                value={formData.description || ''}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                rows="3"
+                placeholder="Enter character description (optional)"
               />
             </div>
             <div className="form-group">

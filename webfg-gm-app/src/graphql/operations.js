@@ -6,6 +6,7 @@ export const LIST_CHARACTERS = gql`
     listCharacters {
       characterId
       name
+      description
       characterConditions {
         conditionId
         amount
@@ -81,6 +82,7 @@ export const GET_CHARACTER = gql`
     getCharacter(characterId: $characterId) {
       characterId
       name
+      description
       characterCategory
       will
       fatigue
@@ -189,6 +191,7 @@ export const LIST_OBJECTS = gql`
     listObjects {
       objectId
       name
+      description
       objectCategory
       isEquipment
       speed { attributeValue isGrouped }
@@ -235,6 +238,7 @@ export const GET_OBJECT = gql`
     getObject(objectId: $objectId) {
       objectId
       name
+      description
       objectCategory
       speed { attributeValue isGrouped }
       weight { attributeValue isGrouped }
@@ -419,6 +423,7 @@ export const CREATE_CHARACTER = gql`
     createCharacter(input: $input) {
       characterId
       name
+      description
       characterCategory
       will
       fatigue
@@ -455,6 +460,7 @@ export const UPDATE_CHARACTER = gql`
     updateCharacter(characterId: $characterId, input: $input) {
       characterId
       name
+      description
       characterCategory
       will
       fatigue
@@ -498,6 +504,7 @@ export const CREATE_OBJECT = gql`
     createObject(input: $input) {
       objectId
       name
+      description
       objectCategory
       speed { attributeValue isGrouped }
       weight { attributeValue isGrouped }
@@ -525,6 +532,7 @@ export const UPDATE_OBJECT = gql`
     updateObject(objectId: $objectId, input: $input) {
       objectId
       name
+      description
       objectCategory
       speed { attributeValue isGrouped }
       weight { attributeValue isGrouped }
@@ -909,6 +917,7 @@ export const ON_CREATE_CHARACTER = gql`
     onCreateCharacter {
       characterId
       name
+      description
       characterCategory
       will
       values { valueName valueType }
@@ -922,6 +931,7 @@ export const ON_UPDATE_CHARACTER = gql`
     onUpdateCharacter {
       characterId
       name
+      description
       characterCategory
       will
       values { valueName valueType }
@@ -958,6 +968,7 @@ export const ON_CREATE_OBJECT = gql`
     onCreateObject {
       objectId
       name
+      description
       objectCategory
       speed { attributeValue isGrouped }
       weight { attributeValue isGrouped }
@@ -984,6 +995,7 @@ export const ON_UPDATE_OBJECT = gql`
     onUpdateObject {
       objectId
       name
+      description
       objectCategory
       speed { attributeValue isGrouped }
       weight { attributeValue isGrouped }
@@ -1214,6 +1226,7 @@ export const LIST_CHARACTERS_ENHANCED = gql`
       items {
         characterId
         name
+        description
         characterCategory
         will
         fatigue
@@ -1317,6 +1330,7 @@ export const LIST_OBJECTS_ENHANCED = gql`
       items {
         objectId
         name
+        description
         objectCategory
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
