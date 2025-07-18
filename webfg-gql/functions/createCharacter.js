@@ -21,6 +21,7 @@ exports.handler = async (event) => {
     characterId: characterId,
     name: input.name,
     nameLowerCase: input.name.toLowerCase(),
+    description: input.description,
     characterCategory: input.characterCategory,
     will: input.will || 0,
     fatigue: input.fatigue || 0,
