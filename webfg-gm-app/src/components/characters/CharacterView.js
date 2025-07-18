@@ -425,9 +425,6 @@ const CharacterView = ({ startInEditMode = false }) => {
       <div className="view-header">
         <div>
           <h1>{character.name}</h1>
-          {character.description && (
-            <p className="character-description">{character.description}</p>
-          )}
           {/* Race display removed */}
         </div>
         <div className="view-actions">

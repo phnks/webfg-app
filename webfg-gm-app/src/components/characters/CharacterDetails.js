@@ -119,10 +119,6 @@ const CharacterDetails = ({ character, onUpdate }) => {
             <td>{character.characterId}</td>
           </tr>
           <tr>
-            <td>Name:</td>
-            <td>{character.name}</td>
-          </tr>
-          <tr>
             <td>Category:</td>
             <td>{character.characterCategory}</td>
           </tr>
