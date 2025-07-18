@@ -41,6 +41,7 @@ const defaultAttribute = {
 const createDefaultObjectForm = () => {
   const form = {
     name: "",
+    description: "",
     objectCategory: ObjectCategoryEnum[0],
     isEquipment: true, // Default to true (passive equipment like armor)
     special: [],
@@ -60,6 +61,7 @@ const defaultObjectForm = createDefaultObjectForm();
 const prepareObjectInput = (data) => {
   const input = {
     name: data.name,
+    description: data.description || "",
     objectCategory: data.objectCategory || ObjectCategoryEnum[0],
     isEquipment: data.isEquipment !== undefined ? data.isEquipment : true,
     special: data.special || [],
@@ -88,6 +90,7 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
       const base = stripTypename(object);
       const form = {
         name: base.name || "",
+        description: base.description || "",
         objectCategory: base.objectCategory || ObjectCategoryEnum[0],
         isEquipment: base.isEquipment !== undefined ? base.isEquipment : true,
         special: base.special || [],
@@ -259,6 +262,18 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
         <div className="form-group">
           <label htmlFor="name">Name</label>
           <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            value={formData.description || ''}
+            onChange={handleChange}
+            rows="3"
+            placeholder="Enter object description (optional)"
+          />
         </div>
 
         <div className="form-group">

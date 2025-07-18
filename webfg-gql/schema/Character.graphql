@@ -2,6 +2,7 @@ type Character {
   characterId: ID!
   name: String!
   nameLowerCase: String
+  description: String
   characterCategory: CharacterCategory!
   will: Int!
   fatigue: Int!
@@ -72,6 +73,7 @@ input ValueInput {
 
 input CharacterInput {
   name: String!
+  description: String
   characterCategory: CharacterCategory!
   will: Int!
   fatigue: Int!
