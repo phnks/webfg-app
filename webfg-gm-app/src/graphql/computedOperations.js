@@ -61,6 +61,7 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
     getCharacter(characterId: $characterId) {
       characterId
       name
+      description
       characterCategory
       will
       fatigue
