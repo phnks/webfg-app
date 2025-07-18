@@ -22,6 +22,7 @@ import ConditionEdit from './components/conditions/ConditionEdit';
 import ConditionForm from './components/forms/ConditionForm';
 import Home from './components/Home';
 import { SelectedCharacterProvider, useSelectedCharacter } from './context/SelectedCharacterContext';
+import { RecentlyViewedProvider } from './context/RecentlyViewedContext';
 import SelectedCharacterBanner from './components/common/SelectedCharacterBanner';
 import EncountersList from './components/encounters/EncountersList';
 import EncounterDetail from './components/encounters/EncounterDetail';
@@ -108,9 +109,11 @@ function App() {
   return (
     // Router should wrap the Provider and AppContent
     <Router> 
-      <SelectedCharacterProvider>
-        <AppContent /> 
-      </SelectedCharacterProvider>
+      <RecentlyViewedProvider>
+        <SelectedCharacterProvider>
+          <AppContent /> 
+        </SelectedCharacterProvider>
+      </RecentlyViewedProvider>
     </Router>
   );
 }

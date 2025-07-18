@@ -27,6 +27,14 @@ jest.mock('../../../context/SelectedCharacterContext', () => ({
   })
 }));
 
+jest.mock('../../../context/RecentlyViewedContext', () => ({
+  useRecentlyViewed: () => ({
+    recentlyViewed: [],
+    addRecentlyViewed: jest.fn(),
+    clearRecentlyViewed: jest.fn()
+  })
+}));
+
 jest.mock('../../../components/characters/CharacterAttributesBackend', () => {
   return function MockCharacterAttributesBackend() {
     return <div data-testid="character-attributes-backend">Character Attributes Backend</div>;

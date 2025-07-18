@@ -16,6 +16,7 @@ import {
 } from "../../graphql/operations";
 import { GET_CHARACTER_WITH_GROUPED } from "../../graphql/computedOperations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
+import { useRecentlyViewed } from "../../context/RecentlyViewedContext";
 import CharacterAttributesBackend from "./CharacterAttributesBackend";
 import ActionTestBackend from "../actions/test/ActionTestBackend";
 import CharacterDetails from "./CharacterDetails";
@@ -28,6 +29,7 @@ const CharacterView = ({ startInEditMode = false }) => {
   const { characterId } = useParams();
   const navigate = useNavigate();
   const { selectCharacter } = useSelectedCharacter();
+  const { addRecentlyViewed } = useRecentlyViewed();
   const [isEditing, setIsEditing] = useState(startInEditMode);
   const [currentCharacter, setCurrentCharacter] = useState(null);
   const [testAction, setTestAction] = useState(null); // State to store action being tested
@@ -45,6 +47,12 @@ const CharacterView = ({ startInEditMode = false }) => {
         selectCharacter({
           characterId: data.getCharacter.characterId,
           name: data.getCharacter.name
+        });
+        // Add to recently viewed
+        addRecentlyViewed({
+          id: data.getCharacter.characterId,
+          name: data.getCharacter.name,
+          type: 'character'
         });
       }
     }

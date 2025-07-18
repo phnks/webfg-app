@@ -7,6 +7,7 @@ import {
   ADD_CONDITION_TO_CHARACTER
 } from "../../graphql/operations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
+import { useRecentlyViewed } from "../../context/RecentlyViewedContext";
 import ConditionForm from "../forms/ConditionForm";
 import "./ConditionView.css";
 import ErrorPopup from '../common/ErrorPopup';
@@ -15,6 +16,7 @@ const ConditionView = ({ startInEditMode = false }) => {
   const { conditionId } = useParams();
   const navigate = useNavigate();
   const { selectedCharacter } = useSelectedCharacter();
+  const { addRecentlyViewed } = useRecentlyViewed();
   const [isEditing, setIsEditing] = useState(startInEditMode);
   const [currentCondition, setCurrentCondition] = useState(null);
   const [addConditionSuccess, setAddConditionSuccess] = useState(false);
@@ -26,6 +28,12 @@ const ConditionView = ({ startInEditMode = false }) => {
     onCompleted: (data) => {
       if (data && data.getCondition) {
         setCurrentCondition(data.getCondition);
+        // Add to recently viewed
+        addRecentlyViewed({
+          id: data.getCondition.conditionId,
+          name: data.getCondition.name,
+          type: 'condition'
+        });
       }
     }
   });

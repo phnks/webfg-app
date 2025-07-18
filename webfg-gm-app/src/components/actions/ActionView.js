@@ -8,6 +8,7 @@ import {
 } from "../../graphql/operations";
 import { GET_CHARACTER_WITH_GROUPED } from "../../graphql/computedOperations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
+import { useRecentlyViewed } from "../../context/RecentlyViewedContext";
 import ActionForm from "../forms/ActionForm";
 import ActionTestBackend from "./test/ActionTestBackend";
 import "./ActionView.css";
@@ -17,6 +18,7 @@ const ActionView = ({ startInEditMode = false, actionProp = null }) => {
   const { actionId } = useParams();
   const navigate = useNavigate();
   const { selectedCharacter } = useSelectedCharacter();
+  const { addRecentlyViewed } = useRecentlyViewed();
   const [isEditing, setIsEditing] = useState(startInEditMode);
   const [isTesting, setIsTesting] = useState(false);
   const [currentAction, setCurrentAction] = useState(null);
@@ -31,6 +33,12 @@ const ActionView = ({ startInEditMode = false, actionProp = null }) => {
     onCompleted: (data) => {
       if (data && data.getAction) {
         setCurrentAction(data.getAction);
+        // Add to recently viewed
+        addRecentlyViewed({
+          id: data.getAction.actionId,
+          name: data.getAction.name,
+          type: 'action'
+        });
       }
     }
   });

@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { MockedProvider } from '@apollo/client/testing';
 import NavBar from '../../../components/nav/NavBar';
+import { RecentlyViewedProvider } from '../../../context/RecentlyViewedContext';
 import { LIST_ENCOUNTERS } from '../../../graphql/operations';
 
 const mockEncounterData = {
@@ -19,7 +20,9 @@ const mockEncounterData = {
 const NavBarWrapper = ({ children, mocks = [mockEncounterData] }) => (
   <BrowserRouter>
     <MockedProvider mocks={mocks} addTypename={false}>
-      {children}
+      <RecentlyViewedProvider>
+        {children}
+      </RecentlyViewedProvider>
     </MockedProvider>
   </BrowserRouter>
 );

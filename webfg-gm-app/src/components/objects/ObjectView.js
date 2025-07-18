@@ -10,6 +10,7 @@ import {
 } from "../../graphql/operations";
 import { GET_OBJECT_WITH_GROUPED, GET_OBJECT_ATTRIBUTE_BREAKDOWN } from "../../graphql/computedOperations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
+import { useRecentlyViewed } from "../../context/RecentlyViewedContext";
 import ObjectForm from "../forms/ObjectForm";
 import AttributeGroups from "../common/AttributeGroups";
 import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
@@ -19,6 +20,7 @@ const ObjectView = ({ startInEditMode = false, object = null }) => {
   const { objectId } = useParams();
   const navigate = useNavigate();
   const { selectedCharacter } = useSelectedCharacter();
+  const { addRecentlyViewed } = useRecentlyViewed();
   const [isEditing, setIsEditing] = useState(startInEditMode);
   const [currentObject, setCurrentObject] = useState(null);
   const [addObjectSuccess, setAddObjectSuccess] = useState(false);
@@ -39,6 +41,12 @@ const ObjectView = ({ startInEditMode = false, object = null }) => {
     onCompleted: (data) => {
       if (data && data.getObject) {
         setCurrentObject(data.getObject);
+        // Add to recently viewed
+        addRecentlyViewed({
+          id: data.getObject.objectId,
+          name: data.getObject.name,
+          type: 'object'
+        });
       }
     }
   });
