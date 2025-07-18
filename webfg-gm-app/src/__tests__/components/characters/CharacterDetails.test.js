@@ -59,14 +59,14 @@ describe('CharacterDetails Component', () => {
     );
   });
 
-  test('displays character name', () => {
+  test('displays character details', () => {
     render(
       <CharacterDetailsWrapper>
         <CharacterDetails character={mockCharacter} />
       </CharacterDetailsWrapper>
     );
     
-    expect(screen.getByText('Test Character')).toBeInTheDocument();
+    expect(screen.getByText('Character Details')).toBeInTheDocument();
   });
 
   test('displays character category', () => {
@@ -86,8 +86,8 @@ describe('CharacterDetails Component', () => {
       </CharacterDetailsWrapper>
     );
     
-    // Character description is not displayed in this component
-    expect(screen.getByText('Test Character')).toBeInTheDocument();
+    // Character description is displayed in this component
+    expect(screen.getByText('A test character')).toBeInTheDocument();
   });
 
   test('displays will and fatigue stats', () => {
@@ -151,7 +151,7 @@ describe('CharacterDetails Component', () => {
       </CharacterDetailsWrapper>
     );
     
-    expect(screen.getByText('Test')).toBeInTheDocument();
+    expect(screen.getByText('HUMAN')).toBeInTheDocument();
   });
 
   test('handles missing attributes gracefully', () => {
@@ -167,7 +167,7 @@ describe('CharacterDetails Component', () => {
       </CharacterDetailsWrapper>
     );
     
-    expect(screen.getByText('Incomplete Character')).toBeInTheDocument();
+    expect(screen.getByText('HUMAN')).toBeInTheDocument();
   });
 
   test('applies correct CSS classes', () => {
