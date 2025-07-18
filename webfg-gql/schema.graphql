@@ -64,6 +64,7 @@ type Character {
   characterId: ID!
   name: String!
   nameLowerCase: String
+  description: String
   characterCategory: CharacterCategory!
   will: Int!
   fatigue: Int!
@@ -134,6 +135,7 @@ input ValueInput {
 
 input CharacterInput {
   name: String!
+  description: String
   characterCategory: CharacterCategory!
   will: Int!
   fatigue: Int!
@@ -185,6 +187,7 @@ type Object {
   objectId: ID!
   name: String!
   nameLowerCase: String
+  description: String
   objectCategory: ObjectCategory!
   isEquipment: Boolean
   speed: Attribute
@@ -229,6 +232,7 @@ enum ObjectCategory {
 
 input ObjectInput {
   name: String
+  description: String
   objectCategory: ObjectCategory
   isEquipment: Boolean
   speed: AttributeInput

@@ -423,6 +423,7 @@ export const CREATE_CHARACTER = gql`
     createCharacter(input: $input) {
       characterId
       name
+      description
       characterCategory
       will
       fatigue
@@ -459,6 +460,7 @@ export const UPDATE_CHARACTER = gql`
     updateCharacter(characterId: $characterId, input: $input) {
       characterId
       name
+      description
       characterCategory
       will
       fatigue
