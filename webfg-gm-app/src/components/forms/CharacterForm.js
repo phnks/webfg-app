@@ -361,7 +361,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
               attributes={formData}
               renderAttribute={renderAttributeForForm}
               title="Attributes"
-              defaultExpandedGroups={['BODY']}
+              defaultExpandedGroups={['BODY', 'SENSES']}
             />
           </div>
         </div>
