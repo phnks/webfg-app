@@ -310,9 +310,10 @@ const ActionTestBackend = ({ action, character, onClose }) => {
     // We need to recalculate grouping properly with base + equipment + selected ready object
     const finalAttributes = {};
     const attributeNames = [
-      'speed', 'weight', 'size', 'armour', 'endurance', 'lethality',
-      'strength', 'dexterity', 'agility', 'perception', 'intensity',
-      'resolve', 'morale', 'intelligence', 'charisma'
+      'weight', 'size', 'armour', 'endurance', 'lethality',
+      'speed', 'strength', 'dexterity', 'agility',
+      'resolve', 'morale', 'intelligence', 'charisma',
+      'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
     ];
     
     attributeNames.forEach(attrName => {

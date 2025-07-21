@@ -41,7 +41,6 @@ const mockCharacter = {
   size: { attribute: { attributeValue: 3, isGrouped: false } },
   armour: { attribute: { attributeValue: 2, isGrouped: false } },
   lethality: { attribute: { attributeValue: 1, isGrouped: false } },
-  intensity: { attribute: { attributeValue: 4, isGrouped: false } }
 };
 
 const CharacterDetailsWrapper = ({ children }) => (

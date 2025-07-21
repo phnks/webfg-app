@@ -56,7 +56,6 @@ describe('Test Utils', () => {
       expect(mockObjects[0]).toHaveProperty('speed', 3);
       expect(mockObjects[0]).toHaveProperty('weight', 15);
       expect(mockObjects[0]).toHaveProperty('size', 4);
-      expect(mockObjects[0]).toHaveProperty('intensity', 8);
       expect(mockObjects[0]).toHaveProperty('armor', 0);
       expect(mockObjects[0]).toHaveProperty('lethality', 15);
       expect(mockObjects[0]).toHaveProperty('dexterity', 2);
@@ -72,7 +71,6 @@ describe('Test Utils', () => {
       expect(mockObjects[1]).toHaveProperty('speed', -2);
       expect(mockObjects[1]).toHaveProperty('weight', 40);
       expect(mockObjects[1]).toHaveProperty('size', 3);
-      expect(mockObjects[1]).toHaveProperty('intensity', 0);
       expect(mockObjects[1]).toHaveProperty('armor', 20);
       expect(mockObjects[1]).toHaveProperty('agility', -3);
     });
@@ -160,7 +158,6 @@ describe('Test Utils', () => {
         if (object.speed !== undefined) expect(typeof object.speed).toBe('number');
         if (object.weight !== undefined) expect(typeof object.weight).toBe('number');
         if (object.size !== undefined) expect(typeof object.size).toBe('number');
-        if (object.intensity !== undefined) expect(typeof object.intensity).toBe('number');
         if (object.armor !== undefined) expect(typeof object.armor).toBe('number');
         if (object.lethality !== undefined) expect(typeof object.lethality).toBe('number');
         if (object.dexterity !== undefined) expect(typeof object.dexterity).toBe('number');

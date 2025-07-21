@@ -49,7 +49,7 @@ jest.mock('../../../components/forms/ObjectForm', () => {
 
 jest.mock('../../../components/common/AttributeGroups', () => {
   return function MockAttributeGroups({ attributes, renderAttribute, title }) {
-    const attributeKeys = ['weight', 'size', 'speed', 'intensity'];
+    const attributeKeys = ['weight', 'size', 'speed'];
     return (
       <div data-testid="attribute-groups">
         <h3>{title}</h3>
@@ -101,7 +101,6 @@ const mockObject = {
   weight: { attributeValue: 3.5, isGrouped: true },
   size: { attributeValue: 'MEDIUM', isGrouped: true },
   speed: { attributeValue: 10, isGrouped: true },
-  intensity: { attributeValue: 15, isGrouped: true },
   attributes: [
     {
       attributeId: '1',
@@ -191,15 +190,6 @@ describe('ObjectView Component', () => {
     expect(screen.getByText('10')).toBeInTheDocument();
   });
 
-  test('displays object intensity', () => {
-    render(
-      <ObjectViewWrapper>
-        <ObjectView object={mockObject} />
-      </ObjectViewWrapper>
-    );
-    
-    expect(screen.getByText('15')).toBeInTheDocument();
-  });
 
   test('displays object attributes', () => {
     const { container } = render(

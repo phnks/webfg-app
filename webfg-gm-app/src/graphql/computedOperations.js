@@ -6,7 +6,6 @@ export const GROUPED_ATTRIBUTES_FRAGMENT = gql`
     speed
     weight
     size
-    intensity
     lethality
     armour
     endurance
@@ -18,6 +17,12 @@ export const GROUPED_ATTRIBUTES_FRAGMENT = gql`
     intelligence
     resolve
     morale
+    seeing
+    hearing
+    smelling
+    light
+    noise
+    scent
   }
 `;
 
@@ -26,7 +31,6 @@ export const READY_GROUPED_ATTRIBUTES_FRAGMENT = gql`
     speed
     weight
     size
-    intensity
     lethality
     armour
     endurance
@@ -38,6 +42,12 @@ export const READY_GROUPED_ATTRIBUTES_FRAGMENT = gql`
     intelligence
     resolve
     morale
+    seeing
+    hearing
+    smelling
+    light
+    noise
+    scent
   }
 `;
 
@@ -71,7 +81,6 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       speed { attribute { attributeValue isGrouped } }
       weight { attribute { attributeValue isGrouped } }
       size { attribute { attributeValue isGrouped } }
-      intensity { attribute { attributeValue isGrouped } }
       lethality { attribute { attributeValue isGrouped } }
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
@@ -105,7 +114,6 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
-        intensity { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
@@ -144,7 +152,6 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
-        intensity { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
@@ -204,7 +211,6 @@ export const GET_OBJECT_WITH_GROUPED = gql`
       speed { attributeValue isGrouped }
       weight { attributeValue isGrouped }
       size { attributeValue isGrouped }
-      intensity { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
@@ -229,7 +235,6 @@ export const GET_OBJECT_WITH_GROUPED = gql`
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
-        intensity { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
@@ -325,7 +330,6 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
       speed { attribute { attributeValue isGrouped } }
       weight { attribute { attributeValue isGrouped } }
       size { attribute { attributeValue isGrouped } }
-      intensity { attribute { attributeValue isGrouped } }
       lethality { attribute { attributeValue isGrouped } }
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
@@ -348,7 +352,6 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
         speed { attributeValue isGrouped }
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
-        intensity { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
@@ -414,7 +417,6 @@ export const LIST_OBJECTS_WITH_GROUPED = gql`
       speed { attributeValue isGrouped }
       weight { attributeValue isGrouped }
       size { attributeValue isGrouped }
-      intensity { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
