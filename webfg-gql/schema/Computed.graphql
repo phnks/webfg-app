@@ -4,7 +4,6 @@ type GroupedAttributes {
   speed: Float
   weight: Float
   size: Float
-  intensity: Float
   lethality: Float
   armour: Float
   endurance: Float
@@ -16,13 +15,18 @@ type GroupedAttributes {
   intelligence: Float
   resolve: Float
   morale: Float
+  seeing: Float
+  hearing: Float
+  smelling: Float
+  light: Float
+  noise: Float
+  scent: Float
 }
 
 type ReadyGroupedAttributes {
   speed: Float
   weight: Float
   size: Float
-  intensity: Float
   lethality: Float
   armour: Float
   endurance: Float
@@ -34,6 +38,12 @@ type ReadyGroupedAttributes {
   intelligence: Float
   resolve: Float
   morale: Float
+  seeing: Float
+  hearing: Float
+  smelling: Float
+  light: Float
+  noise: Float
+  scent: Float
 }
 
 type AttributeBreakdownStep {
