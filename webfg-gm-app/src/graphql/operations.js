@@ -996,7 +996,6 @@ export const ON_CREATE_CHARACTER = gql`
       characterCategory
       will
       values { valueName valueType }
-      inventoryIds
       equipmentIds
     }
   }
@@ -1035,7 +1034,6 @@ export const ON_UPDATE_CHARACTER = gql`
       
       special
       actionIds
-      inventoryIds
       equipmentIds
     }
   }
