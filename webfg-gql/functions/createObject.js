@@ -41,11 +41,16 @@ exports.handler = async (event) => {
     if (!item.dexterity) item.dexterity = defaultAttribute;
     if (!item.agility) item.agility = defaultAttribute;
     if (!item.perception) item.perception = defaultAttribute;
-    if (!item.intensity) item.intensity = defaultAttribute;
     if (!item.resolve) item.resolve = defaultAttribute;
     if (!item.morale) item.morale = defaultAttribute;
     if (!item.intelligence) item.intelligence = defaultAttribute;
     if (!item.charisma) item.charisma = defaultAttribute;
+    if (!item.seeing) item.seeing = defaultAttribute;
+    if (!item.hearing) item.hearing = defaultAttribute;
+    if (!item.smelling) item.smelling = defaultAttribute;
+    if (!item.light) item.light = defaultAttribute;
+    if (!item.noise) item.noise = defaultAttribute;
+    if (!item.scent) item.scent = defaultAttribute;
     
     // Handle arrays
     if (item.special === undefined || item.special === null) item.special = [];

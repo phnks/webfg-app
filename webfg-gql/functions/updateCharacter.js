@@ -54,11 +54,16 @@ exports.handler = async (event) => {
   addUpdateField("dexterity", input.dexterity);
   addUpdateField("agility", input.agility);
   addUpdateField("perception", input.perception);
-  addUpdateField("intensity", input.intensity);
   addUpdateField("resolve", input.resolve);
   addUpdateField("morale", input.morale);
   addUpdateField("intelligence", input.intelligence);
   addUpdateField("charisma", input.charisma);
+  addUpdateField("seeing", input.seeing);
+  addUpdateField("hearing", input.hearing);
+  addUpdateField("smelling", input.smelling);
+  addUpdateField("light", input.light);
+  addUpdateField("noise", input.noise);
+  addUpdateField("scent", input.scent);
   addUpdateField("actionIds", input.actionIds);
   addUpdateField("special", input.special);
   addUpdateField("stashIds", input.stashIds);
