@@ -5,7 +5,7 @@ const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
-  // console.log("Received event for updateCharacter:", JSON.stringify(event, null, 2));
+  console.log("Received event for updateCharacter:", JSON.stringify(event, null, 2));
 
   const tableName = process.env.CHARACTERS_TABLE;
   if (!tableName) {
