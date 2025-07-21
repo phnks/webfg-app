@@ -69,9 +69,10 @@ exports.handler = async (event) => {
         }
 
         // Attribute filters
-        const attributes = ['speed', 'weight', 'size', 'armour', 'endurance', 'lethality', 
-                           'strength', 'dexterity', 'agility', 'perception', 'intensity', 
-                           'resolve', 'morale', 'intelligence', 'charisma'];
+        const attributes = ['weight', 'size', 'armour', 'endurance', 'lethality',
+                           'speed', 'strength', 'dexterity', 'agility',
+                           'resolve', 'morale', 'intelligence', 'charisma',
+                           'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'];
         
         attributes.forEach(attr => {
             if (filter[attr]) {
