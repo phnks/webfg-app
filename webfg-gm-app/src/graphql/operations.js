@@ -78,12 +78,6 @@ export const LIST_CHARACTERS = gql`
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }
           charisma { attributeValue isGrouped }
-          seeing { attributeValue isGrouped }
-          hearing { attributeValue isGrouped }
-          smelling { attributeValue isGrouped }
-          light { attributeValue isGrouped }
-          noise { attributeValue isGrouped }
-          scent { attributeValue isGrouped }
         }
       }
       actionIds
@@ -184,12 +178,6 @@ export const GET_CHARACTER = gql`
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }
           charisma { attributeValue isGrouped }
-          seeing { attributeValue isGrouped }
-          hearing { attributeValue isGrouped }
-          smelling { attributeValue isGrouped }
-          light { attributeValue isGrouped }
-          noise { attributeValue isGrouped }
-          scent { attributeValue isGrouped }
         }
       }
       readyIds
@@ -1345,12 +1333,6 @@ export const LIST_CHARACTERS_ENHANCED = gql`
         morale { attribute { attributeValue isGrouped } }
         intelligence { attribute { attributeValue isGrouped } }
         charisma { attribute { attributeValue isGrouped } }
-        seeing { attribute { attributeValue isGrouped } }
-        hearing { attribute { attributeValue isGrouped } }
-        smelling { attribute { attributeValue isGrouped } }
-        light { attribute { attributeValue isGrouped } }
-        noise { attribute { attributeValue isGrouped } }
-        scent { attribute { attributeValue isGrouped } }
         equipment { 
           objectId name objectCategory isEquipment
           speed { attributeValue isGrouped }
@@ -1367,12 +1349,6 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }
           charisma { attributeValue isGrouped }
-          seeing { attributeValue isGrouped }
-          hearing { attributeValue isGrouped }
-          smelling { attributeValue isGrouped }
-          light { attributeValue isGrouped }
-          noise { attributeValue isGrouped }
-          scent { attributeValue isGrouped }
           equipment { objectId name objectCategory }
         }
         ready { 
@@ -1391,12 +1367,6 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }
           charisma { attributeValue isGrouped }
-          seeing { attributeValue isGrouped }
-          hearing { attributeValue isGrouped }
-          smelling { attributeValue isGrouped }
-          light { attributeValue isGrouped }
-          noise { attributeValue isGrouped }
-          scent { attributeValue isGrouped }
           equipment { objectId name objectCategory }
         }
         stash { 
@@ -1415,12 +1385,6 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }
           charisma { attributeValue isGrouped }
-          seeing { attributeValue isGrouped }
-          hearing { attributeValue isGrouped }
-          smelling { attributeValue isGrouped }
-          light { attributeValue isGrouped }
-          noise { attributeValue isGrouped }
-          scent { attributeValue isGrouped }
           equipment { objectId name objectCategory }
         }
         actions { actionId name actionCategory sourceAttribute targetAttribute targetType effectType description objectUsage }
@@ -1477,12 +1441,6 @@ export const LIST_OBJECTS_ENHANCED = gql`
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }
           charisma { attributeValue isGrouped }
-          seeing { attributeValue isGrouped }
-          hearing { attributeValue isGrouped }
-          smelling { attributeValue isGrouped }
-          light { attributeValue isGrouped }
-          noise { attributeValue isGrouped }
-          scent { attributeValue isGrouped }
         }
       }
       nextCursor

@@ -92,6 +92,12 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       intelligence { attribute { attributeValue isGrouped } }
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
+      seeing { attribute { attributeValue isGrouped } }
+      hearing { attribute { attributeValue isGrouped } }
+      smelling { attribute { attributeValue isGrouped } }
+      light { attribute { attributeValue isGrouped } }
+      noise { attribute { attributeValue isGrouped } }
+      scent { attribute { attributeValue isGrouped } }
       
       # Computed grouped attributes
       groupedAttributes {
@@ -125,6 +131,12 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
         intelligence { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
+        seeing { attributeValue isGrouped }
+        hearing { attributeValue isGrouped }
+        smelling { attributeValue isGrouped }
+        light { attributeValue isGrouped }
+        noise { attributeValue isGrouped }
+        scent { attributeValue isGrouped }
         
         # Equipment can also have grouped attributes
         groupedAttributes {
@@ -163,6 +175,12 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
         intelligence { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
+        seeing { attributeValue isGrouped }
+        hearing { attributeValue isGrouped }
+        smelling { attributeValue isGrouped }
+        light { attributeValue isGrouped }
+        noise { attributeValue isGrouped }
+        scent { attributeValue isGrouped }
       }
       
       characterConditions {
@@ -341,6 +359,12 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
       intelligence { attribute { attributeValue isGrouped } }
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
+      seeing { attribute { attributeValue isGrouped } }
+      hearing { attribute { attributeValue isGrouped } }
+      smelling { attribute { attributeValue isGrouped } }
+      light { attribute { attributeValue isGrouped } }
+      noise { attribute { attributeValue isGrouped } }
+      scent { attribute { attributeValue isGrouped } }
       
       # Computed grouped attributes
       groupedAttributes {

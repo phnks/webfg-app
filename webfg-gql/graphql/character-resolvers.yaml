@@ -69,6 +69,22 @@ Resources:
             TableName: !Ref CharactersTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole 
 
+  GetCharacterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/getCharacter.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
   ListCharactersEnhancedFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -85,7 +101,16 @@ Resources:
             TableName: !Ref CharactersTableName
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
-  # --- Data Sources for Lambda Mutations ---
+  # --- Data Sources for Lambda Functions ---
+  GetCharacterLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: GetCharacterLambdaSource 
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt GetCharacterFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
   CreateCharacterLambdaDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
@@ -125,18 +150,19 @@ Resources:
   # --- Resolvers ---
   GetCharacterResolver: 
     Type: AWS::AppSync::Resolver
+    DependsOn: GetCharacterLambdaDataSource
     Properties:
       ApiId: !Ref ApiId
       TypeName: 'Query'
       FieldName: 'getCharacter'
-      DataSourceName: !Ref CharactersDataSourceName
+      DataSourceName: GetCharacterLambdaSource
       RequestMappingTemplate: |
         {
-          "version": "2017-02-28",
-          "operation": "GetItem",
-          "key": { "characterId": $util.dynamodb.toDynamoDBJson($ctx.args.characterId) }
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($ctx.arguments)
         }
-      ResponseMappingTemplate: '$util.toJson($context.result)'
+      ResponseMappingTemplate: '$util.toJson($ctx.result)'
 
   ListCharactersResolver: 
     Type: AWS::AppSync::Resolver

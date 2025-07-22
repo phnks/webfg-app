@@ -136,6 +136,31 @@ exports.handler = async (event) => {
             nextCursor = Buffer.from(JSON.stringify(lastEvaluatedKey)).toString('base64');
         }
 
+        // Add default values for any missing attributes in all characters
+        const defaultAttribute = {
+            attribute: {
+                attributeValue: 0,
+                isGrouped: true
+            }
+        };
+
+        // List of all expected attributes
+        const allAttributes = [
+            'speed', 'weight', 'size', 'armour', 'endurance', 'lethality',
+            'strength', 'dexterity', 'agility', 'perception', 'resolve', 
+            'morale', 'intelligence', 'charisma', 'seeing', 'hearing', 
+            'smelling', 'light', 'noise', 'scent'
+        ];
+
+        // Apply default values to each character
+        items.forEach(character => {
+            allAttributes.forEach(attr => {
+                if (!character[attr]) {
+                    character[attr] = defaultAttribute;
+                }
+            });
+        });
+
         // console.log(`Returning ${items.length} characters, hasNextPage: ${hasNextPage}`);
 
         return {
