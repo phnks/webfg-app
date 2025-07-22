@@ -32,7 +32,7 @@ exports.handler = async (event) => {
         // Ensure all attributes have default values if they don't exist
         const defaultAttribute = {
             attribute: {
-                attributeValue: 0,
+                attributeValue: 0.0,
                 isGrouped: true
             }
         };
@@ -45,10 +45,19 @@ exports.handler = async (event) => {
             'smelling', 'light', 'noise', 'scent'
         ];
 
-        // Add default values for any missing attributes
+        // Add default values for any missing attributes and fix legacy data format
         allAttributes.forEach(attr => {
             if (!character[attr]) {
+                // Missing attribute - add default
                 character[attr] = defaultAttribute;
+            } else if (typeof character[attr] === 'number') {
+                // Legacy format - convert plain number to GraphQL structure
+                character[attr] = {
+                    attribute: {
+                        attributeValue: parseFloat(character[attr]),
+                        isGrouped: true
+                    }
+                };
             }
         });
 
