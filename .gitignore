@@ -52,3 +52,4 @@ Thumbs.db
 *.log
 *.pid
 .claude/settings.local.json
+.gemini/.env

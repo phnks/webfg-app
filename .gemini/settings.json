@@ -1,0 +1,21 @@
+{
+  "selectedAuthType": "oauth-personal",
+  "autoAccept": true,
+  "theme": "Default",
+  "mcpServers": {
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer@2025.4.7", "--", "--no-sandbox"]
+    },
+    "discord": {
+      "command": "npx",
+      "args": ["-y", "v-3/discordmcp"],
+      "env": { "DISCORD_TOKEN": "${env:DISCORD_BOT_TOKEN}" }
+    },
+    "context7": {
+      "type": "sse",
+      "url": "https://mcp.context7.com/sse"
+    }
+  },
+  "autoStartMcpServers": true
+}
