@@ -27,9 +27,10 @@ const SearchFilterSort = ({
           { value: 'TYVIR', label: 'Tyvir' }
         ],
         attributes: [
-          'speed', 'weight', 'size', 'armour', 'endurance', 'lethality',
-          'strength', 'dexterity', 'agility', 'perception', 'intensity',
-          'resolve', 'morale', 'intelligence', 'charisma'
+          'weight', 'size', 'armour', 'endurance', 'lethality',
+          'speed', 'strength', 'dexterity', 'agility',
+          'resolve', 'morale', 'intelligence', 'charisma',
+          'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
         ],
         numericFields: ['will', 'fatigue'],
         sortFields: [
@@ -61,9 +62,10 @@ const SearchFilterSort = ({
           { value: 'ARTIFACT', label: 'Artifact' }
         ],
         attributes: [
-          'speed', 'weight', 'size', 'armour', 'endurance', 'lethality',
-          'strength', 'dexterity', 'agility', 'perception', 'intensity',
-          'resolve', 'morale', 'intelligence', 'charisma'
+          'weight', 'size', 'armour', 'endurance', 'lethality',
+          'speed', 'strength', 'dexterity', 'agility',
+          'resolve', 'morale', 'intelligence', 'charisma',
+          'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
         ],
         sortFields: [
           { value: 'name', label: 'Name' },

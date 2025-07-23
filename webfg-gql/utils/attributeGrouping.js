@@ -8,18 +8,21 @@ const { toInt } = require('./stringToNumber');
 // All available attribute names organized by group
 const ATTRIBUTE_NAMES = [
   // BODY attributes
-  'speed', 'weight', 'size', 'armour', 'endurance',
+  'weight', 'size', 'armour', 'endurance', 'lethality',
   // MARTIAL attributes  
-  'lethality', 'strength', 'dexterity', 'agility', 'perception',
+  'speed', 'strength', 'dexterity', 'agility',
   // MENTAL attributes
-  'intensity', 'resolve', 'morale', 'intelligence', 'charisma'
+  'resolve', 'morale', 'intelligence', 'charisma',
+  // SENSES attributes
+  'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
 ];
 
 // Attribute groupings for frontend display
 const ATTRIBUTE_GROUPS = {
-  BODY: ['speed', 'weight', 'size', 'armour', 'endurance'],
-  MARTIAL: ['lethality', 'strength', 'dexterity', 'agility', 'perception'],
-  MENTAL: ['intensity', 'resolve', 'morale', 'intelligence', 'charisma']
+  BODY: ['weight', 'size', 'armour', 'endurance', 'lethality'],
+  MARTIAL: ['speed', 'strength', 'dexterity', 'agility'],
+  MENTAL: ['resolve', 'morale', 'intelligence', 'charisma'],
+  SENSES: ['perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent']
 };
 
 /**

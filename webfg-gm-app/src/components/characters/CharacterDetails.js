@@ -26,8 +26,10 @@ const CharacterDetails = ({ character, onUpdate }) => {
 
       // Add attributes with their current values (no more fatigue per attribute)
       const attributes = [
-        'speed', 'weight', 'size', 'intensity', 'lethality', 'armour', 'endurance', 
-        'strength', 'dexterity', 'agility', 'perception', 'charisma', 'intelligence', 'resolve', 'morale'
+        'weight', 'size', 'armour', 'endurance', 'lethality',
+        'speed', 'strength', 'dexterity', 'agility',
+        'resolve', 'morale', 'intelligence', 'charisma',
+        'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
       ];
 
       attributes.forEach(attr => {
@@ -77,8 +79,10 @@ const CharacterDetails = ({ character, onUpdate }) => {
 
       // Add attributes with their current values (no more fatigue per attribute)
       const attributes = [
-        'speed', 'weight', 'size', 'intensity', 'lethality', 'armour', 'endurance', 
-        'strength', 'dexterity', 'agility', 'perception', 'charisma', 'intelligence', 'resolve', 'morale'
+        'weight', 'size', 'armour', 'endurance', 'lethality',
+        'speed', 'strength', 'dexterity', 'agility',
+        'resolve', 'morale', 'intelligence', 'charisma',
+        'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
       ];
 
       attributes.forEach(attr => {

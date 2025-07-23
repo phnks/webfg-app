@@ -69,9 +69,10 @@ exports.handler = async (event) => {
         }
 
         // Attribute filters
-        const attributes = ['speed', 'weight', 'size', 'armour', 'endurance', 'lethality', 
-                           'strength', 'dexterity', 'agility', 'perception', 'intensity', 
-                           'resolve', 'morale', 'intelligence', 'charisma'];
+        const attributes = ['weight', 'size', 'armour', 'endurance', 'lethality',
+                           'speed', 'strength', 'dexterity', 'agility',
+                           'resolve', 'morale', 'intelligence', 'charisma',
+                           'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'];
         
         attributes.forEach(attr => {
             if (filter[attr]) {
@@ -133,6 +134,58 @@ exports.handler = async (event) => {
         let nextCursor = null;
         if (hasNextPage && lastEvaluatedKey) {
             nextCursor = Buffer.from(JSON.stringify(lastEvaluatedKey)).toString('base64');
+        }
+
+        // Add default values for any missing attributes in all characters
+        const defaultAttribute = {
+            attribute: {
+                attributeValue: 0.0,
+                isGrouped: true
+            }
+        };
+
+        // List of all expected attributes
+        const allAttributes = [
+            'speed', 'weight', 'size', 'armour', 'endurance', 'lethality',
+            'strength', 'dexterity', 'agility', 'perception', 'resolve', 
+            'morale', 'intelligence', 'charisma', 'seeing', 'hearing', 
+            'smelling', 'light', 'noise', 'scent'
+        ];
+
+        // Apply default values and fix legacy data format for each character
+        console.log(`Processing ${items.length} characters for default attributes and format fixes`);
+        items.forEach((character, index) => {
+            console.log(`Character ${index}: ${character.name || 'unnamed'} - checking attributes`);
+            let addedDefaults = 0;
+            let fixedLegacy = 0;
+            
+            allAttributes.forEach(attr => {
+                if (!character[attr]) {
+                    // Missing attribute - add default
+                    character[attr] = defaultAttribute;
+                    addedDefaults++;
+                } else if (typeof character[attr] === 'number') {
+                    // Legacy format - convert plain number to GraphQL structure
+                    character[attr] = {
+                        attribute: {
+                            attributeValue: parseFloat(character[attr]),
+                            isGrouped: true
+                        }
+                    };
+                    fixedLegacy++;
+                }
+            });
+            console.log(`Character ${index}: Added ${addedDefaults} defaults, Fixed ${fixedLegacy} legacy attributes`);
+        });
+        console.log('Finished processing default attributes for all characters');
+
+        // Log first character's attribute structure for debugging
+        if (items.length > 0) {
+            const firstChar = items[0];
+            console.log(`First character sample attributes:`);
+            console.log(`  speed: ${JSON.stringify(firstChar.speed)}`);
+            console.log(`  armour: ${JSON.stringify(firstChar.armour)}`);
+            console.log(`  seeing: ${JSON.stringify(firstChar.seeing)}`);
         }
 
         // console.log(`Returning ${items.length} characters, hasNextPage: ${hasNextPage}`);

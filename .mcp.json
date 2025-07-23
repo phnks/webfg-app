@@ -3,7 +3,7 @@
         "puppeteer": {
           "type": "stdio",
           "command": "npx",
-          "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+	  "args": ["-y", "@modelcontextprotocol/server-puppeteer@2025.4.7"],
           "env": {}
         },
 	"discord": {

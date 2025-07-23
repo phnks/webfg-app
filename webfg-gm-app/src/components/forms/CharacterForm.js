@@ -165,16 +165,21 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   };
 
   const handleNestedAttributeChange = (attributeName, nestedField, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [attributeName]: {
-        ...prev[attributeName],
-        attribute: {
-          ...prev[attributeName].attribute,
-          [nestedField]: nestedField === 'attributeValue' ? parseFloat(value) || 0 : value
+    console.log(`DEBUG: handleNestedAttributeChange called - ${attributeName}.${nestedField} = ${value}`);
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [attributeName]: {
+          ...prev[attributeName],
+          attribute: {
+            ...prev[attributeName].attribute,
+            [nestedField]: nestedField === 'attributeValue' ? parseFloat(value) || 0 : value
+          }
         }
-      }
-    }));
+      };
+      console.log(`DEBUG: Updated formData for ${attributeName}:`, updated[attributeName]);
+      return updated;
+    });
   };
 
   const handleAddValue = () => {
@@ -238,14 +243,21 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       
       
       // Add all attributes dynamically
+      console.log('DEBUG: formData before submission:', formData);
+      console.log('DEBUG: getAllAttributeNames():', getAllAttributeNames());
+      
       getAllAttributeNames().forEach(attr => {
+        console.log(`DEBUG: Processing attribute ${attr}:`, formData[attr]);
         input[attr] = {
           attribute: { 
             attributeValue: parseFloat(formData[attr]?.attribute?.attributeValue) || 0,
             isGrouped: formData[attr]?.attribute?.isGrouped !== false
           }
         };
+        console.log(`DEBUG: Set ${attr} to:`, input[attr]);
       });
+      
+      console.log('DEBUG: Final input object:', input);
 
       const finalInput = stripTypename(input);
 
@@ -361,7 +373,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
               attributes={formData}
               renderAttribute={renderAttributeForForm}
               title="Attributes"
-              defaultExpandedGroups={['BODY']}
+              defaultExpandedGroups={['BODY', 'SENSES']}
             />
           </div>
         </div>
