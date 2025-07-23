@@ -31,4 +31,5 @@
     "^rm( |$|.*-rf)",
     "^shutdown", "^reboot", "^mkfs", "dd "
   ]
+  "autoStartMcpServers": true
 }
