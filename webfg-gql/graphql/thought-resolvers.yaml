@@ -7,12 +7,15 @@ Parameters:
   ApiId:
     Type: String
     Description: 'AppSync GraphQL API ID'
-  AppSyncLambdaServiceRoleArn:
+  ThoughtsDataSourceName:
     Type: String
-    Description: 'ARN of the IAM role for AppSync to invoke Lambda functions'
+    Description: 'Name of Thoughts DynamoDB Data Source'
   ThoughtsTableName:
     Type: String
     Description: 'Name of the Thoughts table'
+  AppSyncLambdaServiceRoleArn:
+    Type: String
+    Description: 'ARN of the IAM role for AppSync to invoke Lambda functions'
 
 Globals:
   Function:
