@@ -21,6 +21,9 @@ Parameters:
   ConditionsTableName:
     Type: String
     Description: 'Name of Conditions table'
+  ThoughtsTableName:
+    Type: String
+    Description: 'Name of Thoughts table'
 
 Resources:
   # Lambda function for grouped attributes

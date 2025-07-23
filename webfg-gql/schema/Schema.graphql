@@ -226,6 +226,10 @@ input EncounterFilterInput {
   name: StringFilterInput
 }
 
+input ThoughtFilterInput {
+  name: StringFilterInput
+}
+
 schema {
   query: Query
   mutation: Mutation
