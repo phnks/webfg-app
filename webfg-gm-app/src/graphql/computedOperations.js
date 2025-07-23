@@ -7,6 +7,7 @@ export const GROUPED_ATTRIBUTES_FRAGMENT = gql`
     weight
     size
     lethality
+    complexity
     armour
     endurance
     strength
@@ -32,6 +33,7 @@ export const READY_GROUPED_ATTRIBUTES_FRAGMENT = gql`
     weight
     size
     lethality
+    complexity
     armour
     endurance
     strength
@@ -82,6 +84,7 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       weight { attribute { attributeValue isGrouped } }
       size { attribute { attributeValue isGrouped } }
       lethality { attribute { attributeValue isGrouped } }
+      complexity { attribute { attributeValue isGrouped } }
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
       strength { attribute { attributeValue isGrouped } }
@@ -230,12 +233,19 @@ export const GET_OBJECT_WITH_GROUPED = gql`
       weight { attributeValue isGrouped }
       size { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
+      complexity { attributeValue isGrouped }
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
       perception { attributeValue isGrouped }
+      seeing { attributeValue isGrouped }
+      hearing { attributeValue isGrouped }
+      smelling { attributeValue isGrouped }
+      light { attributeValue isGrouped }
+      noise { attributeValue isGrouped }
+      scent { attributeValue isGrouped }
       charisma { attributeValue isGrouped }
       intelligence { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
@@ -254,12 +264,19 @@ export const GET_OBJECT_WITH_GROUPED = gql`
         weight { attributeValue isGrouped }
         size { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
+        complexity { attributeValue isGrouped }
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
         perception { attributeValue isGrouped }
+        seeing { attributeValue isGrouped }
+        hearing { attributeValue isGrouped }
+        smelling { attributeValue isGrouped }
+        light { attributeValue isGrouped }
+        noise { attributeValue isGrouped }
+        scent { attributeValue isGrouped }
         charisma { attributeValue isGrouped }
         intelligence { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
@@ -349,6 +366,7 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
       weight { attribute { attributeValue isGrouped } }
       size { attribute { attributeValue isGrouped } }
       lethality { attribute { attributeValue isGrouped } }
+      complexity { attribute { attributeValue isGrouped } }
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
       strength { attribute { attributeValue isGrouped } }

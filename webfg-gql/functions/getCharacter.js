@@ -39,7 +39,7 @@ exports.handler = async (event) => {
 
         // List of all expected attributes
         const allAttributes = [
-            'speed', 'weight', 'size', 'armour', 'endurance', 'lethality',
+            'speed', 'weight', 'size', 'armour', 'endurance', 'lethality', 'complexity',
             'strength', 'dexterity', 'agility', 'perception', 'resolve', 
             'morale', 'intelligence', 'charisma', 'seeing', 'hearing', 
             'smelling', 'light', 'noise', 'scent'

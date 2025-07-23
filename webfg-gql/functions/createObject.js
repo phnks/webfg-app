@@ -37,6 +37,7 @@ exports.handler = async (event) => {
     if (!item.armour) item.armour = defaultAttribute;
     if (!item.endurance) item.endurance = defaultAttribute;
     if (!item.lethality) item.lethality = defaultAttribute;
+    if (!item.complexity) item.complexity = defaultAttribute;
     if (!item.strength) item.strength = defaultAttribute;
     if (!item.dexterity) item.dexterity = defaultAttribute;
     if (!item.agility) item.agility = defaultAttribute;

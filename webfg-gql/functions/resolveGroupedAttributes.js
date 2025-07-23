@@ -23,8 +23,8 @@ exports.handler = async (event) => {
       speed: null,
       weight: null,
       size: null,
-      intensity: null,
       lethality: null,
+      complexity: null,
       armour: null,
       endurance: null,
       strength: null,
@@ -34,7 +34,13 @@ exports.handler = async (event) => {
       charisma: null,
       intelligence: null,
       resolve: null,
-      morale: null
+      morale: null,
+      seeing: null,
+      hearing: null,
+      smelling: null,
+      light: null,
+      noise: null,
+      scent: null
     };
   }
 
@@ -68,8 +74,8 @@ exports.handler = async (event) => {
       speed: groupedAttributes.speed || null,
       weight: groupedAttributes.weight || null,
       size: groupedAttributes.size || null,
-      intensity: groupedAttributes.intensity || null,
       lethality: groupedAttributes.lethality || null,
+      complexity: groupedAttributes.complexity || null,
       armour: groupedAttributes.armour || null,
       endurance: groupedAttributes.endurance || null,
       strength: groupedAttributes.strength || null,
@@ -79,7 +85,13 @@ exports.handler = async (event) => {
       charisma: groupedAttributes.charisma || null,
       intelligence: groupedAttributes.intelligence || null,
       resolve: groupedAttributes.resolve || null,
-      morale: groupedAttributes.morale || null
+      morale: groupedAttributes.morale || null,
+      seeing: groupedAttributes.seeing || null,
+      hearing: groupedAttributes.hearing || null,
+      smelling: groupedAttributes.smelling || null,
+      light: groupedAttributes.light || null,
+      noise: groupedAttributes.noise || null,
+      scent: groupedAttributes.scent || null
     };
 
     // console.log("Calculated grouped attributes:", JSON.stringify(result, null, 2));
