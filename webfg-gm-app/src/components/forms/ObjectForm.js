@@ -70,8 +70,9 @@ const prepareObjectInput = (data) => {
   
   // Add all attributes dynamically
   Object.values(ATTRIBUTE_GROUPS).flat().forEach(attr => {
+    const attrValue = parseFloat(data[attr]?.attributeValue) || 0;
     input[attr] = {
-      attributeValue: parseFloat(data[attr]?.attributeValue) || 0,
+      attributeValue: attrValue,
       isGrouped: data[attr]?.isGrouped !== undefined ? data[attr].isGrouped : true
     };
   });
@@ -84,6 +85,9 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
   const [selectedObjectForEquipment, setSelectedObjectForEquipment] = useState('');
   const [newSpecialProperty, setNewSpecialProperty] = useState('');
   const { data: allObjectsData, loading: allObjectsLoading, error: allObjectsError } = useQuery(LIST_OBJECTS);
+  
+  // Track if user has made changes to prevent unwanted resets
+  const [hasUserChanges, setHasUserChanges] = useState(false);
   
   const getInitialFormData = useCallback(() => {
     if (isEditing && object) {
@@ -112,8 +116,11 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setFormData(getInitialFormData());
-  }, [getInitialFormData]);
+    // Only reset form data if user hasn't made changes
+    if (!hasUserChanges) {
+      setFormData(getInitialFormData());
+    }
+  }, [getInitialFormData, hasUserChanges]);
 
   const [createObjectMutation, { loading: createLoading }] = useMutation(CREATE_OBJECT);
   const [updateObjectMutation, { loading: updateLoading }] = useMutation(UPDATE_OBJECT);
@@ -123,6 +130,9 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
     const { name, value, type, checked } = e.target;
     const [field, nestedField, subNestedField] = name.split('.');
     const actualValue = type === 'checkbox' ? checked : value;
+
+    // Mark that user has made changes
+    setHasUserChanges(true);
 
     setFormData(prev => {
       if (subNestedField) {
@@ -180,12 +190,16 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
           variables: { objectId: object.objectId, input: inputData }
         });
         if (!result.data?.updateObject) throw new Error("Failed to update object or no data returned.");
+        // Reset user changes flag after successful save
+        setHasUserChanges(false);
         if (onSuccess) onSuccess(result.data.updateObject.objectId);
       } else {
         result = await createObjectMutation({
           variables: { input: inputData }
         });
         if (!result.data?.createObject) throw new Error("Failed to create object or no data returned.");
+        // Reset user changes flag after successful save
+        setHasUserChanges(false);
         if (onSuccess) onSuccess(result.data.createObject.objectId);
       }
     } catch (err) {
@@ -237,7 +251,7 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
             step="0.1"
             value={formData[attributeName]?.attributeValue || 0}
             onChange={(e) => handleChange({
-              target: { name: `${attributeName}.attributeValue`, value: e.target.value }
+              target: { name: `${attributeName}.attributeValue`, value: e.target.value, type: 'number' }
             })}
           />
           <label className="checkbox-label">
@@ -245,7 +259,7 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
               type="checkbox"
               checked={formData[attributeName]?.isGrouped !== false}
               onChange={(e) => handleChange({
-                target: { name: `${attributeName}.isGrouped`, type: 'checkbox', checked: e.target.checked }
+                target: { name: `${attributeName}.isGrouped`, value: e.target.checked, type: 'checkbox', checked: e.target.checked }
               })}
             />
             Group

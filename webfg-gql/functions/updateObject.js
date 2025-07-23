@@ -7,7 +7,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const OBJECTS_TABLE_NAME = process.env.OBJECTS_TABLE_NAME;
 
 exports.handler = async (event) => {
-    // console.log('Received event:', JSON.stringify(event, null, 2));
+    console.log('Received event:', JSON.stringify(event, null, 2));
 
     const { objectId, input } = event;
     const updatedAt = new Date().toISOString();
@@ -16,21 +16,46 @@ exports.handler = async (event) => {
     const expressionAttributeNames = {};
     const expressionAttributeValues = {};
 
-    expressionAttributeNames['#updatedAt'] = 'updatedAt';
-    expressionAttributeValues[':updatedAt'] = updatedAt;
-    updateExpressionParts.push('#updatedAt = :updatedAt');
-
-    for (const key in input) {
-        if (input.hasOwnProperty(key) && key !== 'objectId') {
-            const value = input[key];
-            const attributeName = `#${key}`;
-            const attributeValue = `:${key}`;
-
-            expressionAttributeNames[attributeName] = key;
-            expressionAttributeValues[attributeValue] = value;
-            updateExpressionParts.push(`${attributeName} = ${attributeValue}`);
+    // Helper function to add update expression parts
+    const addUpdateField = (fieldName, fieldValue, attributeName = fieldName) => {
+        if (fieldValue !== undefined) {
+            updateExpressionParts.push(`#${attributeName} = :${attributeName}`);
+            expressionAttributeNames[`#${attributeName}`] = fieldName;
+            expressionAttributeValues[`:${attributeName}`] = fieldValue;
         }
-    }
+    };
+
+    // Add updatedAt
+    addUpdateField("updatedAt", updatedAt);
+
+    // Update fields from input - explicitly handle all fields like we do for characters
+    addUpdateField("name", input.name);
+    addUpdateField("description", input.description);
+    addUpdateField("objectCategory", input.objectCategory);
+    addUpdateField("isEquipment", input.isEquipment);
+    addUpdateField("speed", input.speed);
+    addUpdateField("weight", input.weight);
+    addUpdateField("size", input.size);
+    addUpdateField("armour", input.armour);
+    addUpdateField("endurance", input.endurance);
+    addUpdateField("lethality", input.lethality);
+    addUpdateField("complexity", input.complexity);
+    addUpdateField("strength", input.strength);
+    addUpdateField("dexterity", input.dexterity);
+    addUpdateField("agility", input.agility);
+    addUpdateField("perception", input.perception);
+    addUpdateField("resolve", input.resolve);
+    addUpdateField("morale", input.morale);
+    addUpdateField("intelligence", input.intelligence);
+    addUpdateField("charisma", input.charisma);
+    addUpdateField("seeing", input.seeing);
+    addUpdateField("hearing", input.hearing);
+    addUpdateField("smelling", input.smelling);
+    addUpdateField("light", input.light);
+    addUpdateField("noise", input.noise);
+    addUpdateField("scent", input.scent);
+    addUpdateField("special", input.special);
+    addUpdateField("equipmentIds", input.equipmentIds);
 
     // Update nameLowerCase whenever name is updated
     if (input.name !== undefined) {
@@ -56,7 +81,7 @@ exports.handler = async (event) => {
     try {
         const command = new UpdateCommand(params);
         const result = await ddbDocClient.send(command);
-        // console.log('DynamoDB Update result:', JSON.stringify(result, null, 2));
+        console.log('DynamoDB Update result:', JSON.stringify(result, null, 2));
 
         return result.Attributes;
     } catch (error) {

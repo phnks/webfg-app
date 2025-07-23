@@ -60,7 +60,7 @@ exports.handler = async (event) => {
         }
 
         // Attribute filters
-        const attributes = ['weight', 'size', 'armour', 'endurance', 'lethality',
+        const attributes = ['weight', 'size', 'armour', 'endurance', 'lethality', 'complexity',
                            'speed', 'strength', 'dexterity', 'agility',
                            'resolve', 'morale', 'intelligence', 'charisma',
                            'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'];
@@ -126,6 +126,45 @@ exports.handler = async (event) => {
         if (hasNextPage && lastEvaluatedKey) {
             nextCursor = Buffer.from(JSON.stringify(lastEvaluatedKey)).toString('base64');
         }
+
+        // Add default values for any missing attributes in all objects
+        const defaultAttribute = {
+            attributeValue: 0.0,
+            isGrouped: true
+        };
+
+        // List of all expected attributes
+        const allAttributes = [
+            'speed', 'weight', 'size', 'armour', 'endurance', 'lethality', 'complexity',
+            'strength', 'dexterity', 'agility', 'perception', 'resolve', 
+            'morale', 'intelligence', 'charisma', 'seeing', 'hearing', 
+            'smelling', 'light', 'noise', 'scent'
+        ];
+
+        // Apply default values and fix legacy data format for each object
+        console.log(`Processing ${items.length} objects for default attributes and format fixes`);
+        items.forEach((object, index) => {
+            console.log(`Object ${index}: ${object.name || 'unnamed'} - checking attributes`);
+            let addedDefaults = 0;
+            let fixedLegacy = 0;
+            
+            allAttributes.forEach(attr => {
+                if (!object[attr]) {
+                    // Missing attribute - add default
+                    object[attr] = defaultAttribute;
+                    addedDefaults++;
+                } else if (typeof object[attr] === 'number') {
+                    // Legacy format - convert plain number to GraphQL structure
+                    object[attr] = {
+                        attributeValue: parseFloat(object[attr]),
+                        isGrouped: true
+                    };
+                    fixedLegacy++;
+                }
+            });
+            console.log(`Object ${index}: Added ${addedDefaults} defaults, Fixed ${fixedLegacy} legacy attributes`);
+        });
+        console.log('Finished processing default attributes for all objects');
 
         // console.log(`Returning ${items.length} objects, hasNextPage: ${hasNextPage}`);
 

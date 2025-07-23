@@ -15,6 +15,7 @@ type Character {
   armour: CharacterAttribute!
   endurance: CharacterAttribute!
   lethality: CharacterAttribute!
+  complexity: CharacterAttribute
   strength: CharacterAttribute!
   dexterity: CharacterAttribute!
   agility: CharacterAttribute!
@@ -89,6 +90,7 @@ input CharacterInput {
   armour: CharacterAttributeInput!
   endurance: CharacterAttributeInput!
   lethality: CharacterAttributeInput!
+  complexity: CharacterAttributeInput
   strength: CharacterAttributeInput!
   dexterity: CharacterAttributeInput!
   agility: CharacterAttributeInput!

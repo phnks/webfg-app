@@ -11,6 +11,7 @@ type Object {
   armour: Attribute!
   endurance: Attribute!
   lethality: Attribute!
+  complexity: Attribute
   strength: Attribute!
   dexterity: Attribute!
   agility: Attribute!
@@ -61,6 +62,7 @@ input ObjectInput {
   armour: AttributeInput
   endurance: AttributeInput
   lethality: AttributeInput
+  complexity: AttributeInput
   strength: AttributeInput
   dexterity: AttributeInput
   agility: AttributeInput

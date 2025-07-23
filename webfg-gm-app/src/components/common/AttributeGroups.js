@@ -3,7 +3,7 @@ import './AttributeGroups.css';
 
 // Attribute groupings matching backend structure
 export const ATTRIBUTE_GROUPS = {
-  BODY: ['weight', 'size', 'armour', 'endurance', 'lethality'],
+  BODY: ['weight', 'size', 'armour', 'endurance', 'lethality', 'complexity'],
   MARTIAL: ['speed', 'strength', 'dexterity', 'agility'],
   MENTAL: ['resolve', 'morale', 'intelligence', 'charisma'],
   SENSES: ['perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent']

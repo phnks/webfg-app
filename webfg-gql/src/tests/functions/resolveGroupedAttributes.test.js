@@ -283,9 +283,9 @@ describe('resolveGroupedAttributes', () => {
       const result = await handler(event);
 
       const expectedFields = [
-        'speed', 'weight', 'size', 'intensity', 'lethality', 'armour', 'endurance',
+        'speed', 'weight', 'size', 'complexity', 'lethality', 'armour', 'endurance',
         'strength', 'dexterity', 'agility', 'perception', 'charisma', 'intelligence',
-        'resolve', 'morale'
+        'resolve', 'morale', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
       ];
 
       expectedFields.forEach(field => {

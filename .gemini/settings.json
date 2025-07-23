@@ -17,5 +17,19 @@
       "url": "https://mcp.context7.com/sse"
     }
   },
+  "autoStartMcpServers": true,
+  "commandAllowlist": [
+    "^git (status|diff|log|add|commit( -m .+)?|checkout( [^;&|]*)?)$",
+    "^git push(?! --dry-run)",
+    "^npm (install|run (build|test).*)$",
+    "^aws (cloudformation|appsync|s3|sts|lambda).*",
+    "^mcp__.*",
+    "^ls( .*)?$",
+    "^pwd$"
+  ],
+  "commandDenylist": [
+    "^rm( |$|.*-rf)",
+    "^shutdown", "^reboot", "^mkfs", "dd "
+  ]
   "autoStartMcpServers": true
 }

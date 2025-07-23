@@ -82,6 +82,7 @@ type Character {
   armour: CharacterAttribute!
   endurance: CharacterAttribute!
   lethality: CharacterAttribute!
+  complexity: CharacterAttribute
   strength: CharacterAttribute!
   dexterity: CharacterAttribute!
   agility: CharacterAttribute!
@@ -156,6 +157,7 @@ input CharacterInput {
   armour: CharacterAttributeInput!
   endurance: CharacterAttributeInput!
   lethality: CharacterAttributeInput!
+  complexity: CharacterAttributeInput
   strength: CharacterAttributeInput!
   dexterity: CharacterAttributeInput!
   agility: CharacterAttributeInput!
@@ -211,6 +213,7 @@ type Object {
   armour: Attribute!
   endurance: Attribute!
   lethality: Attribute!
+  complexity: Attribute
   strength: Attribute!
   dexterity: Attribute!
   agility: Attribute!
@@ -261,6 +264,7 @@ input ObjectInput {
   armour: AttributeInput
   endurance: AttributeInput
   lethality: AttributeInput
+  complexity: AttributeInput
   strength: AttributeInput
   dexterity: AttributeInput
   agility: AttributeInput
@@ -791,6 +795,7 @@ type GroupedAttributes {
   weight: Float
   size: Float
   lethality: Float
+  complexity: Float
   armour: Float
   endurance: Float
   strength: Float
@@ -814,6 +819,7 @@ type ReadyGroupedAttributes {
   weight: Float
   size: Float
   lethality: Float
+  complexity: Float
   armour: Float
   endurance: Float
   strength: Float
