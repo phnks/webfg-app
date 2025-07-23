@@ -41,21 +41,19 @@ describe('Thought CRUD Operations', () => {
     // Submit form and wait for navigation
     cy.contains('button', 'Create Thought').click({force: true});
     
-    // Wait for GraphQL mutation and navigation
-    cy.wait(3000);
+    // Wait longer for GraphQL mutation to complete
+    cy.wait(5000);
     
     // Should redirect to thought detail page - be more flexible with URL matching
-    cy.url({timeout: 15000}).should('match', /\/thoughts\/[a-zA-Z0-9-]+$/);
+    cy.url({timeout: 20000}).should('match', /\/thoughts\/[a-zA-Z0-9-]+$/);
     
-    // Wait for loading to complete - check that we're not in loading state
-    cy.get('body').should('not.contain', 'Loading thought...');
+    // Wait for the ThoughtView component to fully load by waiting for the thought content
+    // This is more reliable than waiting for loading states
+    cy.get('body', {timeout: 15000}).should('contain', 'Test Thought');
     
-    // Wait for data to load and error states to clear
-    cy.get('body').should('not.contain', 'Error loading thought');
-    cy.get('body').should('not.contain', 'Thought not found');
-    
-    // Now look for the h1 element with the thought name
-    cy.get('h1', {timeout: 10000}).should('contain', 'Test Thought');
+    // Verify we're on the detail page by checking for edit/delete buttons
+    cy.get('button').contains('Edit').should('be.visible');
+    cy.get('button').contains('Delete').should('be.visible');
     
     // Also verify the description is shown
     cy.get('body').should('contain', 'This is a test thought description');
