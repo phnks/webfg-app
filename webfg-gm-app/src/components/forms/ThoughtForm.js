@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import ErrorPopup from '../common/ErrorPopup';
-import { useMutation } from "@apollo/client";
+import { useMutation, useApolloClient } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
   CREATE_THOUGHT,
@@ -46,24 +46,9 @@ const ThoughtForm = ({ thought, isEditing = false, onClose, onSuccess }) => {
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
   const navigate = useNavigate();
+  const apolloClient = useApolloClient();
 
-  const [createThought, { loading: createLoading }] = useMutation(CREATE_THOUGHT, {
-    update(cache, result) {
-      try {
-        console.log("Mutation result:", result);
-        // Temporarily disable cache update to debug mutation response issue
-        if (result && result.data && result.data.createThought) {
-          const { listThoughts } = cache.readQuery({ query: LIST_THOUGHTS }) || { listThoughts: [] };
-          cache.writeQuery({
-            query: LIST_THOUGHTS,
-            data: { listThoughts: [result.data.createThought, ...listThoughts] },
-          });
-        }
-      } catch (e) {
-        console.log("Cache update error:", e);
-      }
-    }
-  });
+  const [createThought, { loading: createLoading }] = useMutation(CREATE_THOUGHT);
 
   const [updateThought, { loading: updateLoading }] = useMutation(UPDATE_THOUGHT);
 
@@ -116,18 +101,44 @@ const ThoughtForm = ({ thought, isEditing = false, onClose, onSuccess }) => {
         console.log("Apollo Client returned:", result);
         const { data } = result;
         
+        let thoughtId = null;
+        
         // Check if mutation succeeded and returned valid data
-        if (!data || !data.createThought || !data.createThought.thoughtId) {
-          console.error("Invalid mutation response. Data:", data);
-          throw new Error('Failed to create thought: Invalid response from server');
+        if (data && data.createThought && data.createThought.thoughtId) {
+          thoughtId = data.createThought.thoughtId;
+          console.log("Mutation successful, got thoughtId:", thoughtId);
+        } else {
+          console.warn("Mutation response invalid, attempting fallback strategy");
+          // Fallback: Refetch thoughts list and find the newest one
+          try {
+            const listResult = await apolloClient.query({
+              query: LIST_THOUGHTS,
+              fetchPolicy: 'network-only'
+            });
+            
+            if (listResult.data && listResult.data.listThoughts && listResult.data.listThoughts.length > 0) {
+              // Find the thought with matching name (most recently created)
+              const matchingThought = listResult.data.listThoughts.find(t => t.name === input.name);
+              if (matchingThought) {
+                thoughtId = matchingThought.thoughtId;
+                console.log("Found created thought via fallback:", thoughtId);
+              }
+            }
+          } catch (fallbackError) {
+            console.error("Fallback strategy failed:", fallbackError);
+          }
         }
         
-        console.log("Mutation successful, navigating to:", `/thoughts/${data.createThought.thoughtId}`);
+        if (!thoughtId) {
+          throw new Error('Failed to create thought: Could not retrieve created thought ID');
+        }
+        
+        console.log("Navigating to:", `/thoughts/${thoughtId}`);
         
         if (onSuccess) {
-          onSuccess(data.createThought.thoughtId);
+          onSuccess(thoughtId);
         } else {
-          navigate(`/thoughts/${data.createThought.thoughtId}`);
+          navigate(`/thoughts/${thoughtId}`);
         }
       }
 
