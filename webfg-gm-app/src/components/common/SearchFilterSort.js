@@ -139,6 +139,13 @@ const SearchFilterSort = ({
           { value: 'conditionType', label: 'Type' },
           { value: 'conditionTarget', label: 'Target Attribute' }
         ]
+      },
+      thoughts: {
+        searchPlaceholder: "Search thoughts by name or description...",
+        categories: [], // Thoughts have no categories in the simple schema
+        sortFields: [
+          { value: 'name', label: 'Name' }
+        ]
       }
     };
     return configs[entityType] || {};

@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useSubscription } from '@apollo/client';
-import { FaBars, FaTimes, FaUser, FaCube, FaBolt, FaHome, FaChessBoard, FaExclamationTriangle } from 'react-icons/fa';
+import { FaBars, FaTimes, FaUser, FaCube, FaBolt, FaHome, FaChessBoard, FaExclamationTriangle, FaBrain } from 'react-icons/fa';
 import {
   ON_CREATE_CHARACTER, ON_UPDATE_ACTION, ON_DELETE_CHARACTER,
   ON_CREATE_OBJECT, ON_UPDATE_OBJECT, ON_DELETE_OBJECT,
   ON_CREATE_ACTION, ON_DELETE_ACTION,
   ON_CREATE_ENCOUNTER, ON_UPDATE_ENCOUNTER, ON_DELETE_ENCOUNTER,
+  ON_CREATE_THOUGHT, ON_UPDATE_THOUGHT, ON_DELETE_THOUGHT,
   LIST_ENCOUNTERS
 } from '../../graphql/operations';
 import { useRecentlyViewed } from '../../context/RecentlyViewedContext';
 import './NavBar.css';
 
-const NavBar = ({ characterList = [], objectList = [], actionList = [], conditionList = [] }) => {
+const NavBar = ({ characterList = [], objectList = [], actionList = [], conditionList = [], thoughtList = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const location = useLocation();
@@ -24,6 +25,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [], conditio
   const [objects, setObjects] = useState(objectList);
   const [actions, setActions] = useState(actionList);
   const [conditions, setConditions] = useState(conditionList);
+  const [thoughts, setThoughts] = useState(thoughtList);
   const [encounters, setEncounters] = useState([]);
 
   // Track deleted items to prevent them showing up
@@ -32,6 +34,7 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [], conditio
     objects: new Set(),
     actions: new Set(),
     conditions: new Set(),
+    thoughts: new Set(),
     encounters: new Set()
   });
 
@@ -96,12 +99,26 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [], conditio
     }
   }, [conditionList]);
 
+  useEffect(() => {
+    if (thoughtList && thoughtList.length > 0) {
+      setThoughts(prev => {
+        // Filter out deleted thoughts
+        const filtered = thoughtList.filter(
+          thought => !deletedItemIds.current.thoughts.has(thought.thoughtId)
+        );
+        return filtered;
+      });
+    }
+  }, [thoughtList]);
+
   // Determine active section based on URL
   useEffect(() => {
     if (location.pathname.includes('/characters')) {
       setActiveSection('characters');
     } else if (location.pathname.includes('/objects')) {
       setActiveSection('objects');
+    } else if (location.pathname.includes('/thoughts')) {
+      setActiveSection('thoughts');
     } else if (location.pathname.includes('/actions')) {
       setActiveSection('actions');
     } else if (location.pathname.includes('/conditions')) {
@@ -314,6 +331,58 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [], conditio
     }
   });
 
+  // Thought subscriptions
+  useSubscription(ON_CREATE_THOUGHT, {
+    onData: ({ data }) => {
+      const newThought = data.data.onCreateThought;
+
+      // Don't add if it was deleted
+      if (deletedItemIds.current.thoughts.has(newThought.thoughtId)) {
+        return;
+      }
+
+      setThoughts(prev => {
+        // Check if thought already exists to avoid duplicates
+        if (!prev.some(thought => thought.thoughtId === newThought.thoughtId)) {
+          return [...prev, newThought];
+        }
+        return prev;
+      });
+    }
+  });
+
+  useSubscription(ON_UPDATE_THOUGHT, {
+    onData: ({ data }) => {
+      const updatedThought = data.data.onUpdateThought;
+
+      // Don't update if thought was deleted
+      if (deletedItemIds.current.thoughts.has(updatedThought.thoughtId)) {
+        return;
+      }
+
+      setThoughts(prev =>
+        prev.map(thought =>
+          thought.thoughtId === updatedThought.thoughtId
+            ? updatedThought
+            : thought
+        )
+      );
+    }
+  });
+
+  useSubscription(ON_DELETE_THOUGHT, {
+    onData: ({ data }) => {
+      const deletedThought = data.data.onDeleteThought;
+
+      // Mark thought as deleted
+      deletedItemIds.current.thoughts.add(deletedThought.thoughtId);
+
+      setThoughts(prev =>
+        prev.filter(thought => thought.thoughtId !== deletedThought.thoughtId)
+      );
+    }
+  });
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -330,6 +399,9 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [], conditio
         break;
       case 'objects':
         navigate('/objects/new');
+        break;
+      case 'thoughts':
+        navigate('/thoughts/new');
         break;
       case 'actions':
         navigate('/actions/new');
@@ -366,6 +438,12 @@ const NavBar = ({ characterList = [], objectList = [], actionList = [], conditio
             <NavLink to="/objects" onClick={() => setActiveSection('objects')} data-cy="nav-objects">
               <FaCube />
               <span>Objects</span>
+            </NavLink>
+          </li>
+          <li className={activeSection === 'thoughts' ? 'active' : ''}>
+            <NavLink to="/thoughts" onClick={() => setActiveSection('thoughts')} data-cy="nav-thoughts">
+              <FaBrain />
+              <span>Thoughts</span>
             </NavLink>
           </li>
           <li className={activeSection === 'actions' ? 'active' : ''}>

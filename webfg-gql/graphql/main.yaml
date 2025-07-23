@@ -30,6 +30,9 @@ Parameters:
   EncountersDataSourceName:
     Type: String
     Description: 'Name of db data source'
+  ThoughtsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
   CharactersTableName:
     Type: String
     Description: 'Name of table'
@@ -60,6 +63,9 @@ Parameters:
   EncountersTableName:
     Type: String
     Description: 'Name of encounters table'
+  ThoughtsTableName:
+    Type: String
+    Description: 'Name of thoughts table'
 
 Globals:
   Function:
@@ -94,10 +100,12 @@ Resources:
         ActionsDataSourceName: !Ref ActionsDataSourceName
         ConditionsDataSourceName: !Ref ConditionsDataSourceName
         EncountersDataSourceName: !Ref EncountersDataSourceName
+        ThoughtsDataSourceName: !Ref ThoughtsDataSourceName
         CharactersTableName: !Ref CharactersTableName
         ActionsTableName: !Ref ActionsTableName
         ConditionsTableName: !Ref ConditionsTableName
         EncountersTableName: !Ref EncountersTableName
+        ThoughtsTableName: !Ref ThoughtsTableName
 
   CharacterResolversStack:
     Type: AWS::CloudFormation::Stack
@@ -157,6 +165,19 @@ Resources:
         ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
         ConditionsDataSourceName: !Ref ConditionsDataSourceName
         ConditionsTableName: !Ref ConditionsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
+  ThoughtResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./thought-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        ThoughtsDataSourceName: !Ref ThoughtsDataSourceName
+        ThoughtsTableName: !Ref ThoughtsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
 

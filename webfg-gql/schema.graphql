@@ -395,6 +395,48 @@ input ConditionInput {
   conditionTarget: AttributeName!
 }
 
+type Thought {
+  thoughtId: ID!
+  name: String!
+  nameLowerCase: String
+  description: String
+  descriptionLowerCase: String
+}
+
+input ThoughtInput {
+  name: String!
+  description: String
+}
+
+enum ThoughtCategory {
+  MEMORY
+  IDEA
+  PLAN
+  NOTE
+  REFLECTION
+  OBSERVATION
+  QUESTION
+  GOAL
+  DREAM
+  FEAR
+  OTHER
+}
+
+type ThoughtConnection {
+  items: [Thought!]!
+  nextCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int
+}
+
+input EnhancedThoughtFilterInput {
+  search: String
+  name: StringFilterInput
+  
+  pagination: PaginationInput
+  sort: [SortInput!]
+}
+
 # Enhanced Filtering, Sorting and Pagination Schema
 
 # Generic pagination input
@@ -603,6 +645,12 @@ type Query {
   getEncounter(encounterId: ID!): Encounter
   listEncounters(filter: EncounterFilterInput): [Encounter]
 
+  # Thought queries
+  getThought(thoughtId: ID!): Thought
+  listThoughts(filter: ThoughtFilterInput): [Thought]
+  # Enhanced thought list query with search, filtering, sorting, and pagination
+  listThoughtsEnhanced(filter: EnhancedThoughtFilterInput): ThoughtConnection
+
   # Calculate action test without persisting
   calculateActionTest(input: ActionTestInput!): ActionTestResult!
 }
@@ -679,6 +727,11 @@ type Mutation {
   updateTerrainPosition(encounterId: ID!, input: UpdateTerrainPositionInput!): Encounter
   removeTerrainFromEncounter(encounterId: ID!, terrainId: ID!): Encounter
 
+  # Thought mutations
+  createThought(input: ThoughtInput!): Thought
+  updateThought(thoughtId: ID!, input: ThoughtInput!): Thought
+  deleteThought(thoughtId: ID!): Thought
+
 }
 
 
@@ -722,6 +775,14 @@ type Subscription {
       @aws_subscribe(mutations: ["updateEncounter"])
   onDeleteEncounter: Encounter
       @aws_subscribe(mutations: ["deleteEncounter"])
+
+  # Thought subscriptions
+  onCreateThought: Thought
+      @aws_subscribe(mutations: ["createThought"])
+  onUpdateThought: Thought
+      @aws_subscribe(mutations: ["updateThought"])
+  onDeleteThought: Thought
+      @aws_subscribe(mutations: ["deleteThought"])
   onEncounterTimelineChanged(encounterId: ID!): Encounter
       @aws_subscribe(mutations: ["addActionToTimeline", "advanceEncounterTime"])
   onEncounterEventChanged(encounterId: ID!): Encounter
@@ -778,6 +839,10 @@ input ObjectFilterInput {
 }
 
 input EncounterFilterInput {
+  name: StringFilterInput
+}
+
+input ThoughtFilterInput {
   name: StringFilterInput
 }
 

@@ -85,6 +85,21 @@ Cypress.Commands.add('navigateToEncounters', () => {
   });
 });
 
+Cypress.Commands.add('navigateToThoughts', () => {
+  cy.get('.menu-toggle').click();
+  cy.get('a[href="/thoughts"]').first().click({force: true});
+  
+  // Wait for the thoughts page to load instead of hardcoded wait
+  cy.url().should('include', '/thoughts');
+  cy.get('body').should('be.visible');
+  
+  cy.get('body').then($body => {
+    if ($body.find('.menu-toggle[aria-expanded="true"]').length > 0) {
+      cy.get('main').click({force: true});
+    }
+  });
+});
+
 // Button click helpers
 Cypress.Commands.add('clickCreateButton', () => {
   // Check what page we're on and click the appropriate create button
@@ -123,6 +138,15 @@ Cypress.Commands.add('clickCreateButton', () => {
           cy.get('.add-btn').click();
         } else {
           cy.contains('button', 'Create New Condition').click();
+        }
+      });
+    } else if (url.includes('/thoughts')) {
+      // On thoughts page
+      cy.get('body').then($body => {
+        if ($body.find('.add-btn').length > 0) {
+          cy.get('.add-btn').click();
+        } else {
+          cy.contains('button', 'Create New Thought').click();
         }
       });
     } else {
@@ -306,6 +330,22 @@ Cypress.Commands.add('fillBasicConditionInfo', (condition) => {
   
   // Wait for form fields to be properly filled
   cy.get('input[name="name"]').should('have.value', condition.name);
+});
+
+Cypress.Commands.add('fillBasicThoughtInfo', (thought) => {
+  // Wait for form to be ready
+  cy.get('input[name="name"]').should('be.visible');
+  
+  // Fill name field (required)
+  cy.get('input[name="name"]').clear().type(thought.name);
+  
+  // Fill description field (optional but commonly provided)
+  if (thought.description) {
+    cy.get('textarea[name="description"]').clear().type(thought.description);
+  }
+  
+  // Wait for form fields to be properly filled
+  cy.get('input[name="name"]').should('have.value', thought.name);
 });
 
 // Wait for GraphQL operations
