@@ -310,7 +310,6 @@ Resources:
         ObjectsTableName: !Ref ObjectsTableName
         ActionsTableName: !Ref ActionsTableName
         ConditionsTableName: !Ref ConditionsTableName
-        ThoughtsTableName: !Ref ThoughtsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
 Outputs:
