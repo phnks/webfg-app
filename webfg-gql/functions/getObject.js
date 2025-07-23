@@ -28,7 +28,7 @@ exports.handler = async (event) => {
         const object = result.Item;
         
         if (!object) {
-            throw new Error(`Object with ID ${objectId} not found`);
+            return undefined; // Return undefined when object not found instead of throwing
         }
 
         // Ensure all attributes have default values if they don't exist
