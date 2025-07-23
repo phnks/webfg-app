@@ -48,13 +48,17 @@ const ThoughtForm = ({ thought, isEditing = false, onClose, onSuccess }) => {
   const navigate = useNavigate();
 
   const [createThought, { loading: createLoading }] = useMutation(CREATE_THOUGHT, {
-    update(cache, { data: { createThought } }) {
+    update(cache, result) {
       try {
-        const { listThoughts } = cache.readQuery({ query: LIST_THOUGHTS }) || { listThoughts: [] };
-        cache.writeQuery({
-          query: LIST_THOUGHTS,
-          data: { listThoughts: [createThought, ...listThoughts] },
-        });
+        console.log("Mutation result:", result);
+        // Temporarily disable cache update to debug mutation response issue
+        if (result && result.data && result.data.createThought) {
+          const { listThoughts } = cache.readQuery({ query: LIST_THOUGHTS }) || { listThoughts: [] };
+          cache.writeQuery({
+            query: LIST_THOUGHTS,
+            data: { listThoughts: [result.data.createThought, ...listThoughts] },
+          });
+        }
       } catch (e) {
         console.log("Cache update error:", e);
       }
@@ -93,15 +97,32 @@ const ThoughtForm = ({ thought, isEditing = false, onClose, onSuccess }) => {
           }
         });
         
+        // Check if mutation succeeded and returned valid data
+        if (!data || !data.updateThought || !data.updateThought.thoughtId) {
+          throw new Error('Failed to update thought: Invalid response from server');
+        }
+        
         if (onSuccess) {
           onSuccess(data.updateThought.thoughtId);
         } else {
           navigate(`/thoughts/${data.updateThought.thoughtId}`);
         }
       } else {
-        const { data } = await createThought({
+        console.log("Calling createThought mutation with input:", input);
+        const result = await createThought({
           variables: { input }
         });
+        
+        console.log("Apollo Client returned:", result);
+        const { data } = result;
+        
+        // Check if mutation succeeded and returned valid data
+        if (!data || !data.createThought || !data.createThought.thoughtId) {
+          console.error("Invalid mutation response. Data:", data);
+          throw new Error('Failed to create thought: Invalid response from server');
+        }
+        
+        console.log("Mutation successful, navigating to:", `/thoughts/${data.createThought.thoughtId}`);
         
         if (onSuccess) {
           onSuccess(data.createThought.thoughtId);
