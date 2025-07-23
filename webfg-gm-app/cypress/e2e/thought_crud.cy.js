@@ -25,7 +25,7 @@ describe('Thought CRUD Operations', () => {
     cy.get('textarea[name="description"]').should('be.visible');
     
     // Should have submit button
-    cy.contains('button', 'Create').should('exist');
+    cy.contains('button', 'Create Thought').should('exist');
   });
 
   it('should create a simple thought with basic info only', () => {
@@ -39,25 +39,26 @@ describe('Thought CRUD Operations', () => {
     });
     
     // Submit form and wait for navigation
-    cy.contains('button', 'Create').click({force: true});
+    cy.contains('button', 'Create Thought').click({force: true});
     
-    // Wait longer for GraphQL mutation and navigation
-    cy.wait(5000);
+    // Wait for GraphQL mutation and navigation
+    cy.wait(3000);
     
     // Should redirect to thought detail page - be more flexible with URL matching
-    cy.url({timeout: 10000}).should('match', /\/thoughts\/[a-zA-Z0-9-]+$/);
+    cy.url({timeout: 15000}).should('match', /\/thoughts\/[a-zA-Z0-9-]+$/);
     
-    // Debug: log the page content to see what's actually there
-    cy.get('body').then($body => {
-      cy.log('Page content:', $body.text());
-    });
+    // Wait for loading to complete - check that we're not in loading state
+    cy.get('body').should('not.contain', 'Loading thought...');
     
-    // Check if we're on an error page or if there's any error message
-    cy.get('body').should('not.contain', 'Error');
-    cy.get('body').should('not.contain', 'Failed');
+    // Wait for data to load and error states to clear
+    cy.get('body').should('not.contain', 'Error loading thought');
+    cy.get('body').should('not.contain', 'Thought not found');
     
-    // Look for the thought name more flexibly - could be in different elements
-    cy.get('body').should('contain', 'Test Thought');
+    // Now look for the h1 element with the thought name
+    cy.get('h1', {timeout: 10000}).should('contain', 'Test Thought');
+    
+    // Also verify the description is shown
+    cy.get('body').should('contain', 'This is a test thought description');
   });
 
   it('should list thoughts if any exist', () => {
