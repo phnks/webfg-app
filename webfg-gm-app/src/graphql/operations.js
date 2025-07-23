@@ -1516,3 +1516,101 @@ export const LIST_CONDITIONS_ENHANCED = gql`
     }
   }
 `;
+
+// THOUGHT QUERIES
+export const LIST_THOUGHTS = gql`
+  query ListThoughts {
+    listThoughts {
+      thoughtId
+      name
+      description
+    }
+  }
+`;
+
+export const GET_THOUGHT = gql`
+  query GetThought($thoughtId: ID!) {
+    getThought(thoughtId: $thoughtId) {
+      thoughtId
+      name
+      description
+    }
+  }
+`;
+
+export const LIST_THOUGHTS_ENHANCED = gql`
+  query ListThoughtsEnhanced($filter: EnhancedThoughtFilterInput) {
+    listThoughtsEnhanced(filter: $filter) {
+      items {
+        thoughtId
+        name
+        description
+      }
+      nextCursor
+      hasNextPage
+      totalCount
+    }
+  }
+`;
+
+// THOUGHT MUTATIONS
+export const CREATE_THOUGHT = gql`
+  mutation CreateThought($input: ThoughtInput!) {
+    createThought(input: $input) {
+      thoughtId
+      name
+      description
+    }
+  }
+`;
+
+export const UPDATE_THOUGHT = gql`
+  mutation UpdateThought($thoughtId: ID!, $input: ThoughtInput!) {
+    updateThought(thoughtId: $thoughtId, input: $input) {
+      thoughtId
+      name
+      description
+    }
+  }
+`;
+
+export const DELETE_THOUGHT = gql`
+  mutation DeleteThought($thoughtId: ID!) {
+    deleteThought(thoughtId: $thoughtId) {
+      thoughtId
+      name
+      description
+    }
+  }
+`;
+
+// THOUGHT SUBSCRIPTIONS
+export const ON_CREATE_THOUGHT = gql`
+  subscription OnCreateThought {
+    onCreateThought {
+      thoughtId
+      name
+      description
+    }
+  }
+`;
+
+export const ON_UPDATE_THOUGHT = gql`
+  subscription OnUpdateThought {
+    onUpdateThought {
+      thoughtId
+      name
+      description
+    }
+  }
+`;
+
+export const ON_DELETE_THOUGHT = gql`
+  subscription OnDeleteThought {
+    onDeleteThought {
+      thoughtId
+      name
+      description
+    }
+  }
+`;

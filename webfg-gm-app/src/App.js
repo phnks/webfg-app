@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'; // Keep useEffect import
 // Added useNavigate import
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'; 
 import { useQuery } from '@apollo/client';
-import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, LIST_CONDITIONS } from './graphql/operations';
+import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, LIST_CONDITIONS, LIST_THOUGHTS } from './graphql/operations';
 import NavBar from './components/nav/NavBar';
 import CharacterList from './components/characters/CharacterList';
 import CharacterView from './components/characters/CharacterView';
@@ -20,6 +20,10 @@ import ConditionsList from './components/conditions/ConditionsList';
 import ConditionView from './components/conditions/ConditionView';
 import ConditionEdit from './components/conditions/ConditionEdit';
 import ConditionForm from './components/forms/ConditionForm';
+import ThoughtList from './components/thoughts/ThoughtList';
+import ThoughtView from './components/thoughts/ThoughtView';
+import ThoughtEdit from './components/thoughts/ThoughtEdit';
+import ThoughtForm from './components/forms/ThoughtForm';
 import Home from './components/Home';
 import { SelectedCharacterProvider, useSelectedCharacter } from './context/SelectedCharacterContext';
 import { RecentlyViewedProvider } from './context/RecentlyViewedContext';
@@ -36,6 +40,7 @@ function AppContent() {
   const { data: objectData, error: objectError } = useQuery(LIST_OBJECTS); 
   const { data: actionData } = useQuery(LIST_ACTIONS);
   const { data: conditionData } = useQuery(LIST_CONDITIONS);
+  const { data: thoughtData } = useQuery(LIST_THOUGHTS);
   const { selectedCharacter } = useSelectedCharacter();
 
   // Correctly formatted logging for NavBar object data/error
@@ -60,6 +65,7 @@ function AppContent() {
           objectList={objectData?.listObjects || []} // Pass potentially null/error data; NavBar handles empty list
           actionList={actionData?.listActions || []}
           conditionList={conditionData?.listConditions || []}
+          thoughtList={thoughtData?.listThoughts || []}
         />
         <SelectedCharacterBanner />
         <div className={`content ${selectedCharacter ? 'with-banner' : ''}`}>
@@ -93,6 +99,13 @@ function AppContent() {
             <Route path="/conditions/new" element={<ConditionForm onSuccess={(id) => navigate(`/conditions/${id}`)} />} />
             <Route path="/conditions/:conditionId" element={<ConditionView />} />
             <Route path="/conditions/:conditionId/edit" element={<ConditionEdit />} />
+
+            {/* Thought routes */}
+            <Route path="/thoughts" element={<ThoughtList />} />
+             {/* Use navigate in onSuccess */}
+            <Route path="/thoughts/new" element={<ThoughtForm onSuccess={(id) => navigate(`/thoughts/${id}`)} />} />
+            <Route path="/thoughts/:thoughtId" element={<ThoughtView />} />
+            <Route path="/thoughts/:thoughtId/edit" element={<ThoughtEdit />} />
 
             {/* Encounter routes */}
             <Route path="/encounters" element={<EncountersList />} />

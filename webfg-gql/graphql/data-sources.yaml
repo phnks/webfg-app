@@ -20,6 +20,9 @@ Parameters:
   EncountersDataSourceName:
     Type: String
     Description: 'Name of db data source'
+  ThoughtsDataSourceName:
+    Type: String
+    Description: 'Name of db data source'
   CharactersTableName:
     Type: String
     Description: 'Name of table'
@@ -33,6 +36,9 @@ Parameters:
     Type: String
     Description: 'Name of table'
   EncountersTableName:
+    Type: String
+    Description: 'Name of table'
+  ThoughtsTableName:
     Type: String
     Description: 'Name of table'
 
@@ -67,6 +73,7 @@ Resources:
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ActionsTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ConditionsTableName}
                   - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EncountersTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ThoughtsTableName}
 
   AppSyncLambdaServiceRole:
     Type: AWS::IAM::Role
@@ -145,6 +152,17 @@ Resources:
         TableName: !Ref EncountersTableName
         AwsRegion: !Sub ${AWS::Region}
 
+  ThoughtsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: !Ref ThoughtsDataSourceName
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref ThoughtsTableName
+        AwsRegion: !Sub ${AWS::Region}
+
 
 
 Outputs:
@@ -170,3 +188,6 @@ Outputs:
   EncountersDataSourceName:
     Description: 'Name of the Encounters DynamoDB Data Source'
     Value: !Ref EncountersDataSource
+  ThoughtsDataSourceName:
+    Description: 'Name of the Thoughts DynamoDB Data Source'
+    Value: !Ref ThoughtsDataSource

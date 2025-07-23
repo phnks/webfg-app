@@ -82,6 +82,7 @@ function combineSchemas() {
     'Object.graphql',
     'Action.graphql',
     'Condition.graphql',
+    'Thought.graphql',
     'FilteringSorting.graphql',
     'Schema.graphql',
     'Computed.graphql',

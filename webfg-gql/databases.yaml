@@ -71,6 +71,18 @@ Resources:
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
 
+  ThoughtsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ServiceName}-Thoughts"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: thoughtId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: thoughtId
+          KeyType: HASH
+
 
 
 Outputs:
@@ -89,3 +101,6 @@ Outputs:
   EncountersTableName:
     Description: 'Name of the Encounters table'
     Value: !Ref EncountersTable
+  ThoughtsTableName:
+    Description: 'Name of the Thoughts table'
+    Value: !Ref ThoughtsTable

@@ -1,0 +1,45 @@
+type Thought {
+  thoughtId: ID!
+  name: String!
+  nameLowerCase: String
+  description: String
+  descriptionLowerCase: String
+}
+
+input ThoughtInput {
+  name: String!
+  description: String
+}
+
+enum ThoughtCategory {
+  MEMORY
+  IDEA
+  PLAN
+  NOTE
+  REFLECTION
+  OBSERVATION
+  QUESTION
+  GOAL
+  DREAM
+  FEAR
+  OTHER
+}
+
+type ThoughtConnection {
+  items: [Thought!]!
+  nextCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int
+}
+
+input ThoughtFilterInput {
+  name: StringFilterInput
+}
+
+input EnhancedThoughtFilterInput {
+  search: String
+  name: StringFilterInput
+  
+  pagination: PaginationInput
+  sort: [SortInput!]
+}

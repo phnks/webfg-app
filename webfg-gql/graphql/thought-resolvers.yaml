@@ -1,0 +1,267 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: 'AppSync Thought Resolvers, Data Sources, and Functions'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  AppSyncLambdaServiceRoleArn:
+    Type: String
+    Description: 'ARN of the IAM role for AppSync to invoke Lambda functions'
+  ThoughtsTableName:
+    Type: String
+    Description: 'Name of the Thoughts table'
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128 
+    Runtime: nodejs20.x 
+    Architectures:
+      - x86_64
+
+Resources:
+  # Lambda functions for Thought resolvers
+  GetThoughtFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/getThought.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ThoughtsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          THOUGHTS_TABLE_NAME: !Ref ThoughtsTableName
+
+  ListThoughtsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/listThoughts.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ThoughtsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          THOUGHTS_TABLE_NAME: !Ref ThoughtsTableName
+
+  ListThoughtsEnhancedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/listThoughtsEnhanced.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ThoughtsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          THOUGHTS_TABLE_NAME: !Ref ThoughtsTableName
+
+  CreateThoughtFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/createThought.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ThoughtsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          THOUGHTS_TABLE_NAME: !Ref ThoughtsTableName
+
+  UpdateThoughtFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/updateThought.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ThoughtsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          THOUGHTS_TABLE_NAME: !Ref ThoughtsTableName
+
+  DeleteThoughtFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/deleteThought.handler
+      CodeUri: ../
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ThoughtsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          THOUGHTS_TABLE_NAME: !Ref ThoughtsTableName
+
+  # Lambda Data Sources for Thought Resolvers
+  GetThoughtLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: GetThoughtFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: GetThoughtLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt GetThoughtFunction.Arn
+
+  ListThoughtsLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: ListThoughtsFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ListThoughtsLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ListThoughtsFunction.Arn
+
+  ListThoughtsEnhancedLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: ListThoughtsEnhancedFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ListThoughtsEnhancedLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ListThoughtsEnhancedFunction.Arn
+
+  CreateThoughtLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: CreateThoughtFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: CreateThoughtLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt CreateThoughtFunction.Arn
+
+  UpdateThoughtLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: UpdateThoughtFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: UpdateThoughtLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt UpdateThoughtFunction.Arn
+
+  DeleteThoughtLambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn: DeleteThoughtFunction
+    Properties:
+      ApiId: !Ref ApiId
+      Name: DeleteThoughtLambdaDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DeleteThoughtFunction.Arn
+
+  # Thought Resolvers
+  GetThoughtResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: GetThoughtLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'getThought'
+      DataSourceName: "GetThoughtLambdaDataSource"
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  ListThoughtsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: ListThoughtsLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'listThoughts'
+      DataSourceName: "ListThoughtsLambdaDataSource"
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  ListThoughtsEnhancedResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: ListThoughtsEnhancedLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: 'Query'
+      FieldName: 'listThoughtsEnhanced'
+      DataSourceName: !GetAtt ListThoughtsEnhancedLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  CreateThoughtResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: CreateThoughtLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: createThought
+      DataSourceName: "CreateThoughtLambdaDataSource"
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  UpdateThoughtResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: UpdateThoughtLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: updateThought
+      DataSourceName: "UpdateThoughtLambdaDataSource"
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
+
+  DeleteThoughtResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: DeleteThoughtLambdaDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: deleteThought
+      DataSourceName: "DeleteThoughtLambdaDataSource"
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": $util.toJson($context.arguments)
+        }
+      ResponseMappingTemplate: '$util.toJson($context.result)'
