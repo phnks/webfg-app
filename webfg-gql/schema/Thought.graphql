@@ -32,10 +32,6 @@ type ThoughtConnection {
   totalCount: Int
 }
 
-input ThoughtFilterInput {
-  name: StringFilterInput
-}
-
 input EnhancedThoughtFilterInput {
   search: String
   name: StringFilterInput
