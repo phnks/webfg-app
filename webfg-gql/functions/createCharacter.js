@@ -32,6 +32,7 @@ exports.handler = async (event) => {
     armour: input.armour,
     endurance: input.endurance,
     lethality: input.lethality,
+    complexity: input.complexity,
     strength: input.strength,
     dexterity: input.dexterity,
     agility: input.agility,

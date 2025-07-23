@@ -128,7 +128,7 @@ global.mockObject = (overrides = {}) => ({
   speed: 0,
   weight: 1,
   size: 1,
-  intensity: 0,
+  complexity: 0,
   createdAt: '2023-01-01T00:00:00.000Z',
   updatedAt: '2023-01-01T00:00:00.000Z',
   ...overrides

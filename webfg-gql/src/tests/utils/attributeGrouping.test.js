@@ -17,12 +17,14 @@ describe('attributeGrouping', () => {
       expect(ATTRIBUTE_NAMES).toContain('perception');
       expect(ATTRIBUTE_NAMES).toContain('seeing');
       expect(ATTRIBUTE_NAMES).toContain('hearing');
+      expect(ATTRIBUTE_NAMES).toContain('complexity');
       expect(ATTRIBUTE_NAMES).not.toContain('intensity');
-      expect(ATTRIBUTE_NAMES).toHaveLength(20);
+      expect(ATTRIBUTE_NAMES).toHaveLength(21);
     });
 
     it('should have correct attribute groups', () => {
       expect(ATTRIBUTE_GROUPS.BODY).toContain('lethality');
+      expect(ATTRIBUTE_GROUPS.BODY).toContain('complexity');
       expect(ATTRIBUTE_GROUPS.MARTIAL).toContain('speed');
       expect(ATTRIBUTE_GROUPS.MARTIAL).toContain('strength');
       expect(ATTRIBUTE_GROUPS.MENTAL).toContain('intelligence');
@@ -31,6 +33,7 @@ describe('attributeGrouping', () => {
       expect(ATTRIBUTE_GROUPS.BODY).not.toContain('speed');
       expect(ATTRIBUTE_GROUPS.MARTIAL).not.toContain('lethality');
       expect(ATTRIBUTE_GROUPS.MARTIAL).not.toContain('perception');
+      expect(ATTRIBUTE_GROUPS.MARTIAL).not.toContain('complexity');
     });
   });
 
