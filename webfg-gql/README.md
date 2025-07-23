@@ -16,3 +16,4 @@ This will build the SAM template.
 
 This will deploy the SAM template. Make sure to update the template with the latest schema from S3.
 
+# Trigger GitHub Actions
