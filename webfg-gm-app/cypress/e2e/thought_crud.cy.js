@@ -47,16 +47,32 @@ describe('Thought CRUD Operations', () => {
     // Should redirect to thought detail page - be more flexible with URL matching
     cy.url({timeout: 20000}).should('match', /\/thoughts\/[a-zA-Z0-9-]+$/);
     
-    // Wait for the ThoughtView component to fully load by waiting for the thought content
-    // This is more reliable than waiting for loading states
-    cy.get('body', {timeout: 15000}).should('contain', 'Test Thought');
+    // First, wait for the page to finish loading (no loading text should be present)
+    cy.get('body').should('not.contain', 'Loading thought...');
+    
+    // Check if there's an error state and log it for debugging
+    cy.get('body').then($body => {
+      if ($body.find('.error').length > 0) {
+        const errorText = $body.find('.error').text();
+        cy.log('Found error on page: ' + errorText);
+        // Force the test to fail with more informative error
+        throw new Error('Page loaded with error: ' + errorText);
+      }
+    });
+    
+    // Check if thought is not found
+    cy.get('body').should('not.contain', 'Thought not found');
+    
+    // Now wait for the specific thought content - increased timeout
+    cy.get('.thought-view', {timeout: 20000}).should('be.visible');
+    cy.get('.thought-title h1', {timeout: 15000}).should('contain', 'Test Thought');
     
     // Verify we're on the detail page by checking for edit/delete buttons
     cy.get('button').contains('Edit').should('be.visible');
     cy.get('button').contains('Delete').should('be.visible');
     
     // Also verify the description is shown
-    cy.get('body').should('contain', 'This is a test thought description');
+    cy.get('.thought-description').should('contain', 'This is a test thought description');
   });
 
   it('should list thoughts if any exist', () => {
