@@ -116,6 +116,14 @@ type Mutation {
   updateThought(thoughtId: ID!, input: ThoughtInput!): Thought
   deleteThought(thoughtId: ID!): Thought
 
+  # Character-Thought relationship mutations (mind system)
+  addThoughtToCharacterMind(characterId: ID!, thoughtId: ID!): Character
+  removeThoughtFromCharacterMind(characterId: ID!, thoughtId: ID!): Character
+  moveThoughtToSubconscious(characterId: ID!, thoughtId: ID!): Character
+  moveThoughtToConscious(characterId: ID!, thoughtId: ID!): Character
+  moveThoughtToMemory(characterId: ID!, thoughtId: ID!): Character
+  updateThoughtAffinityKnowledge(characterId: ID!, thoughtId: ID!, affinity: Int!, knowledge: Int!): Character
+
 }
 
 

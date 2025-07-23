@@ -3,9 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@apollo/client";
 import {
   GET_THOUGHT,
-  DELETE_THOUGHT
+  DELETE_THOUGHT,
+  ADD_THOUGHT_TO_CHARACTER_MIND
 } from "../../graphql/operations";
 import { useRecentlyViewed } from "../../context/RecentlyViewedContext";
+import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
 import ThoughtForm from "../forms/ThoughtForm";
 import "./ThoughtView.css";
 import ErrorPopup from '../common/ErrorPopup';
@@ -14,9 +16,11 @@ const ThoughtView = ({ startInEditMode = false }) => {
   const { thoughtId } = useParams();
   const navigate = useNavigate();
   const { addRecentlyViewed } = useRecentlyViewed();
+  const { selectedCharacter } = useSelectedCharacter();
   const [isEditing, setIsEditing] = useState(startInEditMode);
   const [currentThought, setCurrentThought] = useState(null);
   const [mutationError, setMutationError] = useState(null);
+  const [addThoughtSuccess, setAddThoughtSuccess] = useState(false);
 
   // Get thought data
   const { loading, error, refetch } = useQuery(GET_THOUGHT, {
@@ -35,6 +39,7 @@ const ThoughtView = ({ startInEditMode = false }) => {
   });
 
   const [deleteThought] = useMutation(DELETE_THOUGHT);
+  const [addThoughtToCharacterMind] = useMutation(ADD_THOUGHT_TO_CHARACTER_MIND);
 
   // Set edit mode when prop changes
   useEffect(() => {
@@ -72,6 +77,45 @@ const ThoughtView = ({ startInEditMode = false }) => {
     refetch();
   };
 
+  const handleAddToCharacterMind = async () => {
+    if (!selectedCharacter) {
+      setMutationError("Please select a character first");
+      return;
+    }
+
+    try {
+      setMutationError(null);
+      const result = await addThoughtToCharacterMind({
+        variables: {
+          characterId: selectedCharacter.characterId,
+          thoughtId
+        }
+      });
+      
+      if (!result.data || (result.errors && result.errors.length > 0) || (result.data && Object.values(result.data).every(value => value === null))) {
+        throw new Error(result.errors ? result.errors.map(e => e.message).join("\n") : "Mutation returned null data.");
+      }
+      
+      setAddThoughtSuccess(true);
+      setTimeout(() => setAddThoughtSuccess(false), 3000);
+    } catch (err) {
+      console.error("Error adding thought to character's mind:", err);
+      let errorMessage = "An unexpected error occurred while adding thought to character's mind.";
+      
+      if (err.message.includes("already in character's mind")) {
+        errorMessage = "This thought is already in the character's mind.";
+      } else if (err.message.includes("not found")) {
+        errorMessage = "Character or thought not found.";
+      } else if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        errorMessage = err.graphQLErrors.map(e => e.message).join("\n");
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setMutationError(errorMessage);
+    }
+  };
+
   if (loading) return <div className="loading">Loading thought...</div>;
   if (error) return <div className="error">Error loading thought: {error.message}</div>;
   if (!currentThought) return <div className="error">Thought not found</div>;
@@ -106,6 +150,14 @@ const ThoughtView = ({ startInEditMode = false }) => {
           >
             Delete
           </button>
+          {selectedCharacter && (
+            <button 
+              onClick={handleAddToCharacterMind}
+              className="add-to-mind-btn"
+            >
+              Add to {selectedCharacter.name}'s Mind
+            </button>
+          )}
         </div>
       </div>
 
@@ -142,6 +194,12 @@ const ThoughtView = ({ startInEditMode = false }) => {
           error={{ message: mutationError, stack: null }}
           onClose={() => setMutationError(null)} 
         />
+      )}
+
+      {addThoughtSuccess && (
+        <div className="success-message">
+          ✓ Thought successfully added to {selectedCharacter?.name}'s mind!
+        </div>
       )}
     </div>
   );

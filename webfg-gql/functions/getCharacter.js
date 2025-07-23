@@ -61,6 +61,11 @@ exports.handler = async (event) => {
             }
         });
 
+        // Handle mind field for backward compatibility
+        if (!character.mind) {
+            character.mind = [];
+        }
+
         console.log(`Successfully retrieved character: ${character.name} (${characterId})`);
         return character;
 
