@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import ErrorPopup from '../common/ErrorPopup';
-import { useMutation, useApolloClient } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import {
   CREATE_THOUGHT,
-  UPDATE_THOUGHT,
-  LIST_THOUGHTS
+  UPDATE_THOUGHT
 } from "../../graphql/operations";
 import "./Form.css";
 
@@ -46,10 +45,8 @@ const ThoughtForm = ({ thought, isEditing = false, onClose, onSuccess }) => {
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
   const navigate = useNavigate();
-  const apolloClient = useApolloClient();
 
   const [createThought, { loading: createLoading }] = useMutation(CREATE_THOUGHT);
-
   const [updateThought, { loading: updateLoading }] = useMutation(UPDATE_THOUGHT);
 
   const loading = createLoading || updateLoading;
@@ -74,71 +71,33 @@ const ThoughtForm = ({ thought, isEditing = false, onClose, onSuccess }) => {
     try {
       const input = prepareThoughtInput(formData);
 
+      let result;
       if (isEditing) {
-        const { data } = await updateThought({
+        result = await updateThought({
           variables: {
             thoughtId: thought.thoughtId,
             input
           }
         });
-        
-        // Check if mutation succeeded and returned valid data
-        if (!data || !data.updateThought || !data.updateThought.thoughtId) {
-          throw new Error('Failed to update thought: Invalid response from server');
+        if (!result.data?.updateThought) {
+          throw new Error("Failed to update thought or no data returned.");
         }
-        
         if (onSuccess) {
-          onSuccess(data.updateThought.thoughtId);
+          onSuccess(result.data.updateThought.thoughtId);
         } else {
-          navigate(`/thoughts/${data.updateThought.thoughtId}`);
+          navigate(`/thoughts/${result.data.updateThought.thoughtId}`);
         }
       } else {
-        console.log("Calling createThought mutation with input:", input);
-        const result = await createThought({
+        result = await createThought({
           variables: { input }
         });
-        
-        console.log("Apollo Client returned:", result);
-        const { data } = result;
-        
-        let thoughtId = null;
-        
-        // Check if mutation succeeded and returned valid data
-        if (data && data.createThought && data.createThought.thoughtId) {
-          thoughtId = data.createThought.thoughtId;
-          console.log("Mutation successful, got thoughtId:", thoughtId);
-        } else {
-          console.warn("Mutation response invalid, attempting fallback strategy");
-          // Fallback: Refetch thoughts list and find the newest one
-          try {
-            const listResult = await apolloClient.query({
-              query: LIST_THOUGHTS,
-              fetchPolicy: 'network-only'
-            });
-            
-            if (listResult.data && listResult.data.listThoughts && listResult.data.listThoughts.length > 0) {
-              // Find the thought with matching name (most recently created)
-              const matchingThought = listResult.data.listThoughts.find(t => t.name === input.name);
-              if (matchingThought) {
-                thoughtId = matchingThought.thoughtId;
-                console.log("Found created thought via fallback:", thoughtId);
-              }
-            }
-          } catch (fallbackError) {
-            console.error("Fallback strategy failed:", fallbackError);
-          }
+        if (!result.data?.createThought) {
+          throw new Error("Failed to create thought or no data returned.");
         }
-        
-        if (!thoughtId) {
-          throw new Error('Failed to create thought: Could not retrieve created thought ID');
-        }
-        
-        console.log("Navigating to:", `/thoughts/${thoughtId}`);
-        
         if (onSuccess) {
-          onSuccess(thoughtId);
+          onSuccess(result.data.createThought.thoughtId);
         } else {
-          navigate(`/thoughts/${thoughtId}`);
+          navigate(`/thoughts/${result.data.createThought.thoughtId}`);
         }
       }
 
