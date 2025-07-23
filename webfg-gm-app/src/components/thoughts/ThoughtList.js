@@ -70,8 +70,14 @@ const ThoughtList = () => {
     }
   };
 
-  const handleFiltersChange = useCallback((newFilters) => {
+  const handleFilterChange = useCallback((newFilters) => {
     setFilters(newFilters);
+    setCursors([null]);
+    setCurrentPage(0);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters({});
     setCursors([null]);
     setCurrentPage(0);
   }, []);
@@ -202,15 +208,6 @@ const ThoughtList = () => {
     );
   };
 
-  const searchFields = [
-    { 
-      key: 'search', 
-      label: 'Search', 
-      type: 'text',
-      placeholder: 'Search thoughts by name or description...'
-    }
-  ];
-
   return (
     <div className="thought-list">
       <div className="list-header">
@@ -224,11 +221,10 @@ const ThoughtList = () => {
       </div>
 
       <SearchFilterSort
-        onFiltersChange={handleFiltersChange}
-        searchFields={searchFields}
-        onViewModeChange={setViewMode}
-        viewMode={viewMode}
-        showViewModeToggle={true}
+        entityType="thoughts"
+        onFilterChange={handleFilterChange}
+        initialFilters={filters}
+        onClearFilters={handleClearFilters}
       />
 
       {renderThoughts()}
