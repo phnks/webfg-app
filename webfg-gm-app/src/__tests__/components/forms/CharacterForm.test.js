@@ -153,8 +153,16 @@ describe('CharacterForm Component', () => {
     
     expect(screen.getByDisplayValue('Existing Character')).toBeInTheDocument();
     expect(screen.getByDisplayValue('HUMAN')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('15')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('5')).toBeInTheDocument();
+    
+    // Find the Will label and check its value
+    const willLabel = screen.getByText('Will');
+    const willInput = willLabel.parentElement.querySelector('input[type="number"]');
+    expect(willInput.value).toBe('15');
+    
+    // Find the Fatigue label and check its value
+    const fatigueLabel = screen.getByText('Fatigue');
+    const fatigueInput = fatigueLabel.parentElement.querySelector('input[type="number"]');
+    expect(fatigueInput.value).toBe('5');
   });
 
   test('updates name field value', () => {
@@ -190,7 +198,13 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    const willInput = screen.getByDisplayValue('10');
+    // Find the Will label and then its associated input
+    const willLabel = screen.getByText('Will');
+    const willInput = willLabel.parentElement.querySelector('input[type="number"]');
+    
+    // Will now defaults to 0
+    expect(willInput.value).toBe('0');
+    
     fireEvent.change(willInput, { target: { value: '15' } });
     
     expect(willInput.value).toBe('15');

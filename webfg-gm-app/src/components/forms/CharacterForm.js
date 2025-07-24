@@ -57,25 +57,50 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       name: "",
       description: "",
       characterCategory: "HUMAN",
-      will: 10,
+      will: 0,  // Default to 0 as requested
       fatigue: 0,
       mind: [],
       special: [],
       actionIds: [],
       stashIds: [],
       equipmentIds: [],
-      readyIds: []
+      readyIds: [],
+      targetAttributeTotal: null  // Will be calculated based on attributes * 10
     };
     
-    // Add all attributes with default values
+    // Add all attributes with default values of 10
     getAllAttributeNames().forEach(attr => {
-      initialData[attr] = { attribute: { attributeValue: 0, isGrouped: true } };
+      initialData[attr] = { attribute: { attributeValue: 10, isGrouped: true } };
     });
     
     return initialData;
   };
 
   const [formData, setFormData] = useState(createInitialFormData());
+  const [validationError, setValidationError] = useState(null);
+  
+  // Calculate the default target total (number of attributes * 10)
+  const calculateDefaultTargetTotal = () => {
+    return getAllAttributeNames().length * 10;
+  };
+  
+  // Calculate current total of all attribute values
+  const calculateCurrentTotal = () => {
+    return getAllAttributeNames().reduce((sum, attr) => {
+      const value = parseFloat(formData[attr]?.attribute?.attributeValue) || 0;
+      return sum + value;
+    }, 0);
+  };
+
+  // Initialize targetAttributeTotal for new characters
+  useEffect(() => {
+    if (!isEditing && !formData.targetAttributeTotal) {
+      setFormData(prev => ({
+        ...prev,
+        targetAttributeTotal: calculateDefaultTargetTotal()
+      }));
+    }
+  }, []);
 
   // Effect to populate form data when character prop changes (for editing)
   useEffect(() => {
@@ -84,7 +109,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         name: character.name || "",
         description: character.description || "",
         characterCategory: character.characterCategory || "HUMAN",
-        will: character.will !== null && character.will !== undefined ? character.will : 10,
+        will: character.will !== null && character.will !== undefined ? character.will : 0,
         fatigue: character.fatigue || 0,
         mind: (character.mind || []).map(m => ({ ...m })),
         special: character.special || [],
@@ -96,8 +121,11 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       
       // Add all attributes from character or default values
       getAllAttributeNames().forEach(attr => {
-        updatedFormData[attr] = character[attr] || { attribute: { attributeValue: 0, isGrouped: true } };
+        updatedFormData[attr] = character[attr] || { attribute: { attributeValue: 10, isGrouped: true } };
       });
+      
+      // Set targetAttributeTotal from character or calculate default
+      updatedFormData.targetAttributeTotal = character.targetAttributeTotal || calculateDefaultTargetTotal();
       
       setFormData(updatedFormData);
     }
@@ -131,7 +159,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: field === 'will' || field === 'fatigue' ? parseInt(value) || 0 : value
+      [field]: field === 'will' || field === 'fatigue' || field === 'targetAttributeTotal' ? parseInt(value) || 0 : value
     }));
   };
 
@@ -165,6 +193,11 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       console.log(`DEBUG: Updated formData for ${attributeName}:`, updated[attributeName]);
       return updated;
     });
+    
+    // Clear validation error when user makes changes
+    if (validationError) {
+      setValidationError(null);
+    }
   };
 
 
@@ -190,6 +223,25 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setValidationError(null);
+    
+    // Validate attribute total
+    const currentTotal = calculateCurrentTotal();
+    const targetTotal = formData.targetAttributeTotal || calculateDefaultTargetTotal();
+    
+    if (currentTotal < targetTotal) {
+      setValidationError(`Insufficient attribute values. Current total: ${currentTotal}, Required: ${targetTotal}`);
+      // Scroll to top where the validation message is shown
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    
+    if (currentTotal > targetTotal) {
+      setValidationError(`Too high attribute values. Current total: ${currentTotal}, Maximum: ${targetTotal}`);
+      // Scroll to top where the validation message is shown
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
     try {
       
@@ -198,14 +250,15 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         name: formData.name,
         description: formData.description || "",
         characterCategory: formData.characterCategory,
-        will: formData.will !== null && formData.will !== undefined && formData.will !== '' ? parseInt(formData.will) : 10,
+        will: formData.will !== null && formData.will !== undefined && formData.will !== '' ? parseInt(formData.will) : 0,
         fatigue: formData.fatigue !== null && formData.fatigue !== undefined && formData.fatigue !== '' ? parseInt(formData.fatigue) : 0,
         mind: formData.mind,
         special: formData.special,
         actionIds: formData.actionIds,
         stashIds: formData.stashIds,
         equipmentIds: formData.equipmentIds,
-        readyIds: formData.readyIds
+        readyIds: formData.readyIds,
+        targetAttributeTotal: formData.targetAttributeTotal || calculateDefaultTargetTotal()
       };
       
       
@@ -280,10 +333,38 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     );
   };
 
+  // Check if submit should be disabled based on attribute total validation
+  const currentTotal = calculateCurrentTotal();
+  const targetTotal = formData.targetAttributeTotal || calculateDefaultTargetTotal();
+  const isSubmitDisabled = currentTotal !== targetTotal;
+
   return (
     <div className="form-container">
       <form onSubmit={handleSubmit}>
-        <h2>{isEditing ? "Edit Character" : "Create New Character"}</h2>
+        <div className="form-header">
+          <h2>{isEditing ? "Edit Character" : "Create New Character"}</h2>
+          <div className="attribute-total-display">
+            <span className={`current-total ${currentTotal < targetTotal ? 'insufficient' : currentTotal > targetTotal ? 'excessive' : 'valid'}`}>
+              Total: {currentTotal}
+            </span>
+            <span className="total-separator">/</span>
+            <div className="target-total-input">
+              <label>Target:</label>
+              <MobileNumberInput
+                value={formData.targetAttributeTotal || calculateDefaultTargetTotal()}
+                onChange={(e) => handleInputChange('targetAttributeTotal', e.target.value)}
+                min="1"
+                className="target-input"
+              />
+            </div>
+          </div>
+        </div>
+        
+        {validationError && (
+          <div className="validation-error">
+            {validationError}
+          </div>
+        )}
         
         <div className="form-section">
           <h3>Basic Information</h3>
@@ -388,7 +469,12 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           <button type="button" onClick={onClose} className="button-cancel">
             Cancel
           </button>
-          <button type="submit" className="button-submit">
+          <button 
+            type="submit" 
+            className="button-submit"
+            disabled={isSubmitDisabled}
+            title={isSubmitDisabled ? `Attribute total must equal ${targetTotal}` : ''}
+          >
             {isEditing ? "Update Character" : "Create Character"}
           </button>
         </div>
