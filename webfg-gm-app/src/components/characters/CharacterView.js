@@ -41,8 +41,17 @@ const CharacterView = ({ startInEditMode = false }) => {
   const [testAction, setTestAction] = useState(null); // State to store action being tested
   const [mutationError, setMutationError] = useState(null); // Added mutationError state
   const [isAdjustingCondition, setIsAdjustingCondition] = useState(null); // For condition amount adjustment popup
-  const [isInventoryExpanded, setIsInventoryExpanded] = useState(false); // For collapsible inventory
+  const [isInventoryExpanded, setIsInventoryExpanded] = useState(true); // For collapsible inventory - always expanded
+  const [isMindExpanded, setIsMindExpanded] = useState(true); // For collapsible mind section - always expanded
   const [isEditingThoughtAttributes, setIsEditingThoughtAttributes] = useState(null); // For thought affinity/knowledge modal
+  
+  // Subsection collapse states - with appropriate defaults
+  const [isMemoryExpanded, setIsMemoryExpanded] = useState(false); // Memory: collapsed by default
+  const [isSubconsciousExpanded, setIsSubconsciousExpanded] = useState(true); // Subconscious: expanded by default
+  const [isConsciousExpanded, setIsConsciousExpanded] = useState(true); // Conscious: expanded by default
+  const [isStashExpanded, setIsStashExpanded] = useState(false); // Stash: collapsed by default
+  const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(true); // Equipment: expanded by default
+  const [isReadyExpanded, setIsReadyExpanded] = useState(true); // Ready: expanded by default
 
   // Initial query to get character data
   const { data, loading, error, refetch } = useQuery(GET_CHARACTER_WITH_GROUPED, {
@@ -210,11 +219,8 @@ const CharacterView = ({ startInEditMode = false }) => {
       const updatedCharacter = data.data.onUpdateCharacter;
       if (updatedCharacter && updatedCharacter.characterId === characterId) {
         console.log("Character update received via subscription:", updatedCharacter);
-        // Refresh the character data
-        setCurrentCharacter(prev => ({
-          ...prev,
-          ...updatedCharacter
-        }));
+        // Refetch the complete character data to get updated mind relationships
+        refetch();
       }
     },
     variables: { characterId } // This may not be needed if the subscription doesn't filter
@@ -475,6 +481,10 @@ const CharacterView = ({ startInEditMode = false }) => {
     setIsEditingThoughtAttributes(mindThought);
   };
 
+  const handleNavigateToThought = (thoughtId) => {
+    navigate(`/thoughts/${thoughtId}`);
+  };
+
   const handleUpdateThoughtAttributes = async (thoughtId, affinity, knowledge) => {
     try {
       await updateThoughtAffinityKnowledge({
@@ -569,203 +579,243 @@ const CharacterView = ({ startInEditMode = false }) => {
 
         <div className="section-row">
           <div className="section character-mind">
-            <h3>Mind</h3>
-            {character.mind && character.mind.length > 0 ? (
-              <div className="mind-sections">
+            <div 
+              className="mind-header" 
+              onClick={() => setIsMindExpanded(!isMindExpanded)}
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <h3>Mind</h3>
+              <span style={{ fontSize: '0.8em', color: '#666' }}>
+                {isMindExpanded ? '▼' : '▶'}
+              </span>
+            </div>
+            
+            {isMindExpanded && (
+              <div className="mind-categories">
                 {/* Memory Section */}
-                <div className="mind-location">
-                  <h4>Memory</h4>
-                  <div className="mind-table">
-                    {character.mind.filter(mt => mt.location === 'MEMORY').length > 0 ? (
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Thought</th>
-                            <th>Affinity</th>
-                            <th>Knowledge</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {character.mind
-                            .filter(mindThought => mindThought.location === 'MEMORY')
-                            .map((mindThought, index) => {
-                              const thought = character.mindThoughts?.find(t => t.thoughtId === mindThought.thoughtId);
-                              return (
-                                <tr key={mindThought.thoughtId}>
-                                  <td>
-                                    <button
-                                      onClick={() => handleEditThoughtAttributes(mindThought)}
-                                      className="thought-link-button"
-                                      style={{ 
-                                        background: 'none', 
-                                        border: 'none', 
-                                        color: '#007bff', 
-                                        textDecoration: 'underline', 
-                                        cursor: 'pointer',
-                                        padding: 0,
-                                        font: 'inherit'
-                                      }}
-                                    >
-                                      {thought?.name || 'Unknown Thought'}
-                                    </button>
-                                  </td>
-                                  <td>{mindThought.affinity}</td>
-                                  <td>{mindThought.knowledge}</td>
-                                  <td>
-                                    <button 
-                                      onClick={() => handleMoveThought(mindThought.thoughtId, 'SUBCONSCIOUS')}
-                                      className="move-btn"
-                                      style={{ marginRight: '4px' }}
-                                    >
-                                      To Sub
-                                    </button>
-                                    <button 
-                                      onClick={() => handleRemoveThought(mindThought.thoughtId)}
-                                      className="remove-btn"
-                                    >
-                                      Remove
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <p>No thoughts in memory</p>
-                    )}
+                <div className="mind-category">
+                  <div 
+                    onClick={() => setIsMemoryExpanded(!isMemoryExpanded)}
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}
+                  >
+                    <h4 style={{ margin: 0, color: '#6c757d' }}>Memory</h4>
+                    <span style={{ fontSize: '0.7em', color: '#666' }}>
+                      {isMemoryExpanded ? '▼' : '▶'}
+                    </span>
                   </div>
+                  {isMemoryExpanded && (
+                    <div>
+                      {character.mind && character.mind.filter(mt => mt.location === 'MEMORY').length > 0 ? (
+                    <ul className="mind-list">
+                      {character.mind
+                        .filter(mindThought => mindThought.location === 'MEMORY')
+                        .map((mindThought) => {
+                          const thought = character.mindThoughts?.find(t => t.thoughtId === mindThought.thoughtId);
+                          return (
+                            <li key={mindThought.thoughtId} className="mind-item">
+                              <div className="thought-info">
+                                <Link to={`/thoughts/${mindThought.thoughtId}`} className="thought-link">
+                                  {thought?.name || 'Unknown Thought'}
+                                </Link>
+                                <div className="thought-attributes">
+                                  <span 
+                                    className="thought-attribute clickable"
+                                    onClick={() => handleEditThoughtAttributes(mindThought)}
+                                    style={{ cursor: 'pointer', color: '#007bff', textDecoration: 'underline' }}
+                                  >
+                                    Affinity: {mindThought.affinity}
+                                  </span>
+                                  {' | '}
+                                  <span 
+                                    className="thought-attribute clickable"
+                                    onClick={() => handleEditThoughtAttributes(mindThought)}
+                                    style={{ cursor: 'pointer', color: '#007bff', textDecoration: 'underline' }}
+                                  >
+                                    Knowledge: {mindThought.knowledge}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="thought-actions">
+                                <button 
+                                  type="button"
+                                  className="move-button" 
+                                  onClick={() => handleMoveThought(mindThought.thoughtId, 'SUBCONSCIOUS')}
+                                  style={{ marginRight: '4px', fontSize: '12px', padding: '2px 6px' }}
+                                >
+                                  → Sub
+                                </button>
+                                <button 
+                                  type="button"
+                                  className="remove-button" 
+                                  onClick={() => handleRemoveThought(mindThought.thoughtId)}
+                                  style={{ fontSize: '12px', padding: '2px 6px' }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </li>
+                          );
+                        })}
+                    </ul>
+                      ) : (
+                        <p style={{ color: '#6c757d', fontStyle: 'italic', marginBottom: '16px' }}>No thoughts in memory</p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Subconscious Section */}
-                <div className="mind-location">
-                  <h4>Subconscious</h4>
-                  <div className="mind-table">
-                    {character.mind.filter(mt => mt.location === 'SUBCONSCIOUS').length > 0 ? (
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Thought</th>
-                            <th>Affinity</th>
-                            <th>Knowledge</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {character.mind
-                            .filter(mindThought => mindThought.location === 'SUBCONSCIOUS')
-                            .map((mindThought, index) => {
-                              const thought = character.mindThoughts?.find(t => t.thoughtId === mindThought.thoughtId);
-                              return (
-                                <tr key={mindThought.thoughtId}>
-                                  <td>
-                                    <button
-                                      onClick={() => handleEditThoughtAttributes(mindThought)}
-                                      className="thought-link-button"
-                                      style={{ 
-                                        background: 'none', 
-                                        border: 'none', 
-                                        color: '#007bff', 
-                                        textDecoration: 'underline', 
-                                        cursor: 'pointer',
-                                        padding: 0,
-                                        font: 'inherit'
-                                      }}
-                                    >
-                                      {thought?.name || 'Unknown Thought'}
-                                    </button>
-                                  </td>
-                                  <td>{mindThought.affinity}</td>
-                                  <td>{mindThought.knowledge}</td>
-                                  <td>
-                                    <button 
-                                      onClick={() => handleMoveThought(mindThought.thoughtId, 'MEMORY')}
-                                      className="move-btn"
-                                      style={{ marginRight: '4px' }}
-                                    >
-                                      To Memory
-                                    </button>
-                                    <button 
-                                      onClick={() => handleMoveThought(mindThought.thoughtId, 'CONSCIOUS')}
-                                      className="move-btn"
-                                      style={{ marginRight: '4px' }}
-                                    >
-                                      To Conscious
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <p>No thoughts in subconscious</p>
-                    )}
+                <div className="mind-category">
+                  <div 
+                    onClick={() => setIsSubconsciousExpanded(!isSubconsciousExpanded)}
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}
+                  >
+                    <h4 style={{ margin: 0, color: '#6c757d' }}>Subconscious</h4>
+                    <span style={{ fontSize: '0.7em', color: '#666' }}>
+                      {isSubconsciousExpanded ? '▼' : '▶'}
+                    </span>
                   </div>
+                  {isSubconsciousExpanded && (
+                    <div>
+                  {character.mind && character.mind.filter(mt => mt.location === 'SUBCONSCIOUS').length > 0 ? (
+                    <ul className="mind-list">
+                      {character.mind
+                        .filter(mindThought => mindThought.location === 'SUBCONSCIOUS')
+                        .map((mindThought) => {
+                          const thought = character.mindThoughts?.find(t => t.thoughtId === mindThought.thoughtId);
+                          return (
+                            <li key={mindThought.thoughtId} className="mind-item">
+                              <div className="thought-info">
+                                <Link to={`/thoughts/${mindThought.thoughtId}`} className="thought-link">
+                                  {thought?.name || 'Unknown Thought'}
+                                </Link>
+                                <div className="thought-attributes">
+                                  <span 
+                                    className="thought-attribute clickable"
+                                    onClick={() => handleEditThoughtAttributes(mindThought)}
+                                    style={{ cursor: 'pointer', color: '#007bff', textDecoration: 'underline' }}
+                                  >
+                                    Affinity: {mindThought.affinity}
+                                  </span>
+                                  {' | '}
+                                  <span 
+                                    className="thought-attribute clickable"
+                                    onClick={() => handleEditThoughtAttributes(mindThought)}
+                                    style={{ cursor: 'pointer', color: '#007bff', textDecoration: 'underline' }}
+                                  >
+                                    Knowledge: {mindThought.knowledge}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="thought-actions">
+                                <button 
+                                  type="button"
+                                  className="move-button" 
+                                  onClick={() => handleMoveThought(mindThought.thoughtId, 'MEMORY')}
+                                  style={{ marginRight: '4px', fontSize: '12px', padding: '2px 6px' }}
+                                >
+                                  → Memory
+                                </button>
+                                <button 
+                                  type="button"
+                                  className="move-button" 
+                                  onClick={() => handleMoveThought(mindThought.thoughtId, 'CONSCIOUS')}
+                                  style={{ marginRight: '4px', fontSize: '12px', padding: '2px 6px' }}
+                                >
+                                  → Conscious
+                                </button>
+                                <button 
+                                  type="button"
+                                  className="remove-button" 
+                                  onClick={() => handleRemoveThought(mindThought.thoughtId)}
+                                  style={{ fontSize: '12px', padding: '2px 6px' }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </li>
+                          );
+                        })}
+                    </ul>
+                      ) : (
+                        <p style={{ color: '#6c757d', fontStyle: 'italic', marginBottom: '16px' }}>No thoughts in subconscious</p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Conscious Section */}
-                <div className="mind-location">
-                  <h4>Conscious</h4>
-                  <div className="mind-table">
-                    {character.mind.filter(mt => mt.location === 'CONSCIOUS').length > 0 ? (
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Thought</th>
-                            <th>Affinity</th>
-                            <th>Knowledge</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {character.mind
-                            .filter(mindThought => mindThought.location === 'CONSCIOUS')
-                            .map((mindThought, index) => {
-                              const thought = character.mindThoughts?.find(t => t.thoughtId === mindThought.thoughtId);
-                              return (
-                                <tr key={mindThought.thoughtId}>
-                                  <td>
-                                    <button
-                                      onClick={() => handleEditThoughtAttributes(mindThought)}
-                                      className="thought-link-button"
-                                      style={{ 
-                                        background: 'none', 
-                                        border: 'none', 
-                                        color: '#007bff', 
-                                        textDecoration: 'underline', 
-                                        cursor: 'pointer',
-                                        padding: 0,
-                                        font: 'inherit'
-                                      }}
-                                    >
-                                      {thought?.name || 'Unknown Thought'}
-                                    </button>
-                                  </td>
-                                  <td>{mindThought.affinity}</td>
-                                  <td>{mindThought.knowledge}</td>
-                                  <td>
-                                    <button 
-                                      onClick={() => handleMoveThought(mindThought.thoughtId, 'SUBCONSCIOUS')}
-                                      className="move-btn"
-                                    >
-                                      To Sub
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <p>No thoughts in conscious</p>
-                    )}
+                <div className="mind-category">
+                  <div 
+                    onClick={() => setIsConsciousExpanded(!isConsciousExpanded)}
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}
+                  >
+                    <h4 style={{ margin: 0, color: '#6c757d' }}>Conscious</h4>
+                    <span style={{ fontSize: '0.7em', color: '#666' }}>
+                      {isConsciousExpanded ? '▼' : '▶'}
+                    </span>
                   </div>
+                  {isConsciousExpanded && (
+                    <div>
+                  {character.mind && character.mind.filter(mt => mt.location === 'CONSCIOUS').length > 0 ? (
+                    <ul className="mind-list">
+                      {character.mind
+                        .filter(mindThought => mindThought.location === 'CONSCIOUS')
+                        .map((mindThought) => {
+                          const thought = character.mindThoughts?.find(t => t.thoughtId === mindThought.thoughtId);
+                          return (
+                            <li key={mindThought.thoughtId} className="mind-item">
+                              <div className="thought-info">
+                                <Link to={`/thoughts/${mindThought.thoughtId}`} className="thought-link">
+                                  {thought?.name || 'Unknown Thought'}
+                                </Link>
+                                <div className="thought-attributes">
+                                  <span 
+                                    className="thought-attribute clickable"
+                                    onClick={() => handleEditThoughtAttributes(mindThought)}
+                                    style={{ cursor: 'pointer', color: '#007bff', textDecoration: 'underline' }}
+                                  >
+                                    Affinity: {mindThought.affinity}
+                                  </span>
+                                  {' | '}
+                                  <span 
+                                    className="thought-attribute clickable"
+                                    onClick={() => handleEditThoughtAttributes(mindThought)}
+                                    style={{ cursor: 'pointer', color: '#007bff', textDecoration: 'underline' }}
+                                  >
+                                    Knowledge: {mindThought.knowledge}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="thought-actions">
+                                <button 
+                                  type="button"
+                                  className="move-button" 
+                                  onClick={() => handleMoveThought(mindThought.thoughtId, 'SUBCONSCIOUS')}
+                                  style={{ marginRight: '4px', fontSize: '12px', padding: '2px 6px' }}
+                                >
+                                  → Sub
+                                </button>
+                                <button 
+                                  type="button"
+                                  className="remove-button" 
+                                  onClick={() => handleRemoveThought(mindThought.thoughtId)}
+                                  style={{ fontSize: '12px', padding: '2px 6px' }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </li>
+                          );
+                        })}
+                    </ul>
+                      ) : (
+                        <p style={{ color: '#6c757d', fontStyle: 'italic', marginBottom: '16px' }}>No thoughts in conscious</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
-            ) : (
-              <p>No thoughts in mind.</p>
             )}
           </div>
         </div>
@@ -791,7 +841,17 @@ const CharacterView = ({ startInEditMode = false }) => {
               <div className="inventory-categories">
                 {/* Stash Section */}
                 <div className="inventory-category">
-                  <h4 style={{ marginBottom: '8px', color: '#6c757d' }}>Stash</h4>
+                  <div 
+                    onClick={() => setIsStashExpanded(!isStashExpanded)}
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}
+                  >
+                    <h4 style={{ margin: 0, color: '#6c757d' }}>Stash</h4>
+                    <span style={{ fontSize: '0.7em', color: '#666' }}>
+                      {isStashExpanded ? '▼' : '▶'}
+                    </span>
+                  </div>
+                  {isStashExpanded && (
+                    <div>
                   {character.stash && character.stash.length > 0 ? (
                     <ul className="inventory-list">
                       {character.stash.map((item) => (
@@ -841,14 +901,26 @@ const CharacterView = ({ startInEditMode = false }) => {
                         </li>
                       ))}
                     </ul>
-                  ) : (
-                    <p style={{ fontSize: '0.9em', color: '#666', margin: '4px 0' }}>No items in stash.</p>
+                      ) : (
+                        <p style={{ fontSize: '0.9em', color: '#666', margin: '4px 0' }}>No items in stash.</p>
+                      )}
+                    </div>
                   )}
                 </div>
 
                 {/* Equipment Section */}
                 <div className="inventory-category">
-                  <h4 style={{ marginBottom: '8px', color: '#6c757d' }}>Equipment</h4>
+                  <div 
+                    onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}
+                  >
+                    <h4 style={{ margin: 0, color: '#6c757d' }}>Equipment</h4>
+                    <span style={{ fontSize: '0.7em', color: '#666' }}>
+                      {isEquipmentExpanded ? '▼' : '▶'}
+                    </span>
+                  </div>
+                  {isEquipmentExpanded && (
+                    <div>
                   {character.equipment && character.equipment.length > 0 ? (
                     <ul className="inventory-list">
                       {character.equipment.map((item) => (
@@ -898,14 +970,26 @@ const CharacterView = ({ startInEditMode = false }) => {
                         </li>
                       ))}
                     </ul>
-                  ) : (
-                    <p style={{ fontSize: '0.9em', color: '#666', margin: '4px 0' }}>Nothing equipped.</p>
+                      ) : (
+                        <p style={{ fontSize: '0.9em', color: '#666', margin: '4px 0' }}>Nothing equipped.</p>
+                      )}
+                    </div>
                   )}
                 </div>
 
                 {/* Ready Section */}
                 <div className="inventory-category">
-                  <h4 style={{ marginBottom: '8px', color: '#6c757d' }}>Ready</h4>
+                  <div 
+                    onClick={() => setIsReadyExpanded(!isReadyExpanded)}
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}
+                  >
+                    <h4 style={{ margin: 0, color: '#6c757d' }}>Ready</h4>
+                    <span style={{ fontSize: '0.7em', color: '#666' }}>
+                      {isReadyExpanded ? '▼' : '▶'}
+                    </span>
+                  </div>
+                  {isReadyExpanded && (
+                    <div>
                   {character.ready && character.ready.length > 0 ? (
                     <ul className="inventory-list">
                       {character.ready.map((item) => (
@@ -937,8 +1021,10 @@ const CharacterView = ({ startInEditMode = false }) => {
                         </li>
                       ))}
                     </ul>
-                  ) : (
-                    <p style={{ fontSize: '0.9em', color: '#666', margin: '4px 0' }}>No items ready.</p>
+                      ) : (
+                        <p style={{ fontSize: '0.9em', color: '#666', margin: '4px 0' }}>No items ready.</p>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

@@ -77,7 +77,17 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       characterCategory
       will
       fatigue
-      values { valueName valueType }
+      mind {
+        thoughtId
+        affinity
+        knowledge
+        location
+      }
+      mindThoughts {
+        thoughtId
+        name
+        description
+      }
       
       # Character attributes (no longer have fatigue)
       speed { attribute { attributeValue isGrouped } }

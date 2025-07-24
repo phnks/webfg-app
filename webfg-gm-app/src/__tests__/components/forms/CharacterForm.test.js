@@ -216,14 +216,14 @@ describe('CharacterForm Component', () => {
     expect(screen.getByText('Attributes')).toBeInTheDocument();
   });
 
-  test('displays values section', () => {
+  test('displays basic information section', () => {
     render(
       <CharacterFormWrapper>
         <CharacterForm />
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByText('Values')).toBeInTheDocument();
+    expect(screen.getByText('Basic Information')).toBeInTheDocument();
   });
 
   test('displays special abilities section', () => {

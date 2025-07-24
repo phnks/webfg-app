@@ -383,11 +383,13 @@ type Thought {
   nameLowerCase: String
   description: String
   descriptionLowerCase: String
+  thoughtCategory: ThoughtCategory
 }
 
 input ThoughtInput {
   name: String!
   description: String
+  thoughtCategory: ThoughtCategory
 }
 
 enum ThoughtCategory {

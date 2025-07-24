@@ -411,3 +411,103 @@
     gap: 5px;
   }
 }
+
+/* Mind section styling - matches inventory styling */
+.mind-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mind-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  border-left: 3px solid #007bff;
+}
+
+.mind-item:hover {
+  background-color: #e9e9e9;
+}
+
+.thought-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.thought-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.thought-link:hover {
+  text-decoration: underline;
+}
+
+.thought-attributes {
+  font-size: 0.85em;
+  color: #6c757d;
+}
+
+.thought-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.move-button,
+.remove-button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.move-button {
+  background-color: #28a745;
+}
+
+.move-button:hover {
+  background-color: #218838;
+}
+
+.remove-button {
+  background-color: #dc3545;
+}
+
+.remove-button:hover {
+  background-color: #c82333;
+}
+
+.mind-category {
+  margin-bottom: 20px;
+}
+
+/* Responsive mind styling */
+@media (max-width: 768px) {
+  .mind-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .thought-info {
+    width: 100%;
+  }
+  
+  .thought-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
