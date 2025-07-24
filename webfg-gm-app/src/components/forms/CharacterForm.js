@@ -92,15 +92,15 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     }, 0);
   };
 
-  // Initialize targetAttributeTotal for new characters
+  // Initialize targetAttributeTotal
   useEffect(() => {
-    if (!isEditing && !formData.targetAttributeTotal) {
+    if (!formData.targetAttributeTotal) {
       setFormData(prev => ({
         ...prev,
         targetAttributeTotal: calculateDefaultTargetTotal()
       }));
     }
-  }, []);
+  }, [isEditing]);
 
   // Effect to populate form data when character prop changes (for editing)
   useEffect(() => {
@@ -356,6 +356,9 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                 min="1"
                 className="target-input"
               />
+              <div className="target-help-text">
+                Default: 10 × {getAllAttributeNames().length} = {calculateDefaultTargetTotal()}
+              </div>
             </div>
           </div>
         </div>
