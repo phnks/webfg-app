@@ -103,7 +103,10 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByDisplayValue('10')).toBeInTheDocument();
+    // Will now defaults to 0
+    const willLabel = screen.getByText('Will');
+    const willInput = willLabel.parentElement.querySelector('input[type="number"]');
+    expect(willInput.value).toBe('0');
   });
 
   test('displays fatigue input field', () => {
