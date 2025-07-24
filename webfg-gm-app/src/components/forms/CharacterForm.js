@@ -31,12 +31,6 @@ const stripTypename = (obj) => {
 };
 
 // Available value names and types based on the new schema
-const VALUE_NAMES = [
-  'IDEALISM', 'PRAGMATISM', 'DISCIPLINE', 'DEFIANCE', 'CURIOSITY',
-  'DETACHMENT', 'CONTROL', 'COMPASSION', 'AMBITION', 'DOUBT',
-  'LOYALTY', 'INDEPENDENCE', 'FAITH', 'CYNICISM', 'GLORY',
-  'SURVIVAL', 'UNITY', 'VIOLENCE', 'RESTRAINT', 'OBSESSION'
-];
 
 const CHARACTER_CATEGORIES = [
   'HUMAN', 'TREPIDITE', 'MONSTER', 'CARVED', 'ANTHRO',
@@ -51,9 +45,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
 
   // State for form data matching the new schema
   const [error, setError] = useState(null);
-  const [showAddValueModal, setShowAddValueModal] = useState(false);
-  const [selectedValueName, setSelectedValueName] = useState("");
-  const [selectedValueType, setSelectedValueType] = useState("GOOD");
   
   // Get all attribute names from the new grouping
   const getAllAttributeNames = () => {
@@ -68,7 +59,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       characterCategory: "HUMAN",
       will: 10,
       fatigue: 0,
-      values: [],
+      mind: [],
       special: [],
       actionIds: [],
       stashIds: [],
@@ -95,7 +86,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         characterCategory: character.characterCategory || "HUMAN",
         will: character.will !== null && character.will !== undefined ? character.will : 10,
         fatigue: character.fatigue || 0,
-        values: (character.values || []).map(v => ({ ...v })),
+        mind: (character.mind || []).map(m => ({ ...m })),
         special: character.special || [],
         actionIds: character.actionIds || [],
         stashIds: character.stashIds || [],
@@ -112,12 +103,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     }
   }, [isEditing, character]);
 
-  // Clear stored values when selected character changes
-  useEffect(() => {
-    setSelectedValueName("");
-    setSelectedValueType("GOOD");
-    setShowAddValueModal(false);
-  }, [selectedCharacter]);
 
   const [createCharacter] = useMutation(CREATE_CHARACTER, {
     refetchQueries: [{ query: LIST_CHARACTERS }],
@@ -182,24 +167,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     });
   };
 
-  const handleAddValue = () => {
-    if (selectedValueName && !formData.values.find(v => v.valueName === selectedValueName)) {
-      setFormData(prev => ({
-        ...prev,
-        values: [...prev.values, { valueName: selectedValueName, valueType: selectedValueType }]
-      }));
-      setSelectedValueName("");
-      setSelectedValueType("GOOD");
-      setShowAddValueModal(false);
-    }
-  };
-
-  const handleRemoveValue = (valueName) => {
-    setFormData(prev => ({
-      ...prev,
-      values: prev.values.filter(v => v.valueName !== valueName)
-    }));
-  };
 
   const [newSpecialAbility, setNewSpecialAbility] = useState('');
 
@@ -233,7 +200,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         characterCategory: formData.characterCategory,
         will: formData.will !== null && formData.will !== undefined && formData.will !== '' ? parseInt(formData.will) : 10,
         fatigue: formData.fatigue !== null && formData.fatigue !== undefined && formData.fatigue !== '' ? parseInt(formData.fatigue) : 0,
-        values: formData.values.map(v => ({ valueName: v.valueName, valueType: v.valueType })),
+        mind: formData.mind,
         special: formData.special,
         actionIds: formData.actionIds,
         stashIds: formData.stashIds,
@@ -378,70 +345,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           </div>
         </div>
 
-        <div className="form-section">
-          <h3>Values</h3>
-          <div className="form-group">
-            {formData.values.length === 0 && <p className="empty-message">No values added.</p>}
-            <ul className="parts-list">
-              {formData.values.map((value) => (
-                <li key={value.valueName}>
-                  {value.valueName} ({value.valueType})
-                  <button 
-                    type="button" 
-                    onClick={() => handleRemoveValue(value.valueName)} 
-                    className="button-remove"
-                  >
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button type="button" onClick={() => setShowAddValueModal(true)} className="button-add-part">
-              Add Value
-            </button>
-          </div>
-        </div>
 
-        {showAddValueModal && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <h3>Add Value</h3>
-              <div className="form-group">
-                <label>Value Name</label>
-                <select 
-                  value={selectedValueName} 
-                  onChange={(e) => setSelectedValueName(e.target.value)}
-                >
-                  <option value="">-- Select a Value --</option>
-                  {VALUE_NAMES
-                    .filter(name => !formData.values.find(v => v.valueName === name))
-                    .map(name => (
-                      <option key={name} value={name}>{name}</option>
-                    ))
-                  }
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Value Type</label>
-                <select 
-                  value={selectedValueType} 
-                  onChange={(e) => setSelectedValueType(e.target.value)}
-                >
-                  <option value="GOOD">GOOD</option>
-                  <option value="BAD">BAD</option>
-                </select>
-              </div>
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowAddValueModal(false)} className="button-cancel">
-                  Cancel
-                </button>
-                <button type="button" onClick={handleAddValue} className="button-submit">
-                  Add Value
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="form-section">
           <h3>Special Abilities</h3>
