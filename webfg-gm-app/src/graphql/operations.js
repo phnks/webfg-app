@@ -97,7 +97,8 @@ export const GET_CHARACTER = gql`
       characterCategory
       will
       fatigue
-      values { valueName valueType }
+      mind { thoughtId affinity knowledge location }
+      mindThoughts { thoughtId name description }
       
       # Conditions
       characterConditions {
@@ -476,7 +477,8 @@ export const CREATE_CHARACTER = gql`
       characterCategory
       will
       fatigue
-      values { valueName valueType }
+      mind { thoughtId affinity knowledge location }
+      mindThoughts { thoughtId name description }
       
       # Character attributes (no longer have fatigue)
       speed { attribute { attributeValue isGrouped } }
@@ -519,7 +521,8 @@ export const UPDATE_CHARACTER = gql`
       characterCategory
       will
       fatigue
-      values { valueName valueType }
+      mind { thoughtId affinity knowledge location }
+      mindThoughts { thoughtId name description }
       
       # Character attributes (no longer have fatigue)
       speed { attribute { attributeValue isGrouped } }
@@ -993,7 +996,8 @@ export const ON_CREATE_CHARACTER = gql`
       description
       characterCategory
       will
-      values { valueName valueType }
+      mind { thoughtId affinity knowledge location }
+      mindThoughts { thoughtId name description }
       equipmentIds
     }
   }
@@ -1006,7 +1010,8 @@ export const ON_UPDATE_CHARACTER = gql`
       description
       characterCategory
       will
-      values { valueName valueType }
+      mind { thoughtId affinity knowledge location }
+      mindThoughts { thoughtId name description }
       
       # Character attributes (no longer have fatigue)
       speed { attribute { attributeValue isGrouped } }
@@ -1611,6 +1616,67 @@ export const ON_DELETE_THOUGHT = gql`
       thoughtId
       name
       description
+    }
+  }
+`;
+
+// CHARACTER-THOUGHT MIND MUTATIONS
+export const ADD_THOUGHT_TO_CHARACTER_MIND = gql`
+  mutation AddThoughtToCharacterMind($characterId: ID!, $thoughtId: ID!) {
+    addThoughtToCharacterMind(characterId: $characterId, thoughtId: $thoughtId) {
+      characterId
+      mind { thoughtId affinity knowledge location }
+      mindThoughts { thoughtId name description }
+    }
+  }
+`;
+
+export const REMOVE_THOUGHT_FROM_CHARACTER_MIND = gql`
+  mutation RemoveThoughtFromCharacterMind($characterId: ID!, $thoughtId: ID!) {
+    removeThoughtFromCharacterMind(characterId: $characterId, thoughtId: $thoughtId) {
+      characterId
+      mind { thoughtId affinity knowledge location }
+      mindThoughts { thoughtId name description }
+    }
+  }
+`;
+
+export const MOVE_THOUGHT_TO_SUBCONSCIOUS = gql`
+  mutation MoveThoughtToSubconscious($characterId: ID!, $thoughtId: ID!) {
+    moveThoughtToSubconscious(characterId: $characterId, thoughtId: $thoughtId) {
+      characterId
+      mind { thoughtId affinity knowledge location }
+      mindThoughts { thoughtId name description }
+    }
+  }
+`;
+
+export const MOVE_THOUGHT_TO_CONSCIOUS = gql`
+  mutation MoveThoughtToConscious($characterId: ID!, $thoughtId: ID!) {
+    moveThoughtToConscious(characterId: $characterId, thoughtId: $thoughtId) {
+      characterId
+      mind { thoughtId affinity knowledge location }
+      mindThoughts { thoughtId name description }
+    }
+  }
+`;
+
+export const MOVE_THOUGHT_TO_MEMORY = gql`
+  mutation MoveThoughtToMemory($characterId: ID!, $thoughtId: ID!) {
+    moveThoughtToMemory(characterId: $characterId, thoughtId: $thoughtId) {
+      characterId
+      mind { thoughtId affinity knowledge location }
+      mindThoughts { thoughtId name description }
+    }
+  }
+`;
+
+export const UPDATE_THOUGHT_AFFINITY_KNOWLEDGE = gql`
+  mutation UpdateThoughtAffinityKnowledge($characterId: ID!, $thoughtId: ID!, $affinity: Int!, $knowledge: Int!) {
+    updateThoughtAffinityKnowledge(characterId: $characterId, thoughtId: $thoughtId, affinity: $affinity, knowledge: $knowledge) {
+      characterId
+      mind { thoughtId affinity knowledge location }
+      mindThoughts { thoughtId name description }
     }
   }
 `;

@@ -31,39 +31,25 @@ enum AttributeName {
   SCENT
 }
 
-type Value {
-  valueName: ValueName!
-  valueType: ValueType!
+type MindThought {
+  thoughtId: ID!
+  affinity: Int!
+  knowledge: Int!
+  location: MindLocation!
 }
 
-enum ValueName {
-  IDEALISM
-  PRAGMATISM
-  DISCIPLINE
-  DEFIANCE
-  CURIOSITY
-  DETACHMENT
-  CONTROL
-  COMPASSION
-  AMBITION
-  DOUBT
-  LOYALTY
-  INDEPENDENCE
-  FAITH
-  CYNICISM
-  GLORY
-  SURVIVAL
-  UNITY
-  VIOLENCE
-  RESTRAINT
-  OBSESSION
+enum MindLocation {
+  MEMORY
+  SUBCONSCIOUS
+  CONSCIOUS
 }
 
-enum ValueType {
-  GOOD
-  BAD
+input MindThoughtInput {
+  thoughtId: ID!
+  affinity: Int!
+  knowledge: Int!
+  location: MindLocation!
 }
-
 
 type Character {
   characterId: ID!
@@ -74,7 +60,8 @@ type Character {
   will: Int!
   fatigue: Int!
 
-  values: [Value]      
+  mind: [MindThought]
+  mindThoughts: [Thought]
 
   speed: CharacterAttribute
   weight: CharacterAttribute
@@ -139,18 +126,13 @@ input CharacterAttributeInput {
   attribute: AttributeInput!
 }
 
-input ValueInput {
-  valueName: ValueName!
-  valueType: ValueType!
-}
-
 input CharacterInput {
   name: String!
   description: String
   characterCategory: CharacterCategory!
   will: Int!
   fatigue: Int!
-  values: [ValueInput]
+  mind: [MindThoughtInput]
   speed: CharacterAttributeInput
   weight: CharacterAttributeInput
   size: CharacterAttributeInput
@@ -401,11 +383,13 @@ type Thought {
   nameLowerCase: String
   description: String
   descriptionLowerCase: String
+  thoughtCategory: ThoughtCategory
 }
 
 input ThoughtInput {
   name: String!
   description: String
+  thoughtCategory: ThoughtCategory
 }
 
 enum ThoughtCategory {
@@ -731,6 +715,14 @@ type Mutation {
   createThought(input: ThoughtInput!): Thought
   updateThought(thoughtId: ID!, input: ThoughtInput!): Thought
   deleteThought(thoughtId: ID!): Thought
+
+  # Character-Thought relationship mutations (mind system)
+  addThoughtToCharacterMind(characterId: ID!, thoughtId: ID!): Character
+  removeThoughtFromCharacterMind(characterId: ID!, thoughtId: ID!): Character
+  moveThoughtToSubconscious(characterId: ID!, thoughtId: ID!): Character
+  moveThoughtToConscious(characterId: ID!, thoughtId: ID!): Character
+  moveThoughtToMemory(characterId: ID!, thoughtId: ID!): Character
+  updateThoughtAffinityKnowledge(characterId: ID!, thoughtId: ID!, affinity: Int!, knowledge: Int!): Character
 
 }
 

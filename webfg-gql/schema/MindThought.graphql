@@ -1,0 +1,19 @@
+type MindThought {
+  thoughtId: ID!
+  affinity: Int!
+  knowledge: Int!
+  location: MindLocation!
+}
+
+enum MindLocation {
+  MEMORY
+  SUBCONSCIOUS
+  CONSCIOUS
+}
+
+input MindThoughtInput {
+  thoughtId: ID!
+  affinity: Int!
+  knowledge: Int!
+  location: MindLocation!
+}

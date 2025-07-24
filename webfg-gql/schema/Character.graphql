@@ -7,7 +7,8 @@ type Character {
   will: Int!
   fatigue: Int!
 
-  values: [Value]      
+  mind: [MindThought]
+  mindThoughts: [Thought]
 
   speed: CharacterAttribute
   weight: CharacterAttribute
@@ -72,18 +73,13 @@ input CharacterAttributeInput {
   attribute: AttributeInput!
 }
 
-input ValueInput {
-  valueName: ValueName!
-  valueType: ValueType!
-}
-
 input CharacterInput {
   name: String!
   description: String
   characterCategory: CharacterCategory!
   will: Int!
   fatigue: Int!
-  values: [ValueInput]
+  mind: [MindThoughtInput]
   speed: CharacterAttributeInput
   weight: CharacterAttributeInput
   size: CharacterAttributeInput

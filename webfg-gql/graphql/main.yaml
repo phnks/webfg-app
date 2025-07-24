@@ -312,6 +312,20 @@ Resources:
         ConditionsTableName: !Ref ConditionsTableName
         AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
 
+  CharacterMindResolversStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DataSourcesStack
+      - ApiStack
+      - AppSyncLambdaServiceRole
+    Properties:
+      TemplateURL: ./character-mind-resolvers.yaml
+      Parameters:
+        ApiId: !GetAtt ApiStack.Outputs.GraphQLApiId
+        CharactersTableName: !Ref CharactersTableName
+        ThoughtsTableName: !Ref ThoughtsTableName
+        AppSyncLambdaServiceRoleArn: !GetAtt AppSyncLambdaServiceRole.Arn
+
 Outputs:
   AppSyncAPIEndpoint:
     Description: 'GraphQL API Custom Domain'

@@ -176,6 +176,11 @@ exports.handler = async (event) => {
                 }
             });
             console.log(`Character ${index}: Added ${addedDefaults} defaults, Fixed ${fixedLegacy} legacy attributes`);
+            
+            // Handle mind field for backward compatibility
+            if (!character.mind) {
+                character.mind = [];
+            }
         });
         console.log('Finished processing default attributes for all characters');
 

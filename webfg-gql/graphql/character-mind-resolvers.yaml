@@ -1,0 +1,370 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'AppSync Character Mind Resolvers'
+
+Parameters:
+  ApiId:
+    Type: String
+    Description: 'AppSync GraphQL API ID'
+  AppSyncLambdaServiceRoleArn:
+    Type: String
+    Description: 'Shared lambda service role'
+  CharactersTableName:
+    Type: String
+    Description: 'Name of Characters table'
+  ThoughtsTableName:
+    Type: String
+    Description: 'Name of Thoughts table'
+
+Resources:
+  # --- Resolver for Character.mind field ---
+  ResolveCharacterMindFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/resolveCharacterMind.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  ResolveCharacterMindDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ResolveCharacterMindSource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt ResolveCharacterMindFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  CharacterMindResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: ResolveCharacterMindDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Character
+      FieldName: mind
+      DataSourceName: ResolveCharacterMindSource
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "source": $util.toJson($context.source)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($ctx.result)'
+
+  # --- Resolver for Character.mindThoughts field ---
+  ResolveCharacterMindThoughtsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/resolveCharacterMindThoughts.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          THOUGHTS_TABLE: !Ref ThoughtsTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ThoughtsTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  ResolveCharacterMindThoughtsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ResolveCharacterMindThoughtsSource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt ResolveCharacterMindThoughtsFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  CharacterMindThoughtsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: ResolveCharacterMindThoughtsDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Character
+      FieldName: mindThoughts
+      DataSourceName: ResolveCharacterMindThoughtsSource
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "source": $util.toJson($context.source)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($ctx.result)'
+
+  # --- Mutation: Add thought to character mind ---
+  AddThoughtToCharacterMindFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/addThoughtToCharacterMind.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  AddThoughtToCharacterMindDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: AddThoughtToCharacterMindSource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt AddThoughtToCharacterMindFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  AddThoughtToCharacterMindResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AddThoughtToCharacterMindDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: addThoughtToCharacterMind
+      DataSourceName: AddThoughtToCharacterMindSource
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($context.arguments)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($ctx.result)'
+
+  # --- Mutation: Remove thought from character mind ---
+  RemoveThoughtFromCharacterMindFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/removeThoughtFromCharacterMind.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  RemoveThoughtFromCharacterMindDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: RemoveThoughtFromCharacterMindSource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt RemoveThoughtFromCharacterMindFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  RemoveThoughtFromCharacterMindResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: RemoveThoughtFromCharacterMindDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: removeThoughtFromCharacterMind
+      DataSourceName: RemoveThoughtFromCharacterMindSource
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($context.arguments)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($ctx.result)'
+
+  # --- Mutation: Move thought to subconscious ---
+  MoveThoughtToSubconsciousFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/moveThoughtToSubconscious.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  MoveThoughtToSubconsciousDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: MoveThoughtToSubconsciousSource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt MoveThoughtToSubconsciousFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  MoveThoughtToSubconsciousResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: MoveThoughtToSubconsciousDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: moveThoughtToSubconscious
+      DataSourceName: MoveThoughtToSubconsciousSource
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($context.arguments)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($ctx.result)'
+
+  # --- Mutation: Move thought to conscious ---
+  MoveThoughtToConsciousFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/moveThoughtToConscious.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  MoveThoughtToConsciousDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: MoveThoughtToConsciousSource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt MoveThoughtToConsciousFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  MoveThoughtToConsciousResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: MoveThoughtToConsciousDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: moveThoughtToConscious
+      DataSourceName: MoveThoughtToConsciousSource
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($context.arguments)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($ctx.result)'
+
+  # --- Mutation: Move thought to memory ---
+  MoveThoughtToMemoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/moveThoughtToMemory.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  MoveThoughtToMemoryDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: MoveThoughtToMemorySource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt MoveThoughtToMemoryFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  MoveThoughtToMemoryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: MoveThoughtToMemoryDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: moveThoughtToMemory
+      DataSourceName: MoveThoughtToMemorySource
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($context.arguments)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($ctx.result)'
+
+  # --- Mutation: Update thought affinity and knowledge ---
+  UpdateThoughtAffinityKnowledgeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/updateThoughtAffinityKnowledge.handler
+      Runtime: nodejs20.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CharactersTableName
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  UpdateThoughtAffinityKnowledgeDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: UpdateThoughtAffinityKnowledgeSource
+      Type: AWS_LAMBDA
+      LambdaConfig: { LambdaFunctionArn: !GetAtt UpdateThoughtAffinityKnowledgeFunction.Arn }
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+
+  UpdateThoughtAffinityKnowledgeResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: UpdateThoughtAffinityKnowledgeDataSource
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: updateThoughtAffinityKnowledge
+      DataSourceName: UpdateThoughtAffinityKnowledgeSource
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($context.arguments)
+          }
+        }
+      ResponseMappingTemplate: '$util.toJson($ctx.result)'
