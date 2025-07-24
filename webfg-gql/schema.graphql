@@ -31,40 +31,6 @@ enum AttributeName {
   SCENT
 }
 
-type Value {
-  valueName: ValueName!
-  valueType: ValueType!
-}
-
-enum ValueName {
-  IDEALISM
-  PRAGMATISM
-  DISCIPLINE
-  DEFIANCE
-  CURIOSITY
-  DETACHMENT
-  CONTROL
-  COMPASSION
-  AMBITION
-  DOUBT
-  LOYALTY
-  INDEPENDENCE
-  FAITH
-  CYNICISM
-  GLORY
-  SURVIVAL
-  UNITY
-  VIOLENCE
-  RESTRAINT
-  OBSESSION
-}
-
-enum ValueType {
-  GOOD
-  BAD
-}
-
-
 type Character {
   characterId: ID!
   name: String!
@@ -74,7 +40,8 @@ type Character {
   will: Int!
   fatigue: Int!
 
-  values: [Value]      
+  mind: [MindThought]
+  mindThoughts: [Thought]
 
   speed: CharacterAttribute
   weight: CharacterAttribute
@@ -150,7 +117,7 @@ input CharacterInput {
   characterCategory: CharacterCategory!
   will: Int!
   fatigue: Int!
-  values: [ValueInput]
+  mind: [MindThoughtInput]
   speed: CharacterAttributeInput
   weight: CharacterAttributeInput
   size: CharacterAttributeInput
@@ -731,6 +698,14 @@ type Mutation {
   createThought(input: ThoughtInput!): Thought
   updateThought(thoughtId: ID!, input: ThoughtInput!): Thought
   deleteThought(thoughtId: ID!): Thought
+
+  # Character-Thought relationship mutations (mind system)
+  addThoughtToCharacterMind(characterId: ID!, thoughtId: ID!): Character
+  removeThoughtFromCharacterMind(characterId: ID!, thoughtId: ID!): Character
+  moveThoughtToSubconscious(characterId: ID!, thoughtId: ID!): Character
+  moveThoughtToConscious(characterId: ID!, thoughtId: ID!): Character
+  moveThoughtToMemory(characterId: ID!, thoughtId: ID!): Character
+  updateThoughtAffinityKnowledge(characterId: ID!, thoughtId: ID!, affinity: Int!, knowledge: Int!): Character
 
 }
 

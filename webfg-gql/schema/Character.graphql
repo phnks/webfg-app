@@ -73,11 +73,6 @@ input CharacterAttributeInput {
   attribute: AttributeInput!
 }
 
-input ValueInput {
-  valueName: ValueName!
-  valueType: ValueType!
-}
-
 input CharacterInput {
   name: String!
   description: String

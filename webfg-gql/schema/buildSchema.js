@@ -77,7 +77,7 @@ function combineSchemas() {
   // Define schema files in the specific order you want them combined
   const schemaFiles = [
     'Attribute.graphql',
-    'Value.graphql',
+    'MindThought.graphql',
     'Character.graphql',
     'Object.graphql',
     'Action.graphql',
