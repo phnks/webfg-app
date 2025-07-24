@@ -125,6 +125,7 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       special
       actionIds
       actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType objectUsage }
+      targetAttributeTotal
       stashIds
       stash { objectId name objectCategory }
       equipmentIds
@@ -437,6 +438,7 @@ export const LIST_CHARACTERS_WITH_GROUPED = gql`
       }
       actionIds
       actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType objectUsage }
+      targetAttributeTotal
       
       characterConditions {
         conditionId

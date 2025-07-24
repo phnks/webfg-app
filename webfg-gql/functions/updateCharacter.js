@@ -70,6 +70,9 @@ exports.handler = async (event) => {
   addUpdateField("stashIds", input.stashIds);
   addUpdateField("equipmentIds", input.equipmentIds);
   addUpdateField("readyIds", input.readyIds);
+  addUpdateField("targetAttributeTotal", input.targetAttributeTotal);
+  addUpdateField("mind", input.mind);
+  addUpdateField("characterConditions", input.characterConditions);
 
   if (updateExpressionParts.length === 0) {
     console.warn("UpdateCharacter called with only characterId and no actual fields to update.");

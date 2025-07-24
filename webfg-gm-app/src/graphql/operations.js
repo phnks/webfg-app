@@ -84,6 +84,7 @@ export const LIST_CHARACTERS = gql`
       }
       actionIds
       actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType objectUsage triggeredActionId triggeredAction { actionId name sourceAttribute targetAttribute targetType effectType objectUsage } }
+      targetAttributeTotal
     }
   }
 `;
@@ -209,6 +210,7 @@ export const GET_CHARACTER = gql`
         noise { attributeValue isGrouped }
         scent { attributeValue isGrouped }
       }
+      targetAttributeTotal
     }
   }
 `;
@@ -508,6 +510,7 @@ export const CREATE_CHARACTER = gql`
       stashIds
       equipmentIds
       readyIds
+      targetAttributeTotal
     }
   }
 `;
@@ -552,6 +555,7 @@ export const UPDATE_CHARACTER = gql`
       stashIds
       equipmentIds
       readyIds
+      targetAttributeTotal
     }
   }
 `;

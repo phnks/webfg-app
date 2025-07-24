@@ -47,6 +47,9 @@ type Character {
   characterConditions: [CharacterCondition]
   conditions: [CharacterConditionWithDetails]
   
+  # Custom target attribute total set by GM
+  targetAttributeTotal: Int
+  
   # Computed fields (only resolved when requested)
   groupedAttributes: GroupedAttributes
   readyGroupedAttributes: ReadyGroupedAttributes
@@ -107,6 +110,7 @@ input CharacterInput {
   equipmentIds: [ID]
   readyIds: [ID]
   characterConditions: [CharacterConditionInput]
+  targetAttributeTotal: Int
 }
 
 type CharacterCondition {

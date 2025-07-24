@@ -214,11 +214,45 @@ Cypress.Commands.add('clickCancelButton', () => {
   cy.get('button').contains('Cancel').click();
 });
 
+// Handle the new attribute validation system
+Cypress.Commands.add('ensureAttributeValidation', () => {
+  // The form now has attribute validation - by default all attributes are 10
+  // and there are 21 attributes, so total is 210. The target defaults to 210.
+  // If the submit button is disabled, we don't need to do anything as the 
+  // defaults should allow submission.
+  cy.get('button[type="submit"]').then($btn => {
+    if ($btn.prop('disabled')) {
+      // If submit is disabled, check if we need to adjust the target
+      cy.get('.target-input').then($target => {
+        const targetValue = $target.val();
+        // Get current total from the display
+        cy.get('.current-total').invoke('text').then(text => {
+          const currentTotal = text.match(/Total: (\d+)/)?.[1];
+          if (currentTotal && currentTotal !== targetValue) {
+            // Scroll to top to access the target input
+            cy.scrollTo('top');
+            cy.get('.target-input').clear({force: true}).type(currentTotal, {force: true});
+          }
+        });
+      });
+    }
+  });
+});
+
 // Simplified form helpers that work with actual UI
 Cypress.Commands.add('fillBasicCharacterInfo', (character) => {
-  // Fill only basic fields that have proper selectors
-  cy.get('input').first().clear().type(character.name); // Name field
+  // Wait for form to be ready and scroll to ensure fields are visible
+  cy.get('input[type="text"]').should('be.visible');
+  
+  // Find the name input more specifically (avoid the target input)
+  cy.get('input[type="text"]').first().clear().type(character.name); // Name field
   cy.get('select').first().select(character.category); // Category dropdown
+  
+  // Wait for fields to be filled
+  cy.get('input[type="text"]').first().should('have.value', character.name);
+  
+  // Ensure attribute validation allows submission
+  cy.ensureAttributeValidation();
 });
 
 Cypress.Commands.add('fillBasicObjectInfo', (object) => {
