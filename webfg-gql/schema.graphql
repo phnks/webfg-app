@@ -58,7 +58,7 @@ type Character {
   description: String
   characterCategory: CharacterCategory!
   will: Int!
-  fatigue: Int!
+  fatigue: Int # Deprecated - no longer used, kept for backwards compatibility
 
   mind: [MindThought]
   mindThoughts: [Thought]
@@ -100,6 +100,9 @@ type Character {
   characterConditions: [CharacterCondition]
   conditions: [CharacterConditionWithDetails]
   
+  # Custom target attribute total set by GM
+  targetAttributeTotal: Int
+  
   # Computed fields (only resolved when requested)
   groupedAttributes: GroupedAttributes
   readyGroupedAttributes: ReadyGroupedAttributes
@@ -131,7 +134,7 @@ input CharacterInput {
   description: String
   characterCategory: CharacterCategory!
   will: Int!
-  fatigue: Int!
+  fatigue: Int # Deprecated - no longer used, kept for backwards compatibility
   mind: [MindThoughtInput]
   speed: CharacterAttributeInput
   weight: CharacterAttributeInput
@@ -160,6 +163,7 @@ input CharacterInput {
   equipmentIds: [ID]
   readyIds: [ID]
   characterConditions: [CharacterConditionInput]
+  targetAttributeTotal: Int
 }
 
 type CharacterCondition {
@@ -477,7 +481,7 @@ input EnhancedCharacterFilterInput {
   name: StringFilterInput
   characterCategory: CharacterCategory
   will: NumericFilterInput
-  fatigue: NumericFilterInput
+  fatigue: NumericFilterInput # Deprecated - no longer used
   
   # Attribute filters
   speed: AttributeFilterInput

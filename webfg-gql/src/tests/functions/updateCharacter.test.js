@@ -75,7 +75,6 @@ describe('updateCharacter', () => {
           name: 'Updated Hero',
           characterCategory: 'ELF',
           will: 15,
-          fatigue: 3,
           strength: 12,
           dexterity: 10
         }
@@ -87,7 +86,6 @@ describe('updateCharacter', () => {
         nameLowerCase: 'updated hero',
         characterCategory: 'ELF',
         will: 15,
-        fatigue: 3,
         strength: 12,
         dexterity: 10
       };
@@ -237,7 +235,6 @@ describe('updateCharacter', () => {
         characterId: 'char-1',
         input: {
           will: 0,
-          fatigue: 0,
           strength: 0,
           speed: 0
         }
@@ -246,7 +243,6 @@ describe('updateCharacter', () => {
       const updatedCharacter = {
         characterId: 'char-1',
         will: 0,
-        fatigue: 0,
         strength: 0,
         speed: 0
       };
@@ -265,14 +261,12 @@ describe('updateCharacter', () => {
         characterId: 'char-1',
         input: {
           will: -5,
-          fatigue: -2
         }
       };
 
       const updatedCharacter = {
         characterId: 'char-1',
         will: -5,
-        fatigue: -2
       };
 
       global.mockDynamoSend.mockResolvedValueOnce({
@@ -449,7 +443,6 @@ describe('updateCharacter', () => {
         input: {
           name: 'Test Character',
           will: null,
-          fatigue: null
         }
       };
 
@@ -459,7 +452,6 @@ describe('updateCharacter', () => {
         name: 'Test Character',
         nameLowerCase: 'test character',
         will: null,
-        fatigue: null
       };
 
       global.mockDynamoSend.mockResolvedValueOnce({

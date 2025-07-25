@@ -36,7 +36,6 @@ describe('updateCharacterPosition', () => {
     name: 'Test Hero',
     stats: {
       hitPoints: { current: 50 },
-      fatigue: { current: 2 },
       surges: { current: 3 },
       exhaustion: { current: 0 }
     },
@@ -60,7 +59,6 @@ describe('updateCharacterPosition', () => {
         y: 25,
         stats: {
           hitPoints: 50,
-          fatigue: 2,
           surges: 3,
           exhaustion: 0
         },
