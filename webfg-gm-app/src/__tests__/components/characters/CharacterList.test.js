@@ -43,7 +43,6 @@ const mockCharacters = [
     name: 'Test Character',
     characterCategory: 'HUMAN',
     will: 10,
-    fatigue: 2
   }
 ];
 

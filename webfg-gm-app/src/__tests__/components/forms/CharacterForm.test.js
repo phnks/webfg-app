@@ -116,7 +116,7 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByText('Fatigue')).toBeInTheDocument();
+    expect(screen.getByText('Will')).toBeInTheDocument();
   });
 
   test('displays submit button', () => {
@@ -145,7 +145,6 @@ describe('CharacterForm Component', () => {
       name: 'Existing Character',
       characterCategory: 'HUMAN',
       will: 15,
-      fatigue: 5
     };
     
     render(
@@ -162,10 +161,6 @@ describe('CharacterForm Component', () => {
     const willInput = willLabel.parentElement.querySelector('input[type="number"]');
     expect(willInput.value).toBe('15');
     
-    // Find the Fatigue label and check its value
-    const fatigueLabel = screen.getByText('Fatigue');
-    const fatigueInput = fatigueLabel.parentElement.querySelector('input[type="number"]');
-    expect(fatigueInput.value).toBe('5');
   });
 
   test('updates name field value', () => {

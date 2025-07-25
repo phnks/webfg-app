@@ -64,9 +64,7 @@ exports.handler = async (event) => {
             addNumericFilter(filter.will, 'will', '#will', filterExpressions, expressionAttributeNames, expressionAttributeValues);
         }
 
-        if (filter.fatigue) {
-            addNumericFilter(filter.fatigue, 'fatigue', '#fatigue', filterExpressions, expressionAttributeNames, expressionAttributeValues);
-        }
+        // Fatigue filter deprecated - no longer supported
 
         // Attribute filters
         const attributes = ['weight', 'size', 'armour', 'endurance', 'lethality', 'complexity',

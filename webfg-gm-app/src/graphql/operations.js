@@ -97,7 +97,6 @@ export const GET_CHARACTER = gql`
       description
       characterCategory
       will
-      fatigue
       mind { thoughtId affinity knowledge location }
       mindThoughts { thoughtId name description }
       
@@ -478,7 +477,6 @@ export const CREATE_CHARACTER = gql`
       description
       characterCategory
       will
-      fatigue
       mind { thoughtId affinity knowledge location }
       mindThoughts { thoughtId name description }
       
@@ -523,7 +521,6 @@ export const UPDATE_CHARACTER = gql`
       description
       characterCategory
       will
-      fatigue
       mind { thoughtId affinity knowledge location }
       mindThoughts { thoughtId name description }
       
@@ -1327,8 +1324,7 @@ export const LIST_CHARACTERS_ENHANCED = gql`
         description
         characterCategory
         will
-        fatigue
-        characterConditions {
+          characterConditions {
           conditionId
           amount
         }

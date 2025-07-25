@@ -145,18 +145,6 @@
   font-size: 1.1em;
 }
 
-.fatigue-step {
-  background-color: #fff3cd;
-  border-color: #ffeaa7;
-}
-
-.fatigue-step .step-number {
-  background-color: #f39c12;
-}
-
-.fatigue-step .step-result {
-  color: #856404;
-}
 
 .condition-step {
   background-color: #e7f3ff;

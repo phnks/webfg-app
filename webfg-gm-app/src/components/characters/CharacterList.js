@@ -119,7 +119,6 @@ const CharacterList = () => {
             <th>Name</th>
             <th>Category</th>
             <th>Will</th>
-            <th>Fatigue</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -129,7 +128,6 @@ const CharacterList = () => {
               <td className="character-name">{character.name}</td>
               <td><span className="category-badge">{character.characterCategory}</span></td>
               <td>{character.will}</td>
-              <td>{character.fatigue}</td>
               <td>
                 <div className="action-buttons">
                   <button 
@@ -173,7 +171,7 @@ const CharacterList = () => {
           <h3>{character.name}</h3>
           <div className="character-meta">
             <span className="category">{character.characterCategory}</span>
-            <span className="stats">Will: {character.will} | Fatigue: {character.fatigue}</span>
+            <span className="stats">Will: {character.will}</span>
           </div>
         </div>
       ))}
@@ -201,7 +199,7 @@ const CharacterList = () => {
             <div className="character-mobile-name">{character.name}</div>
             <div className="character-mobile-meta">
               <span className="category-badge">{character.characterCategory}</span>
-              <span className="character-stats">Will: {character.will} | Fatigue: {character.fatigue}</span>
+              <span className="character-stats">Will: {character.will}</span>
             </div>
           </div>
           <div className="character-mobile-actions">

@@ -39,13 +39,6 @@ describe('CharacterStats Component', () => {
     expect(screen.getByText('15 / 20')).toBeInTheDocument();
   });
 
-  test('displays fatigue with current/max values', () => {
-    render(<CharacterStats stats={mockStats} />);
-    
-    expect(screen.getByText('Fatigue')).toBeInTheDocument();
-    expect(screen.getByText('2 / 10')).toBeInTheDocument();
-  });
-
   test('displays exhaustion with current/max values', () => {
     render(<CharacterStats stats={mockStats} />);
     
@@ -78,10 +71,10 @@ describe('CharacterStats Component', () => {
     const { container } = render(<CharacterStats stats={mockStats} />);
     
     const statBars = container.querySelectorAll('.stat-bar');
-    expect(statBars).toHaveLength(4); // One for each stat
+    expect(statBars).toHaveLength(3); // One for each stat
     
     const statFills = container.querySelectorAll('.stat-fill');
-    expect(statFills).toHaveLength(4); // One fill for each bar
+    expect(statFills).toHaveLength(3); // One fill for each bar
   });
 
   test('calculates correct percentage widths for stat bars', () => {
@@ -92,13 +85,10 @@ describe('CharacterStats Component', () => {
     // Hit Points: 15/20 = 75%
     expect(statFills[0]).toHaveStyle('width: 75%');
     
-    // Fatigue: 2/10 = 20%
-    expect(statFills[1]).toHaveStyle('width: 20%');
-    
     // Exhaustion: 0/5 = 0%
-    expect(statFills[2]).toHaveStyle('width: 0%');
+    expect(statFills[1]).toHaveStyle('width: 0%');
     
     // Surges: 3/3 = 100%
-    expect(statFills[3]).toHaveStyle('width: 100%');
+    expect(statFills[2]).toHaveStyle('width: 100%');
   });
 });

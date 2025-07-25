@@ -5,7 +5,7 @@ type Character {
   description: String
   characterCategory: CharacterCategory!
   will: Int!
-  fatigue: Int!
+  fatigue: Int # Deprecated - no longer used, kept for backwards compatibility
 
   mind: [MindThought]
   mindThoughts: [Thought]
@@ -81,7 +81,7 @@ input CharacterInput {
   description: String
   characterCategory: CharacterCategory!
   will: Int!
-  fatigue: Int!
+  fatigue: Int # Deprecated - no longer used, kept for backwards compatibility
   mind: [MindThoughtInput]
   speed: CharacterAttributeInput
   weight: CharacterAttributeInput

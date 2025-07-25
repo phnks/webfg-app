@@ -22,19 +22,6 @@ const CharacterStats = ({ stats }) => {
         </div>
         
         <div className="stat-item">
-          <div className="stat-name">Fatigue</div>
-          <div className="stat-bar">
-            <div 
-              className="stat-fill fatigue" 
-              style={{ width: `${(stats.fatigue.current / stats.fatigue.max) * 100}%` }}
-            />
-          </div>
-          <div className="stat-value">
-            {stats.fatigue.current} / {stats.fatigue.max}
-          </div>
-        </div>
-        
-        <div className="stat-item">
           <div className="stat-name">Exhaustion</div>
           <div className="stat-bar">
             <div 

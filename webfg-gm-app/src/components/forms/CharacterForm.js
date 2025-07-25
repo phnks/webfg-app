@@ -58,7 +58,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       description: "",
       characterCategory: "HUMAN",
       will: 0,  // Default to 0 as requested
-      fatigue: 0,
       mind: [],
       special: [],
       actionIds: [],
@@ -110,7 +109,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         description: character.description || "",
         characterCategory: character.characterCategory || "HUMAN",
         will: character.will !== null && character.will !== undefined ? character.will : 0,
-        fatigue: character.fatigue || 0,
         mind: (character.mind || []).map(m => ({ ...m })),
         special: character.special || [],
         actionIds: character.actionIds || [],
@@ -159,7 +157,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: field === 'will' || field === 'fatigue' || field === 'targetAttributeTotal' ? parseInt(value) || 0 : value
+      [field]: field === 'will' || field === 'targetAttributeTotal' ? parseInt(value) || 0 : value
     }));
   };
 
@@ -251,7 +249,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         description: formData.description || "",
         characterCategory: formData.characterCategory,
         will: formData.will !== null && formData.will !== undefined && formData.will !== '' ? parseInt(formData.will) : 0,
-        fatigue: formData.fatigue !== null && formData.fatigue !== undefined && formData.fatigue !== '' ? parseInt(formData.fatigue) : 0,
         mind: formData.mind,
         special: formData.special,
         actionIds: formData.actionIds,
@@ -406,13 +403,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
               <MobileNumberInput
                 value={formData.will}
                 onChange={(e) => handleInputChange('will', e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label>Fatigue</label>
-              <MobileNumberInput
-                value={formData.fatigue}
-                onChange={(e) => handleInputChange('fatigue', e.target.value)}
               />
             </div>
           </div>
