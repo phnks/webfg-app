@@ -405,6 +405,7 @@ describe('addCharacterToEncounter', () => {
 
       expect(result.history[1].stats).toEqual({
         hitPoints: 50,
+        fatigue: 0,
         surges: 3,
         exhaustion: 0
       });
@@ -453,6 +454,7 @@ describe('addCharacterToEncounter', () => {
 
       expect(result.history[1].stats).toEqual({
         hitPoints: 50,
+        fatigue: 0,
         surges: 3,
         exhaustion: 0
       });
