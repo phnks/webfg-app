@@ -14,7 +14,7 @@ const ATTRIBUTE_NAMES = [
   // MENTAL attributes
   'resolve', 'morale', 'intelligence', 'charisma',
   // SENSES attributes
-  'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
+  'obscurity', 'seeing', 'hearing', 'light', 'noise'
 ];
 
 // Attribute groupings for frontend display
@@ -22,7 +22,7 @@ const ATTRIBUTE_GROUPS = {
   BODY: ['weight', 'size', 'armour', 'endurance', 'lethality', 'complexity'],
   MARTIAL: ['speed', 'strength', 'dexterity', 'agility'],
   MENTAL: ['resolve', 'morale', 'intelligence', 'charisma'],
-  SENSES: ['perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent']
+  SENSES: ['obscurity', 'seeing', 'hearing', 'light', 'noise']
 };
 
 /**

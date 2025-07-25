@@ -192,7 +192,7 @@ describe('getObject', () => {
       strength: { current: 2, max: 2, base: 2 },
       dexterity: { current: 1, max: 1, base: 1 },
       agility: { current: 0, max: 0, base: 0 },
-      perception: { current: 0, max: 0, base: 0 },
+      obscurity: { current: 0, max: 0, base: 0 },
       intensity: { current: 0, max: 0, base: 0 },
       resolve: { current: 0, max: 0, base: 0 },
       morale: { current: 0, max: 0, base: 0 },
