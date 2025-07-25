@@ -37,6 +37,10 @@ const CHARACTER_CATEGORIES = [
   'ICER', 'DAXMC', 'QRTIS', 'TYVIR'
 ];
 
+const CHARACTER_RACES = [
+  'HUMAN', 'ANTHRO', 'CARVED', 'TREPIDITE', 'DHYARMA'
+];
+
 // Removed ATTRIBUTE_TYPES as we now use a simple boolean isGrouped field
 
 const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => {
@@ -57,6 +61,8 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       name: "",
       description: "",
       characterCategory: "HUMAN",
+      race: "HUMAN",
+      raceOverride: false,
       will: 0,  // Default to 0 as requested
       mind: [],
       special: [],
@@ -77,6 +83,17 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
 
   const [formData, setFormData] = useState(createInitialFormData());
   const [validationError, setValidationError] = useState(null);
+  
+  // Helper function to determine if race restrictions should apply
+  const shouldApplyRaceRestrictions = () => {
+    return formData.race === 'HUMAN' && !formData.raceOverride;
+  };
+
+  // Helper function to check if an attribute is restricted for humans
+  const isRestrictedAttribute = (attributeName) => {
+    const restrictedAttributes = ['armour', 'endurance', 'lethality', 'complexity', 'obscurity', 'light'];
+    return restrictedAttributes.includes(attributeName);
+  };
   
   // Calculate the default target total (number of attributes * 10)
   const calculateDefaultTargetTotal = () => {
@@ -108,6 +125,8 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         name: character.name || "",
         description: character.description || "",
         characterCategory: character.characterCategory || "HUMAN",
+        race: character.race || "HUMAN",
+        raceOverride: character.raceOverride || false,
         will: character.will !== null && character.will !== undefined ? character.will : 0,
         mind: (character.mind || []).map(m => ({ ...m })),
         special: character.special || [],
@@ -155,10 +174,45 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   });
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
+    const updatedData = {
+      ...formData,
       [field]: field === 'will' || field === 'targetAttributeTotal' ? parseInt(value) || 0 : value
-    }));
+    };
+    
+    // If race or raceOverride changed, apply restrictions to attributes
+    if (field === 'race' || field === 'raceOverride') {
+      const shouldRestrict = (updatedData.race === 'HUMAN' && !updatedData.raceOverride);
+      
+      if (shouldRestrict) {
+        // Apply human race restrictions
+        getAllAttributeNames().forEach(attr => {
+          if (isRestrictedAttribute(attr)) {
+            // Set restricted attributes to 10
+            updatedData[attr] = {
+              ...updatedData[attr],
+              attribute: {
+                ...updatedData[attr].attribute,
+                attributeValue: 10
+              }
+            };
+          } else {
+            // Clamp other attributes to 5-20 range
+            const currentValue = updatedData[attr]?.attribute?.attributeValue || 10;
+            if (currentValue < 5 || currentValue > 20) {
+              updatedData[attr] = {
+                ...updatedData[attr],
+                attribute: {
+                  ...updatedData[attr].attribute,
+                  attributeValue: Math.max(5, Math.min(20, currentValue))
+                }
+              };
+            }
+          }
+        });
+      }
+    }
+    
+    setFormData(updatedData);
   };
 
   const handleAttributeChange = (attributeName, field, value) => {
@@ -177,6 +231,21 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
 
   const handleNestedAttributeChange = (attributeName, nestedField, value) => {
     console.log(`DEBUG: handleNestedAttributeChange called - ${attributeName}.${nestedField} = ${value}`);
+    
+    // Apply race restrictions for attribute values
+    if (nestedField === 'attributeValue' && shouldApplyRaceRestrictions()) {
+      const numValue = parseFloat(value) || 0;
+      
+      if (isRestrictedAttribute(attributeName)) {
+        // Restricted attributes must be exactly 10 for humans
+        value = 10;
+      } else {
+        // Other attributes must be between 5 and 20 for humans
+        if (numValue < 5) value = 5;
+        if (numValue > 20) value = 20;
+      }
+    }
+    
     setFormData(prev => {
       const updated = {
         ...prev,
@@ -223,6 +292,27 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     setError(null);
     setValidationError(null);
     
+    // Validate race restrictions
+    if (shouldApplyRaceRestrictions()) {
+      const violations = [];
+      
+      getAllAttributeNames().forEach(attr => {
+        const value = formData[attr]?.attribute?.attributeValue || 0;
+        
+        if (isRestrictedAttribute(attr) && value !== 10) {
+          violations.push(`${attr} must be 10 for humans (currently ${value})`);
+        } else if (!isRestrictedAttribute(attr) && (value < 5 || value > 20)) {
+          violations.push(`${attr} must be between 5-20 for humans (currently ${value})`);
+        }
+      });
+      
+      if (violations.length > 0) {
+        setValidationError(`Race restrictions violated: ${violations.join(', ')}`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
+    
     // Validate attribute total
     const currentTotal = calculateCurrentTotal();
     const targetTotal = formData.targetAttributeTotal || calculateDefaultTargetTotal();
@@ -248,6 +338,8 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         name: formData.name,
         description: formData.description || "",
         characterCategory: formData.characterCategory,
+        race: formData.race || "HUMAN",
+        raceOverride: formData.raceOverride || false,
         will: formData.will !== null && formData.will !== undefined && formData.will !== '' ? parseInt(formData.will) : 0,
         mind: formData.mind,
         special: formData.special,
@@ -308,14 +400,21 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
 
   // Render function for individual attributes in the form
   const renderAttributeForForm = (attributeName, attribute, displayName) => {
+    const isRestricted = shouldApplyRaceRestrictions() && isRestrictedAttribute(attributeName);
+    const isRangeLimited = shouldApplyRaceRestrictions() && !isRestrictedAttribute(attributeName);
+    
     return (
       <div key={attributeName} className="attribute-item">
-        <label>{displayName}</label>
+        <label>{displayName} {isRestricted && <span style={{color: '#666', fontSize: '0.8em'}}>(Human: Fixed at 10)</span>}</label>
         <div className="attribute-controls">
           <MobileNumberInput
             step="0.1"
             value={formData[attributeName]?.attribute?.attributeValue || 0}
             onChange={(e) => handleNestedAttributeChange(attributeName, 'attributeValue', e.target.value)}
+            disabled={isRestricted}
+            min={isRangeLimited ? "5" : undefined}
+            max={isRangeLimited ? "20" : undefined}
+            style={isRestricted ? {backgroundColor: '#f5f5f5', color: '#999'} : {}}
           />
           <label className="checkbox-label">
             <input
@@ -326,6 +425,11 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             Group
           </label>
         </div>
+        {isRangeLimited && (
+          <div style={{fontSize: '0.8em', color: '#666', marginTop: '2px'}}>
+            Human: 5-20 range
+          </div>
+        )}
       </div>
     );
   };
@@ -333,7 +437,21 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   // Check if submit should be disabled based on attribute total validation
   const currentTotal = calculateCurrentTotal();
   const targetTotal = formData.targetAttributeTotal || calculateDefaultTargetTotal();
-  const isSubmitDisabled = currentTotal !== targetTotal;
+  
+  // Check for race restriction violations
+  let hasRaceViolations = false;
+  if (shouldApplyRaceRestrictions()) {
+    hasRaceViolations = getAllAttributeNames().some(attr => {
+      const value = formData[attr]?.attribute?.attributeValue || 0;
+      if (isRestrictedAttribute(attr)) {
+        return value !== 10;
+      } else {
+        return value < 5 || value > 20;
+      }
+    });
+  }
+  
+  const isSubmitDisabled = currentTotal !== targetTotal || hasRaceViolations;
 
   return (
     <div className="form-container">
@@ -397,6 +515,28 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
+            </div>
+            <div className="form-group">
+              <label>Race</label>
+              <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                <select
+                  value={formData.race}
+                  onChange={(e) => handleInputChange('race', e.target.value)}
+                  style={{flex: 1}}
+                >
+                  {CHARACTER_RACES.map(race => (
+                    <option key={race} value={race}>{race}</option>
+                  ))}
+                </select>
+                <label className="checkbox-label" style={{margin: 0, fontSize: '0.9em'}}>
+                  <input
+                    type="checkbox"
+                    checked={formData.raceOverride}
+                    onChange={(e) => handleInputChange('raceOverride', e.target.checked)}
+                  />
+                  Override race restrictions
+                </label>
+              </div>
             </div>
             <div className="form-group">
               <label>Will</label>
@@ -466,7 +606,10 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             type="submit" 
             className="button-submit"
             disabled={isSubmitDisabled}
-            title={isSubmitDisabled ? `Attribute total must equal ${targetTotal}` : ''}
+            title={isSubmitDisabled ? 
+              (currentTotal !== targetTotal ? `Attribute total must equal ${targetTotal}` : '') +
+              (hasRaceViolations ? (currentTotal !== targetTotal ? ' and ' : '') + 'Race restrictions must be satisfied' : '')
+              : ''}
           >
             {isEditing ? "Update Character" : "Create Character"}
           </button>

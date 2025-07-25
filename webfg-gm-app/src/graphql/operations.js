@@ -92,6 +92,8 @@ export const GET_CHARACTER = gql`
       name
       description
       characterCategory
+      race
+      raceOverride
       will
       mind { thoughtId affinity knowledge location }
       mindThoughts { thoughtId name description }
@@ -458,6 +460,8 @@ export const CREATE_CHARACTER = gql`
       name
       description
       characterCategory
+      race
+      raceOverride
       will
       mind { thoughtId affinity knowledge location }
       mindThoughts { thoughtId name description }
@@ -500,6 +504,8 @@ export const UPDATE_CHARACTER = gql`
       name
       description
       characterCategory
+      race
+      raceOverride
       will
       mind { thoughtId affinity knowledge location }
       mindThoughts { thoughtId name description }

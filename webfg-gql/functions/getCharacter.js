@@ -66,6 +66,14 @@ exports.handler = async (event) => {
             character.mind = [];
         }
 
+        // Handle race field for backward compatibility
+        if (!character.race) {
+            character.race = 'HUMAN';
+        }
+        if (character.raceOverride === undefined) {
+            character.raceOverride = false;
+        }
+
         console.log(`Successfully retrieved character: ${character.name} (${characterId})`);
         return character;
 
