@@ -93,7 +93,11 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    expect(screen.getByDisplayValue('HUMAN')).toBeInTheDocument();
+    // Find the Category label and check its associated select
+    const categoryLabel = screen.getByText('Category');
+    const categorySelect = categoryLabel.parentElement.querySelector('select');
+    expect(categorySelect).toBeInTheDocument();
+    expect(categorySelect.value).toBe('HUMAN'); // Default value
   });
 
   test('displays will input field', () => {
@@ -154,7 +158,11 @@ describe('CharacterForm Component', () => {
     );
     
     expect(screen.getByDisplayValue('Existing Character')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('HUMAN')).toBeInTheDocument();
+    
+    // Check that category is set to HUMAN
+    const categoryLabel = screen.getByText('Category');
+    const categorySelect = categoryLabel.parentElement.querySelector('select');
+    expect(categorySelect.value).toBe('HUMAN');
     
     // Find the Will label and check its value
     const willLabel = screen.getByText('Will');
@@ -183,7 +191,9 @@ describe('CharacterForm Component', () => {
       </CharacterFormWrapper>
     );
     
-    const categorySelect = screen.getByDisplayValue('HUMAN');
+    // Get the category select specifically by finding the Category label first
+    const categoryLabel = screen.getByText('Category');
+    const categorySelect = categoryLabel.parentElement.querySelector('select');
     fireEvent.change(categorySelect, { target: { value: 'TREPIDITE' } });
     
     expect(categorySelect.value).toBe('TREPIDITE');

@@ -74,7 +74,9 @@ describe('CharacterDetails Component', () => {
       </CharacterDetailsWrapper>
     );
     
-    expect(screen.getByText('HUMAN')).toBeInTheDocument();
+    // Check that category is displayed (there might be multiple HUMAN texts now with race)
+    const categoryRow = screen.getByText('Category:').parentElement;
+    expect(categoryRow).toHaveTextContent('HUMAN');
   });
 
   test('displays character description', () => {
@@ -147,7 +149,9 @@ describe('CharacterDetails Component', () => {
       </CharacterDetailsWrapper>
     );
     
-    expect(screen.getByText('HUMAN')).toBeInTheDocument();
+    // Check that category is displayed (there might be multiple HUMAN texts now with race)
+    const categoryRow = screen.getByText('Category:').parentElement;
+    expect(categoryRow).toHaveTextContent('HUMAN');
   });
 
   test('handles missing attributes gracefully', () => {
@@ -163,7 +167,9 @@ describe('CharacterDetails Component', () => {
       </CharacterDetailsWrapper>
     );
     
-    expect(screen.getByText('HUMAN')).toBeInTheDocument();
+    // Check that category is displayed (there might be multiple HUMAN texts now with race)
+    const categoryRow = screen.getByText('Category:').parentElement;
+    expect(categoryRow).toHaveTextContent('HUMAN');
   });
 
   test('applies correct CSS classes', () => {
