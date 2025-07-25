@@ -110,7 +110,7 @@ describe('updateCharacter', () => {
           endurance: 12,
           lethality: 7,
           agility: 9,
-          perception: 11,
+          obscurity: 11,
           intensity: 4,
           resolve: 13,
           morale: 10,

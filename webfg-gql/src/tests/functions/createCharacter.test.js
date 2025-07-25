@@ -22,7 +22,7 @@ describe('createCharacter', () => {
       strength: { current: 14, max: 16, base: 14 },
       dexterity: { current: 11, max: 12, base: 11 },
       agility: { current: 13, max: 15, base: 13 },
-      perception: { current: 10, max: 12, base: 10 },
+      obscurity: { current: 10, max: 12, base: 10 },
       resolve: { current: 16, max: 18, base: 16 },
       morale: { current: 12, max: 15, base: 12 },
       intelligence: { current: 11, max: 13, base: 11 },

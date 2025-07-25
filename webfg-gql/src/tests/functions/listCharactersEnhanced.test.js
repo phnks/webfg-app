@@ -34,7 +34,7 @@ describe('listCharactersEnhanced', () => {
       will: 12,
       strength: { current: 12, max: 14, base: 12 },
       dexterity: { current: 18, max: 20, base: 18 },
-      perception: { current: 16, max: 18, base: 16 }
+      obscurity: { current: 16, max: 18, base: 16 }
     },
     {
       characterId: 'char-3',

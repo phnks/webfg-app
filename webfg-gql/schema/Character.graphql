@@ -20,17 +20,15 @@ type Character {
   strength: CharacterAttribute!
   dexterity: CharacterAttribute!
   agility: CharacterAttribute!
-  perception: CharacterAttribute!
+  obscurity: CharacterAttribute
   resolve: CharacterAttribute!
   morale: CharacterAttribute!
   intelligence: CharacterAttribute!
   charisma: CharacterAttribute!
   seeing: CharacterAttribute
   hearing: CharacterAttribute
-  smelling: CharacterAttribute
   light: CharacterAttribute
   noise: CharacterAttribute
-  scent: CharacterAttribute
 
   actionIds: [ID]
   actions: [Action]
@@ -93,17 +91,15 @@ input CharacterInput {
   strength: CharacterAttributeInput!
   dexterity: CharacterAttributeInput!
   agility: CharacterAttributeInput!
-  perception: CharacterAttributeInput!
+  obscurity: CharacterAttributeInput
   resolve: CharacterAttributeInput!
   morale: CharacterAttributeInput!
   intelligence: CharacterAttributeInput!
   charisma: CharacterAttributeInput!
   seeing: CharacterAttributeInput
   hearing: CharacterAttributeInput
-  smelling: CharacterAttributeInput
   light: CharacterAttributeInput
   noise: CharacterAttributeInput
-  scent: CharacterAttributeInput
   actionIds: [ID]
   special: [String]
   stashIds: [ID]

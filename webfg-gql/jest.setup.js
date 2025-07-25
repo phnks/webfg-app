@@ -107,7 +107,7 @@ global.mockCharacter = (overrides = {}) => ({
   agility: 10,
   endurance: 10,
   vigor: 10,
-  perception: 10,
+  obscurity: 10,
   intelligence: 10,
   will: 10,
   social: 10,

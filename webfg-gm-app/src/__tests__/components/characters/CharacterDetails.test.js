@@ -31,7 +31,7 @@ const mockCharacter = {
   dexterity: { attribute: { attributeValue: 7, isGrouped: false } },
   agility: { attribute: { attributeValue: 6, isGrouped: false } },
   endurance: { attribute: { attributeValue: 9, isGrouped: false } },
-  perception: { attribute: { attributeValue: 4, isGrouped: false } },
+  obscurity: { attribute: { attributeValue: 4, isGrouped: false } },
   intelligence: { attribute: { attributeValue: 7, isGrouped: false } },
   charisma: { attribute: { attributeValue: 5, isGrouped: false } },
   resolve: { attribute: { attributeValue: 8, isGrouped: false } },

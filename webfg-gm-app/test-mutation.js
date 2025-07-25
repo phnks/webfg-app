@@ -78,7 +78,7 @@ const testMutation = JSON.stringify({
         },
         fatigue: 0
       },
-      perception: {
+      obscurity: {
         attribute: {
           attributeValue: 3,
           isGrouped: true

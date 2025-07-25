@@ -30,17 +30,15 @@ export const LIST_CHARACTERS = gql`
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
       agility { attribute { attributeValue isGrouped } }
-      perception { attribute { attributeValue isGrouped } }
+      obscurity { attribute { attributeValue isGrouped } }
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
       intelligence { attribute { attributeValue isGrouped } }
       charisma { attribute { attributeValue isGrouped } }
       seeing { attribute { attributeValue isGrouped } }
       hearing { attribute { attributeValue isGrouped } }
-      smelling { attribute { attributeValue isGrouped } }
       light { attribute { attributeValue isGrouped } }
       noise { attribute { attributeValue isGrouped } }
-      scent { attribute { attributeValue isGrouped } }
       equipment { 
         objectId name objectCategory isEquipment
         speed { attributeValue isGrouped }
@@ -52,17 +50,15 @@ export const LIST_CHARACTERS = gql`
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
-        perception { attributeValue isGrouped }
+        obscurity { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
         intelligence { attributeValue isGrouped }
         charisma { attributeValue isGrouped }
         seeing { attributeValue isGrouped }
         hearing { attributeValue isGrouped }
-        smelling { attributeValue isGrouped }
         light { attributeValue isGrouped }
         noise { attributeValue isGrouped }
-        scent { attributeValue isGrouped }
         equipment { 
           objectId name objectCategory isEquipment
           speed { attributeValue isGrouped }
@@ -75,7 +71,7 @@ export const LIST_CHARACTERS = gql`
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
           agility { attributeValue isGrouped }
-          perception { attributeValue isGrouped }
+          obscurity { attributeValue isGrouped }
           resolve { attributeValue isGrouped }
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }
@@ -126,17 +122,15 @@ export const GET_CHARACTER = gql`
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
       agility { attribute { attributeValue isGrouped } }
-      perception { attribute { attributeValue isGrouped } }
+      obscurity { attribute { attributeValue isGrouped } }
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
       intelligence { attribute { attributeValue isGrouped } }
       charisma { attribute { attributeValue isGrouped } }
       seeing { attribute { attributeValue isGrouped } }
       hearing { attribute { attributeValue isGrouped } }
-      smelling { attribute { attributeValue isGrouped } }
       light { attribute { attributeValue isGrouped } }
       noise { attribute { attributeValue isGrouped } }
-      scent { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -155,17 +149,15 @@ export const GET_CHARACTER = gql`
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
-        perception { attributeValue isGrouped }
+        obscurity { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
         intelligence { attributeValue isGrouped }
         charisma { attributeValue isGrouped }
         seeing { attributeValue isGrouped }
         hearing { attributeValue isGrouped }
-        smelling { attributeValue isGrouped }
         light { attributeValue isGrouped }
         noise { attributeValue isGrouped }
-        scent { attributeValue isGrouped }
         equipment { 
           objectId name objectCategory isEquipment
           speed { attributeValue isGrouped }
@@ -178,7 +170,7 @@ export const GET_CHARACTER = gql`
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
           agility { attributeValue isGrouped }
-          perception { attributeValue isGrouped }
+          obscurity { attributeValue isGrouped }
           resolve { attributeValue isGrouped }
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }
@@ -197,17 +189,15 @@ export const GET_CHARACTER = gql`
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
-        perception { attributeValue isGrouped }
+        obscurity { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
         intelligence { attributeValue isGrouped }
         charisma { attributeValue isGrouped }
         seeing { attributeValue isGrouped }
         hearing { attributeValue isGrouped }
-        smelling { attributeValue isGrouped }
         light { attributeValue isGrouped }
         noise { attributeValue isGrouped }
-        scent { attributeValue isGrouped }
       }
       targetAttributeTotal
     }
@@ -233,17 +223,15 @@ export const LIST_OBJECTS = gql`
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
-      perception { attributeValue isGrouped }
+      obscurity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
       intelligence { attributeValue isGrouped }
       charisma { attributeValue isGrouped }
       seeing { attributeValue isGrouped }
       hearing { attributeValue isGrouped }
-      smelling { attributeValue isGrouped }
       light { attributeValue isGrouped }
       noise { attributeValue isGrouped }
-      scent { attributeValue isGrouped }
       special
       equipmentIds
       equipment { 
@@ -257,17 +245,15 @@ export const LIST_OBJECTS = gql`
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
-        perception { attributeValue isGrouped }
+        obscurity { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
         intelligence { attributeValue isGrouped }
         charisma { attributeValue isGrouped }
         seeing { attributeValue isGrouped }
         hearing { attributeValue isGrouped }
-        smelling { attributeValue isGrouped }
         light { attributeValue isGrouped }
         noise { attributeValue isGrouped }
-        scent { attributeValue isGrouped }
       }
     }
   }
@@ -290,17 +276,15 @@ export const GET_OBJECT = gql`
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
-      perception { attributeValue isGrouped }
+      obscurity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
       intelligence { attributeValue isGrouped }
       charisma { attributeValue isGrouped }
       seeing { attributeValue isGrouped }
       hearing { attributeValue isGrouped }
-      smelling { attributeValue isGrouped }
       light { attributeValue isGrouped }
       noise { attributeValue isGrouped }
-      scent { attributeValue isGrouped }
       special
       equipmentIds
       equipment { 
@@ -317,17 +301,15 @@ export const GET_OBJECT = gql`
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
-        perception { attributeValue isGrouped }
+        obscurity { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
         intelligence { attributeValue isGrouped }
         charisma { attributeValue isGrouped }
         seeing { attributeValue isGrouped }
         hearing { attributeValue isGrouped }
-        smelling { attributeValue isGrouped }
         light { attributeValue isGrouped }
         noise { attributeValue isGrouped }
-        scent { attributeValue isGrouped }
       }
     }
   }
@@ -491,17 +473,15 @@ export const CREATE_CHARACTER = gql`
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
       agility { attribute { attributeValue isGrouped } }
-      perception { attribute { attributeValue isGrouped } }
+      obscurity { attribute { attributeValue isGrouped } }
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
       intelligence { attribute { attributeValue isGrouped } }
       charisma { attribute { attributeValue isGrouped } }
       seeing { attribute { attributeValue isGrouped } }
       hearing { attribute { attributeValue isGrouped } }
-      smelling { attribute { attributeValue isGrouped } }
       light { attribute { attributeValue isGrouped } }
       noise { attribute { attributeValue isGrouped } }
-      scent { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -535,17 +515,15 @@ export const UPDATE_CHARACTER = gql`
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
       agility { attribute { attributeValue isGrouped } }
-      perception { attribute { attributeValue isGrouped } }
+      obscurity { attribute { attributeValue isGrouped } }
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
       intelligence { attribute { attributeValue isGrouped } }
       charisma { attribute { attributeValue isGrouped } }
       seeing { attribute { attributeValue isGrouped } }
       hearing { attribute { attributeValue isGrouped } }
-      smelling { attribute { attributeValue isGrouped } }
       light { attribute { attributeValue isGrouped } }
       noise { attribute { attributeValue isGrouped } }
-      scent { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -581,17 +559,15 @@ export const CREATE_OBJECT = gql`
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
-      perception { attributeValue isGrouped }
+      obscurity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
       intelligence { attributeValue isGrouped }
       charisma { attributeValue isGrouped }
       seeing { attributeValue isGrouped }
       hearing { attributeValue isGrouped }
-      smelling { attributeValue isGrouped }
       light { attributeValue isGrouped }
       noise { attributeValue isGrouped }
-      scent { attributeValue isGrouped }
       special
       equipmentIds
       equipment { objectId name }
@@ -615,17 +591,15 @@ export const UPDATE_OBJECT = gql`
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
-      perception { attributeValue isGrouped }
+      obscurity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
       intelligence { attributeValue isGrouped }
       charisma { attributeValue isGrouped }
       seeing { attributeValue isGrouped }
       hearing { attributeValue isGrouped }
-      smelling { attributeValue isGrouped }
       light { attributeValue isGrouped }
       noise { attributeValue isGrouped }
-      scent { attributeValue isGrouped }
       special
       equipmentIds
       equipment { objectId name }
@@ -1025,17 +999,15 @@ export const ON_UPDATE_CHARACTER = gql`
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
       agility { attribute { attributeValue isGrouped } }
-      perception { attribute { attributeValue isGrouped } }
+      obscurity { attribute { attributeValue isGrouped } }
       resolve { attribute { attributeValue isGrouped } }
       morale { attribute { attributeValue isGrouped } }
       intelligence { attribute { attributeValue isGrouped } }
       charisma { attribute { attributeValue isGrouped } }
       seeing { attribute { attributeValue isGrouped } }
       hearing { attribute { attributeValue isGrouped } }
-      smelling { attribute { attributeValue isGrouped } }
       light { attribute { attributeValue isGrouped } }
       noise { attribute { attributeValue isGrouped } }
-      scent { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -1063,17 +1035,15 @@ export const ON_CREATE_OBJECT = gql`
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
-      perception { attributeValue isGrouped }
+      obscurity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
       intelligence { attributeValue isGrouped }
       charisma { attributeValue isGrouped }
       seeing { attributeValue isGrouped }
       hearing { attributeValue isGrouped }
-      smelling { attributeValue isGrouped }
       light { attributeValue isGrouped }
       noise { attributeValue isGrouped }
-      scent { attributeValue isGrouped }
       special
       equipmentIds
     }
@@ -1096,17 +1066,15 @@ export const ON_UPDATE_OBJECT = gql`
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
       agility { attributeValue isGrouped }
-      perception { attributeValue isGrouped }
+      obscurity { attributeValue isGrouped }
       resolve { attributeValue isGrouped }
       morale { attributeValue isGrouped }
       intelligence { attributeValue isGrouped }
       charisma { attributeValue isGrouped }
       seeing { attributeValue isGrouped }
       hearing { attributeValue isGrouped }
-      smelling { attributeValue isGrouped }
       light { attributeValue isGrouped }
       noise { attributeValue isGrouped }
-      scent { attributeValue isGrouped }
       special
       equipmentIds
     }
@@ -1346,7 +1314,7 @@ export const LIST_CHARACTERS_ENHANCED = gql`
         strength { attribute { attributeValue isGrouped } }
         dexterity { attribute { attributeValue isGrouped } }
         agility { attribute { attributeValue isGrouped } }
-        perception { attribute { attributeValue isGrouped } }
+        obscurity { attribute { attributeValue isGrouped } }
         resolve { attribute { attributeValue isGrouped } }
         morale { attribute { attributeValue isGrouped } }
         intelligence { attribute { attributeValue isGrouped } }
@@ -1363,7 +1331,7 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
           agility { attributeValue isGrouped }
-          perception { attributeValue isGrouped }
+          obscurity { attributeValue isGrouped }
           resolve { attributeValue isGrouped }
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }
@@ -1382,7 +1350,7 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
           agility { attributeValue isGrouped }
-          perception { attributeValue isGrouped }
+          obscurity { attributeValue isGrouped }
           resolve { attributeValue isGrouped }
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }
@@ -1401,7 +1369,7 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
           agility { attributeValue isGrouped }
-          perception { attributeValue isGrouped }
+          obscurity { attributeValue isGrouped }
           resolve { attributeValue isGrouped }
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }
@@ -1434,17 +1402,15 @@ export const LIST_OBJECTS_ENHANCED = gql`
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
-        perception { attributeValue isGrouped }
+        obscurity { attributeValue isGrouped }
         resolve { attributeValue isGrouped }
         morale { attributeValue isGrouped }
         intelligence { attributeValue isGrouped }
         charisma { attributeValue isGrouped }
         seeing { attributeValue isGrouped }
         hearing { attributeValue isGrouped }
-        smelling { attributeValue isGrouped }
         light { attributeValue isGrouped }
         noise { attributeValue isGrouped }
-        scent { attributeValue isGrouped }
         special
         equipment { 
           objectId name objectCategory isEquipment
@@ -1458,7 +1424,7 @@ export const LIST_OBJECTS_ENHANCED = gql`
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
           agility { attributeValue isGrouped }
-          perception { attributeValue isGrouped }
+          obscurity { attributeValue isGrouped }
           resolve { attributeValue isGrouped }
           morale { attributeValue isGrouped }
           intelligence { attributeValue isGrouped }

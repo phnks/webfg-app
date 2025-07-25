@@ -11,17 +11,15 @@ type GroupedAttributes {
   strength: Float
   dexterity: Float
   agility: Float
-  perception: Float
+  obscurity: Float
   charisma: Float
   intelligence: Float
   resolve: Float
   morale: Float
   seeing: Float
   hearing: Float
-  smelling: Float
   light: Float
   noise: Float
-  scent: Float
 }
 
 type ReadyGroupedAttributes {
@@ -35,17 +33,15 @@ type ReadyGroupedAttributes {
   strength: Float
   dexterity: Float
   agility: Float
-  perception: Float
+  obscurity: Float
   charisma: Float
   intelligence: Float
   resolve: Float
   morale: Float
   seeing: Float
   hearing: Float
-  smelling: Float
   light: Float
   noise: Float
-  scent: Float
 }
 
 type AttributeBreakdownStep {

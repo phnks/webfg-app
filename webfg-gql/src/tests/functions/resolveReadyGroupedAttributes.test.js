@@ -74,7 +74,7 @@ describe('resolveReadyGroupedAttributes', () => {
         strength: null,
         dexterity: null,
         agility: null,
-        perception: null,
+        obscurity: null,
         charisma: null,
         intelligence: null,
         resolve: null,
@@ -100,7 +100,7 @@ describe('resolveReadyGroupedAttributes', () => {
         strength: null,
         dexterity: null,
         agility: null,
-        perception: null,
+        obscurity: null,
         charisma: null,
         intelligence: null,
         resolve: null,
@@ -348,7 +348,7 @@ describe('resolveReadyGroupedAttributes', () => {
 
       const expectedFields = [
         'speed', 'weight', 'size', 'intensity', 'lethality', 'armour', 'endurance',
-        'strength', 'dexterity', 'agility', 'perception', 'charisma', 'intelligence',
+        'strength', 'dexterity', 'agility', 'obscurity', 'charisma', 'intelligence',
         'resolve', 'morale'
       ];
 

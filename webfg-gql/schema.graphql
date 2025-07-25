@@ -73,17 +73,15 @@ type Character {
   strength: CharacterAttribute!
   dexterity: CharacterAttribute!
   agility: CharacterAttribute!
-  perception: CharacterAttribute!
+  obscurity: CharacterAttribute
   resolve: CharacterAttribute!
   morale: CharacterAttribute!
   intelligence: CharacterAttribute!
   charisma: CharacterAttribute!
   seeing: CharacterAttribute
   hearing: CharacterAttribute
-  smelling: CharacterAttribute
   light: CharacterAttribute
   noise: CharacterAttribute
-  scent: CharacterAttribute
 
   actionIds: [ID]
   actions: [Action]
@@ -146,17 +144,15 @@ input CharacterInput {
   strength: CharacterAttributeInput!
   dexterity: CharacterAttributeInput!
   agility: CharacterAttributeInput!
-  perception: CharacterAttributeInput!
+  obscurity: CharacterAttributeInput
   resolve: CharacterAttributeInput!
   morale: CharacterAttributeInput!
   intelligence: CharacterAttributeInput!
   charisma: CharacterAttributeInput!
   seeing: CharacterAttributeInput
   hearing: CharacterAttributeInput
-  smelling: CharacterAttributeInput
   light: CharacterAttributeInput
   noise: CharacterAttributeInput
-  scent: CharacterAttributeInput
   actionIds: [ID]
   special: [String]
   stashIds: [ID]
@@ -203,17 +199,15 @@ type Object {
   strength: Attribute!
   dexterity: Attribute!
   agility: Attribute!
-  perception: Attribute!
+  obscurity: Attribute
   resolve: Attribute!
   morale: Attribute!
   intelligence: Attribute!
   charisma: Attribute!
   seeing: Attribute
   hearing: Attribute
-  smelling: Attribute
   light: Attribute
   noise: Attribute
-  scent: Attribute
   special: [String]
   equipmentIds: [ID]
   equipment: [Object]
@@ -254,17 +248,15 @@ input ObjectInput {
   strength: AttributeInput
   dexterity: AttributeInput
   agility: AttributeInput
-  perception: AttributeInput
+  obscurity: AttributeInput
   resolve: AttributeInput
   morale: AttributeInput
   intelligence: AttributeInput
   charisma: AttributeInput
   seeing: AttributeInput
   hearing: AttributeInput
-  smelling: AttributeInput
   light: AttributeInput
   noise: AttributeInput
-  scent: AttributeInput
   special: [String]
   equipmentIds: [ID]
 }
@@ -493,7 +485,7 @@ input EnhancedCharacterFilterInput {
   strength: AttributeFilterInput
   dexterity: AttributeFilterInput
   agility: AttributeFilterInput
-  perception: AttributeFilterInput
+  obscurity: AttributeFilterInput
   intensity: AttributeFilterInput
   resolve: AttributeFilterInput
   morale: AttributeFilterInput
@@ -524,7 +516,7 @@ input EnhancedObjectFilterInput {
   strength: AttributeFilterInput
   dexterity: AttributeFilterInput
   agility: AttributeFilterInput
-  perception: AttributeFilterInput
+  obscurity: AttributeFilterInput
   intensity: AttributeFilterInput
   resolve: AttributeFilterInput
   morale: AttributeFilterInput
@@ -862,17 +854,15 @@ type GroupedAttributes {
   strength: Float
   dexterity: Float
   agility: Float
-  perception: Float
+  obscurity: Float
   charisma: Float
   intelligence: Float
   resolve: Float
   morale: Float
   seeing: Float
   hearing: Float
-  smelling: Float
   light: Float
   noise: Float
-  scent: Float
 }
 
 type ReadyGroupedAttributes {
@@ -886,17 +876,15 @@ type ReadyGroupedAttributes {
   strength: Float
   dexterity: Float
   agility: Float
-  perception: Float
+  obscurity: Float
   charisma: Float
   intelligence: Float
   resolve: Float
   morale: Float
   seeing: Float
   hearing: Float
-  smelling: Float
   light: Float
   noise: Float
-  scent: Float
 }
 
 type AttributeBreakdownStep {
