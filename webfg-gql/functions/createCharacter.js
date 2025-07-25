@@ -24,7 +24,7 @@ exports.handler = async (event) => {
     description: input.description,
     characterCategory: input.characterCategory,
     race: input.race || 'HUMAN', // Default to HUMAN for backwards compatibility
-    raceOverride: input.raceOverride || false, // Default to false
+    raceOverride: input.raceOverride !== undefined ? Boolean(input.raceOverride) : false, // Ensure proper boolean
     will: input.will || 0,
     fatigue: input.fatigue || 0,
     values: input.values || [],

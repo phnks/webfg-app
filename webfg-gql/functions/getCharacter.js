@@ -37,12 +37,12 @@ exports.handler = async (event) => {
             }
         };
 
-        // List of all expected attributes
+        // List of all expected attributes (updated to match current schema)
         const allAttributes = [
             'speed', 'weight', 'size', 'armour', 'endurance', 'lethality', 'complexity',
-            'strength', 'dexterity', 'agility', 'perception', 'resolve', 
+            'strength', 'dexterity', 'agility', 'obscurity', 'resolve', 
             'morale', 'intelligence', 'charisma', 'seeing', 'hearing', 
-            'smelling', 'light', 'noise', 'scent'
+            'light', 'noise'
         ];
 
         // Add default values for any missing attributes and fix legacy data format
@@ -70,8 +70,12 @@ exports.handler = async (event) => {
         if (!character.race) {
             character.race = 'HUMAN';
         }
-        if (character.raceOverride === undefined) {
+        // Explicitly handle raceOverride boolean field
+        if (character.raceOverride === undefined || character.raceOverride === null) {
             character.raceOverride = false;
+        } else {
+            // Ensure it's a proper boolean value
+            character.raceOverride = Boolean(character.raceOverride);
         }
 
         console.log(`Successfully retrieved character: ${character.name} (${characterId})`);
