@@ -6,7 +6,7 @@ export const ATTRIBUTE_GROUPS = {
   BODY: ['weight', 'size', 'armour', 'endurance', 'lethality', 'complexity'],
   MARTIAL: ['speed', 'strength', 'dexterity', 'agility'],
   MENTAL: ['resolve', 'morale', 'intelligence', 'charisma'],
-  SENSES: ['perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent']
+  SENSES: ['obscurity', 'seeing', 'hearing', 'light', 'noise']
 };
 
 // Convert attribute names to display format

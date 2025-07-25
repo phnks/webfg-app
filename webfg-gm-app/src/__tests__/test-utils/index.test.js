@@ -16,7 +16,7 @@ describe('Test Utils', () => {
       expect(mockCharacters[0]).toHaveProperty('agility', 10);
       expect(mockCharacters[0]).toHaveProperty('endurance', 10);
       expect(mockCharacters[0]).toHaveProperty('vigor', 10);
-      expect(mockCharacters[0]).toHaveProperty('perception', 10);
+      expect(mockCharacters[0]).toHaveProperty('obscurity', 10);
       expect(mockCharacters[0]).toHaveProperty('intelligence', 10);
       expect(mockCharacters[0]).toHaveProperty('will', 10);
       expect(mockCharacters[0]).toHaveProperty('social', 10);
@@ -36,7 +36,7 @@ describe('Test Utils', () => {
       expect(mockCharacters[1]).toHaveProperty('agility', 1);
       expect(mockCharacters[1]).toHaveProperty('endurance', 1);
       expect(mockCharacters[1]).toHaveProperty('vigor', 1);
-      expect(mockCharacters[1]).toHaveProperty('perception', 1);
+      expect(mockCharacters[1]).toHaveProperty('obscurity', 1);
       expect(mockCharacters[1]).toHaveProperty('intelligence', 1);
       expect(mockCharacters[1]).toHaveProperty('will', 1);
       expect(mockCharacters[1]).toHaveProperty('social', 1);
@@ -103,7 +103,7 @@ describe('Test Utils', () => {
     test('all characters should have consistent structure', () => {
       const expectedKeys = [
         'id', 'name', 'category', 'description', 'strength', 'dexterity', 
-        'agility', 'endurance', 'vigor', 'perception', 'intelligence', 'will', 
+        'agility', 'endurance', 'vigor', 'obscurity', 'intelligence', 'will', 
         'social', 'faith', 'armor', 'lethality', 'createdAt', 'updatedAt'
       ];
       
@@ -143,7 +143,7 @@ describe('Test Utils', () => {
         expect(typeof character.agility).toBe('number');
         expect(typeof character.endurance).toBe('number');
         expect(typeof character.vigor).toBe('number');
-        expect(typeof character.perception).toBe('number');
+        expect(typeof character.obscurity).toBe('number');
         expect(typeof character.intelligence).toBe('number');
         expect(typeof character.will).toBe('number');
         expect(typeof character.social).toBe('number');

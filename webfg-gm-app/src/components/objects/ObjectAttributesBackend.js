@@ -38,7 +38,7 @@ const ObjectAttributesBackend = ({ object }) => {
     { name: "Strength", key: "strength", data: object.strength },
     { name: "Dexterity", key: "dexterity", data: object.dexterity },
     { name: "Agility", key: "agility", data: object.agility },
-    { name: "Perception", key: "perception", data: object.perception },
+    { name: "Obscurity", key: "obscurity", data: object.obscurity },
     { name: "Charisma", key: "charisma", data: object.charisma },
     { name: "Intelligence", key: "intelligence", data: object.intelligence },
     { name: "Resolve", key: "resolve", data: object.resolve },

@@ -30,7 +30,7 @@ const SearchFilterSort = ({
           'weight', 'size', 'armour', 'endurance', 'lethality',
           'speed', 'strength', 'dexterity', 'agility',
           'resolve', 'morale', 'intelligence', 'charisma',
-          'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
+          'obscurity', 'seeing', 'hearing', 'light', 'noise'
         ],
         numericFields: ['will'],
         sortFields: [
@@ -64,7 +64,7 @@ const SearchFilterSort = ({
           'weight', 'size', 'armour', 'endurance', 'lethality',
           'speed', 'strength', 'dexterity', 'agility',
           'resolve', 'morale', 'intelligence', 'charisma',
-          'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
+          'obscurity', 'seeing', 'hearing', 'light', 'noise'
         ],
         sortFields: [
           { value: 'name', label: 'Name' },

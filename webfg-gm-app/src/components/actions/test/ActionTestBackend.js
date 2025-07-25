@@ -313,7 +313,7 @@ const ActionTestBackend = ({ action, character, onClose }) => {
       'weight', 'size', 'armour', 'endurance', 'lethality',
       'speed', 'strength', 'dexterity', 'agility',
       'resolve', 'morale', 'intelligence', 'charisma',
-      'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
+      'obscurity', 'seeing', 'hearing', 'light', 'noise'
     ];
     
     attributeNames.forEach(attrName => {

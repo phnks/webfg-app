@@ -27,7 +27,7 @@ const mockListObjects = {
           strength: { attributeValue: 0, isGrouped: true },
           dexterity: { attributeValue: 0, isGrouped: true },
           agility: { attributeValue: 0, isGrouped: true },
-          perception: { attributeValue: 0, isGrouped: true },
+          obscurity: { attributeValue: 0, isGrouped: true },
           resolve: { attributeValue: 0, isGrouped: true },
           morale: { attributeValue: 0, isGrouped: true },
           intelligence: { attributeValue: 0, isGrouped: true },
