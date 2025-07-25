@@ -73,7 +73,7 @@ type Character {
   strength: CharacterAttribute!
   dexterity: CharacterAttribute!
   agility: CharacterAttribute!
-  obscurity: CharacterAttribute!
+  obscurity: CharacterAttribute
   resolve: CharacterAttribute!
   morale: CharacterAttribute!
   intelligence: CharacterAttribute!
@@ -144,7 +144,7 @@ input CharacterInput {
   strength: CharacterAttributeInput!
   dexterity: CharacterAttributeInput!
   agility: CharacterAttributeInput!
-  obscurity: CharacterAttributeInput!
+  obscurity: CharacterAttributeInput
   resolve: CharacterAttributeInput!
   morale: CharacterAttributeInput!
   intelligence: CharacterAttributeInput!
@@ -199,7 +199,7 @@ type Object {
   strength: Attribute!
   dexterity: Attribute!
   agility: Attribute!
-  obscurity: Attribute!
+  obscurity: Attribute
   resolve: Attribute!
   morale: Attribute!
   intelligence: Attribute!

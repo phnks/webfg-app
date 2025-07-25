@@ -73,7 +73,7 @@ exports.handler = async (event) => {
   if (!item.strength) item.strength = defaultAttribute;
   if (!item.dexterity) item.dexterity = defaultAttribute;
   if (!item.agility) item.agility = defaultAttribute;
-  if (!item.obscurity) item.obscurity = defaultAttribute;
+  if (item.obscurity === undefined || item.obscurity === null) item.obscurity = defaultAttribute;
   if (!item.resolve) item.resolve = defaultAttribute;
   if (!item.morale) item.morale = defaultAttribute;
   if (!item.intelligence) item.intelligence = defaultAttribute;
