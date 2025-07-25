@@ -884,18 +884,15 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                           <span className="modifier-label">Source {sourceAttribute}:</span>
                           <span className="modifier-calculation">
                             {actionResult.result.sourceValue}
-                            {attributeUsesDice(sourceAttribute) && actionResult.result.sourceFatigue > 0 && (
-                              <> - <span style={{color: '#ff6b35'}}>{actionResult.result.sourceFatigue} (fatigue)</span></>
-                            )}
                             {actionResult.action.formula === 'DELTA' ? (
                               // For DELTA, show the additional calculation step
                               <>
-                                {' = '}{Math.round(actionResult.result.sourceValue - (actionResult.result.sourceFatigue || 0))}
+                                {' = '}{Math.round(actionResult.result.sourceValue)}
                                 {' + delta modifier = '}{sourceModifier} → {sourceDiceDisplay}
                               </>
                             ) : (
                               // For other formulas, show the simple calculation
-                              <>{' = '}{Math.round(actionResult.result.sourceValue - (actionResult.result.sourceFatigue || 0))} → {sourceDiceDisplay}</>
+                              <>{' = '}{Math.round(actionResult.result.sourceValue)} → {sourceDiceDisplay}</>
                             )}
                           </span>
                         </div>
@@ -903,9 +900,6 @@ const ActionTestBackend = ({ action, character, onClose }) => {
                           <span className="modifier-label">Target {targetAttribute}:</span>
                           <span className="modifier-calculation">
                             {actionResult.result.targetValue}
-                            {attributeUsesDice(targetAttribute) && actionResult.result.targetFatigue > 0 && (
-                              <> - <span style={{color: '#ff6b35'}}>{actionResult.result.targetFatigue} (fatigue)</span></>
-                            )}
                             {' = '}{targetModifier} → {targetDiceDisplay}
                           </span>
                         </div>

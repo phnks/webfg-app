@@ -11,7 +11,6 @@ describe('createCharacter', () => {
       name: 'Test Hero',
       characterCategory: 'HUMAN',
       will: 15,
-      fatigue: 5,
       values: ['courage', 'honor'],
       speed: { current: 10, max: 10, base: 10 },
       weight: { current: 75, max: 75, base: 75 },
@@ -50,7 +49,6 @@ describe('createCharacter', () => {
     expect(result.nameLowerCase).toBe('test hero');
     expect(result.characterCategory).toBe('HUMAN');
     expect(result.will).toBe(15);
-    expect(result.fatigue).toBe(5);
     expect(result.values).toEqual(['courage', 'honor']);
     expect(result.speed).toEqual({ current: 10, max: 10, base: 10 });
     expect(result.actionIds).toEqual(['action-1', 'action-2']);
@@ -80,7 +78,6 @@ describe('createCharacter', () => {
 
     // Verify defaults are applied
     expect(result.will).toBe(0);
-    expect(result.fatigue).toBe(0);
     expect(result.values).toEqual([]);
     expect(result.actionIds).toEqual([]);
     expect(result.special).toEqual([]);

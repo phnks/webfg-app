@@ -33,7 +33,6 @@ describe('addCharacterToEncounter', () => {
     name: 'Test Hero',
     stats: {
       hitPoints: { current: 50 },
-      fatigue: { current: 2 },
       surges: { current: 3 },
       exhaustion: { current: 0 }
     },
@@ -107,7 +106,6 @@ describe('addCharacterToEncounter', () => {
                 y: 15,
                 stats: {
                   hitPoints: 50,
-                  fatigue: 2,
                   surges: 3,
                   exhaustion: 0
                 },
@@ -394,7 +392,6 @@ describe('addCharacterToEncounter', () => {
                 characterId: 'char-1',
                 stats: {
                   hitPoints: 50,
-                  fatigue: 2,
                   surges: 3,
                   exhaustion: 0
                 },
@@ -408,7 +405,7 @@ describe('addCharacterToEncounter', () => {
 
       expect(result.history[1].stats).toEqual({
         hitPoints: 50,
-        fatigue: 2,
+        fatigue: 0,
         surges: 3,
         exhaustion: 0
       });
@@ -444,7 +441,6 @@ describe('addCharacterToEncounter', () => {
                 type: 'CHARACTER_ADDED',
                 stats: {
                   hitPoints: 50,
-                  fatigue: 2,
                   surges: 3,
                   exhaustion: 0
                 },
@@ -458,7 +454,7 @@ describe('addCharacterToEncounter', () => {
 
       expect(result.history[1].stats).toEqual({
         hitPoints: 50,
-        fatigue: 2,
+        fatigue: 0,
         surges: 3,
         exhaustion: 0
       });

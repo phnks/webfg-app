@@ -352,41 +352,15 @@ const calculateActionTest = (params) => {
   //   targetEntityCount: targetEntities.length
   // });
   
-  // Calculate total fatigue for source characters and collect details
-  // Only apply source fatigue if not using source override and attribute uses dice
-  let sourceFatigue = 0;
+  // Fatigue is deprecated - set to 0 for backwards compatibility
+  const sourceFatigue = 0;
+  const targetFatigue = 0;
   const sourceFatigueDetails = [];
-  if (!sourceOverride && attributeUsesDice(sourceAttribute)) {
-    sourceCharacters.forEach(character => {
-      const characterFatigue = character.fatigue || 0;
-      sourceFatigue += characterFatigue;
-      sourceFatigueDetails.push({
-        characterId: character.characterId,
-        characterName: character.name,
-        fatigue: characterFatigue
-      });
-    });
-  }
-  
-  // Calculate total fatigue for target characters (objects don't have fatigue)
-  // Only apply target fatigue if not using override and target is character and attribute uses dice
-  let targetFatigue = 0;
   const targetFatigueDetails = [];
-  if (!override && targetType === 'CHARACTER' && attributeUsesDice(targetAttribute)) {
-    targetEntities.forEach(character => {
-      const characterFatigue = character.fatigue || 0;
-      targetFatigue += characterFatigue;
-      targetFatigueDetails.push({
-        characterId: character.characterId,
-        characterName: character.name,
-        fatigue: characterFatigue
-      });
-    });
-  }
   
-  // Calculate final modifiers (attribute value - fatigue, rounded to integers)
-  const sourceModifier = calculateAttributeModifier(sourceValue, sourceFatigue, sourceAttribute);
-  const targetModifier = calculateAttributeModifier(targetValue, targetFatigue, targetAttribute);
+  // Calculate final modifiers (no fatigue applied)
+  const sourceModifier = calculateAttributeModifier(sourceValue, 0, sourceAttribute);
+  const targetModifier = calculateAttributeModifier(targetValue, 0, targetAttribute);
   
   // Apply formula-specific calculations
   let successProbability, sourceDiceDisplay, targetDiceDisplay, rangeAnalysis;
@@ -454,11 +428,11 @@ const calculateActionTest = (params) => {
     guaranteedFailure: rangeAnalysis.guaranteedFailure,
     partialSuccess: rangeAnalysis.partialSuccess,
     
-    // Fatigue information
-    sourceFatigue,
-    targetFatigue,
-    sourceFatigueDetails,
-    targetFatigueDetails,
+    // Fatigue information (deprecated - always 0)
+    sourceFatigue: 0,
+    targetFatigue: 0,
+    sourceFatigueDetails: [],
+    targetFatigueDetails: [],
     
     // Legacy fields for backwards compatibility (using placeholder values)
     sourceDice: 0, // No longer relevant in new system

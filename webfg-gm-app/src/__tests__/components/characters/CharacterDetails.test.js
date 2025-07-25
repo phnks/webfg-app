@@ -26,7 +26,6 @@ const mockCharacter = {
   characterCategory: 'HUMAN',
   description: 'A test character',
   will: 10,
-  fatigue: 2,
   speed: { attribute: { attributeValue: 5, isGrouped: false } },
   strength: { attribute: { attributeValue: 8, isGrouped: false } },
   dexterity: { attribute: { attributeValue: 7, isGrouped: false } },
@@ -89,7 +88,7 @@ describe('CharacterDetails Component', () => {
     expect(screen.getByText('A test character')).toBeInTheDocument();
   });
 
-  test('displays will and fatigue stats', () => {
+  test('displays will stats', () => {
     render(
       <CharacterDetailsWrapper>
         <CharacterDetails character={mockCharacter} />
@@ -98,8 +97,6 @@ describe('CharacterDetails Component', () => {
     
     expect(screen.getByText('Will:')).toBeInTheDocument();
     expect(screen.getByText('10')).toBeInTheDocument();
-    expect(screen.getByText('Fatigue:')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
   });
 
   test('displays physical attributes', () => {

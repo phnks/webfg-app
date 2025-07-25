@@ -22,7 +22,6 @@ describe('listCharactersEnhanced', () => {
       nameLowerCase: 'aragorn',
       characterCategory: 'HUMAN',
       will: 15,
-      fatigue: 3,
       strength: { current: 16, max: 18, base: 16 },
       dexterity: { current: 14, max: 16, base: 14 },
       armour: { current: 8, max: 10, base: 8 }
@@ -33,7 +32,6 @@ describe('listCharactersEnhanced', () => {
       nameLowerCase: 'legolas',
       characterCategory: 'ELF',
       will: 12,
-      fatigue: 1,
       strength: { current: 12, max: 14, base: 12 },
       dexterity: { current: 18, max: 20, base: 18 },
       perception: { current: 16, max: 18, base: 16 }
@@ -44,7 +42,6 @@ describe('listCharactersEnhanced', () => {
       nameLowerCase: 'gandalf',
       characterCategory: 'WIZARD',
       will: 20,
-      fatigue: 0,
       intelligence: { current: 20, max: 22, base: 20 },
       resolve: { current: 18, max: 20, base: 18 },
       charisma: { current: 16, max: 18, base: 16 }
@@ -207,28 +204,6 @@ describe('listCharactersEnhanced', () => {
       expect(result.items[1].name).toBe('Gandalf');
     });
 
-    it('should filter by fatigue', async () => {
-      const event = {
-        filter: {
-          fatigue: {
-            lte: 1
-          }
-        }
-      };
-
-      global.mockDynamoSend.mockResolvedValueOnce({
-        Items: [mockCharacters[1], mockCharacters[2]],
-        Count: 2,
-        ScannedCount: 3
-      });
-
-      const result = await handler(event);
-
-      expect(global.mockDynamoSend).toHaveBeenCalled();
-      expect(result.items).toHaveLength(2);
-      expect(result.items[0].name).toBe('Legolas');
-      expect(result.items[1].name).toBe('Gandalf');
-    });
 
     it('should filter by attribute values', async () => {
       const event = {
@@ -260,9 +235,6 @@ describe('listCharactersEnhanced', () => {
           dexterity: {
             gte: 16
           },
-          fatigue: {
-            lte: 2
-          }
         }
       };
 

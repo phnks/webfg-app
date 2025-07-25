@@ -32,12 +32,11 @@ const SearchFilterSort = ({
           'resolve', 'morale', 'intelligence', 'charisma',
           'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
         ],
-        numericFields: ['will', 'fatigue'],
+        numericFields: ['will'],
         sortFields: [
           { value: 'name', label: 'Name' },
           { value: 'characterCategory', label: 'Category' },
           { value: 'will', label: 'Will' },
-          { value: 'fatigue', label: 'Fatigue' },
           { value: 'armour.attribute.attributeValue', label: 'Armour' },
           { value: 'endurance.attribute.attributeValue', label: 'Endurance' },
           { value: 'strength.attribute.attributeValue', label: 'Strength' },
@@ -415,7 +414,6 @@ const SearchFilterSort = ({
           {entityType === 'characters' && (
             <>
               {renderNumericFilter('will', 'Will')}
-              {renderNumericFilter('fatigue', 'Fatigue')}
             </>
           )}
           

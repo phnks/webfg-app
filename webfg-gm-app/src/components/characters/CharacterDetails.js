@@ -15,7 +15,6 @@ const CharacterDetails = ({ character, onUpdate }) => {
         description: character.description || "",
         characterCategory: character.characterCategory,
         will: newValue,
-        fatigue: character.fatigue || 0,
         special: character.special || "",
         actionIds: character.actionIds || [],
         stashIds: character.stashIds || [],
@@ -59,57 +58,6 @@ const CharacterDetails = ({ character, onUpdate }) => {
     }
   };
 
-  const handleFatigueAdjust = async (newValue) => {
-    try {
-      // Build the complete character input with all required fields
-      const characterInput = {
-        name: character.name,
-        description: character.description || "",
-        characterCategory: character.characterCategory,
-        will: character.will || 0,
-        fatigue: newValue,
-        special: character.special || "",
-        actionIds: character.actionIds || [],
-        stashIds: character.stashIds || [],
-        equipmentIds: character.equipmentIds || [],
-        readyIds: character.readyIds || []
-      };
-
-      // Add attributes with their current values (no more fatigue per attribute)
-      const attributes = [
-        'weight', 'size', 'armour', 'endurance', 'lethality',
-        'speed', 'strength', 'dexterity', 'agility',
-        'resolve', 'morale', 'intelligence', 'charisma',
-        'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'
-      ];
-
-      attributes.forEach(attr => {
-        if (character[attr]) {
-          characterInput[attr] = {
-            attribute: {
-              attributeValue: character[attr].attribute.attributeValue,
-              isGrouped: character[attr].attribute.isGrouped
-            }
-          };
-        }
-      });
-
-      await updateCharacter({
-        variables: {
-          characterId: character.characterId,
-          input: characterInput
-        }
-      });
-
-      // Call the onUpdate callback to refresh the parent component
-      if (onUpdate) {
-        onUpdate();
-      }
-    } catch (error) {
-      console.error('Failed to update fatigue:', error);
-      throw error;
-    }
-  };
 
   return (
     <div className="section character-details">
@@ -138,19 +86,6 @@ const CharacterDetails = ({ character, onUpdate }) => {
                 <QuickAdjustWidget
                   currentValue={character.will || 0}
                   onAdjust={handleWillAdjust}
-                  min={0}
-                />
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>Fatigue:</td>
-            <td>
-              <div className="value-with-widget">
-                <span>{character.fatigue || 0}</span>
-                <QuickAdjustWidget
-                  currentValue={character.fatigue || 0}
-                  onAdjust={handleFatigueAdjust}
                   min={0}
                 />
               </div>

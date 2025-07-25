@@ -137,10 +137,10 @@ describe('diceMapping utility', () => {
   });
 
   describe('calculateAttributeModifier', () => {
-    test('applies fatigue to dice-based attributes', () => {
-      expect(calculateAttributeModifier(10, 2, 'STRENGTH')).toBe(8);
-      expect(calculateAttributeModifier(15, 5, 'SPEED')).toBe(10);
-      expect(calculateAttributeModifier(8, 3, 'DEXTERITY')).toBe(5);
+    test('no longer applies fatigue to dice-based attributes', () => {
+      expect(calculateAttributeModifier(10, 2, 'STRENGTH')).toBe(10);
+      expect(calculateAttributeModifier(15, 5, 'SPEED')).toBe(15);
+      expect(calculateAttributeModifier(8, 3, 'DEXTERITY')).toBe(8);
     });
 
     test('does not apply fatigue to static attributes', () => {
@@ -149,9 +149,9 @@ describe('diceMapping utility', () => {
       expect(calculateAttributeModifier(8, 3, 'ARMOUR')).toBe(8);
     });
 
-    test('prevents negative modifiers for dice-based attributes', () => {
-      expect(calculateAttributeModifier(5, 10, 'STRENGTH')).toBe(0);
-      expect(calculateAttributeModifier(3, 8, 'SPEED')).toBe(0);
+    test('fatigue parameter is ignored', () => {
+      expect(calculateAttributeModifier(5, 10, 'STRENGTH')).toBe(5);
+      expect(calculateAttributeModifier(3, 8, 'SPEED')).toBe(3);
       expect(calculateAttributeModifier(0, 5, 'DEXTERITY')).toBe(0);
     });
 
@@ -174,9 +174,9 @@ describe('diceMapping utility', () => {
       expect(calculateAttributeModifier(10.9, 0, 'WEIGHT')).toBe(11);
     });
 
-    test('handles edge case with fatigue equal to attribute value', () => {
-      expect(calculateAttributeModifier(5, 5, 'STRENGTH')).toBe(0);
-      expect(calculateAttributeModifier(5, 5, 'WEIGHT')).toBe(5); // Static, no fatigue applied
+    test('handles edge case with fatigue parameter', () => {
+      expect(calculateAttributeModifier(5, 5, 'STRENGTH')).toBe(5); // Fatigue ignored
+      expect(calculateAttributeModifier(5, 5, 'WEIGHT')).toBe(5); // Static attribute
     });
   });
 

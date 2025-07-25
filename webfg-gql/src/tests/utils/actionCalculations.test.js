@@ -235,7 +235,6 @@ describe('actionCalculations', () => {
         strength: { 
           attribute: { attributeValue: 12 }
         },
-        fatigue: 1,
         equipment: []
       };
 
@@ -245,7 +244,6 @@ describe('actionCalculations', () => {
         armor: { 
           attribute: { attributeValue: 10 }
         },
-        fatigue: 0,
         equipment: []
       };
 
@@ -277,7 +275,6 @@ describe('actionCalculations', () => {
         strength: { 
           attribute: { attributeValue: 12 }
         },
-        fatigue: 0,
         equipment: []
       };
 

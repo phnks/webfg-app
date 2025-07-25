@@ -18,7 +18,7 @@ const CharacterSummary = ({ characters, history, currentTime, onSelectCharacter 
       currentAction: null,
       lastPosition: { x: 0, y: 0 },
       lastEvent: null,
-      stats: relevantEvents[0].stats || { hitPoints: 0, fatigue: 0, surges: 0, exhaustion: 0 },
+      stats: relevantEvents[0].stats || { hitPoints: 0, surges: 0, exhaustion: 0 },
       conditions: []
     };
     
@@ -86,10 +86,6 @@ const CharacterSummary = ({ characters, history, currentTime, onSelectCharacter 
               <div className="stat-item">
                 <span className="stat-label">HP:</span>
                 <span className="stat-value">{char.state?.stats?.hitPoints || 0}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Fatigue:</span>
-                <span className="stat-value">{char.state?.stats?.fatigue || 0}</span>
               </div>
               <div className="stat-item">
                 <span className="stat-label">Surges:</span>

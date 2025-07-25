@@ -103,28 +103,28 @@ describe('diceCalculations utilities', () => {
   });
 
   describe('calculateAttributeModifier', () => {
-    test('should apply fatigue to dice-based attributes', () => {
+    test('no longer applies fatigue to dice-based attributes', () => {
       const modifier = calculateAttributeModifier(10, 2, 'STRENGTH');
-      expect(modifier).toBe(8); // 10 - 2 fatigue
+      expect(modifier).toBe(10); // Fatigue parameter ignored
     });
 
-    test('should not apply fatigue to static attributes', () => {
+    test('does not apply fatigue to static attributes', () => {
       const modifier = calculateAttributeModifier(10, 2, 'WEIGHT');
-      expect(modifier).toBe(10); // No fatigue applied
+      expect(modifier).toBe(10); // Fatigue parameter ignored
     });
 
     test('should handle zero attribute value', () => {
-      expect(calculateAttributeModifier(0, 2, 'STRENGTH')).toBe(0); // Math.max(0, 0-2)
+      expect(calculateAttributeModifier(0, 2, 'STRENGTH')).toBe(0); // Returns 0
       expect(calculateAttributeModifier(0, 2, 'WEIGHT')).toBe(0);
     });
 
     test('should handle undefined attribute value', () => {
-      expect(calculateAttributeModifier(undefined, 2, 'STRENGTH')).toBe(0); // Math.max(0, 0-2)
+      expect(calculateAttributeModifier(undefined, 2, 'STRENGTH')).toBe(0); // Returns 0
       expect(calculateAttributeModifier(undefined, 2, 'WEIGHT')).toBe(0);
     });
 
     test('should handle null attribute value', () => {
-      expect(calculateAttributeModifier(null, 2, 'STRENGTH')).toBe(0); // Math.max(0, 0-2)
+      expect(calculateAttributeModifier(null, 2, 'STRENGTH')).toBe(0); // Returns 0
       expect(calculateAttributeModifier(null, 2, 'WEIGHT')).toBe(0);
     });
 
@@ -133,18 +133,18 @@ describe('diceCalculations utilities', () => {
       expect(calculateAttributeModifier(10, 0, 'WEIGHT')).toBe(10);
     });
 
-    test('should handle negative fatigue', () => {
-      expect(calculateAttributeModifier(10, -2, 'STRENGTH')).toBe(12);
+    test('should ignore fatigue parameter', () => {
+      expect(calculateAttributeModifier(10, -2, 'STRENGTH')).toBe(10);
       expect(calculateAttributeModifier(10, -2, 'WEIGHT')).toBe(10);
     });
 
     test('should round decimal values', () => {
-      expect(calculateAttributeModifier(10.7, 2, 'STRENGTH')).toBe(9);
+      expect(calculateAttributeModifier(10.7, 2, 'STRENGTH')).toBe(11);
       expect(calculateAttributeModifier(10.7, 2, 'WEIGHT')).toBe(11);
     });
 
-    test('should handle negative results', () => {
-      expect(calculateAttributeModifier(1, 5, 'STRENGTH')).toBe(0); // Math.max(0, 1-5)
+    test('should handle low attribute values', () => {
+      expect(calculateAttributeModifier(1, 5, 'STRENGTH')).toBe(1); // Returns rounded attribute value
     });
   });
 

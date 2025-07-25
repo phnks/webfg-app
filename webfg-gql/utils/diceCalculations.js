@@ -46,24 +46,17 @@ const attributeUsesDice = (attribute) => {
 };
 
 /**
- * Calculate the modifier for an attribute (attribute value minus fatigue for dice-based, or just attribute value for static)
+ * Calculate the modifier for an attribute
  * @param {number} attributeValue - The base attribute value
- * @param {number} fatigue - The character's fatigue (only applied to dice-based attributes)
+ * @param {number} fatigue - (deprecated) No longer used
  * @param {string} attribute - The attribute name
  * @returns {number} - The modifier to add to dice roll or the static value
  */
 const calculateAttributeModifier = (attributeValue, fatigue, attribute) => {
   const value = attributeValue || 0;
   
-  // For static attributes (no dice), don't apply fatigue
-  if (!attributeUsesDice(attribute)) {
-    return Math.round(value); // Round static values too
-  }
-  
-  // For dice-based attributes, subtract fatigue and round
-  const fatigueValue = fatigue || 0;
-  const result = Math.max(0, value - fatigueValue); // Don't allow negative modifiers
-  return Math.round(result); // Round to integer (.0-.4 down, .5-.9 up)
+  // Just return the rounded value
+  return Math.round(value); // Round to integer (.0-.4 down, .5-.9 up)
 };
 
 /**
