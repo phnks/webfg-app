@@ -94,6 +94,21 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     const restrictedAttributes = ['armour', 'endurance', 'lethality', 'complexity', 'obscurity', 'light'];
     return restrictedAttributes.includes(attributeName);
   };
+
+  // Helper function to get validation error for a specific attribute
+  const getAttributeValidationError = (attributeName) => {
+    if (!shouldApplyRaceRestrictions()) return null;
+    
+    const value = formData[attributeName]?.attribute?.attributeValue || 0;
+    
+    if (isRestrictedAttribute(attributeName) && value !== 10) {
+      return `Must be 10 for humans (currently ${value})`;
+    } else if (!isRestrictedAttribute(attributeName) && (value < 5 || value > 20)) {
+      return `Must be between 5-20 for humans (currently ${value})`;
+    }
+    
+    return null;
+  };
   
   // Calculate the default target total (number of attributes * 10)
   const calculateDefaultTargetTotal = () => {
@@ -126,7 +141,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         description: character.description || "",
         characterCategory: character.characterCategory || "HUMAN",
         race: character.race || "HUMAN",
-        raceOverride: character.raceOverride || false,
+        raceOverride: character.raceOverride !== undefined ? character.raceOverride : false,
         will: character.will !== null && character.will !== undefined ? character.will : 0,
         mind: (character.mind || []).map(m => ({ ...m })),
         special: character.special || [],
@@ -179,38 +194,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       [field]: field === 'will' || field === 'targetAttributeTotal' ? parseInt(value) || 0 : value
     };
     
-    // If race or raceOverride changed, apply restrictions to attributes
-    if (field === 'race' || field === 'raceOverride') {
-      const shouldRestrict = (updatedData.race === 'HUMAN' && !updatedData.raceOverride);
-      
-      if (shouldRestrict) {
-        // Apply human race restrictions
-        getAllAttributeNames().forEach(attr => {
-          if (isRestrictedAttribute(attr)) {
-            // Set restricted attributes to 10
-            updatedData[attr] = {
-              ...updatedData[attr],
-              attribute: {
-                ...updatedData[attr].attribute,
-                attributeValue: 10
-              }
-            };
-          } else {
-            // Clamp other attributes to 5-20 range
-            const currentValue = updatedData[attr]?.attribute?.attributeValue || 10;
-            if (currentValue < 5 || currentValue > 20) {
-              updatedData[attr] = {
-                ...updatedData[attr],
-                attribute: {
-                  ...updatedData[attr].attribute,
-                  attributeValue: Math.max(5, Math.min(20, currentValue))
-                }
-              };
-            }
-          }
-        });
-      }
-    }
+    // No automatic value clamping - let user see validation errors instead
     
     setFormData(updatedData);
   };
@@ -231,20 +215,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
 
   const handleNestedAttributeChange = (attributeName, nestedField, value) => {
     console.log(`DEBUG: handleNestedAttributeChange called - ${attributeName}.${nestedField} = ${value}`);
-    
-    // Apply race restrictions for attribute values
-    if (nestedField === 'attributeValue' && shouldApplyRaceRestrictions()) {
-      const numValue = parseFloat(value) || 0;
-      
-      if (isRestrictedAttribute(attributeName)) {
-        // Restricted attributes must be exactly 10 for humans
-        value = 10;
-      } else {
-        // Other attributes must be between 5 and 20 for humans
-        if (numValue < 5) value = 5;
-        if (numValue > 20) value = 20;
-      }
-    }
     
     setFormData(prev => {
       const updated = {
@@ -400,21 +370,17 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
 
   // Render function for individual attributes in the form
   const renderAttributeForForm = (attributeName, attribute, displayName) => {
-    const isRestricted = shouldApplyRaceRestrictions() && isRestrictedAttribute(attributeName);
-    const isRangeLimited = shouldApplyRaceRestrictions() && !isRestrictedAttribute(attributeName);
+    const validationError = getAttributeValidationError(attributeName);
     
     return (
       <div key={attributeName} className="attribute-item">
-        <label>{displayName} {isRestricted && <span style={{color: '#666', fontSize: '0.8em'}}>(Human: Fixed at 10)</span>}</label>
+        <label>{displayName}</label>
         <div className="attribute-controls">
           <MobileNumberInput
             step="0.1"
             value={formData[attributeName]?.attribute?.attributeValue || 0}
             onChange={(e) => handleNestedAttributeChange(attributeName, 'attributeValue', e.target.value)}
-            disabled={isRestricted}
-            min={isRangeLimited ? "5" : undefined}
-            max={isRangeLimited ? "20" : undefined}
-            style={isRestricted ? {backgroundColor: '#f5f5f5', color: '#999'} : {}}
+            style={validationError ? {borderColor: '#dc3545'} : {}}
           />
           <label className="checkbox-label">
             <input
@@ -425,9 +391,9 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             Group
           </label>
         </div>
-        {isRangeLimited && (
-          <div style={{fontSize: '0.8em', color: '#666', marginTop: '2px'}}>
-            Human: 5-20 range
+        {validationError && (
+          <div style={{fontSize: '0.8em', color: '#dc3545', marginTop: '2px'}}>
+            {validationError}
           </div>
         )}
       </div>
