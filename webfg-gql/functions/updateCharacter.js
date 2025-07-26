@@ -29,7 +29,12 @@ exports.handler = async (event) => {
     if (fieldValue !== undefined) {
       updateExpressionParts.push(`#${attributeName} = :${attributeName}`);
       expressionAttributeNames[`#${attributeName}`] = fieldName;
-      expressionAttributeValues[`:${attributeName}`] = fieldValue;
+      // Special handling for boolean fields to ensure they're stored as proper booleans
+      if (fieldName === 'raceOverride' && fieldValue !== null) {
+        expressionAttributeValues[`:${attributeName}`] = Boolean(fieldValue);
+      } else {
+        expressionAttributeValues[`:${attributeName}`] = fieldValue;
+      }
     }
   };
 
@@ -41,6 +46,8 @@ exports.handler = async (event) => {
   }
   addUpdateField("description", input.description);
   addUpdateField("characterCategory", input.characterCategory);
+  addUpdateField("race", input.race);
+  addUpdateField("raceOverride", input.raceOverride);
   addUpdateField("will", input.will);
   addUpdateField("fatigue", input.fatigue);
   addUpdateField("values", input.values);

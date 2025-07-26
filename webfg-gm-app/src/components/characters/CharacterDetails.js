@@ -72,6 +72,10 @@ const CharacterDetails = ({ character, onUpdate }) => {
             <td>Category:</td>
             <td>{character.characterCategory}</td>
           </tr>
+          <tr>
+            <td>Race:</td>
+            <td>{character.race || 'HUMAN'}</td>
+          </tr>
           {character.description && (
             <tr>
               <td>Description:</td>

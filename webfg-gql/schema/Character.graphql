@@ -4,6 +4,8 @@ type Character {
   nameLowerCase: String
   description: String
   characterCategory: CharacterCategory!
+  race: CharacterRace
+  raceOverride: Boolean
   will: Int!
   fatigue: Int # Deprecated - no longer used, kept for backwards compatibility
 
@@ -66,6 +68,14 @@ enum CharacterCategory {
   TYVIR
 }
 
+enum CharacterRace {
+  HUMAN
+  ANTHRO
+  CARVED
+  TREPIDITE
+  DHYARMA
+}
+
 type CharacterAttribute {
   attribute: Attribute!
 }
@@ -78,6 +88,8 @@ input CharacterInput {
   name: String!
   description: String
   characterCategory: CharacterCategory!
+  race: CharacterRace
+  raceOverride: Boolean
   will: Int!
   fatigue: Int # Deprecated - no longer used, kept for backwards compatibility
   mind: [MindThoughtInput]

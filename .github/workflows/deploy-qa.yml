@@ -46,7 +46,7 @@ jobs:
         run: npm install
 
       - name: Run GM App unit tests with coverage
-        run: npm run test:coverage
+        run: npm run test:ci
 
   deploy-gql-qa:
     name: Deploy GQL to QA (PR-${{ github.event.number }})
