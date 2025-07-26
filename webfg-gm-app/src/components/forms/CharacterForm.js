@@ -304,12 +304,13 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     try {
       
       // Prepare the input data for mutation
+      console.log('DEBUG: formData.raceOverride before submission:', formData.raceOverride, typeof formData.raceOverride);
       const input = {
         name: formData.name,
         description: formData.description || "",
         characterCategory: formData.characterCategory,
         race: formData.race || "HUMAN",
-        raceOverride: formData.raceOverride || false,
+        raceOverride: formData.raceOverride === true,
         will: formData.will !== null && formData.will !== undefined && formData.will !== '' ? parseInt(formData.will) : 0,
         mind: formData.mind,
         special: formData.special,
@@ -320,6 +321,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         targetAttributeTotal: formData.targetAttributeTotal || calculateDefaultTargetTotal()
       };
       
+      console.log('DEBUG: input.raceOverride after preparation:', input.raceOverride, typeof input.raceOverride);
       
       // Add all attributes dynamically
       console.log('DEBUG: formData before submission:', formData);
