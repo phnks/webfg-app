@@ -77,4 +77,71 @@
 
 .attribute-fatigue span {
   white-space: nowrap;
+}
+
+/* Attributes header with toggle */
+.attributes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.attributes-header h3 {
+  margin: 0;
+}
+
+/* Equipment/Ready toggle styles */
+.equipment-ready-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+  user-select: none;
+}
+
+.toggle-checkbox {
+  display: none;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 44px;
+  height: 22px;
+  background-color: #ccc;
+  border-radius: 22px;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-slider:before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.toggle-checkbox:checked + .toggle-slider {
+  background-color: #007bff;
+}
+
+.toggle-checkbox:checked + .toggle-slider:before {
+  transform: translateX(22px);
+}
+
+.toggle-text {
+  font-weight: 500;
+  color: #666;
+  min-width: 70px;
 } 

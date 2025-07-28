@@ -19,6 +19,9 @@ const CharacterAttributesBackend = ({
     readyGroupedAttributes: readyGroupedAttributes
   });
 
+  // State for equipment/ready toggle
+  const [showReadyAttributes, setShowReadyAttributes] = useState(false);
+
   // State for breakdown popup
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [selectedAttribute, setSelectedAttribute] = useState(null);
@@ -205,14 +208,14 @@ const CharacterAttributesBackend = ({
           formula: null
         });
       } else {
-        // Subsequent entities: calculate weighted average formula
-        // Calculate new running total using weighted average formula: (A1 + A2*(2+A2/A1) + A3*(3+A3/A1) + ...) / N
+        // Subsequent entities: calculate weighted average formula using constant 0.25 scaling factor
+        // Calculate new running total using weighted average formula: (A1 + A2*(0.25+A2/A1) + A3*(0.25+A3/A1) + ...) / N
         const A1 = allValues[0].value; // Highest value
         let sum = A1; // Start with A1
         
         for (let i = 1; i <= index; i++) {
           const Ai = allValues[i].value;
-          const scalingFactor = i + 1;
+          const scalingFactor = 0.25; // Constant scaling factor
           if (A1 > 0) {
             sum += Ai * (scalingFactor + Ai / A1);
           } else {
@@ -223,9 +226,9 @@ const CharacterAttributesBackend = ({
         
         // Create formula string showing the correct weighted average calculation
         if (index === 1) {
-          // Second item: show A1 + A2*(2+A2/A1) / 2
+          // Second item: show A1 + A2*(0.25+A2/A1) / 2
           const A2 = entity.value;
-          const formulaString = `Weighted Average: (${A1} + ${A2}*(2+${A2}/${A1})) / 2`;
+          const formulaString = `Weighted Average: (${A1} + ${A2}*(0.25+${A2}/${A1})) / 2`;
           steps.push({
             step: stepCount++,
             entityName: entity.name,
@@ -240,7 +243,7 @@ const CharacterAttributesBackend = ({
           let formulaParts = [A1.toString()];
           for (let i = 1; i <= index; i++) {
             const Ai = allValues[i].value;
-            const scalingFactor = i + 1;
+            const scalingFactor = 0.25; // Constant scaling factor
             formulaParts.push(`${Ai}*(${scalingFactor}+${Ai}/${A1})`);
           }
           const formulaString = `Weighted Average: (${formulaParts.join(' + ')}) / ${index + 1}`;
@@ -326,6 +329,232 @@ const CharacterAttributesBackend = ({
     return fallbackAttributes;
   }, [character, groupedAttributes]);
 
+  // Create a fallback readyGroupedAttributes object if it's undefined or missing attributes
+  // This will calculate the ready grouped values including equipment + ready objects
+  const effectiveReadyGroupedAttributes = useMemo(() => {
+    if (readyGroupedAttributes) {
+      // Check if any attributes are missing from backend ready grouped attributes OR have incorrect 0 values
+      const problematicAttributes = Object.values(ATTRIBUTE_GROUPS).flat().filter(attrName => {
+        if (character?.[attrName]?.attribute?.attributeValue === undefined) return false;
+        
+        const backendValue = readyGroupedAttributes[attrName];
+        const charBaseValue = Number(character[attrName].attribute.attributeValue);
+        
+        // Check if backend value is missing, 0, or suspiciously low when it should be higher
+        const isMissing = backendValue === undefined;
+        const isZeroWhenShouldBeHigher = backendValue === 0 && charBaseValue > 0;
+        const isSuspiciouslyLow = backendValue !== undefined && backendValue < charBaseValue && 
+                                 (character?.ready?.length > 0 || character?.equipment?.length > 0);
+        
+        return isMissing || isZeroWhenShouldBeHigher || isSuspiciouslyLow;
+      });
+      
+      // If no problematic attributes, use backend data
+      if (problematicAttributes.length === 0) {
+        return readyGroupedAttributes;
+      }
+      
+      // Mixed approach: use backend values when available and reasonable, fallback for problematic ones
+      const mixedAttributes = {};
+      
+      // Start with backend values if they exist
+      if (readyGroupedAttributes) {
+        Object.keys(readyGroupedAttributes).forEach(attrName => {
+          if (!problematicAttributes.includes(attrName)) {
+            mixedAttributes[attrName] = readyGroupedAttributes[attrName];
+          }
+        });
+      }
+      
+      // Calculate fallback values ONLY for problematic attributes
+      problematicAttributes.forEach(attrName => {
+        if (character?.[attrName]?.attribute?.attributeValue !== undefined) {
+          const originalValue = Number(character[attrName].attribute.attributeValue);
+          const charIsGrouped = character[attrName].attribute.isGrouped !== false;
+          
+          // Collect all values that should be grouped
+          const valuesToGroup = [];
+          
+          // Add character base value if it's groupable
+          if (charIsGrouped) {
+            valuesToGroup.push(originalValue);
+          }
+          
+          // Add equipment values if they're groupable
+          if (character?.equipment?.length > 0) {
+            character.equipment.forEach(item => {
+              const itemAttr = item[attrName];
+              if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
+                const itemValue = Number(itemAttr.attributeValue);
+                if (itemValue > 0) {
+                  valuesToGroup.push(itemValue);
+                }
+              }
+            });
+          }
+          
+          // Add ready objects values if they're groupable
+          if (character?.ready?.length > 0) {
+            character.ready.forEach(item => {
+              const itemAttr = item[attrName];
+              if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
+                const itemValue = Number(itemAttr.attributeValue);
+                if (itemValue > 0) {
+                  valuesToGroup.push(itemValue);
+                }
+              }
+            });
+          }
+          
+          // Calculate grouped value using the same formula as backend
+          if (valuesToGroup.length === 0) {
+            // If no groupable values, use character base value
+            mixedAttributes[attrName] = originalValue;
+          } else if (valuesToGroup.length === 1) {
+            mixedAttributes[attrName] = valuesToGroup[0];
+          } else {
+            // Sort values in descending order (highest first)
+            valuesToGroup.sort((a, b) => b - a);
+            
+            const A1 = valuesToGroup[0]; // Highest value
+            let sum = A1; // Start with the highest value
+            
+            // Add weighted values for all other attributes using 0.25 constant
+            for (let i = 1; i < valuesToGroup.length; i++) {
+              const Ai = valuesToGroup[i];
+              const scalingFactor = 0.25; // Constant scaling factor
+              
+              if (A1 > 0) {
+                sum += Ai * (scalingFactor + Ai / A1);
+              } else {
+                // Handle edge case where A1 is 0
+                sum += Ai * scalingFactor;
+              }
+            }
+            
+            const finalValue = Math.round((sum / valuesToGroup.length) * 100) / 100;
+            mixedAttributes[attrName] = finalValue;
+          }
+        }
+      });
+      
+      // Apply condition effects to mixed attributes
+      if (character?.conditions?.length > 0) {
+        character.conditions.forEach(condition => {
+          if (!condition.conditionTarget || !condition.conditionType || condition.conditionAmount === undefined) {
+            return; // Skip invalid conditions
+          }
+          
+          const targetAttr = condition.conditionTarget.toLowerCase();
+          if (mixedAttributes[targetAttr] !== undefined) {
+            if (condition.conditionType === 'HELP') {
+              mixedAttributes[targetAttr] += Number(condition.conditionAmount);
+            } else if (condition.conditionType === 'HINDER') {
+              mixedAttributes[targetAttr] -= Number(condition.conditionAmount);
+            }
+          }
+        });
+      }
+      
+      return mixedAttributes;
+    }
+    
+    // If the backend didn't provide readyGroupedAttributes at all, calculate all attributes
+    const fallbackAttributes = {};
+    
+    // Initialize with base attribute values from character and calculate grouped values
+    Object.values(ATTRIBUTE_GROUPS).flat().forEach(attrName => {
+      if (character?.[attrName]?.attribute?.attributeValue !== undefined) {
+        const originalValue = Number(character[attrName].attribute.attributeValue);
+        const charIsGrouped = character[attrName].attribute.isGrouped !== false;
+        
+        // Collect all values that should be grouped
+        const valuesToGroup = [];
+        
+        // Add character base value if it's groupable
+        if (charIsGrouped) {
+          valuesToGroup.push(originalValue);
+        }
+        
+        // Add equipment values if they're groupable
+        if (character?.equipment?.length > 0) {
+          character.equipment.forEach(item => {
+            const itemAttr = item[attrName];
+            if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
+              const itemValue = Number(itemAttr.attributeValue);
+              if (itemValue > 0) {
+                valuesToGroup.push(itemValue);
+              }
+            }
+          });
+        }
+        
+        // Add ready objects values if they're groupable
+        if (character?.ready?.length > 0) {
+          character.ready.forEach(item => {
+            const itemAttr = item[attrName];
+            if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
+              const itemValue = Number(itemAttr.attributeValue);
+              if (itemValue > 0) {
+                valuesToGroup.push(itemValue);
+              }
+            }
+          });
+        }
+        
+        // Calculate grouped value using the same formula as backend
+        if (valuesToGroup.length === 0) {
+          // If no groupable values, use character base value
+          fallbackAttributes[attrName] = originalValue;
+        } else if (valuesToGroup.length === 1) {
+          fallbackAttributes[attrName] = valuesToGroup[0];
+        } else {
+          // Sort values in descending order (highest first)
+          valuesToGroup.sort((a, b) => b - a);
+          
+          const A1 = valuesToGroup[0]; // Highest value
+          let sum = A1; // Start with the highest value
+          
+          // Add weighted values for all other attributes using 0.25 constant
+          for (let i = 1; i < valuesToGroup.length; i++) {
+            const Ai = valuesToGroup[i];
+            const scalingFactor = 0.25; // Constant scaling factor
+            
+            if (A1 > 0) {
+              sum += Ai * (scalingFactor + Ai / A1);
+            } else {
+              // Handle edge case where A1 is 0
+              sum += Ai * scalingFactor;
+            }
+          }
+          
+          const finalValue = Math.round((sum / valuesToGroup.length) * 100) / 100;
+          fallbackAttributes[attrName] = finalValue;
+        }
+      }
+    });
+    
+    // Apply condition effects
+    if (character?.conditions?.length > 0) {
+      character.conditions.forEach(condition => {
+        if (!condition.conditionTarget || !condition.conditionType || condition.conditionAmount === undefined) {
+          return; // Skip invalid conditions
+        }
+        
+        const targetAttr = condition.conditionTarget.toLowerCase();
+        if (fallbackAttributes[targetAttr] !== undefined) {
+          if (condition.conditionType === 'HELP') {
+            fallbackAttributes[targetAttr] += Number(condition.conditionAmount);
+          } else if (condition.conditionType === 'HINDER') {
+            fallbackAttributes[targetAttr] -= Number(condition.conditionAmount);
+          }
+        }
+      });
+    }
+    
+    return fallbackAttributes;
+  }, [character, readyGroupedAttributes]);
+
   // Helper function to get color style for grouped value
   const getGroupedValueStyle = (originalValue, groupedValue) => {
     // If groupedValue is undefined, return default style
@@ -358,10 +587,14 @@ const CharacterAttributesBackend = ({
   const renderAttributeForView = (attributeName, attribute, displayName) => {
     const originalValue = character?.[attributeName]?.attribute?.attributeValue || 0;
     const equipmentGroupedValue = effectiveGroupedAttributes?.[attributeName];
-    const readyGroupedValue = readyGroupedAttributes?.[attributeName];
+    const readyGroupedValue = effectiveReadyGroupedAttributes?.[attributeName];
     const hasEquipment = character && character.equipment && character.equipment.length > 0;
     const hasReady = character && character.readyIds && character.readyIds.length > 0;
     const hasConditions = character && character.conditions && character.conditions.length > 0;
+    
+    // Determine which grouped value to show based on toggle state
+    const displayGroupedValue = showReadyAttributes ? readyGroupedValue : equipmentGroupedValue;
+    const displayGroupedSource = showReadyAttributes ? 'ready' : 'equipment';
     
     // Check if there are conditions that affect this attribute
     const hasConditionForThisAttribute = hasConditions && character.conditions.some(c => 
@@ -372,23 +605,31 @@ const CharacterAttributesBackend = ({
     const numOriginal = typeof originalValue === 'string' ? parseFloat(originalValue) : Number(originalValue);
     const numEquipmentGrouped = typeof equipmentGroupedValue === 'string' ? parseFloat(equipmentGroupedValue) : Number(equipmentGroupedValue);
     const numReadyGrouped = typeof readyGroupedValue === 'string' ? parseFloat(readyGroupedValue) : Number(readyGroupedValue);
+    const numDisplayGrouped = typeof displayGroupedValue === 'string' ? parseFloat(displayGroupedValue) : Number(displayGroupedValue);
     
     // Check if we have valid numbers before computing difference
-    const canComputeEquipmentDifference = !isNaN(numOriginal) && !isNaN(numEquipmentGrouped);
-    const canComputeReadyDifference = !isNaN(numEquipmentGrouped) && !isNaN(numReadyGrouped);
-    const equipmentDifference = canComputeEquipmentDifference ? Math.abs(numEquipmentGrouped - numOriginal) : 0;
-    // const readyDifference = canComputeReadyDifference ? Math.abs(numReadyGrouped - numEquipmentGrouped) : 0; // Commented out - not currently used
-    const isEquipmentDifferent = canComputeEquipmentDifference && equipmentDifference >= 0.01;
-    // const isReadyDifferent = canComputeReadyDifference && readyDifference >= 0.01; // Commented out - not currently used
+    const canComputeDisplayDifference = !isNaN(numOriginal) && !isNaN(numDisplayGrouped);
+    const displayDifference = canComputeDisplayDifference ? Math.abs(numDisplayGrouped - numOriginal) : 0;
+    const isDisplayDifferent = canComputeDisplayDifference && displayDifference >= 0.01;
     
-    // Determine if we should show equipment grouped value
-    const shouldShowEquipmentGroupedValue = 
+    // Determine if we should show grouped value based on toggle state
+    const shouldShowGroupedValue = showReadyAttributes ? 
+      // For ready mode: show if we have ready grouped data OR if equipment mode would show it
+      ((readyGroupedValue !== undefined && readyGroupedValue !== null) && 
+       (hasReady || hasConditionForThisAttribute || isDisplayDifferent)) ||
+      (hasConditionForThisAttribute && effectiveReadyGroupedAttributes && 
+       effectiveReadyGroupedAttributes[attributeName] !== undefined) ||
+      // Also show if equipment mode would show it (to maintain consistency)
       ((equipmentGroupedValue !== undefined && equipmentGroupedValue !== null) && 
-       (hasEquipment || hasConditionForThisAttribute || isEquipmentDifferent)) ||
+       (hasEquipment || hasConditionForThisAttribute)) ||
       (hasConditionForThisAttribute && effectiveGroupedAttributes && 
-       effectiveGroupedAttributes[attributeName] !== undefined) ||
-      // Always show equipment grouped when we have ready items (to show the intermediate step)
-      (hasReady && readyGroupedAttributes && readyGroupedValue !== undefined && readyGroupedValue !== null);
+       effectiveGroupedAttributes[attributeName] !== undefined)
+      :
+      // For equipment mode: use existing logic
+      ((equipmentGroupedValue !== undefined && equipmentGroupedValue !== null) && 
+       (hasEquipment || hasConditionForThisAttribute || isDisplayDifferent)) ||
+      (hasConditionForThisAttribute && effectiveGroupedAttributes && 
+       effectiveGroupedAttributes[attributeName] !== undefined);
        
     // Note: Ready grouped values are no longer automatically displayed
     // They will only be calculated and shown during action tests when an object is selected
@@ -405,19 +646,19 @@ const CharacterAttributesBackend = ({
           >
             {character?.[attributeName]?.attribute?.isGrouped !== false ? '☑️' : '❌'}
           </span>
-          {shouldShowEquipmentGroupedValue && (
+          {shouldShowGroupedValue && (
             <span 
               className="grouped-value" 
-              style={getGroupedValueStyle(originalValue, effectiveGroupedAttributes[attributeName])}
-              title="Grouped value with equipment and conditions (for targets)"
+              style={getGroupedValueStyle(originalValue, displayGroupedValue)}
+              title={`Grouped value with ${displayGroupedSource} and conditions`}
             >
               {' → '}{
-                effectiveGroupedAttributes[attributeName] !== undefined && 
-                !isNaN(Number(effectiveGroupedAttributes[attributeName])) ? 
-                  Math.round(Number(effectiveGroupedAttributes[attributeName])) : 
+                displayGroupedValue !== undefined && 
+                !isNaN(Number(displayGroupedValue)) ? 
+                  Math.round(Number(displayGroupedValue)) : 
                   originalValue
               }
-              {(hasEquipment || hasConditions) && (
+              {((showReadyAttributes ? hasReady : hasEquipment) || hasConditions) && (
                 <button
                   className="info-icon"
                   onClick={(e) => {
@@ -431,7 +672,6 @@ const CharacterAttributesBackend = ({
               )}
             </span>
           )}
-          {/* Ready grouped values are no longer displayed here - only shown during action tests */}
         </span>
       </div>
     );
@@ -449,19 +689,42 @@ const CharacterAttributesBackend = ({
   return (
     <>
       <div className="section character-attributes">
+        <div className="attributes-header">
+          <h3>Attributes</h3>
+          {(character?.ready?.length > 0 || readyGroupedAttributes) && (
+            <div className="equipment-ready-toggle">
+              <label className="toggle-label">
+                <input
+                  type="checkbox"
+                  checked={showReadyAttributes}
+                  onChange={(e) => setShowReadyAttributes(e.target.checked)}
+                  className="toggle-checkbox"
+                />
+                <span className="toggle-slider"></span>
+                <span className="toggle-text">
+                  {showReadyAttributes ? 'ready' : 'equipment'}
+                </span>
+              </label>
+            </div>
+          )}
+        </div>
         <AttributeGroups
           attributes={character}
           renderAttribute={renderAttributeForView}
-          title="Attributes"
+          title={null}
           defaultExpandedGroups={['BODY', 'MARTIAL', 'MENTAL']}
         />
       </div>
       
       {showBreakdown && (
         <AttributeBreakdownPopup
-          breakdown={breakdownData?.getCharacter?.attributeBreakdown || generateFallbackBreakdown(selectedAttribute)}
-          attributeName={breakdownAttributeName}
-          isLoading={breakdownLoading}
+          breakdown={
+            showReadyAttributes 
+              ? generateReadyFallbackBreakdown(selectedAttribute)
+              : (breakdownData?.getCharacter?.attributeBreakdown || generateFallbackBreakdown(selectedAttribute))
+          }
+          attributeName={`${breakdownAttributeName}${showReadyAttributes ? ' (Ready Grouped)' : ''}`}
+          isLoading={!showReadyAttributes && breakdownLoading}
           onClose={() => {
             setShowBreakdown(false);
             setSelectedAttribute(null);
