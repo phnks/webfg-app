@@ -388,11 +388,16 @@ const CharacterAttributesBackend = ({
     
     // Determine if we should show grouped value based on toggle state
     const shouldShowGroupedValue = showReadyAttributes ? 
-      // For ready mode: show if we have ready grouped data and it's different or if we have conditions
+      // For ready mode: show if we have ready grouped data OR if equipment mode would show it
       ((readyGroupedValue !== undefined && readyGroupedValue !== null) && 
        (hasReady || hasConditionForThisAttribute || isDisplayDifferent)) ||
       (hasConditionForThisAttribute && readyGroupedAttributes && 
-       readyGroupedAttributes[attributeName] !== undefined)
+       readyGroupedAttributes[attributeName] !== undefined) ||
+      // Also show if equipment mode would show it (to maintain consistency)
+      ((equipmentGroupedValue !== undefined && equipmentGroupedValue !== null) && 
+       (hasEquipment || hasConditionForThisAttribute)) ||
+      (hasConditionForThisAttribute && effectiveGroupedAttributes && 
+       effectiveGroupedAttributes[attributeName] !== undefined)
       :
       // For equipment mode: use existing logic
       ((equipmentGroupedValue !== undefined && equipmentGroupedValue !== null) && 
