@@ -63,10 +63,6 @@ type Mutation {
   moveObjectToReady(characterId: ID!, objectId: ID!): Character
   moveObjectFromReadyToEquipment(characterId: ID!, objectId: ID!): Character
   moveObjectFromEquipmentToStash(characterId: ID!, objectId: ID!): Character
-  
-  # Inventory quantity mutations
-  updateInventoryQuantity(characterId: ID!, objectId: ID!, quantity: Int!, location: InventoryLocation!): Character
-  moveInventoryItem(characterId: ID!, objectId: ID!, quantity: Int!, fromLocation: InventoryLocation!, toLocation: InventoryLocation!): Character
 
   # Character-Action relationship mutations
   addActionToCharacter(characterId: ID!, actionId: ID!): Character

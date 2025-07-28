@@ -44,12 +44,6 @@ type Character {
   readyIds: [ID]
   ready: [Object]
   
-  # New inventory system with quantity tracking
-  inventoryItems: [InventoryItem]
-  stashItems: [Object]
-  equipmentItems: [Object]
-  readyItems: [Object]
-  
   characterConditions: [CharacterCondition]
   conditions: [CharacterConditionWithDetails]
   
@@ -123,7 +117,6 @@ input CharacterInput {
   stashIds: [ID]
   equipmentIds: [ID]
   readyIds: [ID]
-  inventoryItems: [InventoryItemInput]
   characterConditions: [CharacterConditionInput]
   targetAttributeTotal: Int
 }
