@@ -116,14 +116,26 @@ describe('addObjectToStash', () => {
     expect(mockDynamoSend).toHaveBeenCalledTimes(2);
   });
 
-  it('should return unchanged character when object already in stash', async () => {
+  it('should increment quantity when object already in stash', async () => {
     const characterId = 'char-123';
     const objectId = 'obj-2'; // Already exists
 
     const existingCharacter = {
       characterId: 'char-123',
       name: 'Test Character',
-      stashIds: ['obj-1', 'obj-2', 'obj-3']
+      stashIds: ['obj-1', 'obj-2', 'obj-3'],
+      inventoryItems: [
+        { objectId: 'obj-2', quantity: 1, inventoryLocation: 'STASH' }
+      ]
+    };
+
+    const updatedCharacter = {
+      characterId: 'char-123',
+      name: 'Test Character',
+      stashIds: ['obj-1', 'obj-2', 'obj-3'],
+      inventoryItems: [
+        { objectId: 'obj-2', quantity: 2, inventoryLocation: 'STASH' }
+      ]
     };
 
     const event = {
@@ -133,19 +145,68 @@ describe('addObjectToStash', () => {
       }
     };
 
-    // Mock GET response
+    // Mock GET response and UPDATE response
     mockDynamoSend.mockResolvedValueOnce({
       Item: existingCharacter
+    });
+    mockDynamoSend.mockResolvedValueOnce({
+      Attributes: updatedCharacter
     });
 
     const result = await handler(event);
 
-    // Should return the existing character unchanged
-    expect(result).toEqual(existingCharacter);
+    // Should return updated character with incremented quantity
+    expect(result.inventoryItems[0].quantity).toBe(2);
     expect(result.stashIds).toEqual(['obj-1', 'obj-2', 'obj-3']);
 
-    // Verify only GET was called, no UPDATE
-    expect(mockDynamoSend).toHaveBeenCalledTimes(1);
+    // Verify both GET and UPDATE were called
+    expect(mockDynamoSend).toHaveBeenCalledTimes(2);
+  });
+
+  it('should create inventory item with quantity 2 when object in legacy stash but not in inventoryItems', async () => {
+    const characterId = 'char-123';
+    const objectId = 'obj-2'; // Already exists in stash but not in inventoryItems
+
+    const existingCharacter = {
+      characterId: 'char-123',
+      name: 'Test Character',
+      stashIds: ['obj-1', 'obj-2', 'obj-3'],
+      inventoryItems: [] // No inventory items yet
+    };
+
+    const updatedCharacter = {
+      characterId: 'char-123',
+      name: 'Test Character',
+      stashIds: ['obj-1', 'obj-2', 'obj-3'],
+      inventoryItems: [
+        { objectId: 'obj-2', quantity: 2, inventoryLocation: 'STASH' }
+      ]
+    };
+
+    const event = {
+      arguments: {
+        characterId,
+        objectId
+      }
+    };
+
+    // Mock GET response and UPDATE response
+    mockDynamoSend.mockResolvedValueOnce({
+      Item: existingCharacter
+    });
+    mockDynamoSend.mockResolvedValueOnce({
+      Attributes: updatedCharacter
+    });
+
+    const result = await handler(event);
+
+    // Should return updated character with new inventory item at quantity 2
+    expect(result.inventoryItems[0].quantity).toBe(2);
+    expect(result.inventoryItems[0].objectId).toBe('obj-2');
+    expect(result.stashIds).toEqual(['obj-1', 'obj-2', 'obj-3']);
+
+    // Verify both GET and UPDATE were called
+    expect(mockDynamoSend).toHaveBeenCalledTimes(2);
   });
 
   it('should throw error when character not found', async () => {
