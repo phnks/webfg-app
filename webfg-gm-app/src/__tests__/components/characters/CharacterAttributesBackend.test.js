@@ -148,7 +148,8 @@ describe('CharacterAttributesBackend', () => {
       
       // Should show ready grouped values and text should change
       expect(screen.getByText('ready')).toBeInTheDocument();
-      expect(screen.getByText('→ 12')).toBeInTheDocument(); // Ready grouped speed (rounded)
+      const readyGroupedElements = screen.getAllByText('→ 12'); // Ready grouped speed (rounded)
+      expect(readyGroupedElements.length).toBeGreaterThan(0);
     });
   });
 
@@ -228,6 +229,42 @@ describe('CharacterAttributesBackend', () => {
       attributeLabels.forEach(label => {
         expect(screen.getByText(label)).toBeInTheDocument();
       });
+    });
+
+    it('should fix backend bug where specific attributes show 0 in ready mode', () => {
+      // This test specifically addresses the user's bug report:
+      // Backend returns 0 for complexity, seeing, hearing, light, noise in ready mode
+      // even when ready objects should contribute to grouping
+      const buggyBackendData = {
+        speed: 11.8,      // Correct value
+        complexity: 0,    // BUG: Should be grouped with ready objects
+        hearing: 0,       // BUG: Should be grouped with ready objects  
+        light: 0,         // BUG: Should be grouped with ready objects
+        noise: 0,         // BUG: Should be grouped with ready objects
+        seeing: 0         // BUG: Should be grouped with ready objects
+      };
+      
+      renderComponent({ readyGroupedAttributes: buggyBackendData });
+      
+      const toggle = screen.getByRole('checkbox');
+      fireEvent.click(toggle);
+      
+      // Should show ready mode
+      expect(screen.getByText('ready')).toBeInTheDocument();
+      
+      // Should NOT show "→ 0" for any attribute (the bug)
+      expect(screen.queryByText('→ 0')).not.toBeInTheDocument();
+      
+      // The mixed approach should detect the 0 values as problematic and calculate fallback
+      // For attributes with ready objects, should show proper grouped values
+      const attributeLabels = ['Complexity', 'Hearing', 'Light', 'Noise', 'Seeing'];
+      attributeLabels.forEach(label => {
+        expect(screen.getByText(label)).toBeInTheDocument();
+      });
+      
+      // Speed should still use backend value since it's reasonable
+      const readyGroupedElements = screen.getAllByText('→ 12'); // Speed: rounded 11.8
+      expect(readyGroupedElements.length).toBeGreaterThan(0);
     });
   });
 

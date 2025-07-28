@@ -333,19 +333,133 @@ const CharacterAttributesBackend = ({
   // This will calculate the ready grouped values including equipment + ready objects
   const effectiveReadyGroupedAttributes = useMemo(() => {
     if (readyGroupedAttributes) {
-      // Check if any attributes are missing from backend ready grouped attributes
-      const missingAttributes = Object.values(ATTRIBUTE_GROUPS).flat().some(attrName => 
-        character?.[attrName]?.attribute?.attributeValue !== undefined && 
-        readyGroupedAttributes[attrName] === undefined
-      );
+      // Check if any attributes are missing from backend ready grouped attributes OR have incorrect 0 values
+      const problematicAttributes = Object.values(ATTRIBUTE_GROUPS).flat().filter(attrName => {
+        if (character?.[attrName]?.attribute?.attributeValue === undefined) return false;
+        
+        const backendValue = readyGroupedAttributes[attrName];
+        const charBaseValue = Number(character[attrName].attribute.attributeValue);
+        
+        // Check if backend value is missing, 0, or suspiciously low when it should be higher
+        const isMissing = backendValue === undefined;
+        const isZeroWhenShouldBeHigher = backendValue === 0 && charBaseValue > 0;
+        const isSuspiciouslyLow = backendValue !== undefined && backendValue < charBaseValue && 
+                                 (character?.ready?.length > 0 || character?.equipment?.length > 0);
+        
+        return isMissing || isZeroWhenShouldBeHigher || isSuspiciouslyLow;
+      });
       
-      // If no missing attributes, use backend data
-      if (!missingAttributes) {
+      // If no problematic attributes, use backend data
+      if (problematicAttributes.length === 0) {
         return readyGroupedAttributes;
       }
+      
+      // Mixed approach: use backend values when available and reasonable, fallback for problematic ones
+      const mixedAttributes = {};
+      
+      // Start with backend values if they exist
+      if (readyGroupedAttributes) {
+        Object.keys(readyGroupedAttributes).forEach(attrName => {
+          if (!problematicAttributes.includes(attrName)) {
+            mixedAttributes[attrName] = readyGroupedAttributes[attrName];
+          }
+        });
+      }
+      
+      // Calculate fallback values ONLY for problematic attributes
+      problematicAttributes.forEach(attrName => {
+        if (character?.[attrName]?.attribute?.attributeValue !== undefined) {
+          const originalValue = Number(character[attrName].attribute.attributeValue);
+          const charIsGrouped = character[attrName].attribute.isGrouped !== false;
+          
+          // Collect all values that should be grouped
+          const valuesToGroup = [];
+          
+          // Add character base value if it's groupable
+          if (charIsGrouped) {
+            valuesToGroup.push(originalValue);
+          }
+          
+          // Add equipment values if they're groupable
+          if (character?.equipment?.length > 0) {
+            character.equipment.forEach(item => {
+              const itemAttr = item[attrName];
+              if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
+                const itemValue = Number(itemAttr.attributeValue);
+                if (itemValue > 0) {
+                  valuesToGroup.push(itemValue);
+                }
+              }
+            });
+          }
+          
+          // Add ready objects values if they're groupable
+          if (character?.ready?.length > 0) {
+            character.ready.forEach(item => {
+              const itemAttr = item[attrName];
+              if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
+                const itemValue = Number(itemAttr.attributeValue);
+                if (itemValue > 0) {
+                  valuesToGroup.push(itemValue);
+                }
+              }
+            });
+          }
+          
+          // Calculate grouped value using the same formula as backend
+          if (valuesToGroup.length === 0) {
+            // If no groupable values, use character base value
+            mixedAttributes[attrName] = originalValue;
+          } else if (valuesToGroup.length === 1) {
+            mixedAttributes[attrName] = valuesToGroup[0];
+          } else {
+            // Sort values in descending order (highest first)
+            valuesToGroup.sort((a, b) => b - a);
+            
+            const A1 = valuesToGroup[0]; // Highest value
+            let sum = A1; // Start with the highest value
+            
+            // Add weighted values for all other attributes using 0.25 constant
+            for (let i = 1; i < valuesToGroup.length; i++) {
+              const Ai = valuesToGroup[i];
+              const scalingFactor = 0.25; // Constant scaling factor
+              
+              if (A1 > 0) {
+                sum += Ai * (scalingFactor + Ai / A1);
+              } else {
+                // Handle edge case where A1 is 0
+                sum += Ai * scalingFactor;
+              }
+            }
+            
+            const finalValue = Math.round((sum / valuesToGroup.length) * 100) / 100;
+            mixedAttributes[attrName] = finalValue;
+          }
+        }
+      });
+      
+      // Apply condition effects to mixed attributes
+      if (character?.conditions?.length > 0) {
+        character.conditions.forEach(condition => {
+          if (!condition.conditionTarget || !condition.conditionType || condition.conditionAmount === undefined) {
+            return; // Skip invalid conditions
+          }
+          
+          const targetAttr = condition.conditionTarget.toLowerCase();
+          if (mixedAttributes[targetAttr] !== undefined) {
+            if (condition.conditionType === 'HELP') {
+              mixedAttributes[targetAttr] += Number(condition.conditionAmount);
+            } else if (condition.conditionType === 'HINDER') {
+              mixedAttributes[targetAttr] -= Number(condition.conditionAmount);
+            }
+          }
+        });
+      }
+      
+      return mixedAttributes;
     }
     
-    // If the backend didn't provide readyGroupedAttributes or it's missing attributes, create our own version
+    // If the backend didn't provide readyGroupedAttributes at all, calculate all attributes
     const fallbackAttributes = {};
     
     // Initialize with base attribute values from character and calculate grouped values
@@ -414,7 +528,8 @@ const CharacterAttributesBackend = ({
             }
           }
           
-          fallbackAttributes[attrName] = Math.round((sum / valuesToGroup.length) * 100) / 100;
+          const finalValue = Math.round((sum / valuesToGroup.length) * 100) / 100;
+          fallbackAttributes[attrName] = finalValue;
         }
       }
     });
