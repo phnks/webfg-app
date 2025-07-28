@@ -29,6 +29,9 @@ exports.handler = async (event) => {
             throw new Error(`Character with ID ${characterId} not found`);
         }
 
+        // Debug logging for raceOverride from DynamoDB
+        console.log("DEBUG getCharacter - Raw character.raceOverride from DB:", character.raceOverride, "type:", typeof character.raceOverride);
+
         // Ensure all attributes have default values if they don't exist
         const defaultAttribute = {
             attribute: {
@@ -78,6 +81,8 @@ exports.handler = async (event) => {
             character.raceOverride = Boolean(character.raceOverride);
         }
 
+        // Debug logging after boolean handling
+        console.log("DEBUG getCharacter - Final character.raceOverride after processing:", character.raceOverride, "type:", typeof character.raceOverride);
         console.log(`Successfully retrieved character: ${character.name} (${characterId})`);
         return character;
 
