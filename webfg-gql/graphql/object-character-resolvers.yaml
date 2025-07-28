@@ -238,6 +238,16 @@ Resources:
       LambdaConfig:
         LambdaFunctionArn: !GetAtt MoveInventoryItemFunction.Arn
 
+  ResolveCharacterInventoryItemsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ResolveCharacterInventoryItems
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ResolveCharacterInventoryItemsFunction.Arn
+
   # Resolvers for new mutations
   AddObjectToStashResolver:
     Type: AWS::AppSync::Resolver

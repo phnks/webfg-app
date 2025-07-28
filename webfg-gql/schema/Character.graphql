@@ -44,6 +44,9 @@ type Character {
   readyIds: [ID]
   ready: [Object]
   
+  # New inventory with quantities
+  inventoryItems: [InventoryItem]
+  
   characterConditions: [CharacterCondition]
   conditions: [CharacterConditionWithDetails]
   

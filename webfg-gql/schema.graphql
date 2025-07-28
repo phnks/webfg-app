@@ -762,6 +762,10 @@ type Mutation {
   moveThoughtToMemory(characterId: ID!, thoughtId: ID!): Character
   updateThoughtAffinityKnowledge(characterId: ID!, thoughtId: ID!, affinity: Int!, knowledge: Int!): Character
 
+  # Inventory quantity mutations
+  updateInventoryQuantity(characterId: ID!, objectId: ID!, quantity: Int!, location: InventoryLocation!): Character
+  moveInventoryItem(characterId: ID!, objectId: ID!, fromLocation: InventoryLocation!, toLocation: InventoryLocation!, quantity: Int!): Character
+
 }
 
 
