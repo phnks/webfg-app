@@ -34,7 +34,7 @@ exports.handler = async (event) => {
     };
     
     const batchResult = await docClient.send(new BatchGetCommand(batchGetParams));
-    const objects = batchResult.Responses[objectsTable] || [];
+    const objects = (batchResult.Responses && batchResult.Responses[objectsTable]) || [];
     
     // Create a map for quick lookup
     const objectMap = {};
