@@ -41,6 +41,294 @@ const CHARACTER_RACES = [
   'HUMAN', 'ANTHRO', 'CARVED', 'TREPIDITE', 'DHYARMA'
 ];
 
+// Life Path Tables for generating character descriptions (Human only)
+const LIFE_PATH_TABLES = [
+  {
+    description: "Their background is",
+    options: {
+      1: "Anur",
+      2: "Zorach", 
+      3: "Mobilis",
+      4: "Unorien",
+      5: "Minos",
+      6: "Weyjen",
+      7: "Rencardian",
+      8: "Shuz",
+      9: "Terralonian"
+    }
+  },
+  {
+    description: "They are",
+    options: {
+      1: "shy & secretive",
+      2: "rebellious, antisocial & violent",
+      3: "arrogant, proud & aloof",
+      4: "moody, rash & headstrong",
+      5: "picky, fussy & nervous",
+      6: "stable & serious",
+      7: "silly & fluff-headed",
+      8: "sneaky & deceptive",
+      9: "intellectual & detached",
+      10: "friendly & outgoing"
+    }
+  },
+  {
+    description: "They mostly wear",
+    options: {
+      1: "Generic Chic",
+      2: "Leisurewear",
+      3: "Urban Flash",
+      4: "Businesswear",
+      5: "High Fashion",
+      6: "Bohemian",
+      7: "Bag-Lady Chic",
+      8: "Faction Uniform",
+      9: "Punk Leathers",
+      10: "rags"
+    }
+  },
+  {
+    description: "Their hair is usually",
+    options: {
+      1: "a mohawk",
+      2: "long & ratty",
+      3: "short & spiked",
+      4: "wild & all-over",
+      5: "bald",
+      6: "striped",
+      7: "wild colors",
+      8: "neat & short",
+      9: "short & curly",
+      10: "long & straight"
+    }
+  },
+  {
+    description: "They love to stand out with their",
+    options: {
+      1: "tattoos",
+      2: "sunglasses",
+      3: "ritual scars",
+      4: "gloves",
+      5: "nose rings",
+      6: "tongue or other piercings",
+      7: "styled fingernails",
+      8: "boots or heels",
+      9: "bracelet(s) or ring(s)",
+      10: "glasses"
+    }
+  },
+  {
+    description: "They value",
+    options: {
+      1: "money",
+      2: "honor",
+      3: "trust",
+      4: "honesty",
+      5: "knowledge",
+      6: "vengeance",
+      7: "love",
+      8: "power",
+      9: "family",
+      10: "friendship"
+    }
+  },
+  {
+    description: "Most other people they",
+    options: {
+      1: "stay neutral towards",
+      2: "barely notice",
+      3: "like",
+      4: "hate",
+      5: "see as tools",
+      6: "see as valuable",
+      7: "see as obstacles",
+      8: "see as untrustworthy",
+      9: "want to kill",
+      10: "think are wonderful"
+    }
+  },
+  {
+    description: "They greatly value",
+    options: {
+      1: "their parent",
+      2: "their brother/sister",
+      3: "their lover",
+      4: "their friend(s)",
+      5: "themselves",
+      6: "their pet",
+      7: "their teacher/mentor",
+      8: "a public figure",
+      9: "a personal hero",
+      10: "no one"
+    }
+  },
+  {
+    description: "Their most valued possession is a",
+    options: {
+      1: "weapon",
+      2: "tool",
+      3: "piece of clothing",
+      4: "photograph",
+      5: "book/diary",
+      6: "recording",
+      7: "musical instrument",
+      8: "piece of jewelry",
+      9: "toy",
+      10: "letter"
+    }
+  },
+  {
+    description: "Their family are",
+    options: {
+      1: "merchants",
+      2: "very rich inherited wealth",
+      3: "engineers or scientists",
+      4: "explorers",
+      5: "all gang members",
+      6: "all military or ex-military",
+      7: "homeless",
+      8: "thieves & robbers",
+      9: "murders",
+      10: "mercenaries"
+    }
+  },
+  {
+    description: "They grew up",
+    options: {
+      1: "on the streets alone",
+      2: "in a safe rich neighborhood",
+      3: "roaming and traveling",
+      4: "traveling with merchants selling wares",
+      5: "a decaying originally upscale neighborhood",
+      6: "in a warzone",
+      7: "in a large city",
+      8: "in a ruined town",
+      9: "at sea",
+      10: "in the most elite part of the world (royalty, world leaders, etc)"
+    }
+  },
+  {
+    description: "Their family",
+    options: {
+      1: "lost everything—betrayal",
+      2: "lost everything—bad management",
+      3: "was exiled/driven out",
+      4: "was imprisoned—only one to escape",
+      5: "vanished",
+      6: "was killed—only survivor",
+      7: "became part of a long-term conspiracy",
+      8: "was scattered",
+      9: "broke apart due to a hereditary feud",
+      10: "inherited crushing debt"
+    }
+  },
+  {
+    description: "Their best friend is",
+    options: {
+      1: "an older sibling figure",
+      2: "a younger sibling figure",
+      3: "a teacher or mentor",
+      4: "a partner or coworker",
+      5: "a former lover",
+      6: "an old enemy",
+      7: "a parental figure",
+      8: "a childhood friend",
+      9: "a street contact",
+      10: "a shared-interest pal"
+    }
+  },
+  {
+    description: "Their worst enemy is",
+    options: {
+      1: "an ex-friend",
+      2: "an ex-lover",
+      3: "an estranged relative",
+      4: "a childhood enemy",
+      5: "a former employee",
+      6: "a boss",
+      7: "a partner or coworker",
+      8: "a merchant",
+      9: "a government official",
+      10: "a gang or gang member"
+    }
+  },
+  {
+    description: "They are their worst enemy",
+    options: {
+      1: "because they caused them to lose face/status",
+      2: "because they caused them to lose a loved one",
+      3: "because they caused them to be publicly humiliated",
+      4: "because they accused them of cowardice/flaw",
+      5: "because they deserted/betrayed them",
+      6: "because they turned them down job/romance",
+      7: "because they just do not like each other",
+      8: "because they are a romantic rival",
+      9: "because they are a business rival",
+      10: "because they framed them for a crime"
+    }
+  },
+  {
+    description: "Their enemy is",
+    options: {
+      1: "alone (reluctant)",
+      2: "alone",
+      3: "alone + their close friend",
+      4: "alone + two friends",
+      5: "alone + four friends",
+      6: "alone + an entire gang",
+      7: "alone + local police/lawmen",
+      8: "alone + a small faction bigger than a gang",
+      9: "alone + an entire nation",
+      10: "alone + the entire world"
+    }
+  },
+  {
+    description: "When their enemy finds them they will",
+    options: {
+      1: "avoid you",
+      2: "avoid them",
+      3: "go into a murderous rage and rip their face off",
+      4: "o into a murderous rage and rip their face off",
+      5: "back-stab them indirectly",
+      6: "back-stab them indirectly",
+      7: "inflict many verbal attacks",
+      8: "inflict many verbal attacks",
+      9: "try to set them up for a crime",
+      10: "try to murder or maim them"
+    }
+  },
+  {
+    description: "Their previous love affair ended because",
+    options: {
+      1: "their lover died in an accident",
+      2: "their lover vanished",
+      3: "it just didn't work out",
+      4: "their goal or vendetta split you",
+      5: "their lover was kidnapped",
+      6: "their lover went insane",
+      7: "their lover committed suicide",
+      8: "their lover was killed in fight",
+      9: "a rival cut you out and took your lover",
+      10: "their lover was imprisoned/exiled"
+    }
+  },
+  {
+    description: "Their life goal is to",
+    options: {
+      1: "clear a bad reputation",
+      2: "gain power & control",
+      3: "escape the streets",
+      4: "cause pain & suffering",
+      5: "live down your past",
+      6: "avenge your misery",
+      7: "get what's rightfully yours",
+      8: "save someone from your past",
+      9: "gain fame & recognition",
+      10: "become feared & respected"
+    }
+  }
+];
+
 // Removed ATTRIBUTE_TYPES as we now use a simple boolean isGrouped field
 
 const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => {
@@ -188,6 +476,46 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     });
     
     setFormData(updatedFormData);
+    
+    // Clear any validation errors
+    if (validationError) {
+      setValidationError(null);
+    }
+  };
+
+  // Function to generate character description using life path tables
+  const generateCharacterDescription = () => {
+    // Only works for humans
+    if (formData.race !== 'HUMAN') {
+      return;
+    }
+
+    const descriptionLines = [];
+    
+    // Go through each life path table
+    LIFE_PATH_TABLES.forEach(table => {
+      const optionKeys = Object.keys(table.options);
+      const maxOption = Math.max(...optionKeys.map(key => parseInt(key)));
+      
+      // Generate random number from 1 to maxOption
+      const randomRoll = Math.floor(Math.random() * maxOption) + 1;
+      
+      // Get the corresponding text
+      const selectedText = table.options[randomRoll];
+      
+      // Format the line: "Description: selected text"
+      const line = `${table.description} ${selectedText}`;
+      descriptionLines.push(line);
+    });
+    
+    // Join all lines with newlines
+    const generatedDescription = descriptionLines.join('\n');
+    
+    // Update the form data
+    setFormData(prev => ({
+      ...prev,
+      description: generatedDescription
+    }));
     
     // Clear any validation errors
     if (validationError) {
@@ -567,7 +895,18 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
               />
             </div>
             <div className="form-group">
-              <label>Description</label>
+              <div className="description-header">
+                <label>Description</label>
+                <button
+                  type="button"
+                  onClick={generateCharacterDescription}
+                  className="generate-description-button"
+                  disabled={formData.race !== 'HUMAN'}
+                  title={formData.race !== 'HUMAN' ? 'Character description generation only available for Human race' : 'Generate random character background'}
+                >
+                  Generate Description
+                </button>
+              </div>
               <textarea
                 value={formData.description || ''}
                 onChange={(e) => handleInputChange('description', e.target.value)}
