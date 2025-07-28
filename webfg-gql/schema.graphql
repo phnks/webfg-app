@@ -51,6 +51,25 @@ input MindThoughtInput {
   location: MindLocation!
 }
 
+# InventoryItem represents an object in a character's inventory with quantity tracking
+type InventoryItem {
+  objectId: ID!
+  quantity: Int!
+  inventoryLocation: InventoryLocation!
+}
+
+enum InventoryLocation {
+  STASH
+  EQUIPMENT
+  READY
+}
+
+input InventoryItemInput {
+  objectId: ID!
+  quantity: Int!
+  inventoryLocation: InventoryLocation!
+}
+
 type Character {
   characterId: ID!
   name: String!
@@ -96,6 +115,12 @@ type Character {
   equipment: [Object]
   readyIds: [ID]
   ready: [Object]
+  
+  # New inventory system with quantity tracking
+  inventoryItems: [InventoryItem]
+  stashItems: [Object]
+  equipmentItems: [Object]
+  readyItems: [Object]
   
   characterConditions: [CharacterCondition]
   conditions: [CharacterConditionWithDetails]
@@ -170,6 +195,7 @@ input CharacterInput {
   stashIds: [ID]
   equipmentIds: [ID]
   readyIds: [ID]
+  inventoryItems: [InventoryItemInput]
   characterConditions: [CharacterConditionInput]
   targetAttributeTotal: Int
 }
@@ -671,6 +697,10 @@ type Mutation {
   moveObjectToReady(characterId: ID!, objectId: ID!): Character
   moveObjectFromReadyToEquipment(characterId: ID!, objectId: ID!): Character
   moveObjectFromEquipmentToStash(characterId: ID!, objectId: ID!): Character
+  
+  # Inventory quantity mutations
+  updateInventoryQuantity(characterId: ID!, objectId: ID!, quantity: Int!, location: InventoryLocation!): Character
+  moveInventoryItem(characterId: ID!, objectId: ID!, quantity: Int!, fromLocation: InventoryLocation!, toLocation: InventoryLocation!): Character
 
   # Character-Action relationship mutations
   addActionToCharacter(characterId: ID!, actionId: ID!): Character
