@@ -2,12 +2,38 @@
   margin: 20px 0;
 }
 
-.attribute-groups h3 {
-  margin: 0 0 15px 0;
+.attributes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.attributes-header h3 {
+  margin: 0;
   color: #333;
   font-size: 1.2em;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 8px;
+}
+
+.generate-attributes-button {
+  padding: 6px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.generate-attributes-button:hover {
+  background-color: #0056b3;
+}
+
+.generate-attributes-button:active {
+  background-color: #004085;
 }
 
 .attribute-group {

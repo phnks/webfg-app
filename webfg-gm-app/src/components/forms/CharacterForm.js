@@ -95,6 +95,106 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     return restrictedAttributes.includes(attributeName);
   };
 
+  // Function to generate random attributes respecting race restrictions
+  const generateRandomAttributes = () => {
+    const targetTotal = formData.targetAttributeTotal || calculateDefaultTargetTotal();
+    const attributeNames = getAllAttributeNames();
+    const newAttributes = {};
+    
+    // First, handle restricted attributes (must be 10 for humans without override)
+    let fixedTotal = 0;
+    const flexibleAttributes = [];
+    
+    attributeNames.forEach(attr => {
+      if (shouldApplyRaceRestrictions() && isRestrictedAttribute(attr)) {
+        // Restricted attributes must be 10
+        newAttributes[attr] = 10;
+        fixedTotal += 10;
+      } else {
+        // These attributes can be varied
+        flexibleAttributes.push(attr);
+      }
+    });
+    
+    // Calculate remaining points to distribute among flexible attributes
+    const remainingTotal = targetTotal - fixedTotal;
+    const numFlexibleAttrs = flexibleAttributes.length;
+    
+    if (numFlexibleAttrs === 0) {
+      // All attributes are fixed
+      attributeNames.forEach(attr => {
+        newAttributes[attr] = 10;
+      });
+    } else {
+      // Generate random values for flexible attributes
+      let remainingPoints = remainingTotal;
+      
+      for (let i = 0; i < numFlexibleAttrs - 1; i++) {
+        const attr = flexibleAttributes[i];
+        const minVal = shouldApplyRaceRestrictions() ? 5 : 1;
+        const maxVal = shouldApplyRaceRestrictions() ? 20 : 30;
+        
+        // Calculate bounds to ensure we can distribute remaining points
+        const remainingAttrs = numFlexibleAttrs - i - 1;
+        const minForRemaining = remainingAttrs * minVal;
+        const maxForRemaining = remainingAttrs * maxVal;
+        
+        const actualMin = Math.max(minVal, remainingPoints - maxForRemaining);
+        const actualMax = Math.min(maxVal, remainingPoints - minForRemaining);
+        
+        // Generate random value within bounds
+        const randomValue = Math.floor(Math.random() * (actualMax - actualMin + 1)) + actualMin;
+        newAttributes[attr] = randomValue;
+        remainingPoints -= randomValue;
+      }
+      
+      // Set the last flexible attribute to use up remaining points
+      const lastAttr = flexibleAttributes[numFlexibleAttrs - 1];
+      newAttributes[lastAttr] = remainingPoints;
+      
+      // Validate the last attribute is within bounds
+      const minVal = shouldApplyRaceRestrictions() ? 5 : 1;
+      const maxVal = shouldApplyRaceRestrictions() ? 20 : 30;
+      
+      if (newAttributes[lastAttr] < minVal || newAttributes[lastAttr] > maxVal) {
+        // If last attribute is out of bounds, redistribute more evenly
+        const avgValue = Math.floor(remainingTotal / numFlexibleAttrs);
+        let excess = remainingTotal % numFlexibleAttrs;
+        
+        flexibleAttributes.forEach(attr => {
+          let value = avgValue;
+          if (excess > 0) {
+            value += 1;
+            excess -= 1;
+          }
+          
+          // Clamp to valid range
+          value = Math.max(minVal, Math.min(maxVal, value));
+          newAttributes[attr] = value;
+        });
+      }
+    }
+    
+    // Update the form data with new attribute values
+    const updatedFormData = { ...formData };
+    attributeNames.forEach(attr => {
+      updatedFormData[attr] = {
+        ...formData[attr],
+        attribute: {
+          ...formData[attr].attribute,
+          attributeValue: newAttributes[attr]
+        }
+      };
+    });
+    
+    setFormData(updatedFormData);
+    
+    // Clear any validation errors
+    if (validationError) {
+      setValidationError(null);
+    }
+  };
+
   // Helper function to get validation error for a specific attribute
   const getAttributeValidationError = (attributeName) => {
     if (!shouldApplyRaceRestrictions()) return null;
@@ -525,6 +625,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
               renderAttribute={renderAttributeForForm}
               title="Attributes"
               defaultExpandedGroups={['BODY', 'SENSES']}
+              onGenerateAttributes={generateRandomAttributes}
             />
           </div>
         </div>

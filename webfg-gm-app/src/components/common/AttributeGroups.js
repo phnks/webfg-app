@@ -18,7 +18,8 @@ const AttributeGroups = ({
   attributes, 
   renderAttribute, 
   title = "Attributes",
-  defaultExpandedGroups = [] 
+  defaultExpandedGroups = [],
+  onGenerateAttributes = null
 }) => {
   const [expandedGroups, setExpandedGroups] = useState(
     new Set(defaultExpandedGroups)
@@ -38,7 +39,18 @@ const AttributeGroups = ({
 
   return (
     <div className="attribute-groups">
-      <h3>{title}</h3>
+      <div className="attributes-header">
+        <h3>{title}</h3>
+        {onGenerateAttributes && (
+          <button 
+            type="button" 
+            onClick={onGenerateAttributes}
+            className="generate-attributes-button"
+          >
+            Generate Attributes
+          </button>
+        )}
+      </div>
       
       {Object.entries(ATTRIBUTE_GROUPS).map(([groupName, attributeNames]) => (
         <div key={groupName} className="attribute-group">
