@@ -78,6 +78,7 @@ function combineSchemas() {
   const schemaFiles = [
     'Attribute.graphql',
     'MindThought.graphql',
+    'InventoryItem.graphql',
     'Character.graphql',
     'Object.graphql',
     'Action.graphql',
