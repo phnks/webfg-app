@@ -895,26 +895,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
               />
             </div>
             <div className="form-group">
-              <div className="description-header">
-                <label>Description</label>
-                <button
-                  type="button"
-                  onClick={generateCharacterDescription}
-                  className="generate-description-button"
-                  disabled={formData.race !== 'HUMAN'}
-                  title={formData.race !== 'HUMAN' ? 'Character description generation only available for Human race' : 'Generate random character background'}
-                >
-                  Generate Description
-                </button>
-              </div>
-              <textarea
-                value={formData.description || ''}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                rows="3"
-                placeholder="Enter character description (optional)"
-              />
-            </div>
-            <div className="form-group">
               <label>Category</label>
               <select
                 value={formData.characterCategory}
@@ -969,7 +949,29 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           </div>
         </div>
 
-
+        <div className="form-section">
+          <div className="description-header">
+            <label>Description</label>
+            <button
+              type="button"
+              onClick={generateCharacterDescription}
+              className="generate-description-button"
+              disabled={formData.race !== 'HUMAN'}
+              title={formData.race !== 'HUMAN' ? 'Only available for humans' : 'Generate character backstory using life path tables'}
+            >
+              Generate Description
+            </button>
+          </div>
+          <div className="form-group full-width">
+            <textarea
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Enter character description or use the Generate Description button for humans..."
+              rows="6"
+              className="description-textarea"
+            />
+          </div>
+        </div>
 
         <div className="form-section">
           <h3>Special Abilities</h3>
