@@ -244,12 +244,17 @@ Cypress.Commands.add('fillBasicCharacterInfo', (character) => {
   // Wait for form to be ready and scroll to ensure fields are visible
   cy.get('input[type="text"]').should('be.visible');
   
-  // Find the name input more specifically (avoid the target input)
-  cy.get('input[type="text"]').first().clear().type(character.name); // Name field
-  cy.get('select').first().select(character.category); // Category dropdown
+  // Find the name input specifically by looking in the Basic Information section
+  cy.contains('Basic Information').should('be.visible');
+  cy.contains('Basic Information').parent().within(() => {
+    cy.get('input[type="text"]').first().clear().type(character.name); // Name field
+    cy.get('select').first().select(character.category); // Category dropdown
+  });
   
-  // Wait for fields to be filled
-  cy.get('input[type="text"]').first().should('have.value', character.name);
+  // Wait for fields to be filled - also look specifically in Basic Information section
+  cy.contains('Basic Information').parent().within(() => {
+    cy.get('input[type="text"]').first().should('have.value', character.name);
+  });
   
   // Ensure attribute validation allows submission
   cy.ensureAttributeValidation();
