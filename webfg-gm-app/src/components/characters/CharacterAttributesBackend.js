@@ -208,14 +208,14 @@ const CharacterAttributesBackend = ({
           formula: null
         });
       } else {
-        // Subsequent entities: calculate weighted average formula
-        // Calculate new running total using weighted average formula: (A1 + A2*(2+A2/A1) + A3*(3+A3/A1) + ...) / N
+        // Subsequent entities: calculate weighted average formula using constant 0.25 scaling factor
+        // Calculate new running total using weighted average formula: (A1 + A2*(0.25+A2/A1) + A3*(0.25+A3/A1) + ...) / N
         const A1 = allValues[0].value; // Highest value
         let sum = A1; // Start with A1
         
         for (let i = 1; i <= index; i++) {
           const Ai = allValues[i].value;
-          const scalingFactor = i + 1;
+          const scalingFactor = 0.25; // Constant scaling factor
           if (A1 > 0) {
             sum += Ai * (scalingFactor + Ai / A1);
           } else {
@@ -226,9 +226,9 @@ const CharacterAttributesBackend = ({
         
         // Create formula string showing the correct weighted average calculation
         if (index === 1) {
-          // Second item: show A1 + A2*(2+A2/A1) / 2
+          // Second item: show A1 + A2*(0.25+A2/A1) / 2
           const A2 = entity.value;
-          const formulaString = `Weighted Average: (${A1} + ${A2}*(2+${A2}/${A1})) / 2`;
+          const formulaString = `Weighted Average: (${A1} + ${A2}*(0.25+${A2}/${A1})) / 2`;
           steps.push({
             step: stepCount++,
             entityName: entity.name,
@@ -243,7 +243,7 @@ const CharacterAttributesBackend = ({
           let formulaParts = [A1.toString()];
           for (let i = 1; i <= index; i++) {
             const Ai = allValues[i].value;
-            const scalingFactor = i + 1;
+            const scalingFactor = 0.25; // Constant scaling factor
             formulaParts.push(`${Ai}*(${scalingFactor}+${Ai}/${A1})`);
           }
           const formulaString = `Weighted Average: (${formulaParts.join(' + ')}) / ${index + 1}`;
