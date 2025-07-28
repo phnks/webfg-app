@@ -20,6 +20,9 @@ exports.handler = async (event) => {
     throw new Error("characterId is required.");
   }
 
+  // Debug logging for raceOverride
+  console.log("DEBUG updateCharacter - input.raceOverride:", input.raceOverride, "type:", typeof input.raceOverride);
+
   const updateExpressionParts = [];
   const expressionAttributeNames = {};
   const expressionAttributeValues = {};
@@ -100,7 +103,8 @@ exports.handler = async (event) => {
   try {
     const result = await ddbDocClient.send(new UpdateCommand(params));
     if (result && result.Attributes && Object.keys(result.Attributes).length > 0) {
-      // console.log("Successfully updated character:", result.Attributes);
+      // Debug logging for raceOverride after update
+      console.log("DEBUG updateCharacter - result.Attributes.raceOverride:", result.Attributes.raceOverride, "type:", typeof result.Attributes.raceOverride);
       return result.Attributes;
     } else {
       console.error(`UpdateCharacter Lambda: Character with ID ${characterId} not found`);

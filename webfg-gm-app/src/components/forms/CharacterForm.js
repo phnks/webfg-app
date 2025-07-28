@@ -136,6 +136,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   // Effect to populate form data when character prop changes (for editing)
   useEffect(() => {
     if (isEditing && character) {
+      console.log('DEBUG: Loading character for edit - character.raceOverride:', character.raceOverride, 'type:', typeof character.raceOverride);
       const updatedFormData = {
         name: character.name || "",
         description: character.description || "",
@@ -159,6 +160,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       // Set targetAttributeTotal from character or calculate default
       updatedFormData.targetAttributeTotal = character.targetAttributeTotal || calculateDefaultTargetTotal();
       
+      console.log('DEBUG: Setting form data - updatedFormData.raceOverride:', updatedFormData.raceOverride, 'type:', typeof updatedFormData.raceOverride);
       setFormData(updatedFormData);
     }
   }, [isEditing, character]);

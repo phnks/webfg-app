@@ -71,6 +71,8 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       name
       description
       characterCategory
+      race
+      raceOverride
       will
       fatigue
       mind {
