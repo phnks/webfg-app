@@ -1055,20 +1055,19 @@ const CharacterView = ({ startInEditMode = false }) => {
                             <Link to={`/objects/${item.objectId}`} className="object-link">
                               {item.name} ({item.objectCategory})
                             </Link>
-                            {item.quantity > 1 && (
-                              <span 
-                                className="item-quantity"
-                                onClick={() => handleEditInventoryQuantity(item, 'STASH')}
-                                style={{ 
-                                  marginLeft: '8px', 
-                                  color: '#007bff', 
-                                  cursor: 'pointer',
-                                  textDecoration: 'underline'
-                                }}
-                              >
-                                x{item.quantity}
-                              </span>
-                            )}
+                            <span 
+                              className="item-quantity"
+                              onClick={() => handleEditInventoryQuantity(item, 'STASH')}
+                              style={{ 
+                                marginLeft: '8px', 
+                                color: '#007bff', 
+                                cursor: 'pointer',
+                                textDecoration: 'underline'
+                              }}
+                              title="Click to edit quantity"
+                            >
+                              x{item.quantity}
+                            </span>
                           </div>
                           <div className="item-actions">
                             <button 
@@ -1138,20 +1137,19 @@ const CharacterView = ({ startInEditMode = false }) => {
                             <Link to={`/objects/${item.objectId}`} className="object-link">
                               {item.name} ({item.objectCategory})
                             </Link>
-                            {item.quantity > 1 && (
-                              <span 
-                                className="item-quantity"
-                                onClick={() => handleEditInventoryQuantity(item, 'EQUIPMENT')}
-                                style={{ 
-                                  marginLeft: '8px', 
-                                  color: '#007bff', 
-                                  cursor: 'pointer',
-                                  textDecoration: 'underline'
-                                }}
-                              >
-                                x{item.quantity}
-                              </span>
-                            )}
+                            <span 
+                              className="item-quantity"
+                              onClick={() => handleEditInventoryQuantity(item, 'EQUIPMENT')}
+                              style={{ 
+                                marginLeft: '8px', 
+                                color: '#007bff', 
+                                cursor: 'pointer',
+                                textDecoration: 'underline'
+                              }}
+                              title="Click to edit quantity"
+                            >
+                              x{item.quantity}
+                            </span>
                           </div>
                           <div className="item-actions">
                             <button 
@@ -1221,20 +1219,19 @@ const CharacterView = ({ startInEditMode = false }) => {
                             <Link to={`/objects/${item.objectId}`} className="object-link">
                               {item.name} ({item.objectCategory})
                             </Link>
-                            {item.quantity > 1 && (
-                              <span 
-                                className="item-quantity"
-                                onClick={() => handleEditInventoryQuantity(item, 'READY')}
-                                style={{ 
-                                  marginLeft: '8px', 
-                                  color: '#007bff', 
-                                  cursor: 'pointer',
-                                  textDecoration: 'underline'
-                                }}
-                              >
-                                x{item.quantity}
-                              </span>
-                            )}
+                            <span 
+                              className="item-quantity"
+                              onClick={() => handleEditInventoryQuantity(item, 'READY')}
+                              style={{ 
+                                marginLeft: '8px', 
+                                color: '#007bff', 
+                                cursor: 'pointer',
+                                textDecoration: 'underline'
+                              }}
+                              title="Click to edit quantity"
+                            >
+                              x{item.quantity}
+                            </span>
                           </div>
                           <div className="item-actions">
                             <button 
