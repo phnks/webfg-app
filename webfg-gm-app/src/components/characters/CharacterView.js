@@ -321,22 +321,23 @@ const CharacterView = ({ startInEditMode = false }) => {
 
   // Handler for moving item from stash to equipment
   const handleEquipItem = async (objectId) => {
-    // Check if item has quantity > 1
     const stashWithQuantities = getInventoryWithQuantities(character.stash || [], 'STASH');
+    const equipmentWithQuantities = getInventoryWithQuantities(character.equipment || [], 'EQUIPMENT');
     const item = stashWithQuantities.find(i => i.objectId === objectId);
+    const existingEquipmentItem = equipmentWithQuantities.find(i => i.objectId === objectId);
     
-    if (item && item.quantity > 1) {
-      // Show quantity modal
+    // Always use quantity system if item has quantity > 1 OR if destination already has this item
+    if ((item && item.quantity > 1) || existingEquipmentItem) {
       setInventoryMoveAction({
         item,
         objectId,
         fromLocation: 'STASH',
         toLocation: 'EQUIPMENT',
         action: 'Equip',
-        maxQuantity: item.quantity
+        maxQuantity: item.quantity,
+        destinationQuantity: existingEquipmentItem ? existingEquipmentItem.quantity : 0
       });
     } else {
-      // Move single item
       try {
         await moveObjectToEquipment({
           variables: { characterId, objectId }
@@ -355,16 +356,20 @@ const CharacterView = ({ startInEditMode = false }) => {
   // Handler for moving item from equipment to stash
   const handleUnequipItem = async (objectId) => {
     const equipmentWithQuantities = getInventoryWithQuantities(character.equipment || [], 'EQUIPMENT');
+    const stashWithQuantities = getInventoryWithQuantities(character.stash || [], 'STASH');
     const item = equipmentWithQuantities.find(i => i.objectId === objectId);
+    const existingStashItem = stashWithQuantities.find(i => i.objectId === objectId);
     
-    if (item && item.quantity > 1) {
+    // Always use quantity system if item has quantity > 1 OR if destination already has this item
+    if ((item && item.quantity > 1) || existingStashItem) {
       setInventoryMoveAction({
         item,
         objectId,
         fromLocation: 'EQUIPMENT',
         toLocation: 'STASH',
         action: 'Stash',
-        maxQuantity: item.quantity
+        maxQuantity: item.quantity,
+        destinationQuantity: existingStashItem ? existingStashItem.quantity : 0
       });
     } else {
       try {
@@ -385,16 +390,20 @@ const CharacterView = ({ startInEditMode = false }) => {
   // Handler for moving item from equipment to ready
   const handleReadyItem = async (objectId) => {
     const equipmentWithQuantities = getInventoryWithQuantities(character.equipment || [], 'EQUIPMENT');
+    const readyWithQuantities = getInventoryWithQuantities(character.ready || [], 'READY');
     const item = equipmentWithQuantities.find(i => i.objectId === objectId);
+    const existingReadyItem = readyWithQuantities.find(i => i.objectId === objectId);
     
-    if (item && item.quantity > 1) {
+    // Always use quantity system if item has quantity > 1 OR if destination already has this item
+    if ((item && item.quantity > 1) || existingReadyItem) {
       setInventoryMoveAction({
         item,
         objectId,
         fromLocation: 'EQUIPMENT',
         toLocation: 'READY',
         action: 'Ready',
-        maxQuantity: item.quantity
+        maxQuantity: item.quantity,
+        destinationQuantity: existingReadyItem ? existingReadyItem.quantity : 0
       });
     } else {
       try {
@@ -415,16 +424,20 @@ const CharacterView = ({ startInEditMode = false }) => {
   // Handler for moving item from ready to equipment
   const handleUnreadyItem = async (objectId) => {
     const readyWithQuantities = getInventoryWithQuantities(character.ready || [], 'READY');
+    const equipmentWithQuantities = getInventoryWithQuantities(character.equipment || [], 'EQUIPMENT');
     const item = readyWithQuantities.find(i => i.objectId === objectId);
+    const existingEquipmentItem = equipmentWithQuantities.find(i => i.objectId === objectId);
     
-    if (item && item.quantity > 1) {
+    // Always use quantity system if item has quantity > 1 OR if destination already has this item
+    if ((item && item.quantity > 1) || existingEquipmentItem) {
       setInventoryMoveAction({
         item,
         objectId,
         fromLocation: 'READY',
         toLocation: 'EQUIPMENT',
         action: 'Unready',
-        maxQuantity: item.quantity
+        maxQuantity: item.quantity,
+        destinationQuantity: existingEquipmentItem ? existingEquipmentItem.quantity : 0
       });
     } else {
       try {
@@ -1417,6 +1430,7 @@ const CharacterView = ({ startInEditMode = false }) => {
           item={inventoryMoveAction.item}
           action={inventoryMoveAction.action}
           maxQuantity={inventoryMoveAction.maxQuantity}
+          destinationQuantity={inventoryMoveAction.destinationQuantity || 0}
           onConfirm={handleInventoryMoveWithQuantity}
           onCancel={() => setInventoryMoveAction(null)}
         />

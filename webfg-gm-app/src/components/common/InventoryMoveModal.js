@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './InventoryQuantityModal.css'; // Reuse the same styles
 
-const InventoryMoveModal = ({ item, action, maxQuantity, onConfirm, onCancel }) => {
+const InventoryMoveModal = ({ item, action, maxQuantity, destinationQuantity, onConfirm, onCancel }) => {
   const [quantity, setQuantity] = useState(maxQuantity);
 
   const handleConfirm = () => {
@@ -30,6 +30,11 @@ const InventoryMoveModal = ({ item, action, maxQuantity, onConfirm, onCancel }) 
           <small style={{ color: '#666', display: 'block', marginTop: '5px' }}>
             Available: {maxQuantity}
           </small>
+          {destinationQuantity > 0 && (
+            <small style={{ color: '#007bff', display: 'block', marginTop: '5px' }}>
+              Will be combined with {destinationQuantity} already at destination → Total: {destinationQuantity + parseInt(quantity || 0)}
+            </small>
+          )}
         </div>
         <div className="modal-actions">
           <button onClick={handleConfirm} className="save-btn">
