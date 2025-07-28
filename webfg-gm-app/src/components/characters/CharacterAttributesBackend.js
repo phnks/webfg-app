@@ -19,6 +19,9 @@ const CharacterAttributesBackend = ({
     readyGroupedAttributes: readyGroupedAttributes
   });
 
+  // State for equipment/ready toggle
+  const [showReadyAttributes, setShowReadyAttributes] = useState(false);
+
   // State for breakdown popup
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [selectedAttribute, setSelectedAttribute] = useState(null);
@@ -363,6 +366,10 @@ const CharacterAttributesBackend = ({
     const hasReady = character && character.readyIds && character.readyIds.length > 0;
     const hasConditions = character && character.conditions && character.conditions.length > 0;
     
+    // Determine which grouped value to show based on toggle state
+    const displayGroupedValue = showReadyAttributes ? readyGroupedValue : equipmentGroupedValue;
+    const displayGroupedSource = showReadyAttributes ? 'ready' : 'equipment';
+    
     // Check if there are conditions that affect this attribute
     const hasConditionForThisAttribute = hasConditions && character.conditions.some(c => 
       c.conditionTarget && c.conditionTarget.toLowerCase() === attributeName.toLowerCase()
@@ -372,23 +379,26 @@ const CharacterAttributesBackend = ({
     const numOriginal = typeof originalValue === 'string' ? parseFloat(originalValue) : Number(originalValue);
     const numEquipmentGrouped = typeof equipmentGroupedValue === 'string' ? parseFloat(equipmentGroupedValue) : Number(equipmentGroupedValue);
     const numReadyGrouped = typeof readyGroupedValue === 'string' ? parseFloat(readyGroupedValue) : Number(readyGroupedValue);
+    const numDisplayGrouped = typeof displayGroupedValue === 'string' ? parseFloat(displayGroupedValue) : Number(displayGroupedValue);
     
     // Check if we have valid numbers before computing difference
-    const canComputeEquipmentDifference = !isNaN(numOriginal) && !isNaN(numEquipmentGrouped);
-    const canComputeReadyDifference = !isNaN(numEquipmentGrouped) && !isNaN(numReadyGrouped);
-    const equipmentDifference = canComputeEquipmentDifference ? Math.abs(numEquipmentGrouped - numOriginal) : 0;
-    // const readyDifference = canComputeReadyDifference ? Math.abs(numReadyGrouped - numEquipmentGrouped) : 0; // Commented out - not currently used
-    const isEquipmentDifferent = canComputeEquipmentDifference && equipmentDifference >= 0.01;
-    // const isReadyDifferent = canComputeReadyDifference && readyDifference >= 0.01; // Commented out - not currently used
+    const canComputeDisplayDifference = !isNaN(numOriginal) && !isNaN(numDisplayGrouped);
+    const displayDifference = canComputeDisplayDifference ? Math.abs(numDisplayGrouped - numOriginal) : 0;
+    const isDisplayDifferent = canComputeDisplayDifference && displayDifference >= 0.01;
     
-    // Determine if we should show equipment grouped value
-    const shouldShowEquipmentGroupedValue = 
+    // Determine if we should show grouped value based on toggle state
+    const shouldShowGroupedValue = showReadyAttributes ? 
+      // For ready mode: show if we have ready grouped data and it's different or if we have conditions
+      ((readyGroupedValue !== undefined && readyGroupedValue !== null) && 
+       (hasReady || hasConditionForThisAttribute || isDisplayDifferent)) ||
+      (hasConditionForThisAttribute && readyGroupedAttributes && 
+       readyGroupedAttributes[attributeName] !== undefined)
+      :
+      // For equipment mode: use existing logic
       ((equipmentGroupedValue !== undefined && equipmentGroupedValue !== null) && 
-       (hasEquipment || hasConditionForThisAttribute || isEquipmentDifferent)) ||
+       (hasEquipment || hasConditionForThisAttribute || isDisplayDifferent)) ||
       (hasConditionForThisAttribute && effectiveGroupedAttributes && 
-       effectiveGroupedAttributes[attributeName] !== undefined) ||
-      // Always show equipment grouped when we have ready items (to show the intermediate step)
-      (hasReady && readyGroupedAttributes && readyGroupedValue !== undefined && readyGroupedValue !== null);
+       effectiveGroupedAttributes[attributeName] !== undefined);
        
     // Note: Ready grouped values are no longer automatically displayed
     // They will only be calculated and shown during action tests when an object is selected
@@ -405,19 +415,19 @@ const CharacterAttributesBackend = ({
           >
             {character?.[attributeName]?.attribute?.isGrouped !== false ? '☑️' : '❌'}
           </span>
-          {shouldShowEquipmentGroupedValue && (
+          {shouldShowGroupedValue && (
             <span 
               className="grouped-value" 
-              style={getGroupedValueStyle(originalValue, effectiveGroupedAttributes[attributeName])}
-              title="Grouped value with equipment and conditions (for targets)"
+              style={getGroupedValueStyle(originalValue, displayGroupedValue)}
+              title={`Grouped value with ${displayGroupedSource} and conditions`}
             >
               {' → '}{
-                effectiveGroupedAttributes[attributeName] !== undefined && 
-                !isNaN(Number(effectiveGroupedAttributes[attributeName])) ? 
-                  Math.round(Number(effectiveGroupedAttributes[attributeName])) : 
+                displayGroupedValue !== undefined && 
+                !isNaN(Number(displayGroupedValue)) ? 
+                  Math.round(Number(displayGroupedValue)) : 
                   originalValue
               }
-              {(hasEquipment || hasConditions) && (
+              {((showReadyAttributes ? hasReady : hasEquipment) || hasConditions) && (
                 <button
                   className="info-icon"
                   onClick={(e) => {
@@ -431,7 +441,6 @@ const CharacterAttributesBackend = ({
               )}
             </span>
           )}
-          {/* Ready grouped values are no longer displayed here - only shown during action tests */}
         </span>
       </div>
     );
@@ -449,19 +458,42 @@ const CharacterAttributesBackend = ({
   return (
     <>
       <div className="section character-attributes">
+        <div className="attributes-header">
+          <h3>Attributes</h3>
+          {(character?.ready?.length > 0 || readyGroupedAttributes) && (
+            <div className="equipment-ready-toggle">
+              <label className="toggle-label">
+                <input
+                  type="checkbox"
+                  checked={showReadyAttributes}
+                  onChange={(e) => setShowReadyAttributes(e.target.checked)}
+                  className="toggle-checkbox"
+                />
+                <span className="toggle-slider"></span>
+                <span className="toggle-text">
+                  {showReadyAttributes ? 'ready' : 'equipment'}
+                </span>
+              </label>
+            </div>
+          )}
+        </div>
         <AttributeGroups
           attributes={character}
           renderAttribute={renderAttributeForView}
-          title="Attributes"
+          title={null}
           defaultExpandedGroups={['BODY', 'MARTIAL', 'MENTAL']}
         />
       </div>
       
       {showBreakdown && (
         <AttributeBreakdownPopup
-          breakdown={breakdownData?.getCharacter?.attributeBreakdown || generateFallbackBreakdown(selectedAttribute)}
-          attributeName={breakdownAttributeName}
-          isLoading={breakdownLoading}
+          breakdown={
+            showReadyAttributes 
+              ? generateReadyFallbackBreakdown(selectedAttribute)
+              : (breakdownData?.getCharacter?.attributeBreakdown || generateFallbackBreakdown(selectedAttribute))
+          }
+          attributeName={`${breakdownAttributeName}${showReadyAttributes ? ' (Ready Grouped)' : ''}`}
+          isLoading={!showReadyAttributes && breakdownLoading}
           onClose={() => {
             setShowBreakdown(false);
             setSelectedAttribute(null);
