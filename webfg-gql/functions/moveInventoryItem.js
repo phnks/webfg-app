@@ -46,20 +46,8 @@ exports.handler = async (event) => {
     
     let updatedInventoryItems = [...inventoryItems];
     
-    // Update source location
-    if (sourceItem.quantity === quantity) {
-      // Remove the item from source if moving all
-      updatedInventoryItems.splice(sourceIndex, 1);
-    } else {
-      // Reduce quantity at source
-      updatedInventoryItems[sourceIndex] = {
-        ...sourceItem,
-        quantity: sourceItem.quantity - quantity
-      };
-    }
-    
-    // Update destination location
-    if (destIndex !== -1 && destIndex !== sourceIndex) {
+    // Update destination location first if it exists
+    if (destIndex !== -1) {
       // Add to existing item at destination
       updatedInventoryItems[destIndex] = {
         ...updatedInventoryItems[destIndex],
@@ -72,6 +60,18 @@ exports.handler = async (event) => {
         quantity,
         inventoryLocation: toLocation
       });
+    }
+    
+    // Update source location after destination to avoid index issues
+    if (sourceItem.quantity === quantity) {
+      // Remove the item from source if moving all
+      updatedInventoryItems.splice(sourceIndex, 1);
+    } else {
+      // Reduce quantity at source
+      updatedInventoryItems[sourceIndex] = {
+        ...sourceItem,
+        quantity: sourceItem.quantity - quantity
+      };
     }
     
     // Also update the legacy ID arrays for backward compatibility

@@ -44,11 +44,11 @@ describe('moveInventoryItem', () => {
       }
     };
 
-    mockDynamoSend.mockResolvedValueOnce({
+    global.mockDynamoSend.mockResolvedValueOnce({
       Item: existingCharacter
     });
 
-    mockDynamoSend.mockResolvedValueOnce({
+    global.mockDynamoSend.mockResolvedValueOnce({
       Attributes: updatedCharacter
     });
 
@@ -58,7 +58,7 @@ describe('moveInventoryItem', () => {
     expect(result.inventoryItems[0].quantity).toBe(3); // Remaining in STASH
     expect(result.inventoryItems[1].quantity).toBe(2); // Moved to EQUIPMENT
     expect(result.equipmentIds).toContain('obj-456');
-    expect(mockDynamoSend).toHaveBeenCalledTimes(2);
+    expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
   });
 
   it('should move entire quantity and remove from source', async () => {
@@ -96,11 +96,11 @@ describe('moveInventoryItem', () => {
       }
     };
 
-    mockDynamoSend.mockResolvedValueOnce({
+    global.mockDynamoSend.mockResolvedValueOnce({
       Item: existingCharacter
     });
 
-    mockDynamoSend.mockResolvedValueOnce({
+    global.mockDynamoSend.mockResolvedValueOnce({
       Attributes: updatedCharacter
     });
 
@@ -111,7 +111,7 @@ describe('moveInventoryItem', () => {
     expect(result.inventoryItems[0].quantity).toBe(3);
     expect(result.stashIds).toHaveLength(0);
     expect(result.readyIds).toContain('obj-456');
-    expect(mockDynamoSend).toHaveBeenCalledTimes(2);
+    expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
   });
 
   it('should combine quantities when moving to existing location', async () => {
@@ -151,11 +151,11 @@ describe('moveInventoryItem', () => {
       }
     };
 
-    mockDynamoSend.mockResolvedValueOnce({
+    global.mockDynamoSend.mockResolvedValueOnce({
       Item: existingCharacter
     });
 
-    mockDynamoSend.mockResolvedValueOnce({
+    global.mockDynamoSend.mockResolvedValueOnce({
       Attributes: updatedCharacter
     });
 
@@ -164,7 +164,7 @@ describe('moveInventoryItem', () => {
     expect(result.inventoryItems).toHaveLength(2);
     expect(result.inventoryItems[0].quantity).toBe(1); // Remaining in STASH
     expect(result.inventoryItems[1].quantity).toBe(3); // Combined in EQUIPMENT
-    expect(mockDynamoSend).toHaveBeenCalledTimes(2);
+    expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
   });
 
   it('should throw error when character not found', async () => {
@@ -178,10 +178,10 @@ describe('moveInventoryItem', () => {
       }
     };
 
-    mockDynamoSend.mockResolvedValueOnce({});
+    global.mockDynamoSend.mockResolvedValueOnce({});
 
     await expect(handler(event)).rejects.toThrow('Character with ID non-existent-char not found');
-    expect(mockDynamoSend).toHaveBeenCalledTimes(1);
+    expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
   });
 
   it('should throw error when source item not found', async () => {
@@ -200,10 +200,10 @@ describe('moveInventoryItem', () => {
       }
     };
 
-    mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
+    global.mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
 
     await expect(handler(event)).rejects.toThrow('Object obj-nonexistent not found in STASH');
-    expect(mockDynamoSend).toHaveBeenCalledTimes(1);
+    expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
   });
 
   it('should throw error when insufficient quantity', async () => {
@@ -224,10 +224,10 @@ describe('moveInventoryItem', () => {
       }
     };
 
-    mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
+    global.mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
 
     await expect(handler(event)).rejects.toThrow('Insufficient quantity. Available: 2, Requested: 5');
-    expect(mockDynamoSend).toHaveBeenCalledTimes(1);
+    expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
   });
 
   it('should handle character with no existing inventory items', async () => {
@@ -247,10 +247,10 @@ describe('moveInventoryItem', () => {
       }
     };
 
-    mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
+    global.mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
 
     await expect(handler(event)).rejects.toThrow('Object obj-456 not found in STASH');
-    expect(mockDynamoSend).toHaveBeenCalledTimes(1);
+    expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
   });
 
   it('should handle DynamoDB get errors', async () => {
@@ -265,10 +265,10 @@ describe('moveInventoryItem', () => {
     };
 
     const dynamoError = new Error('DynamoDB connection error');
-    mockDynamoSend.mockRejectedValueOnce(dynamoError);
+    global.mockDynamoSend.mockRejectedValueOnce(dynamoError);
 
     await expect(handler(event)).rejects.toThrow('DynamoDB connection error');
-    expect(mockDynamoSend).toHaveBeenCalledTimes(1);
+    expect(global.mockDynamoSend).toHaveBeenCalledTimes(1);
   });
 
   it('should handle DynamoDB update errors', async () => {
@@ -291,13 +291,13 @@ describe('moveInventoryItem', () => {
       }
     };
 
-    mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
+    global.mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
 
     const dynamoError = new Error('DynamoDB update error');
-    mockDynamoSend.mockRejectedValueOnce(dynamoError);
+    global.mockDynamoSend.mockRejectedValueOnce(dynamoError);
 
     await expect(handler(event)).rejects.toThrow('DynamoDB update error');
-    expect(mockDynamoSend).toHaveBeenCalledTimes(2);
+    expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
   });
 
   it('should handle missing legacy ID arrays', async () => {
@@ -326,13 +326,13 @@ describe('moveInventoryItem', () => {
       }
     };
 
-    mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
-    mockDynamoSend.mockResolvedValueOnce({ Attributes: updatedCharacter });
+    global.mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
+    global.mockDynamoSend.mockResolvedValueOnce({ Attributes: updatedCharacter });
 
     const result = await handler(event);
 
     expect(result.inventoryItems[0].inventoryLocation).toBe('EQUIPMENT');
-    expect(mockDynamoSend).toHaveBeenCalledTimes(2);
+    expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
   });
 
   it('should use environment variable for table name', async () => {
@@ -357,12 +357,12 @@ describe('moveInventoryItem', () => {
       }
     };
 
-    mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
-    mockDynamoSend.mockResolvedValueOnce({ Attributes: existingCharacter });
+    global.mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
+    global.mockDynamoSend.mockResolvedValueOnce({ Attributes: existingCharacter });
 
     await handler(event);
 
-    expect(mockDynamoSend).toHaveBeenCalledTimes(2);
+    expect(global.mockDynamoSend).toHaveBeenCalledTimes(2);
   });
 
   it('should handle all inventory location combinations', async () => {
@@ -396,8 +396,8 @@ describe('moveInventoryItem', () => {
         }
       };
 
-      mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
-      mockDynamoSend.mockResolvedValueOnce({ Attributes: existingCharacter });
+      global.mockDynamoSend.mockResolvedValueOnce({ Item: existingCharacter });
+      global.mockDynamoSend.mockResolvedValueOnce({ Attributes: existingCharacter });
 
       const result = await handler(event);
       expect(result).toBeDefined();
