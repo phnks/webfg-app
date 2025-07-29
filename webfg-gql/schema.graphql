@@ -116,11 +116,8 @@ type Character {
   readyIds: [ID]
   ready: [Object]
   
-  # New inventory system with quantity tracking
+  # New inventory with quantities
   inventoryItems: [InventoryItem]
-  stashItems: [Object]
-  equipmentItems: [Object]
-  readyItems: [Object]
   
   characterConditions: [CharacterCondition]
   conditions: [CharacterConditionWithDetails]
@@ -195,7 +192,6 @@ input CharacterInput {
   stashIds: [ID]
   equipmentIds: [ID]
   readyIds: [ID]
-  inventoryItems: [InventoryItemInput]
   characterConditions: [CharacterConditionInput]
   targetAttributeTotal: Int
 }
@@ -697,10 +693,6 @@ type Mutation {
   moveObjectToReady(characterId: ID!, objectId: ID!): Character
   moveObjectFromReadyToEquipment(characterId: ID!, objectId: ID!): Character
   moveObjectFromEquipmentToStash(characterId: ID!, objectId: ID!): Character
-  
-  # Inventory quantity mutations
-  updateInventoryQuantity(characterId: ID!, objectId: ID!, quantity: Int!, location: InventoryLocation!): Character
-  moveInventoryItem(characterId: ID!, objectId: ID!, quantity: Int!, fromLocation: InventoryLocation!, toLocation: InventoryLocation!): Character
 
   # Character-Action relationship mutations
   addActionToCharacter(characterId: ID!, actionId: ID!): Character
