@@ -72,7 +72,20 @@ exports.handler = async (event) => {
 };
 
 async function enrichCharacterWithEquipmentAndReady(character) {
-  // Enrich with equipment
+  // Create quantity maps from inventoryItems
+  const inventoryItems = character.inventoryItems || [];
+  const equipmentQuantityMap = new Map();
+  const readyQuantityMap = new Map();
+  
+  inventoryItems.forEach(invItem => {
+    if (invItem.inventoryLocation === 'EQUIPMENT') {
+      equipmentQuantityMap.set(invItem.objectId, invItem.quantity || 1);
+    } else if (invItem.inventoryLocation === 'READY') {
+      readyQuantityMap.set(invItem.objectId, invItem.quantity || 1);
+    }
+  });
+
+  // Enrich with equipment (with quantities)
   let equipment = [];
   if (character.equipmentIds && character.equipmentIds.length > 0) {
     for (const objectId of character.equipmentIds) {
@@ -83,7 +96,11 @@ async function enrichCharacterWithEquipmentAndReady(character) {
         }));
         
         if (result.Item) {
-          equipment.push(result.Item);
+          const quantity = equipmentQuantityMap.get(objectId) || 1;
+          // Add the item multiple times based on quantity
+          for (let i = 0; i < quantity; i++) {
+            equipment.push(result.Item);
+          }
         }
       } catch (error) {
         console.error(`Error fetching equipment object ${objectId}:`, error);
@@ -91,7 +108,7 @@ async function enrichCharacterWithEquipmentAndReady(character) {
     }
   }
 
-  // Enrich with ready objects
+  // Enrich with ready objects (with quantities)
   let ready = [];
   if (character.readyIds && character.readyIds.length > 0) {
     for (const objectId of character.readyIds) {
@@ -102,7 +119,11 @@ async function enrichCharacterWithEquipmentAndReady(character) {
         }));
         
         if (result.Item) {
-          ready.push(result.Item);
+          const quantity = readyQuantityMap.get(objectId) || 1;
+          // Add the item multiple times based on quantity
+          for (let i = 0; i < quantity; i++) {
+            ready.push(result.Item);
+          }
         }
       } catch (error) {
         console.error(`Error fetching ready object ${objectId}:`, error);

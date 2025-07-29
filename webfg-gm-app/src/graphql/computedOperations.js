@@ -122,6 +122,10 @@ export const GET_CHARACTER_WITH_GROUPED = gql`
       actionIds
       actions { actionId name actionCategory description sourceAttribute targetAttribute targetType effectType objectUsage }
       targetAttributeTotal
+      
+      # Inventory with quantity tracking
+      inventoryItems { objectId quantity inventoryLocation }
+      
       stashIds
       stash { objectId name objectCategory }
       equipmentIds

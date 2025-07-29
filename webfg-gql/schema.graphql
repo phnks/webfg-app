@@ -51,6 +51,25 @@ input MindThoughtInput {
   location: MindLocation!
 }
 
+# InventoryItem represents an object in a character's inventory with quantity tracking
+type InventoryItem {
+  objectId: ID!
+  quantity: Int!
+  inventoryLocation: InventoryLocation!
+}
+
+enum InventoryLocation {
+  STASH
+  EQUIPMENT
+  READY
+}
+
+input InventoryItemInput {
+  objectId: ID!
+  quantity: Int!
+  inventoryLocation: InventoryLocation!
+}
+
 type Character {
   characterId: ID!
   name: String!
@@ -96,6 +115,9 @@ type Character {
   equipment: [Object]
   readyIds: [ID]
   ready: [Object]
+  
+  # New inventory with quantities
+  inventoryItems: [InventoryItem]
   
   characterConditions: [CharacterCondition]
   conditions: [CharacterConditionWithDetails]
@@ -731,6 +753,10 @@ type Mutation {
   moveThoughtToConscious(characterId: ID!, thoughtId: ID!): Character
   moveThoughtToMemory(characterId: ID!, thoughtId: ID!): Character
   updateThoughtAffinityKnowledge(characterId: ID!, thoughtId: ID!, affinity: Int!, knowledge: Int!): Character
+
+  # Inventory quantity mutations
+  updateInventoryQuantity(characterId: ID!, objectId: ID!, quantity: Int!, location: InventoryLocation!): Character
+  moveInventoryItem(characterId: ID!, objectId: ID!, fromLocation: InventoryLocation!, toLocation: InventoryLocation!, quantity: Int!): Character
 
 }
 

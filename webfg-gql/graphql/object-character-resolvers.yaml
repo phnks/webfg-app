@@ -121,6 +121,41 @@ Resources:
         - DynamoDBWritePolicy:
             TableName: !Ref CharactersTableName
 
+  # Inventory quantity management functions
+  UpdateInventoryQuantityFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/updateInventoryQuantity.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
+
+  MoveInventoryItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/moveInventoryItem.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          CHARACTERS_TABLE: !Ref CharactersTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CharactersTableName
+        - DynamoDBWritePolicy:
+            TableName: !Ref CharactersTableName
+
   # Data sources for new functions
   AddObjectToStashDataSource:
     Type: AWS::AppSync::DataSource
@@ -181,6 +216,37 @@ Resources:
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
         LambdaFunctionArn: !GetAtt MoveObjectFromEquipmentToStashFunction.Arn
+
+  # Data sources for inventory quantity functions
+  UpdateInventoryQuantityDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: UpdateInventoryQuantity
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt UpdateInventoryQuantityFunction.Arn
+
+  MoveInventoryItemDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: MoveInventoryItem
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt MoveInventoryItemFunction.Arn
+
+  ResolveCharacterInventoryItemsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ResolveCharacterInventoryItems
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ResolveCharacterInventoryItemsFunction.Arn
 
   # Resolvers for new mutations
   AddObjectToStashResolver:
@@ -291,12 +357,65 @@ Resources:
       ResponseMappingTemplate: |
         $util.toJson($ctx.result)
 
+  # Inventory quantity mutation resolvers
+  UpdateInventoryQuantityResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: updateInventoryQuantity
+      DataSourceName: !GetAtt UpdateInventoryQuantityDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  MoveInventoryItemResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Mutation
+      FieldName: moveInventoryItem
+      DataSourceName: !GetAtt MoveInventoryItemDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "arguments": $util.toJson($ctx.args)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
   # Character object resolvers
   ResolveCharacterObjectsFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../
       Handler: ./functions/resolveCharacterObjects.handler
+      Runtime: nodejs22.x
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          OBJECTS_TABLE: !Ref ObjectsTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ObjectsTableName
+
+  # Inventory items resolver function
+  ResolveCharacterInventoryItemsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: ./functions/resolveCharacterInventoryItems.handler
       Runtime: nodejs22.x
       MemorySize: 1024
       Timeout: 30
@@ -316,6 +435,16 @@ Resources:
       ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
       LambdaConfig:
         LambdaFunctionArn: !GetAtt ResolveCharacterObjectsFunction.Arn
+
+  ResolveCharacterInventoryItemsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !Ref ApiId
+      Name: ResolveCharacterInventoryItems
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !Ref AppSyncLambdaServiceRoleArn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ResolveCharacterInventoryItemsFunction.Arn
 
   CharacterStashResolver:
     Type: AWS::AppSync::Resolver
@@ -369,6 +498,25 @@ Resources:
           "payload": {
             "field": "ready",
             "source": $util.toJson($context.source)
+          }
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($ctx.result)
+
+  CharacterInventoryItemsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !Ref ApiId
+      TypeName: Character
+      FieldName: inventoryItems
+      DataSourceName: !GetAtt ResolveCharacterInventoryItemsDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "operation": "Invoke",
+          "payload": {
+            "source": $util.toJson($context.source),
+            "arguments": $util.toJson($context.arguments)
           }
         }
       ResponseMappingTemplate: |

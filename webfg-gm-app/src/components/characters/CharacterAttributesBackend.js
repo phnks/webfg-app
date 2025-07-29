@@ -161,28 +161,62 @@ const CharacterAttributesBackend = ({
     }
     
     // Equipment objects
+    // Only include equipment items that are marked as equipment (isEquipment: true)
+    // Skip weapons/tools that require active use (isEquipment: false)
+    // Use quantity from inventoryItems to handle multiple instances
     if (character?.equipment?.length > 0) {
+      const inventoryItems = character.inventoryItems || [];
+      const equipmentQuantityMap = new Map();
+      
+      // Build quantity map for equipment items
+      inventoryItems
+        .filter(invItem => invItem.inventoryLocation === 'EQUIPMENT')
+        .forEach(invItem => {
+          equipmentQuantityMap.set(invItem.objectId, invItem.quantity);
+        });
+      
       character.equipment.forEach(item => {
         const itemAttr = item[attributeKey];
-        if (itemAttr && itemAttr.attributeValue !== undefined) {
+        // Default to true if isEquipment is undefined/null for backwards compatibility
+        const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+        if (itemAttr && itemAttr.attributeValue !== undefined && isEquipment !== false) {
           const itemValue = Number(itemAttr.attributeValue);
           const itemIsGrouped = itemAttr.isGrouped !== false;
           if (itemIsGrouped && itemValue > 0) {
-            allValues.push({ value: itemValue, name: item.name || 'Equipment', type: 'equipment' });
+            const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+            // Add the item multiple times based on quantity
+            for (let i = 0; i < quantity; i++) {
+              allValues.push({ value: itemValue, name: item.name || 'Equipment', type: 'equipment' });
+            }
           }
         }
       });
     }
     
     // Ready objects
+    // Use quantity from inventoryItems to handle multiple instances
     if (character?.ready?.length > 0) {
+      const inventoryItems = character.inventoryItems || [];
+      const readyQuantityMap = new Map();
+      
+      // Build quantity map for ready items
+      inventoryItems
+        .filter(invItem => invItem.inventoryLocation === 'READY')
+        .forEach(invItem => {
+          readyQuantityMap.set(invItem.objectId, invItem.quantity);
+        });
+      
       character.ready.forEach(item => {
         const itemAttr = item[attributeKey];
         if (itemAttr && itemAttr.attributeValue !== undefined) {
           const itemValue = Number(itemAttr.attributeValue);
           const itemIsGrouped = itemAttr.isGrouped !== false;
           if (itemIsGrouped && itemValue > 0) {
-            allValues.push({ value: itemValue, name: item.name || 'Ready Object', type: 'ready' });
+            const quantity = readyQuantityMap.get(item.objectId) || 1;
+            // Add the item multiple times based on quantity
+            for (let i = 0; i < quantity; i++) {
+              allValues.push({ value: itemValue, name: item.name || 'Ready Object', type: 'ready' });
+            }
           }
         }
       });
@@ -381,10 +415,14 @@ const CharacterAttributesBackend = ({
           }
           
           // Add equipment values if they're groupable
+          // Only include equipment items that are marked as equipment (isEquipment: true)
+          // Skip weapons/tools that require active use (isEquipment: false)
           if (character?.equipment?.length > 0) {
             character.equipment.forEach(item => {
               const itemAttr = item[attrName];
-              if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
+              // Default to true if isEquipment is undefined/null for backwards compatibility
+              const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+              if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false && isEquipment !== false) {
                 const itemValue = Number(itemAttr.attributeValue);
                 if (itemValue > 0) {
                   valuesToGroup.push(itemValue);
@@ -477,26 +515,60 @@ const CharacterAttributesBackend = ({
         }
         
         // Add equipment values if they're groupable
+        // Only include equipment items that are marked as equipment (isEquipment: true)
+        // Skip weapons/tools that require active use (isEquipment: false)
+        // Use quantity from inventoryItems to handle multiple instances
         if (character?.equipment?.length > 0) {
+          const inventoryItems = character.inventoryItems || [];
+          const equipmentQuantityMap = new Map();
+          
+          // Build quantity map for equipment items
+          inventoryItems
+            .filter(invItem => invItem.inventoryLocation === 'EQUIPMENT')
+            .forEach(invItem => {
+              equipmentQuantityMap.set(invItem.objectId, invItem.quantity);
+            });
+          
           character.equipment.forEach(item => {
             const itemAttr = item[attrName];
-            if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
+            // Default to true if isEquipment is undefined/null for backwards compatibility
+            const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+            if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false && isEquipment !== false) {
               const itemValue = Number(itemAttr.attributeValue);
               if (itemValue > 0) {
-                valuesToGroup.push(itemValue);
+                const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+                // Add the item value multiple times based on quantity
+                for (let i = 0; i < quantity; i++) {
+                  valuesToGroup.push(itemValue);
+                }
               }
             }
           });
         }
         
         // Add ready objects values if they're groupable
+        // Use quantity from inventoryItems to handle multiple instances
         if (character?.ready?.length > 0) {
+          const inventoryItems = character.inventoryItems || [];
+          const readyQuantityMap = new Map();
+          
+          // Build quantity map for ready items
+          inventoryItems
+            .filter(invItem => invItem.inventoryLocation === 'READY')
+            .forEach(invItem => {
+              readyQuantityMap.set(invItem.objectId, invItem.quantity);
+            });
+          
           character.ready.forEach(item => {
             const itemAttr = item[attrName];
             if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
               const itemValue = Number(itemAttr.attributeValue);
               if (itemValue > 0) {
-                valuesToGroup.push(itemValue);
+                const quantity = readyQuantityMap.get(item.objectId) || 1;
+                // Add the item value multiple times based on quantity
+                for (let i = 0; i < quantity; i++) {
+                  valuesToGroup.push(itemValue);
+                }
               }
             }
           });

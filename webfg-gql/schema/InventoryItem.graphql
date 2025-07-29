@@ -1,0 +1,18 @@
+# InventoryItem represents an object in a character's inventory with quantity tracking
+type InventoryItem {
+  objectId: ID!
+  quantity: Int!
+  inventoryLocation: InventoryLocation!
+}
+
+enum InventoryLocation {
+  STASH
+  EQUIPMENT
+  READY
+}
+
+input InventoryItemInput {
+  objectId: ID!
+  quantity: Int!
+  inventoryLocation: InventoryLocation!
+}

@@ -1652,3 +1652,28 @@ export const UPDATE_THOUGHT_AFFINITY_KNOWLEDGE = gql`
     }
   }
 `;
+
+// Inventory quantity mutations
+export const UPDATE_INVENTORY_QUANTITY = gql`
+  mutation UpdateInventoryQuantity($characterId: ID!, $objectId: ID!, $quantity: Int!, $location: InventoryLocation!) {
+    updateInventoryQuantity(characterId: $characterId, objectId: $objectId, quantity: $quantity, location: $location) {
+      characterId
+      inventoryItems { objectId quantity inventoryLocation }
+      stash { objectId name objectCategory }
+      equipment { objectId name objectCategory }
+      ready { objectId name objectCategory }
+    }
+  }
+`;
+
+export const MOVE_INVENTORY_ITEM = gql`
+  mutation MoveInventoryItem($characterId: ID!, $objectId: ID!, $quantity: Int!, $fromLocation: InventoryLocation!, $toLocation: InventoryLocation!) {
+    moveInventoryItem(characterId: $characterId, objectId: $objectId, quantity: $quantity, fromLocation: $fromLocation, toLocation: $toLocation) {
+      characterId
+      inventoryItems { objectId quantity inventoryLocation }
+      stash { objectId name objectCategory }
+      equipment { objectId name objectCategory }
+      ready { objectId name objectCategory }
+    }
+  }
+`;

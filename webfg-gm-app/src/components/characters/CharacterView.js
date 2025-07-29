@@ -17,7 +17,9 @@ import {
   MOVE_THOUGHT_TO_SUBCONSCIOUS,
   MOVE_THOUGHT_TO_CONSCIOUS,
   MOVE_THOUGHT_TO_MEMORY,
-  UPDATE_THOUGHT_AFFINITY_KNOWLEDGE
+  UPDATE_THOUGHT_AFFINITY_KNOWLEDGE,
+  UPDATE_INVENTORY_QUANTITY,
+  MOVE_INVENTORY_ITEM
 } from "../../graphql/operations";
 import { GET_CHARACTER_WITH_GROUPED } from "../../graphql/computedOperations";
 import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
@@ -30,6 +32,8 @@ import "./CharacterView.css";
 import ErrorPopup from '../common/ErrorPopup'; // Import ErrorPopup
 import QuickAdjustPopup from '../common/QuickAdjustPopup';
 import ThoughtAttributesModal from '../common/ThoughtAttributesModal';
+import InventoryQuantityModal from '../common/InventoryQuantityModal';
+import InventoryMoveModal from '../common/InventoryMoveModal';
 
 const CharacterView = ({ startInEditMode = false }) => {
   const { characterId } = useParams();
@@ -44,6 +48,8 @@ const CharacterView = ({ startInEditMode = false }) => {
   const [isInventoryExpanded, setIsInventoryExpanded] = useState(true); // For collapsible inventory - always expanded
   const [isMindExpanded, setIsMindExpanded] = useState(true); // For collapsible mind section - always expanded
   const [isEditingThoughtAttributes, setIsEditingThoughtAttributes] = useState(null); // For thought affinity/knowledge modal
+  const [isEditingInventoryQuantity, setIsEditingInventoryQuantity] = useState(null); // For inventory quantity edit
+  const [inventoryMoveAction, setInventoryMoveAction] = useState(null); // For inventory movement with quantity
   
   // Subsection collapse states - with appropriate defaults
   const [isMemoryExpanded, setIsMemoryExpanded] = useState(false); // Memory: collapsed by default
@@ -213,6 +219,26 @@ const CharacterView = ({ startInEditMode = false }) => {
     }
   });
 
+  const [updateInventoryQuantity] = useMutation(UPDATE_INVENTORY_QUANTITY, {
+    onError: (err) => {
+      console.error("Error updating inventory quantity:", err);
+      setMutationError({ 
+        message: err.message || "Error updating inventory quantity", 
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  });
+
+  const [moveInventoryItem] = useMutation(MOVE_INVENTORY_ITEM, {
+    onError: (err) => {
+      console.error("Error moving inventory item:", err);
+      setMutationError({ 
+        message: err.message || "Error moving inventory item", 
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  });
+
   // Subscribe to character updates
   useSubscription(ON_UPDATE_CHARACTER, {
     onData: ({ data }) => {
@@ -295,83 +321,167 @@ const CharacterView = ({ startInEditMode = false }) => {
 
   // Handler for moving item from stash to equipment
   const handleEquipItem = async (objectId) => {
-    try {
-      await moveObjectToEquipment({
-        variables: { characterId, objectId }
+    const stashWithQuantities = getInventoryWithQuantities(character.stash || [], 'STASH');
+    const equipmentWithQuantities = getInventoryWithQuantities(character.equipment || [], 'EQUIPMENT');
+    const item = stashWithQuantities.find(i => i.objectId === objectId);
+    const existingEquipmentItem = equipmentWithQuantities.find(i => i.objectId === objectId);
+    
+    // Always use quantity system if item has quantity > 1 OR if destination already has this item
+    if ((item && item.quantity > 1) || existingEquipmentItem) {
+      setInventoryMoveAction({
+        item,
+        objectId,
+        fromLocation: 'STASH',
+        toLocation: 'EQUIPMENT',
+        action: 'Equip',
+        maxQuantity: item.quantity,
+        destinationQuantity: existingEquipmentItem ? existingEquipmentItem.quantity : 0
       });
-      refetch();
-    } catch (err) {
-      console.error("Error equipping item:", err);
-      setMutationError({ 
-        message: "Failed to equip item. " + (err.message || ""),
-        stack: err.stack || "No stack trace available."
-      });
+    } else {
+      try {
+        await moveObjectToEquipment({
+          variables: { characterId, objectId }
+        });
+        refetch();
+      } catch (err) {
+        console.error("Error equipping item:", err);
+        setMutationError({ 
+          message: "Failed to equip item. " + (err.message || ""),
+          stack: err.stack || "No stack trace available."
+        });
+      }
     }
   };
   
   // Handler for moving item from equipment to stash
   const handleUnequipItem = async (objectId) => {
-    try {
-      await moveObjectFromEquipmentToStash({
-        variables: { characterId, objectId }
+    const equipmentWithQuantities = getInventoryWithQuantities(character.equipment || [], 'EQUIPMENT');
+    const stashWithQuantities = getInventoryWithQuantities(character.stash || [], 'STASH');
+    const item = equipmentWithQuantities.find(i => i.objectId === objectId);
+    const existingStashItem = stashWithQuantities.find(i => i.objectId === objectId);
+    
+    // Always use quantity system if item has quantity > 1 OR if destination already has this item
+    if ((item && item.quantity > 1) || existingStashItem) {
+      setInventoryMoveAction({
+        item,
+        objectId,
+        fromLocation: 'EQUIPMENT',
+        toLocation: 'STASH',
+        action: 'Stash',
+        maxQuantity: item.quantity,
+        destinationQuantity: existingStashItem ? existingStashItem.quantity : 0
       });
-      
-      // Refetch to update the UI
-      refetch();
-    } catch (err) {
-      console.error("Error unequipping item:", err);
-      setMutationError({ 
-        message: "Failed to unequip item. " + (err.message || ""),
-        stack: err.stack || "No stack trace available."
-      });
+    } else {
+      try {
+        await moveObjectFromEquipmentToStash({
+          variables: { characterId, objectId }
+        });
+        refetch();
+      } catch (err) {
+        console.error("Error unequipping item:", err);
+        setMutationError({ 
+          message: "Failed to unequip item. " + (err.message || ""),
+          stack: err.stack || "No stack trace available."
+        });
+      }
     }
   };
 
   // Handler for moving item from equipment to ready
   const handleReadyItem = async (objectId) => {
-    try {
-      await moveObjectToReady({
-        variables: { characterId, objectId }
+    const equipmentWithQuantities = getInventoryWithQuantities(character.equipment || [], 'EQUIPMENT');
+    const readyWithQuantities = getInventoryWithQuantities(character.ready || [], 'READY');
+    const item = equipmentWithQuantities.find(i => i.objectId === objectId);
+    const existingReadyItem = readyWithQuantities.find(i => i.objectId === objectId);
+    
+    // Always use quantity system if item has quantity > 1 OR if destination already has this item
+    if ((item && item.quantity > 1) || existingReadyItem) {
+      setInventoryMoveAction({
+        item,
+        objectId,
+        fromLocation: 'EQUIPMENT',
+        toLocation: 'READY',
+        action: 'Ready',
+        maxQuantity: item.quantity,
+        destinationQuantity: existingReadyItem ? existingReadyItem.quantity : 0
       });
-      refetch();
-    } catch (err) {
-      console.error("Error readying item:", err);
-      setMutationError({ 
-        message: "Failed to ready item. " + (err.message || ""),
-        stack: err.stack || "No stack trace available."
-      });
+    } else {
+      try {
+        await moveObjectToReady({
+          variables: { characterId, objectId }
+        });
+        refetch();
+      } catch (err) {
+        console.error("Error readying item:", err);
+        setMutationError({ 
+          message: "Failed to ready item. " + (err.message || ""),
+          stack: err.stack || "No stack trace available."
+        });
+      }
     }
   };
 
   // Handler for moving item from ready to equipment
   const handleUnreadyItem = async (objectId) => {
-    try {
-      await moveObjectFromReadyToEquipment({
-        variables: { characterId, objectId }
+    const readyWithQuantities = getInventoryWithQuantities(character.ready || [], 'READY');
+    const equipmentWithQuantities = getInventoryWithQuantities(character.equipment || [], 'EQUIPMENT');
+    const item = readyWithQuantities.find(i => i.objectId === objectId);
+    const existingEquipmentItem = equipmentWithQuantities.find(i => i.objectId === objectId);
+    
+    // Always use quantity system if item has quantity > 1 OR if destination already has this item
+    if ((item && item.quantity > 1) || existingEquipmentItem) {
+      setInventoryMoveAction({
+        item,
+        objectId,
+        fromLocation: 'READY',
+        toLocation: 'EQUIPMENT',
+        action: 'Unready',
+        maxQuantity: item.quantity,
+        destinationQuantity: existingEquipmentItem ? existingEquipmentItem.quantity : 0
       });
-      refetch();
-    } catch (err) {
-      console.error("Error unreadying item:", err);
-      setMutationError({ 
-        message: "Failed to unready item. " + (err.message || ""),
-        stack: err.stack || "No stack trace available."
-      });
+    } else {
+      try {
+        await moveObjectFromReadyToEquipment({
+          variables: { characterId, objectId }
+        });
+        refetch();
+      } catch (err) {
+        console.error("Error unreadying item:", err);
+        setMutationError({ 
+          message: "Failed to unready item. " + (err.message || ""),
+          stack: err.stack || "No stack trace available."
+        });
+      }
     }
   };
 
   // Handler for removing item from stash completely
   const handleRemoveItem = async (objectId) => {
-    try {
-      await removeObjectFromStash({
-        variables: { characterId, objectId }
+    const stashWithQuantities = getInventoryWithQuantities(character.stash || [], 'STASH');
+    const item = stashWithQuantities.find(i => i.objectId === objectId);
+    
+    if (item && item.quantity > 1) {
+      setInventoryMoveAction({
+        item,
+        objectId,
+        fromLocation: 'STASH',
+        toLocation: null, // null indicates removal
+        action: 'Remove',
+        maxQuantity: item.quantity
       });
-      refetch();
-    } catch (err) {
-      console.error("Error removing item:", err);
-      setMutationError({ 
-        message: "Failed to remove item. " + (err.message || ""),
-        stack: err.stack || "No stack trace available."
-      });
+    } else {
+      try {
+        await removeObjectFromStash({
+          variables: { characterId, objectId }
+        });
+        refetch();
+      } catch (err) {
+        console.error("Error removing item:", err);
+        setMutationError({ 
+          message: "Failed to remove item. " + (err.message || ""),
+          stack: err.stack || "No stack trace available."
+        });
+      }
     }
   };
 
@@ -499,6 +609,104 @@ const CharacterView = ({ startInEditMode = false }) => {
         stack: err.stack || "No stack trace available."
       });
     }
+  };
+
+  // Inventory quantity handlers
+  const handleEditInventoryQuantity = (item, location) => {
+    setIsEditingInventoryQuantity({ ...item, location });
+  };
+
+  const handleUpdateInventoryQuantity = async (objectId, quantity) => {
+    if (!isEditingInventoryQuantity) return;
+    
+    try {
+      await updateInventoryQuantity({
+        variables: {
+          characterId,
+          objectId,
+          quantity,
+          location: isEditingInventoryQuantity.location
+        }
+      });
+      setIsEditingInventoryQuantity(null);
+      refetch();
+    } catch (err) {
+      console.error("Error updating inventory quantity:", err);
+      setMutationError({ 
+        message: err.message || "Error updating inventory quantity", 
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  };
+
+  const handleInventoryMoveWithQuantity = async (quantity) => {
+    if (!inventoryMoveAction) return;
+    
+    const { objectId, fromLocation, toLocation } = inventoryMoveAction;
+    
+    try {
+      if (toLocation === null) {
+        // Handle removal - we need to update quantity to reduce it
+        const currentItem = character.inventoryItems?.find(
+          item => item.objectId === objectId && item.inventoryLocation === fromLocation
+        );
+        
+        if (currentItem && currentItem.quantity > quantity) {
+          // Reduce quantity
+          await updateInventoryQuantity({
+            variables: {
+              characterId,
+              objectId,
+              quantity: currentItem.quantity - quantity,
+              location: fromLocation
+            }
+          });
+        } else {
+          // Remove completely
+          await removeObjectFromStash({
+            variables: { characterId, objectId }
+          });
+        }
+      } else {
+        // Move between locations
+        await moveInventoryItem({
+          variables: {
+            characterId,
+            objectId,
+            quantity,
+            fromLocation,
+            toLocation
+          }
+        });
+      }
+      setInventoryMoveAction(null);
+      refetch();
+    } catch (err) {
+      console.error("Error moving inventory item:", err);
+      setMutationError({ 
+        message: err.message || "Error moving inventory item", 
+        stack: err.stack || "No stack trace available."
+      });
+    }
+  };
+
+  // Helper function to get inventory data with quantities
+  const getInventoryWithQuantities = (items, location) => {
+    const inventoryItems = character.inventoryItems || [];
+    const itemMap = new Map();
+    
+    // Build quantity map
+    inventoryItems
+      .filter(invItem => invItem.inventoryLocation === location)
+      .forEach(invItem => {
+        itemMap.set(invItem.objectId, invItem.quantity);
+      });
+    
+    // Enhance items with quantities
+    return items.map(item => ({
+      ...item,
+      quantity: itemMap.get(item.objectId) || 1
+    }));
   };
 
   if (loading) return <div className="loading">Loading character details...</div>;
@@ -854,12 +1062,25 @@ const CharacterView = ({ startInEditMode = false }) => {
                     <div>
                   {character.stash && character.stash.length > 0 ? (
                     <ul className="inventory-list">
-                      {character.stash.map((item) => (
+                      {getInventoryWithQuantities(character.stash, 'STASH').map((item) => (
                         <li key={item.objectId} className="inventory-item">
                           <div className="item-info">
                             <Link to={`/objects/${item.objectId}`} className="object-link">
                               {item.name} ({item.objectCategory})
                             </Link>
+                            <span 
+                              className="item-quantity"
+                              onClick={() => handleEditInventoryQuantity(item, 'STASH')}
+                              style={{ 
+                                marginLeft: '8px', 
+                                color: '#007bff', 
+                                cursor: 'pointer',
+                                textDecoration: 'underline'
+                              }}
+                              title="Click to edit quantity"
+                            >
+                              x{item.quantity}
+                            </span>
                           </div>
                           <div className="item-actions">
                             <button 
@@ -923,12 +1144,25 @@ const CharacterView = ({ startInEditMode = false }) => {
                     <div>
                   {character.equipment && character.equipment.length > 0 ? (
                     <ul className="inventory-list">
-                      {character.equipment.map((item) => (
+                      {getInventoryWithQuantities(character.equipment, 'EQUIPMENT').map((item) => (
                         <li key={item.objectId} className="inventory-item">
                           <div className="item-info">
                             <Link to={`/objects/${item.objectId}`} className="object-link">
                               {item.name} ({item.objectCategory})
                             </Link>
+                            <span 
+                              className="item-quantity"
+                              onClick={() => handleEditInventoryQuantity(item, 'EQUIPMENT')}
+                              style={{ 
+                                marginLeft: '8px', 
+                                color: '#007bff', 
+                                cursor: 'pointer',
+                                textDecoration: 'underline'
+                              }}
+                              title="Click to edit quantity"
+                            >
+                              x{item.quantity}
+                            </span>
                           </div>
                           <div className="item-actions">
                             <button 
@@ -992,12 +1226,25 @@ const CharacterView = ({ startInEditMode = false }) => {
                     <div>
                   {character.ready && character.ready.length > 0 ? (
                     <ul className="inventory-list">
-                      {character.ready.map((item) => (
+                      {getInventoryWithQuantities(character.ready, 'READY').map((item) => (
                         <li key={item.objectId} className="inventory-item">
                           <div className="item-info">
                             <Link to={`/objects/${item.objectId}`} className="object-link">
                               {item.name} ({item.objectCategory})
                             </Link>
+                            <span 
+                              className="item-quantity"
+                              onClick={() => handleEditInventoryQuantity(item, 'READY')}
+                              style={{ 
+                                marginLeft: '8px', 
+                                color: '#007bff', 
+                                cursor: 'pointer',
+                                textDecoration: 'underline'
+                              }}
+                              title="Click to edit quantity"
+                            >
+                              x{item.quantity}
+                            </span>
                           </div>
                           <div className="item-actions">
                             <button 
@@ -1167,6 +1414,25 @@ const CharacterView = ({ startInEditMode = false }) => {
           mindThought={isEditingThoughtAttributes}
           onSave={handleUpdateThoughtAttributes}
           onCancel={() => setIsEditingThoughtAttributes(null)}
+        />
+      )}
+      
+      {isEditingInventoryQuantity && (
+        <InventoryQuantityModal
+          item={isEditingInventoryQuantity}
+          onSave={handleUpdateInventoryQuantity}
+          onCancel={() => setIsEditingInventoryQuantity(null)}
+        />
+      )}
+      
+      {inventoryMoveAction && (
+        <InventoryMoveModal
+          item={inventoryMoveAction.item}
+          action={inventoryMoveAction.action}
+          maxQuantity={inventoryMoveAction.maxQuantity}
+          destinationQuantity={inventoryMoveAction.destinationQuantity || 0}
+          onConfirm={handleInventoryMoveWithQuantity}
+          onCancel={() => setInventoryMoveAction(null)}
         />
       )}
     </div>
