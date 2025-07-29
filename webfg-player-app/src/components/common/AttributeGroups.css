@@ -1,0 +1,161 @@
+.attribute-groups {
+  margin: 20px 0;
+}
+
+.attributes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.attributes-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.2em;
+}
+
+.generate-attributes-button {
+  padding: 6px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.generate-attributes-button:hover {
+  background-color: #0056b3;
+}
+
+.generate-attributes-button:active {
+  background-color: #004085;
+}
+
+.attribute-group {
+  margin-bottom: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.group-header:hover {
+  background-color: #e9ecef;
+}
+
+.group-header.expanded {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.group-icon {
+  margin-right: 10px;
+  font-size: 0.8em;
+  color: #666;
+  width: 12px;
+  text-align: center;
+}
+
+.group-name {
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.group-count {
+  font-size: 0.9em;
+  color: #666;
+  margin-left: 8px;
+}
+
+.group-content {
+  padding: 15px;
+  background-color: #fff;
+}
+
+.attribute-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.attribute-item:last-child {
+  border-bottom: none;
+}
+
+.attribute-item label {
+  font-weight: 500;
+  color: #555;
+  flex: 1;
+}
+
+.attribute-item span {
+  font-weight: 600;
+  color: #333;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Form-specific styling when used in forms */
+.form-group .attribute-groups {
+  margin: 10px 0;
+}
+
+.form-group .group-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  padding: 15px;
+}
+
+.form-group .attribute-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  border: none;
+}
+
+.form-group .attribute-item label {
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #455a64;
+}
+
+.form-group .attribute-item input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .form-group .group-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .group-header {
+    padding: 10px 12px;
+  }
+  
+  .group-content {
+    padding: 12px;
+  }
+}

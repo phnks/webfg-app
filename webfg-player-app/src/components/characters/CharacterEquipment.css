@@ -1,0 +1,27 @@
+.character-equipment {
+  flex: 1;
+}
+
+.equipment-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.equipment-slot {
+  padding: 12px;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  border: 1px solid #eee;
+}
+
+.slot-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.slot-item {
+  font-weight: 500;
+  min-height: 20px;
+} 
