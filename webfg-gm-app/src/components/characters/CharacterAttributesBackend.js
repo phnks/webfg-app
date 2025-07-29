@@ -161,10 +161,14 @@ const CharacterAttributesBackend = ({
     }
     
     // Equipment objects
+    // Only include equipment items that are marked as equipment (isEquipment: true)
+    // Skip weapons/tools that require active use (isEquipment: false)
     if (character?.equipment?.length > 0) {
       character.equipment.forEach(item => {
         const itemAttr = item[attributeKey];
-        if (itemAttr && itemAttr.attributeValue !== undefined) {
+        // Default to true if isEquipment is undefined/null for backwards compatibility
+        const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+        if (itemAttr && itemAttr.attributeValue !== undefined && isEquipment !== false) {
           const itemValue = Number(itemAttr.attributeValue);
           const itemIsGrouped = itemAttr.isGrouped !== false;
           if (itemIsGrouped && itemValue > 0) {
