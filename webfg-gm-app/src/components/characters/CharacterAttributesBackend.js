@@ -381,10 +381,14 @@ const CharacterAttributesBackend = ({
           }
           
           // Add equipment values if they're groupable
+          // Only include equipment items that are marked as equipment (isEquipment: true)
+          // Skip weapons/tools that require active use (isEquipment: false)
           if (character?.equipment?.length > 0) {
             character.equipment.forEach(item => {
               const itemAttr = item[attrName];
-              if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
+              // Default to true if isEquipment is undefined/null for backwards compatibility
+              const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+              if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false && isEquipment !== false) {
                 const itemValue = Number(itemAttr.attributeValue);
                 if (itemValue > 0) {
                   valuesToGroup.push(itemValue);
@@ -477,10 +481,14 @@ const CharacterAttributesBackend = ({
         }
         
         // Add equipment values if they're groupable
+        // Only include equipment items that are marked as equipment (isEquipment: true)
+        // Skip weapons/tools that require active use (isEquipment: false)
         if (character?.equipment?.length > 0) {
           character.equipment.forEach(item => {
             const itemAttr = item[attrName];
-            if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
+            // Default to true if isEquipment is undefined/null for backwards compatibility
+            const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+            if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false && isEquipment !== false) {
               const itemValue = Number(itemAttr.attributeValue);
               if (itemValue > 0) {
                 valuesToGroup.push(itemValue);
