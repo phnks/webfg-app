@@ -48,6 +48,27 @@ jobs:
       - name: Run GM App unit tests with coverage
         run: npm run test:ci
 
+  test-player-app-unit:
+    name: Run Player App Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./webfg-player-app
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Player App dependencies
+        run: npm install
+
+      - name: Run Player App unit tests with coverage
+        run: npm run test:ci
+
   deploy-gql-qa:
     name: Deploy GQL to QA (PR-${{ github.event.number }})
     runs-on: ubuntu-latest
@@ -132,49 +153,107 @@ jobs:
         run: npm install
 
       - name: Deploy GM App QA Stack (PR-${{ env.DEPLOYMENT_ID }})
-        # Deploy script now uses the build artifacts created in the previous step
-        run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }} # Call script
+        run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }}
 
-      - name: Construct GM App URL
-        id: construct_url
+  deploy-player-app-qa:
+    name: Deploy Player App to QA (PR-${{ github.event.number }})
+    runs-on: ubuntu-latest
+    needs: [deploy-gql-qa, test-player-app-unit] # Wait for GQL deployment and Player App unit tests
+    defaults:
+      run:
+        working-directory: ./webfg-player-app
+    env:
+      DEPLOYMENT_ID: ${{ github.event.number }} # Use PR number as Deployment ID
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install SAM CLI
         run: |
-          echo "app_url=https://webfg-gm-app-qa${{ env.DEPLOYMENT_ID }}.phnks.com" >> $GITHUB_OUTPUT
-        working-directory: . # Run at root to ensure GITHUB_OUTPUT path is correct relative to runner
+          pip install aws-sam-cli
+        working-directory: . # Run at root
 
-      - name: Check for existing URL comment
-        id: check_comment
+      - name: Install Player App dependencies
+        run: npm install
+
+      - name: Deploy Player App QA Stack (PR-${{ env.DEPLOYMENT_ID }})
+        run: bash scripts/deploy.sh qa ${{ env.DEPLOYMENT_ID }}
+
+  add-pr-comments:
+    name: Add App URLs to PR Comments
+    runs-on: ubuntu-latest
+    needs: [deploy-gm-app-qa, deploy-player-app-qa] # Wait for both app deployments
+    env:
+      DEPLOYMENT_ID: ${{ github.event.number }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Construct App URLs
+        id: construct_urls
+        run: |
+          echo "gm_app_url=https://webfg-gm-app-qa${{ env.DEPLOYMENT_ID }}.phnks.com" >> $GITHUB_OUTPUT
+          echo "player_app_url=https://webfg-player-app-qa${{ env.DEPLOYMENT_ID }}.phnks.com" >> $GITHUB_OUTPUT
+
+      - name: Check for existing URL comments
+        id: check_comments
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          PR_NUMBER: ${{ env.DEPLOYMENT_ID }} 
-          APP_URL: ${{ steps.construct_url.outputs.app_url }}
+          PR_NUMBER: ${{ env.DEPLOYMENT_ID }}
+          GM_APP_URL: ${{ steps.construct_urls.outputs.gm_app_url }}
+          PLAYER_APP_URL: ${{ steps.construct_urls.outputs.player_app_url }}
         run: |
-          echo "Checking for comment: $APP_URL on PR $PR_NUMBER"
-          # Fetch comments, allow empty result if no comments or PR not found initially (e.g. draft PRs)
+          echo "Checking for comments on PR $PR_NUMBER"
           existing_comments=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments.[].body' || echo "")
-          if echo "$existing_comments" | grep -Fxq "$APP_URL"; then
-            echo "INFO: Comment with URL '$APP_URL' already exists on PR #$PR_NUMBER."
-            echo "exists=true" >> $GITHUB_OUTPUT
+          
+          if echo "$existing_comments" | grep -Fxq "$GM_APP_URL"; then
+            echo "gm_exists=true" >> $GITHUB_OUTPUT
           else
-            echo "INFO: Comment with URL '$APP_URL' does not exist on PR #$PR_NUMBER. Will attempt to add."
-            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "gm_exists=false" >> $GITHUB_OUTPUT
           fi
-        working-directory: . # Run gh commands at repo root
+          
+          if echo "$existing_comments" | grep -Fxq "$PLAYER_APP_URL"; then
+            echo "player_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "player_exists=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Add GM App URL comment to PR
-        if: steps.check_comment.outputs.exists == 'false'
+        if: steps.check_comments.outputs.gm_exists == 'false'
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          PR_NUMBER: ${{ env.DEPLOYMENT_ID }} 
-          APP_URL: ${{ steps.construct_url.outputs.app_url }}
+          PR_NUMBER: ${{ env.DEPLOYMENT_ID }}
+          GM_APP_URL: ${{ steps.construct_urls.outputs.gm_app_url }}
         run: |
-          echo "Adding comment: $APP_URL to PR $PR_NUMBER"
-          gh pr comment "$PR_NUMBER" --body "$APP_URL"
-        working-directory: . # Run gh commands at repo root
+          echo "Adding GM App URL comment: $GM_APP_URL to PR $PR_NUMBER"
+          gh pr comment "$PR_NUMBER" --body "🎮 **GM App**: $GM_APP_URL"
+
+      - name: Add Player App URL comment to PR
+        if: steps.check_comments.outputs.player_exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PR_NUMBER: ${{ env.DEPLOYMENT_ID }}
+          PLAYER_APP_URL: ${{ steps.construct_urls.outputs.player_app_url }}
+        run: |
+          echo "Adding Player App URL comment: $PLAYER_APP_URL to PR $PR_NUMBER"
+          gh pr comment "$PR_NUMBER" --body "👤 **Player App**: $PLAYER_APP_URL"
 
   run-cypress-tests:
     name: Run Cypress Tests on QA (Parallel)
     runs-on: ubuntu-latest
-    needs: deploy-gm-app-qa # Depends on the GM App deployment job
+    needs: [deploy-gm-app-qa, deploy-player-app-qa] # Depends on both app deployments
     strategy:
       matrix:
         # Split tests into groups for parallel execution

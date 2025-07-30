@@ -1,0 +1,46 @@
+.character-stats {
+  flex: 0 0 300px;
+}
+
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stat-name {
+  font-weight: 500;
+}
+
+.stat-bar {
+  height: 10px;
+  background-color: #eee;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  background-color: #28a745;
+}
+
+
+.stat-fill.exhaustion {
+  background-color: #6f42c1;
+}
+
+.stat-fill.surges {
+  background-color: #007bff;
+}
+
+.stat-value {
+  font-size: 14px;
+  text-align: right;
+  color: #666;
+} 
