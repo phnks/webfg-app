@@ -759,9 +759,11 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       
       getAllAttributeNames().forEach(attr => {
         console.log(`DEBUG: Processing attribute ${attr}:`, formData[attr]);
+        const rawValue = formData[attr]?.attribute?.attributeValue;
+        const parsedValue = parseFloat(rawValue);
         input[attr] = {
           attribute: { 
-            attributeValue: parseFloat(formData[attr]?.attribute?.attributeValue) || 0,
+            attributeValue: !isNaN(parsedValue) ? parsedValue : 0,
             isGrouped: formData[attr]?.attribute?.isGrouped !== false
           }
         };

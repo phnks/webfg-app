@@ -74,15 +74,15 @@ exports.handler = async (event) => {
   if (!item.armour) item.armour = defaultAttribute;
   if (!item.endurance) item.endurance = defaultAttribute;
   if (!item.lethality) item.lethality = defaultAttribute;
-  if (item.penetration === undefined || item.penetration === null) item.penetration = defaultAttribute;
+  if (!item.penetration) item.penetration = defaultAttribute;
+  if (!item.complexity) item.complexity = defaultAttribute;
   
   // Debug logging after all attribute processing
   console.log("DEBUG createCharacter - final item.penetration:", JSON.stringify(item.penetration, null, 2));
-  if (!item.complexity) item.complexity = defaultAttribute;
   if (!item.strength) item.strength = defaultAttribute;
   if (!item.dexterity) item.dexterity = defaultAttribute;
   if (!item.agility) item.agility = defaultAttribute;
-  if (item.obscurity === undefined || item.obscurity === null) item.obscurity = defaultAttribute;
+  if (!item.obscurity) item.obscurity = defaultAttribute;
   if (!item.resolve) item.resolve = defaultAttribute;
   if (!item.morale) item.morale = defaultAttribute;
   if (!item.intelligence) item.intelligence = defaultAttribute;
