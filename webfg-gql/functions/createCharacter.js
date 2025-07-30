@@ -34,6 +34,7 @@ exports.handler = async (event) => {
     armour: input.armour,
     endurance: input.endurance,
     lethality: input.lethality,
+    penetration: input.penetration,
     complexity: input.complexity,
     strength: input.strength,
     dexterity: input.dexterity,
@@ -71,6 +72,7 @@ exports.handler = async (event) => {
   if (!item.armour) item.armour = defaultAttribute;
   if (!item.endurance) item.endurance = defaultAttribute;
   if (!item.lethality) item.lethality = defaultAttribute;
+  if (!item.penetration) item.penetration = defaultAttribute;
   if (!item.complexity) item.complexity = defaultAttribute;
   if (!item.strength) item.strength = defaultAttribute;
   if (!item.dexterity) item.dexterity = defaultAttribute;

@@ -92,7 +92,8 @@ exports.handler = async (event) => {
       noise: groupedAttributes.noise || null
     };
 
-    // console.log("Calculated grouped attributes:", JSON.stringify(result, null, 2));
+    console.log("DEBUG resolveGroupedAttributes - Calculated grouped attributes:", JSON.stringify(result, null, 2));
+    console.log("DEBUG resolveGroupedAttributes - Input entity penetration:", entity.penetration?.attribute?.attributeValue);
     
     // Debug: Check for expected attribute changes due to conditions
     if (typeName === 'Character' && entity.characterConditions && entity.characterConditions.length > 0) {

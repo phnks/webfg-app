@@ -42,7 +42,7 @@ exports.handler = async (event) => {
 
         // List of all expected attributes (updated to match current schema)
         const allAttributes = [
-            'speed', 'weight', 'size', 'armour', 'endurance', 'lethality', 'complexity',
+            'speed', 'weight', 'size', 'armour', 'endurance', 'lethality', 'penetration', 'complexity',
             'strength', 'dexterity', 'agility', 'obscurity', 'resolve', 
             'morale', 'intelligence', 'charisma', 'seeing', 'hearing', 
             'light', 'noise'
@@ -83,6 +83,16 @@ exports.handler = async (event) => {
 
         // Debug logging after boolean handling
         console.log("DEBUG getCharacter - Final character.raceOverride after processing:", character.raceOverride, "type:", typeof character.raceOverride);
+        console.log("DEBUG getCharacter - Penetration attribute:", JSON.stringify(character.penetration, null, 2));
+        console.log("DEBUG getCharacter - All Body attributes:", {
+            weight: character.weight?.attribute?.attributeValue,
+            size: character.size?.attribute?.attributeValue,
+            armour: character.armour?.attribute?.attributeValue,
+            endurance: character.endurance?.attribute?.attributeValue,
+            lethality: character.lethality?.attribute?.attributeValue,
+            penetration: character.penetration?.attribute?.attributeValue,
+            complexity: character.complexity?.attribute?.attributeValue
+        });
         console.log(`Successfully retrieved character: ${character.name} (${characterId})`);
         return character;
 
