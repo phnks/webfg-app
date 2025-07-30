@@ -7,7 +7,6 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
   // console.log("Received event:", JSON.stringify(event, null, 2));
-  console.log("DEBUG createCharacter - input.penetration:", JSON.stringify(input.penetration, null, 2));
 
   const tableName = process.env.CHARACTERS_TABLE;
   if (!tableName) {
@@ -17,6 +16,8 @@ exports.handler = async (event) => {
 
   const { input } = event;
   const characterId = uuidv4();
+  
+  console.log("DEBUG createCharacter - input.penetration:", JSON.stringify(input.penetration, null, 2));
 
   const item = {
     characterId: characterId,
