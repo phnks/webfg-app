@@ -15,6 +15,7 @@ enum AttributeName {
   ARMOUR
   ENDURANCE
   LETHALITY
+  PENETRATION
   STRENGTH
   DEXTERITY
   AGILITY
@@ -90,6 +91,7 @@ type Character {
   armour: CharacterAttribute!
   endurance: CharacterAttribute!
   lethality: CharacterAttribute!
+  penetration: CharacterAttribute
   complexity: CharacterAttribute
   strength: CharacterAttribute!
   dexterity: CharacterAttribute!
@@ -174,6 +176,7 @@ input CharacterInput {
   armour: CharacterAttributeInput!
   endurance: CharacterAttributeInput!
   lethality: CharacterAttributeInput!
+  penetration: CharacterAttributeInput
   complexity: CharacterAttributeInput
   strength: CharacterAttributeInput!
   dexterity: CharacterAttributeInput!
@@ -229,6 +232,7 @@ type Object {
   armour: Attribute!
   endurance: Attribute!
   lethality: Attribute!
+  penetration: Attribute
   complexity: Attribute
   strength: Attribute!
   dexterity: Attribute!
@@ -278,6 +282,7 @@ input ObjectInput {
   armour: AttributeInput
   endurance: AttributeInput
   lethality: AttributeInput
+  penetration: AttributeInput
   complexity: AttributeInput
   strength: AttributeInput
   dexterity: AttributeInput
@@ -886,6 +891,7 @@ type GroupedAttributes {
   weight: Float
   size: Float
   lethality: Float
+  penetration: Float
   complexity: Float
   armour: Float
   endurance: Float
@@ -908,6 +914,7 @@ type ReadyGroupedAttributes {
   weight: Float
   size: Float
   lethality: Float
+  penetration: Float
   complexity: Float
   armour: Float
   endurance: Float

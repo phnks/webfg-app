@@ -26,6 +26,7 @@ export const LIST_CHARACTERS = gql`
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
       lethality { attribute { attributeValue isGrouped } }
+      penetration { attribute { attributeValue isGrouped } }
       complexity { attribute { attributeValue isGrouped } }
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
@@ -47,6 +48,8 @@ export const LIST_CHARACTERS = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -67,6 +70,9 @@ export const LIST_CHARACTERS = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+          penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
@@ -120,6 +126,7 @@ export const GET_CHARACTER = gql`
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
       lethality { attribute { attributeValue isGrouped } }
+      penetration { attribute { attributeValue isGrouped } }
       complexity { attribute { attributeValue isGrouped } }
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
@@ -148,6 +155,8 @@ export const GET_CHARACTER = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -168,6 +177,9 @@ export const GET_CHARACTER = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+          penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
@@ -188,6 +200,8 @@ export const GET_CHARACTER = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -221,6 +235,7 @@ export const LIST_OBJECTS = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -244,6 +259,8 @@ export const LIST_OBJECTS = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -274,6 +291,7 @@ export const GET_OBJECT = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -300,6 +318,8 @@ export const GET_OBJECT = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -473,6 +493,7 @@ export const CREATE_CHARACTER = gql`
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
       lethality { attribute { attributeValue isGrouped } }
+      penetration { attribute { attributeValue isGrouped } }
       complexity { attribute { attributeValue isGrouped } }
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
@@ -517,6 +538,7 @@ export const UPDATE_CHARACTER = gql`
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
       lethality { attribute { attributeValue isGrouped } }
+      penetration { attribute { attributeValue isGrouped } }
       complexity { attribute { attributeValue isGrouped } }
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
@@ -561,6 +583,7 @@ export const CREATE_OBJECT = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -593,6 +616,7 @@ export const UPDATE_OBJECT = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -1001,6 +1025,7 @@ export const ON_UPDATE_CHARACTER = gql`
       armour { attribute { attributeValue isGrouped } }
       endurance { attribute { attributeValue isGrouped } }
       lethality { attribute { attributeValue isGrouped } }
+      penetration { attribute { attributeValue isGrouped } }
       complexity { attribute { attributeValue isGrouped } }
       strength { attribute { attributeValue isGrouped } }
       dexterity { attribute { attributeValue isGrouped } }
@@ -1037,6 +1062,7 @@ export const ON_CREATE_OBJECT = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -1068,6 +1094,7 @@ export const ON_UPDATE_OBJECT = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -1317,6 +1344,7 @@ export const LIST_CHARACTERS_ENHANCED = gql`
         armour { attribute { attributeValue isGrouped } }
         endurance { attribute { attributeValue isGrouped } }
         lethality { attribute { attributeValue isGrouped } }
+      penetration { attribute { attributeValue isGrouped } }
         strength { attribute { attributeValue isGrouped } }
         dexterity { attribute { attributeValue isGrouped } }
         agility { attribute { attributeValue isGrouped } }
@@ -1333,6 +1361,9 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+          penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
@@ -1352,6 +1383,9 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+          penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
@@ -1371,6 +1405,9 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+          penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
@@ -1405,6 +1442,8 @@ export const LIST_OBJECTS_ENHANCED = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -1426,6 +1465,9 @@ export const LIST_OBJECTS_ENHANCED = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
+      penetration { attributeValue isGrouped }
+          penetration { attributeValue isGrouped }
+        penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }

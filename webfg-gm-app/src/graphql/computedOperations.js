@@ -7,6 +7,7 @@ export const GROUPED_ATTRIBUTES_FRAGMENT = gql`
     weight
     size
     lethality
+    penetration
     complexity
     armour
     endurance
@@ -31,6 +32,7 @@ export const READY_GROUPED_ATTRIBUTES_FRAGMENT = gql`
     weight
     size
     lethality
+    penetration
     complexity
     armour
     endurance
