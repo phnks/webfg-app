@@ -379,7 +379,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
 
   // Helper function to check if an attribute is restricted for humans
   const isRestrictedAttribute = (attributeName) => {
-    const restrictedAttributes = ['armour', 'endurance', 'lethality', 'complexity', 'obscurity', 'light'];
+    const restrictedAttributes = ['armour', 'endurance', 'lethality', 'penetration', 'complexity', 'obscurity', 'light'];
     return restrictedAttributes.includes(attributeName);
   };
 
