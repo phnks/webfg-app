@@ -83,7 +83,8 @@ exports.handler = async (event) => {
 
         // Debug logging after boolean handling
         console.log("DEBUG getCharacter - Final character.raceOverride after processing:", character.raceOverride, "type:", typeof character.raceOverride);
-        console.log("DEBUG getCharacter - Penetration attribute:", JSON.stringify(character.penetration, null, 2));
+        console.log("DEBUG getCharacter - Raw penetration from DB:", JSON.stringify(character.penetration, null, 2));
+        console.log("DEBUG getCharacter - Penetration after processing:", JSON.stringify(character.penetration, null, 2));
         console.log("DEBUG getCharacter - All Body attributes:", {
             weight: character.weight?.attribute?.attributeValue,
             size: character.size?.attribute?.attributeValue,

@@ -7,6 +7,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
   // console.log("Received event:", JSON.stringify(event, null, 2));
+  console.log("DEBUG createCharacter - input.penetration:", JSON.stringify(input.penetration, null, 2));
 
   const tableName = process.env.CHARACTERS_TABLE;
   if (!tableName) {
@@ -73,6 +74,9 @@ exports.handler = async (event) => {
   if (!item.endurance) item.endurance = defaultAttribute;
   if (!item.lethality) item.lethality = defaultAttribute;
   if (item.penetration === undefined || item.penetration === null) item.penetration = defaultAttribute;
+  
+  // Debug logging after all attribute processing
+  console.log("DEBUG createCharacter - final item.penetration:", JSON.stringify(item.penetration, null, 2));
   if (!item.complexity) item.complexity = defaultAttribute;
   if (!item.strength) item.strength = defaultAttribute;
   if (!item.dexterity) item.dexterity = defaultAttribute;

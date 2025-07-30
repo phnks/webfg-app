@@ -20,8 +20,9 @@ exports.handler = async (event) => {
     throw new Error("characterId is required.");
   }
 
-  // Debug logging for raceOverride
+  // Debug logging for raceOverride and penetration
   console.log("DEBUG updateCharacter - input.raceOverride:", input.raceOverride, "type:", typeof input.raceOverride);
+  console.log("DEBUG updateCharacter - input.penetration:", JSON.stringify(input.penetration, null, 2));
 
   const updateExpressionParts = [];
   const expressionAttributeNames = {};
