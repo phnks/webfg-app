@@ -67,8 +67,9 @@ describe('resolveReadyGroupedAttributes', () => {
         speed: null,
         weight: null,
         size: null,
-        intensity: null,
         lethality: null,
+        penetration: null,
+        complexity: null,
         armour: null,
         endurance: null,
         strength: null,
@@ -78,7 +79,11 @@ describe('resolveReadyGroupedAttributes', () => {
         charisma: null,
         intelligence: null,
         resolve: null,
-        morale: null
+        morale: null,
+        seeing: null,
+        hearing: null,
+        light: null,
+        noise: null
       });
     });
 
@@ -93,8 +98,9 @@ describe('resolveReadyGroupedAttributes', () => {
         speed: null,
         weight: null,
         size: null,
-        intensity: null,
         lethality: null,
+        penetration: null,
+        complexity: null,
         armour: null,
         endurance: null,
         strength: null,
@@ -104,7 +110,11 @@ describe('resolveReadyGroupedAttributes', () => {
         charisma: null,
         intelligence: null,
         resolve: null,
-        morale: null
+        morale: null,
+        seeing: null,
+        hearing: null,
+        light: null,
+        noise: null
       });
     });
   });
@@ -347,9 +357,9 @@ describe('resolveReadyGroupedAttributes', () => {
       const result = await handler(event);
 
       const expectedFields = [
-        'speed', 'weight', 'size', 'intensity', 'lethality', 'armour', 'endurance',
+        'speed', 'weight', 'size', 'lethality', 'penetration', 'complexity', 'armour', 'endurance',
         'strength', 'dexterity', 'agility', 'obscurity', 'charisma', 'intelligence',
-        'resolve', 'morale'
+        'resolve', 'morale', 'seeing', 'hearing', 'light', 'noise'
       ];
 
       expectedFields.forEach(field => {
