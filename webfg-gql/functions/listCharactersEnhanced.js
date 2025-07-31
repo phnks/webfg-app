@@ -67,10 +67,10 @@ exports.handler = async (event) => {
         // Fatigue filter deprecated - no longer supported
 
         // Attribute filters
-        const attributes = ['weight', 'size', 'armour', 'endurance', 'lethality', 'complexity',
+        const attributes = ['weight', 'size', 'armour', 'endurance', 'lethality', 'penetration', 'complexity',
                            'speed', 'strength', 'dexterity', 'agility',
                            'resolve', 'morale', 'intelligence', 'charisma',
-                           'perception', 'seeing', 'hearing', 'smelling', 'light', 'noise', 'scent'];
+                           'obscurity', 'seeing', 'hearing', 'light', 'noise'];
         
         attributes.forEach(attr => {
             if (filter[attr]) {
@@ -144,10 +144,10 @@ exports.handler = async (event) => {
 
         // List of all expected attributes
         const allAttributes = [
-            'speed', 'weight', 'size', 'armour', 'endurance', 'lethality', 'complexity',
-            'strength', 'dexterity', 'agility', 'perception', 'resolve', 
+            'speed', 'weight', 'size', 'armour', 'endurance', 'lethality', 'penetration', 'complexity',
+            'strength', 'dexterity', 'agility', 'obscurity', 'resolve', 
             'morale', 'intelligence', 'charisma', 'seeing', 'hearing', 
-            'smelling', 'light', 'noise', 'scent'
+            'light', 'noise'
         ];
 
         // Apply default values and fix legacy data format for each character

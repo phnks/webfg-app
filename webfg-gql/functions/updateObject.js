@@ -39,6 +39,7 @@ exports.handler = async (event) => {
     addUpdateField("armour", input.armour);
     addUpdateField("endurance", input.endurance);
     addUpdateField("lethality", input.lethality);
+    addUpdateField("penetration", input.penetration);
     addUpdateField("complexity", input.complexity);
     addUpdateField("strength", input.strength);
     addUpdateField("dexterity", input.dexterity);

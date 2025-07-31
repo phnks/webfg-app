@@ -5,6 +5,7 @@ type GroupedAttributes {
   weight: Float
   size: Float
   lethality: Float
+  penetration: Float
   complexity: Float
   armour: Float
   endurance: Float
@@ -27,6 +28,7 @@ type ReadyGroupedAttributes {
   weight: Float
   size: Float
   lethality: Float
+  penetration: Float
   complexity: Float
   armour: Float
   endurance: Float

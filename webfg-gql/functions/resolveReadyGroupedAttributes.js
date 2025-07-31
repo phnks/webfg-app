@@ -17,8 +17,9 @@ exports.handler = async (event) => {
       speed: null,
       weight: null,
       size: null,
-      intensity: null,
       lethality: null,
+      penetration: null,
+      complexity: null,
       armour: null,
       endurance: null,
       strength: null,
@@ -28,7 +29,11 @@ exports.handler = async (event) => {
       charisma: null,
       intelligence: null,
       resolve: null,
-      morale: null
+      morale: null,
+      seeing: null,
+      hearing: null,
+      light: null,
+      noise: null
     };
   }
 
@@ -48,8 +53,9 @@ exports.handler = async (event) => {
       speed: readyGroupedAttributes.speed !== undefined ? readyGroupedAttributes.speed : null,
       weight: readyGroupedAttributes.weight !== undefined ? readyGroupedAttributes.weight : null,
       size: readyGroupedAttributes.size !== undefined ? readyGroupedAttributes.size : null,
-      intensity: readyGroupedAttributes.intensity !== undefined ? readyGroupedAttributes.intensity : null,
       lethality: readyGroupedAttributes.lethality !== undefined ? readyGroupedAttributes.lethality : null,
+      penetration: readyGroupedAttributes.penetration !== undefined ? readyGroupedAttributes.penetration : null,
+      complexity: readyGroupedAttributes.complexity !== undefined ? readyGroupedAttributes.complexity : null,
       armour: readyGroupedAttributes.armour !== undefined ? readyGroupedAttributes.armour : null,
       endurance: readyGroupedAttributes.endurance !== undefined ? readyGroupedAttributes.endurance : null,
       strength: readyGroupedAttributes.strength !== undefined ? readyGroupedAttributes.strength : null,
@@ -59,7 +65,11 @@ exports.handler = async (event) => {
       charisma: readyGroupedAttributes.charisma !== undefined ? readyGroupedAttributes.charisma : null,
       intelligence: readyGroupedAttributes.intelligence !== undefined ? readyGroupedAttributes.intelligence : null,
       resolve: readyGroupedAttributes.resolve !== undefined ? readyGroupedAttributes.resolve : null,
-      morale: readyGroupedAttributes.morale !== undefined ? readyGroupedAttributes.morale : null
+      morale: readyGroupedAttributes.morale !== undefined ? readyGroupedAttributes.morale : null,
+      seeing: readyGroupedAttributes.seeing !== undefined ? readyGroupedAttributes.seeing : null,
+      hearing: readyGroupedAttributes.hearing !== undefined ? readyGroupedAttributes.hearing : null,
+      light: readyGroupedAttributes.light !== undefined ? readyGroupedAttributes.light : null,
+      noise: readyGroupedAttributes.noise !== undefined ? readyGroupedAttributes.noise : null
     };
 
     // console.log("Calculated ready grouped attributes:", JSON.stringify(result, null, 2));

@@ -18,12 +18,14 @@ describe('attributeGrouping', () => {
       expect(ATTRIBUTE_NAMES).toContain('seeing');
       expect(ATTRIBUTE_NAMES).toContain('hearing');
       expect(ATTRIBUTE_NAMES).toContain('complexity');
+      expect(ATTRIBUTE_NAMES).toContain('penetration');
       expect(ATTRIBUTE_NAMES).not.toContain('intensity');
-      expect(ATTRIBUTE_NAMES).toHaveLength(19);
+      expect(ATTRIBUTE_NAMES).toHaveLength(20);
     });
 
     it('should have correct attribute groups', () => {
       expect(ATTRIBUTE_GROUPS.BODY).toContain('lethality');
+      expect(ATTRIBUTE_GROUPS.BODY).toContain('penetration');
       expect(ATTRIBUTE_GROUPS.BODY).toContain('complexity');
       expect(ATTRIBUTE_GROUPS.MARTIAL).toContain('speed');
       expect(ATTRIBUTE_GROUPS.MARTIAL).toContain('strength');
@@ -32,6 +34,7 @@ describe('attributeGrouping', () => {
       expect(ATTRIBUTE_GROUPS.SENSES).toContain('seeing');
       expect(ATTRIBUTE_GROUPS.BODY).not.toContain('speed');
       expect(ATTRIBUTE_GROUPS.MARTIAL).not.toContain('lethality');
+      expect(ATTRIBUTE_GROUPS.MARTIAL).not.toContain('penetration');
       expect(ATTRIBUTE_GROUPS.MARTIAL).not.toContain('obscurity');
       expect(ATTRIBUTE_GROUPS.MARTIAL).not.toContain('complexity');
     });

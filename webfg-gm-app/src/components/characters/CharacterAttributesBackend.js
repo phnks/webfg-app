@@ -76,7 +76,9 @@ const CharacterAttributesBackend = ({
     let stepCount = 1;
     
     // Find the attribute in character or use effectiveGroupedAttributes
-    const originalValue = character?.[attributeKey]?.attribute?.attributeValue || 0;
+    const rawValue = character?.[attributeKey]?.attribute?.attributeValue;
+    const parsedValue = parseFloat(rawValue);
+    const originalValue = !isNaN(parsedValue) ? parsedValue : 0;
     if (!originalValue && originalValue !== 0) {
       return steps;
     }
@@ -143,7 +145,9 @@ const CharacterAttributesBackend = ({
     let stepCount = 1;
     
     // Find the attribute in character
-    const originalValue = character?.[attributeKey]?.attribute?.attributeValue || 0;
+    const rawValue = character?.[attributeKey]?.attribute?.attributeValue;
+    const parsedValue = parseFloat(rawValue);
+    const originalValue = !isNaN(parsedValue) ? parsedValue : 0;
     if (!originalValue && originalValue !== 0) {
       return steps;
     }
@@ -657,7 +661,9 @@ const CharacterAttributesBackend = ({
 
   // Render function for individual attributes in the view
   const renderAttributeForView = (attributeName, attribute, displayName) => {
-    const originalValue = character?.[attributeName]?.attribute?.attributeValue || 0;
+    const rawValue = character?.[attributeName]?.attribute?.attributeValue;
+    const parsedValue = parseFloat(rawValue);
+    const originalValue = !isNaN(parsedValue) ? parsedValue : 0;
     const equipmentGroupedValue = effectiveGroupedAttributes?.[attributeName];
     const readyGroupedValue = effectiveReadyGroupedAttributes?.[attributeName];
     const hasEquipment = character && character.equipment && character.equipment.length > 0;

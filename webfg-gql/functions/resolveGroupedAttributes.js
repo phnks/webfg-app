@@ -24,6 +24,7 @@ exports.handler = async (event) => {
       weight: null,
       size: null,
       lethality: null,
+      penetration: null,
       complexity: null,
       armour: null,
       endurance: null,
@@ -73,6 +74,7 @@ exports.handler = async (event) => {
       weight: groupedAttributes.weight || null,
       size: groupedAttributes.size || null,
       lethality: groupedAttributes.lethality || null,
+      penetration: groupedAttributes.penetration || null,
       complexity: groupedAttributes.complexity || null,
       armour: groupedAttributes.armour || null,
       endurance: groupedAttributes.endurance || null,
@@ -90,7 +92,8 @@ exports.handler = async (event) => {
       noise: groupedAttributes.noise || null
     };
 
-    // console.log("Calculated grouped attributes:", JSON.stringify(result, null, 2));
+    console.log("DEBUG resolveGroupedAttributes - Calculated grouped attributes:", JSON.stringify(result, null, 2));
+    console.log("DEBUG resolveGroupedAttributes - Input entity penetration:", entity.penetration?.attribute?.attributeValue);
     
     // Debug: Check for expected attribute changes due to conditions
     if (typeName === 'Character' && entity.characterConditions && entity.characterConditions.length > 0) {
