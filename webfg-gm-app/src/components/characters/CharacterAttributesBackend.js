@@ -731,10 +731,10 @@ const CharacterAttributesBackend = ({
     let formulaText = null;
     
     if (dynamicInfo && diceCount > 0) {
-      // Calculate min and max values
+      // Calculate min and max values for a single die roll
       const diceNumber = parseInt(dynamicInfo.diceType.substring(1));
-      const minValue = diceCount + originalValue;
-      const maxValue = diceCount * diceNumber + originalValue;
+      const minValue = 1 + originalValue;
+      const maxValue = diceNumber + originalValue;
       displayText = `${minValue}-${maxValue}`;
       formulaText = `${diceCount}${dynamicInfo.diceType}${originalValue >= 0 ? '+' : ''}${originalValue}`;
     }
@@ -771,8 +771,8 @@ const CharacterAttributesBackend = ({
                   
                   if (dynamicInfo && diceCount > 0) {
                     const diceNumber = parseInt(dynamicInfo.diceType.substring(1));
-                    const minValue = diceCount + groupedVal;
-                    const maxValue = diceCount * diceNumber + groupedVal;
+                    const minValue = 1 + groupedVal;
+                    const maxValue = diceNumber + groupedVal;
                     const newFormula = `${diceCount}${dynamicInfo.diceType}${groupedVal >= 0 ? '+' : ''}${groupedVal}`;
                     return `${minValue}-${maxValue} (${newFormula})`;
                   }

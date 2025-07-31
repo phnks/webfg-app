@@ -344,10 +344,10 @@ const ObjectView = ({ startInEditMode = false, object = null }) => {
               let formulaText = null;
               
               if (dynamicInfo && diceCount > 0) {
-                // Calculate min and max values
+                // Calculate min and max values for a single die roll
                 const diceNumber = parseInt(dynamicInfo.diceType.substring(1));
-                const minValue = diceCount + originalValue;
-                const maxValue = diceCount * diceNumber + originalValue;
+                const minValue = 1 + originalValue;
+                const maxValue = diceNumber + originalValue;
                 displayText = `${minValue}-${maxValue}`;
                 formulaText = `${diceCount}${dynamicInfo.diceType}${originalValue >= 0 ? '+' : ''}${originalValue}`;
               }
@@ -380,8 +380,8 @@ const ObjectView = ({ startInEditMode = false, object = null }) => {
                             const roundedGrouped = Math.round(groupedValue);
                             if (dynamicInfo && diceCount > 0) {
                               const diceNumber = parseInt(dynamicInfo.diceType.substring(1));
-                              const minValue = diceCount + roundedGrouped;
-                              const maxValue = diceCount * diceNumber + roundedGrouped;
+                              const minValue = 1 + roundedGrouped;
+                              const maxValue = diceNumber + roundedGrouped;
                               const newFormula = `${diceCount}${dynamicInfo.diceType}${roundedGrouped >= 0 ? '+' : ''}${roundedGrouped}`;
                               return `${minValue}-${maxValue} (${newFormula})`;
                             }

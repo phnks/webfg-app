@@ -550,8 +550,8 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     
     if (isRestrictedAttribute(attributeName) && value !== 10) {
       return `Must be 10 for humans (currently ${value})`;
-    } else if (!isRestrictedAttribute(attributeName) && (value < -99 || value > 99)) {
-      return `Must be between -99 and 99 (currently ${value})`;
+    } else if (!isRestrictedAttribute(attributeName) && !Number.isInteger(value)) {
+      return `Must be a valid integer (currently ${value})`;
     }
     
     return null;
@@ -731,8 +731,8 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         
         if (isRestrictedAttribute(attr) && value !== 10) {
           violations.push(`${attr} must be 10 for humans (currently ${value})`);
-        } else if (!isRestrictedAttribute(attr) && (value < -99 || value > 99)) {
-          violations.push(`${attr} must be between -99 and 99 (currently ${value})`);
+        } else if (!isRestrictedAttribute(attr) && !Number.isInteger(value)) {
+          violations.push(`${attr} must be a valid integer (currently ${value})`);
         }
       });
       
@@ -891,7 +891,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       if (isRestrictedAttribute(attr)) {
         return value !== 10;
       } else {
-        return value < -99 || value > 99;
+        return !Number.isInteger(value);
       }
     });
   }
