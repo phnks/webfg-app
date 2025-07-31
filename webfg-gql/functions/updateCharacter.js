@@ -82,7 +82,7 @@ exports.handler = async (event) => {
 
   // Helper function to add update expression parts
   const addUpdateField = (fieldName, fieldValue, attributeName = fieldName) => {
-    if (fieldValue !== undefined) {
+    if (fieldValue !== undefined && fieldValue !== null) {
       updateExpressionParts.push(`#${attributeName} = :${attributeName}`);
       expressionAttributeNames[`#${attributeName}`] = fieldName;
       // Special handling for boolean fields to ensure they're stored as proper booleans
