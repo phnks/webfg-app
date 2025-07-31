@@ -207,7 +207,8 @@
 .dice-input-group {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 2px;
+  white-space: nowrap;
 }
 
 .dice-count-input {
@@ -419,6 +420,14 @@
     flex-direction: column;
     align-items: stretch;
     gap: 5px;
+  }
+
+  /* Keep dice input group horizontal even on mobile */
+  .dice-input-group {
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2px !important;
   }
   
   .form-header {

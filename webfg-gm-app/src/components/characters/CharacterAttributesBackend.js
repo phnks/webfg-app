@@ -676,8 +676,9 @@ const CharacterAttributesBackend = ({
     const rawValue = character?.[attributeName]?.attribute?.attributeValue;
     const parsedValue = parseFloat(rawValue);
     const originalValue = !isNaN(parsedValue) ? parsedValue : 0;
-    const diceCount = character?.[attributeName]?.attribute?.diceCount || 0;
     const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+    // Use database diceCount if available, otherwise default to 1 for dynamic attributes
+    const diceCount = character?.[attributeName]?.attribute?.diceCount ?? (dynamicInfo ? dynamicInfo.defaultCount : 0);
     const equipmentGroupedValue = effectiveGroupedAttributes?.[attributeName];
     const readyGroupedValue = effectiveReadyGroupedAttributes?.[attributeName];
     const hasEquipment = character && character.equipment && character.equipment.length > 0;
