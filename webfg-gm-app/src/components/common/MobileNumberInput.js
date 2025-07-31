@@ -54,10 +54,25 @@ const MobileNumberInput = ({ value, onChange, min, max, step, ...props }) => {
   const handleChange = (e) => {
     const inputValue = e.target.value;
     
-    // Allow empty value, negative sign at start, or valid numbers
-    if (inputValue === '' || inputValue === '-' || !isNaN(inputValue)) {
+    // Allow empty string
+    if (inputValue === '') {
       onChange(e);
+      return;
     }
+    
+    // Allow single minus sign (start of negative number)
+    if (inputValue === '-') {
+      onChange(e);
+      return;
+    }
+    
+    // Allow valid numbers (positive or negative)
+    if (!isNaN(inputValue) && inputValue !== '') {
+      onChange(e);
+      return;
+    }
+    
+    // Block everything else by not calling onChange
   };
 
   return (

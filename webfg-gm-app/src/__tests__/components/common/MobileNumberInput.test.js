@@ -132,4 +132,35 @@ describe('MobileNumberInput Component', () => {
     
     expect(mockOnChange).toHaveBeenCalled();
   });
+
+  test('allows typing minus sign first in controlled component', () => {
+    const TestComponent = () => {
+      const [value, setValue] = React.useState('');
+      
+      const handleChange = (e) => {
+        const inputValue = e.target.value;
+        // Allow minus sign or valid numbers
+        if (inputValue === '' || inputValue === '-' || (!isNaN(inputValue) && inputValue !== '')) {
+          setValue(inputValue);
+        }
+      };
+      
+      return <MobileNumberInput value={value} onChange={handleChange} />;
+    };
+    
+    render(<TestComponent />);
+    
+    const input = screen.getByRole('textbox');
+    
+    // Should start empty
+    expect(input.value).toBe('');
+    
+    // Type minus sign
+    fireEvent.change(input, { target: { value: '-' } });
+    expect(input.value).toBe('-');
+    
+    // Type number after minus
+    fireEvent.change(input, { target: { value: '-5' } });
+    expect(input.value).toBe('-5');
+  });
 });

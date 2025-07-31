@@ -1181,7 +1181,16 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             value={formData[attributeName]?.attribute?.attributeValue || 0}
             onChange={(e) => {
               // Allow negative numbers and decimal values
-              const val = parseFloat(e.target.value);
+              const inputValue = e.target.value;
+              
+              // Handle special case of lone minus sign (user is typing negative number)
+              if (inputValue === '-') {
+                // Store the minus sign as a string temporarily
+                handleNestedAttributeChange(attributeName, 'attributeValue', '-');
+                return;
+              }
+              
+              const val = parseFloat(inputValue);
               const finalVal = isNaN(val) ? 0 : val;
               handleNestedAttributeChange(attributeName, 'attributeValue', finalVal);
             }}
