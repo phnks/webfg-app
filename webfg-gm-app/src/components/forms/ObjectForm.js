@@ -10,6 +10,19 @@ import {
   LIST_OBJECTS 
 } from "../../graphql/operations";
 import "./Form.css";
+import "./CharacterForm.css";
+
+// Dynamic attributes and their dice types
+const DYNAMIC_ATTRIBUTES = {
+  speed: { diceType: 'd4', defaultCount: 1 },
+  agility: { diceType: 'd6', defaultCount: 1 },
+  dexterity: { diceType: 'd8', defaultCount: 1 },
+  strength: { diceType: 'd10', defaultCount: 1 },
+  charisma: { diceType: 'd12', defaultCount: 1 },
+  seeing: { diceType: 'd20', defaultCount: 1 },
+  hearing: { diceType: 'd20', defaultCount: 1 },
+  intelligence: { diceType: 'd100', defaultCount: 1 }
+};
 
 // Enums from schema
 const ObjectCategoryEnum = ["TOOL", "WEAPON", "ARMOR", "CONTAINER", "STRUCTURE", "JEWLERY", "DEVICE", "MATERIAL", "CLOTHING", "LIGHT_SOURCE", "DOCUMENT", "COMPONENT", "ARTIFACT"];
@@ -34,7 +47,8 @@ const stripTypename = (obj) => {
 
 const defaultAttribute = {
   attributeValue: 0,
-  isGrouped: true
+  isGrouped: true,
+  diceCount: null
 };
 
 // Create default object form with all attributes
@@ -50,7 +64,11 @@ const createDefaultObjectForm = () => {
   
   // Add all attributes from the new grouping
   Object.values(ATTRIBUTE_GROUPS).flat().forEach(attr => {
-    form[attr] = { ...defaultAttribute };
+    const dynamicInfo = DYNAMIC_ATTRIBUTES[attr];
+    form[attr] = { 
+      ...defaultAttribute,
+      diceCount: dynamicInfo ? dynamicInfo.defaultCount : null
+    };
   });
   
   return form;
@@ -71,9 +89,11 @@ const prepareObjectInput = (data) => {
   // Add all attributes dynamically
   Object.values(ATTRIBUTE_GROUPS).flat().forEach(attr => {
     const attrValue = parseFloat(data[attr]?.attributeValue) || 0;
+    const dynamicInfo = DYNAMIC_ATTRIBUTES[attr];
     input[attr] = {
       attributeValue: attrValue,
-      isGrouped: data[attr]?.isGrouped !== undefined ? data[attr].isGrouped : true
+      isGrouped: data[attr]?.isGrouped !== undefined ? data[attr].isGrouped : true,
+      diceCount: data[attr]?.diceCount !== undefined ? data[attr].diceCount : (dynamicInfo ? dynamicInfo.defaultCount : null)
     };
   });
   
@@ -243,10 +263,28 @@ const ObjectForm = ({ object, isEditing = false, onClose, onSuccess }) => {
 
   // Render function for individual attributes in the form
   const renderAttributeForForm = (attributeName, attribute, displayName) => {
+    const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+    
     return (
       <div key={attributeName} className="attribute-item">
         <label>{displayName}</label>
         <div className="attribute-controls">
+          {dynamicInfo && (
+            <div className="dice-input-group">
+              <MobileNumberInput
+                step="1"
+                min="0"
+                value={formData[attributeName]?.diceCount || 0}
+                onChange={(e) => handleChange({
+                  target: { name: `${attributeName}.diceCount`, value: parseInt(e.target.value) || 0, type: 'number' }
+                })}
+                className="dice-count-input"
+                style={{ width: '60px' }}
+              />
+              <span className="dice-type">{dynamicInfo.diceType}</span>
+              <span className="plus-sign">+</span>
+            </div>
+          )}
           <MobileNumberInput
             step="0.1"
             value={formData[attributeName]?.attributeValue || 0}

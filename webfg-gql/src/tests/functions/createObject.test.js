@@ -20,7 +20,26 @@ describe('createObject', () => {
     process.env.OBJECTS_TABLE_NAME = 'test-objects-table';
   });
 
-  const defaultAttribute = { current: 0, max: 0, base: 0 };
+  // Default attribute generator that considers dynamic attributes
+  const getDefaultAttribute = (attributeName) => {
+    const DYNAMIC_ATTRIBUTES = {
+      speed: { diceType: 'd4', defaultCount: 1 },
+      agility: { diceType: 'd6', defaultCount: 1 },
+      dexterity: { diceType: 'd8', defaultCount: 1 },
+      strength: { diceType: 'd10', defaultCount: 1 },
+      charisma: { diceType: 'd12', defaultCount: 1 },
+      seeing: { diceType: 'd20', defaultCount: 1 },
+      hearing: { diceType: 'd20', defaultCount: 1 },
+      intelligence: { diceType: 'd100', defaultCount: 1 }
+    };
+    
+    const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+    return { 
+      attributeValue: 0, 
+      isGrouped: true,
+      diceCount: dynamicInfo ? dynamicInfo.defaultCount : null
+    };
+  };
 
   it('should create an object successfully with all fields', async () => {
     const mockInput = {
@@ -28,10 +47,10 @@ describe('createObject', () => {
       description: 'A mighty test sword',
       objectCategory: 'WEAPON',
       isEquipment: true,
-      speed: { current: 5, max: 10, base: 5 },
-      weight: { current: 3, max: 3, base: 3 },
-      size: { current: 2, max: 2, base: 2 },
-      lethality: { current: 8, max: 10, base: 8 }
+      speed: { attributeValue: 5, isGrouped: true, diceCount: 1 },
+      weight: { attributeValue: 3, isGrouped: true, diceCount: null },
+      size: { attributeValue: 2, isGrouped: true, diceCount: null },
+      lethality: { attributeValue: 8, isGrouped: true, diceCount: null }
     };
 
     const event = {
@@ -51,15 +70,15 @@ describe('createObject', () => {
     expect(result.description).toBe('A mighty test sword');
     expect(result.objectCategory).toBe('WEAPON');
     expect(result.isEquipment).toBe(true);
-    expect(result.speed).toEqual({ current: 5, max: 10, base: 5 });
-    expect(result.weight).toEqual({ current: 3, max: 3, base: 3 });
-    expect(result.size).toEqual({ current: 2, max: 2, base: 2 });
-    expect(result.lethality).toEqual({ current: 8, max: 10, base: 8 });
+    expect(result.speed).toEqual({ attributeValue: 5, isGrouped: true, diceCount: 1 });
+    expect(result.weight).toEqual({ attributeValue: 3, isGrouped: true, diceCount: null });
+    expect(result.size).toEqual({ attributeValue: 2, isGrouped: true, diceCount: null });
+    expect(result.lethality).toEqual({ attributeValue: 8, isGrouped: true, diceCount: null });
 
     // Verify default attributes are applied for missing ones
-    expect(result.armour).toEqual(defaultAttribute);
-    expect(result.endurance).toEqual(defaultAttribute);
-    expect(result.strength).toEqual(defaultAttribute);
+    expect(result.armour).toEqual(getDefaultAttribute('armour'));
+    expect(result.endurance).toEqual(getDefaultAttribute('endurance'));
+    expect(result.strength).toEqual(getDefaultAttribute('strength'));
 
     // Verify default arrays
     expect(result.special).toEqual([]);
@@ -86,9 +105,9 @@ describe('createObject', () => {
     // Verify defaults are applied
     expect(result.objectCategory).toBe('TOOL');
     expect(result.isEquipment).toBe(true);
-    expect(result.speed).toEqual(defaultAttribute);
-    expect(result.weight).toEqual(defaultAttribute);
-    expect(result.size).toEqual(defaultAttribute);
+    expect(result.speed).toEqual(getDefaultAttribute('speed'));
+    expect(result.weight).toEqual(getDefaultAttribute('weight'));
+    expect(result.size).toEqual(getDefaultAttribute('size'));
     expect(result.special).toEqual([]);
     expect(result.equipmentIds).toEqual([]);
   });
@@ -189,7 +208,7 @@ describe('createObject', () => {
   it('should preserve provided attributes and not override with defaults', async () => {
     const mockInput = {
       name: 'Custom Object',
-      speed: { current: 10, max: 15, base: 8 },
+      speed: { attributeValue: 10, isGrouped: false, diceCount: 2 },
       special: ['fire', 'magic'],
       equipmentIds: ['eq1', 'eq2']
     };
@@ -204,11 +223,11 @@ describe('createObject', () => {
     const result = await handler(event);
 
     // Verify provided values are preserved
-    expect(result.speed).toEqual({ current: 10, max: 15, base: 8 });
+    expect(result.speed).toEqual({ attributeValue: 10, isGrouped: false, diceCount: 2 });
     expect(result.special).toEqual(['fire', 'magic']);
     expect(result.equipmentIds).toEqual(['eq1', 'eq2']);
     // But missing attributes still get defaults
-    expect(result.weight).toEqual(defaultAttribute);
+    expect(result.weight).toEqual(getDefaultAttribute('weight'));
   });
 
   it('should handle null objectCategory by setting default', async () => {

@@ -28,29 +28,62 @@ exports.handler = async (event) => {
     // Add lowercase name for case-insensitive searching
     item.nameLowerCase = item.name.toLowerCase();
     
+    // Define which attributes have dynamic dice
+    const DYNAMIC_ATTRIBUTES = {
+        speed: { diceType: 'd4', defaultCount: 1 },
+        agility: { diceType: 'd6', defaultCount: 1 },
+        dexterity: { diceType: 'd8', defaultCount: 1 },
+        strength: { diceType: 'd10', defaultCount: 1 },
+        charisma: { diceType: 'd12', defaultCount: 1 },
+        seeing: { diceType: 'd20', defaultCount: 1 },
+        hearing: { diceType: 'd20', defaultCount: 1 },
+        intelligence: { diceType: 'd100', defaultCount: 1 }
+    };
+
     // Initialize attributes with default values if not provided
-    const defaultAttribute = { current: 0, max: 0, base: 0 };
+    const getDefaultAttribute = (attributeName) => {
+        const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+        return { 
+            attributeValue: 0, 
+            isGrouped: true,
+            diceCount: dynamicInfo ? dynamicInfo.defaultCount : null
+        };
+    };
+
+    // Process attributes to ensure they have correct diceCount
+    const processAttribute = (input, attributeName) => {
+        if (!input) return getDefaultAttribute(attributeName);
+        
+        const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+        const defaultDiceCount = dynamicInfo ? dynamicInfo.defaultCount : null;
+        
+        return {
+            attributeValue: input.attributeValue || 0,
+            isGrouped: input.isGrouped !== undefined ? input.isGrouped : true,
+            diceCount: input.diceCount !== undefined ? input.diceCount : defaultDiceCount
+        };
+    };
     
-    if (!item.speed) item.speed = defaultAttribute;
-    if (!item.weight) item.weight = defaultAttribute;
-    if (!item.size) item.size = defaultAttribute;
-    if (!item.armour) item.armour = defaultAttribute;
-    if (!item.endurance) item.endurance = defaultAttribute;
-    if (!item.lethality) item.lethality = defaultAttribute;
-    if (!item.penetration) item.penetration = defaultAttribute;
-    if (!item.complexity) item.complexity = defaultAttribute;
-    if (!item.strength) item.strength = defaultAttribute;
-    if (!item.dexterity) item.dexterity = defaultAttribute;
-    if (!item.agility) item.agility = defaultAttribute;
-    if (!item.obscurity) item.obscurity = defaultAttribute;
-    if (!item.resolve) item.resolve = defaultAttribute;
-    if (!item.morale) item.morale = defaultAttribute;
-    if (!item.intelligence) item.intelligence = defaultAttribute;
-    if (!item.charisma) item.charisma = defaultAttribute;
-    if (!item.seeing) item.seeing = defaultAttribute;
-    if (!item.hearing) item.hearing = defaultAttribute;
-    if (!item.light) item.light = defaultAttribute;
-    if (!item.noise) item.noise = defaultAttribute;
+    item.speed = processAttribute(item.speed, 'speed');
+    item.weight = processAttribute(item.weight, 'weight');
+    item.size = processAttribute(item.size, 'size');
+    item.armour = processAttribute(item.armour, 'armour');
+    item.endurance = processAttribute(item.endurance, 'endurance');
+    item.lethality = processAttribute(item.lethality, 'lethality');
+    item.penetration = processAttribute(item.penetration, 'penetration');
+    item.complexity = processAttribute(item.complexity, 'complexity');
+    item.strength = processAttribute(item.strength, 'strength');
+    item.dexterity = processAttribute(item.dexterity, 'dexterity');
+    item.agility = processAttribute(item.agility, 'agility');
+    item.obscurity = processAttribute(item.obscurity, 'obscurity');
+    item.resolve = processAttribute(item.resolve, 'resolve');
+    item.morale = processAttribute(item.morale, 'morale');
+    item.intelligence = processAttribute(item.intelligence, 'intelligence');
+    item.charisma = processAttribute(item.charisma, 'charisma');
+    item.seeing = processAttribute(item.seeing, 'seeing');
+    item.hearing = processAttribute(item.hearing, 'hearing');
+    item.light = processAttribute(item.light, 'light');
+    item.noise = processAttribute(item.noise, 'noise');
     
     // Handle arrays
     if (item.special === undefined || item.special === null) item.special = [];

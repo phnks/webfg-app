@@ -5,6 +5,18 @@ import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
 import AttributeGroups, { ATTRIBUTE_GROUPS } from "../common/AttributeGroups";
 import "./CharacterAttributes.css";
 
+// Dynamic attributes and their dice types
+const DYNAMIC_ATTRIBUTES = {
+  speed: { diceType: 'd4', defaultCount: 1 },
+  agility: { diceType: 'd6', defaultCount: 1 },
+  dexterity: { diceType: 'd8', defaultCount: 1 },
+  strength: { diceType: 'd10', defaultCount: 1 },
+  charisma: { diceType: 'd12', defaultCount: 1 },
+  seeing: { diceType: 'd20', defaultCount: 1 },
+  hearing: { diceType: 'd20', defaultCount: 1 },
+  intelligence: { diceType: 'd100', defaultCount: 1 }
+};
+
 // Version that uses backend computed fields
 const CharacterAttributesBackend = ({ 
   character, // Full character object with all attributes
@@ -664,6 +676,9 @@ const CharacterAttributesBackend = ({
     const rawValue = character?.[attributeName]?.attribute?.attributeValue;
     const parsedValue = parseFloat(rawValue);
     const originalValue = !isNaN(parsedValue) ? parsedValue : 0;
+    const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+    // Use database diceCount if available, otherwise default to 1 for dynamic attributes
+    const diceCount = character?.[attributeName]?.attribute?.diceCount ?? (dynamicInfo ? dynamicInfo.defaultCount : 0);
     const equipmentGroupedValue = effectiveGroupedAttributes?.[attributeName];
     const readyGroupedValue = effectiveReadyGroupedAttributes?.[attributeName];
     const hasEquipment = character && character.equipment && character.equipment.length > 0;
@@ -712,11 +727,29 @@ const CharacterAttributesBackend = ({
     // Note: Ready grouped values are no longer automatically displayed
     // They will only be calculated and shown during action tests when an object is selected
     
+    // Calculate dynamic range for attributes with dice
+    let displayText = originalValue.toString();
+    let formulaText = null;
+    
+    if (dynamicInfo && diceCount > 0) {
+      // Calculate min and max values for a single die roll
+      const diceNumber = parseInt(dynamicInfo.diceType.substring(1));
+      const minValue = 1 + originalValue;
+      const maxValue = diceNumber + originalValue;
+      displayText = `${minValue}-${maxValue}`;
+      formulaText = `${diceCount}${dynamicInfo.diceType}${originalValue >= 0 ? '+' : ''}${originalValue}`;
+    }
+    
     return (
       <div key={attributeName} className="attribute-item">
         <label>{displayName}</label>
         <span>
-          {originalValue} 
+          {displayText}
+          {formulaText && (
+            <span className="attribute-formula" style={{ marginLeft: '6px', fontSize: '0.85em', color: '#666' }}>
+              ({formulaText})
+            </span>
+          )}
           <span 
             className="grouping-indicator" 
             title={character?.[attributeName]?.attribute?.isGrouped ? 'This attribute participates in grouping' : 'This attribute does not participate in grouping'}
@@ -731,10 +764,21 @@ const CharacterAttributesBackend = ({
               title={`Grouped value with ${displayGroupedSource} and conditions`}
             >
               {' → '}{
-                displayGroupedValue !== undefined && 
-                !isNaN(Number(displayGroupedValue)) ? 
-                  Math.round(Number(displayGroupedValue)) : 
-                  originalValue
+                (() => {
+                  const groupedVal = displayGroupedValue !== undefined && 
+                    !isNaN(Number(displayGroupedValue)) ? 
+                    Math.round(Number(displayGroupedValue)) : 
+                    originalValue;
+                  
+                  if (dynamicInfo && diceCount > 0) {
+                    const diceNumber = parseInt(dynamicInfo.diceType.substring(1));
+                    const minValue = 1 + groupedVal;
+                    const maxValue = diceNumber + groupedVal;
+                    const newFormula = `${diceCount}${dynamicInfo.diceType}${groupedVal >= 0 ? '+' : ''}${groupedVal}`;
+                    return `${minValue}-${maxValue} (${newFormula})`;
+                  }
+                  return groupedVal;
+                })()
               }
               {((showReadyAttributes ? hasReady : hasEquipment) || hasConditions) && (
                 <button

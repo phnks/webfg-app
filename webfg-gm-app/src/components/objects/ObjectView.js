@@ -16,6 +16,18 @@ import AttributeGroups from "../common/AttributeGroups";
 import AttributeBreakdownPopup from "../common/AttributeBreakdownPopup";
 import "./ObjectView.css";
 
+// Dynamic attributes and their dice types
+const DYNAMIC_ATTRIBUTES = {
+  speed: { diceType: 'd4', defaultCount: 1 },
+  agility: { diceType: 'd6', defaultCount: 1 },
+  dexterity: { diceType: 'd8', defaultCount: 1 },
+  strength: { diceType: 'd10', defaultCount: 1 },
+  charisma: { diceType: 'd12', defaultCount: 1 },
+  seeing: { diceType: 'd20', defaultCount: 1 },
+  hearing: { diceType: 'd20', defaultCount: 1 },
+  intelligence: { diceType: 'd100', defaultCount: 1 }
+};
+
 const ObjectView = ({ startInEditMode = false, object = null }) => {
   const { objectId } = useParams();
   const navigate = useNavigate();
@@ -303,6 +315,8 @@ const ObjectView = ({ startInEditMode = false, object = null }) => {
             renderAttribute={(attributeName, attribute, displayName) => {
               // Get the original value and grouped value
               const originalValue = attribute?.attributeValue || 0;
+              const diceCount = attribute?.diceCount || 0;
+              const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
               const groupedValue = currentObject.groupedAttributes?.[attributeName];
               const hasGroupedValue = groupedValue !== undefined && groupedValue !== originalValue;
               const hasEquipment = currentObject?.equipment?.length > 0;
@@ -325,11 +339,29 @@ const ObjectView = ({ startInEditMode = false, object = null }) => {
                 }
               };
               
+              // Calculate dynamic range for attributes with dice
+              let displayText = originalValue.toString();
+              let formulaText = null;
+              
+              if (dynamicInfo && diceCount > 0) {
+                // Calculate min and max values for a single die roll
+                const diceNumber = parseInt(dynamicInfo.diceType.substring(1));
+                const minValue = 1 + originalValue;
+                const maxValue = diceNumber + originalValue;
+                displayText = `${minValue}-${maxValue}`;
+                formulaText = `${diceCount}${dynamicInfo.diceType}${originalValue >= 0 ? '+' : ''}${originalValue}`;
+              }
+              
               return (
                 <div key={attributeName} className="detail-row">
                   <span>{displayName}:</span>
                   <span>
-                    {originalValue}
+                    {displayText}
+                    {formulaText && (
+                      <span className="attribute-formula" style={{ marginLeft: '6px', fontSize: '0.85em', color: '#666' }}>
+                        ({formulaText})
+                      </span>
+                    )}
                     <span 
                       className="grouping-indicator" 
                       title={attribute?.isGrouped ? 'This attribute participates in grouping' : 'This attribute does not participate in grouping'}
@@ -343,7 +375,19 @@ const ObjectView = ({ startInEditMode = false, object = null }) => {
                         style={getGroupedValueStyle(originalValue, Math.round(groupedValue))}
                         title="Grouped value with equipment"
                       >
-                        {' → '}{Math.round(groupedValue)}
+                        {' → '}{
+                          (() => {
+                            const roundedGrouped = Math.round(groupedValue);
+                            if (dynamicInfo && diceCount > 0) {
+                              const diceNumber = parseInt(dynamicInfo.diceType.substring(1));
+                              const minValue = 1 + roundedGrouped;
+                              const maxValue = diceNumber + roundedGrouped;
+                              const newFormula = `${diceCount}${dynamicInfo.diceType}${roundedGrouped >= 0 ? '+' : ''}${roundedGrouped}`;
+                              return `${minValue}-${maxValue} (${newFormula})`;
+                            }
+                            return roundedGrouped;
+                          })()
+                        }
                         {hasEquipment && (
                           <button
                             className="info-icon"

@@ -24,13 +24,65 @@ exports.handler = async (event) => {
   console.log("DEBUG updateCharacter - input.raceOverride:", input.raceOverride, "type:", typeof input.raceOverride);
   console.log("DEBUG updateCharacter - input.penetration:", JSON.stringify(input.penetration, null, 2));
 
+  // Define which attributes have dynamic dice - same as createCharacter.js
+  const DYNAMIC_ATTRIBUTES = {
+    speed: { diceType: 'd4', defaultCount: 1 },
+    agility: { diceType: 'd6', defaultCount: 1 },
+    dexterity: { diceType: 'd8', defaultCount: 1 },
+    strength: { diceType: 'd10', defaultCount: 1 },
+    charisma: { diceType: 'd12', defaultCount: 1 },
+    seeing: { diceType: 'd20', defaultCount: 1 },
+    hearing: { diceType: 'd20', defaultCount: 1 },
+    intelligence: { diceType: 'd100', defaultCount: 1 }
+  };
+
+  // Process attributes to ensure they have correct diceCount - same logic as createCharacter.js
+  const processAttribute = (input, attributeName) => {
+    console.log(`DEBUG processAttribute - ${attributeName} input:`, JSON.stringify(input, null, 2));
+    
+    if (!input) return null;
+    
+    const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+    const defaultDiceCount = dynamicInfo ? dynamicInfo.defaultCount : null;
+    
+    console.log(`DEBUG processAttribute - ${attributeName} dynamicInfo:`, dynamicInfo, 'defaultDiceCount:', defaultDiceCount);
+    
+    let result;
+    // If input is already in nested format, process it
+    if (input.attribute) {
+      const diceCountFromInput = input.attribute.diceCount;
+      console.log(`DEBUG processAttribute - ${attributeName} has nested format, diceCount from input:`, diceCountFromInput);
+      
+      result = {
+        attribute: {
+          attributeValue: input.attribute.attributeValue || 0,
+          isGrouped: input.attribute.isGrouped !== undefined ? input.attribute.isGrouped : true,
+          diceCount: diceCountFromInput !== undefined ? diceCountFromInput : defaultDiceCount
+        }
+      };
+    } else {
+      // If input is in GraphQL input format, wrap it
+      console.log(`DEBUG processAttribute - ${attributeName} has flat format`);
+      result = {
+        attribute: {
+          attributeValue: input.attributeValue || 0,
+          isGrouped: input.isGrouped !== undefined ? input.isGrouped : true,
+          diceCount: input.diceCount !== undefined ? input.diceCount : defaultDiceCount
+        }
+      };
+    }
+    
+    console.log(`DEBUG processAttribute - ${attributeName} final result:`, JSON.stringify(result, null, 2));
+    return result;
+  };
+
   const updateExpressionParts = [];
   const expressionAttributeNames = {};
   const expressionAttributeValues = {};
 
   // Helper function to add update expression parts
   const addUpdateField = (fieldName, fieldValue, attributeName = fieldName) => {
-    if (fieldValue !== undefined) {
+    if (fieldValue !== undefined && fieldValue !== null) {
       updateExpressionParts.push(`#${attributeName} = :${attributeName}`);
       expressionAttributeNames[`#${attributeName}`] = fieldName;
       // Special handling for boolean fields to ensure they're stored as proper booleans
@@ -55,26 +107,26 @@ exports.handler = async (event) => {
   addUpdateField("will", input.will);
   addUpdateField("fatigue", input.fatigue);
   addUpdateField("values", input.values);
-  addUpdateField("speed", input.speed);
-  addUpdateField("weight", input.weight);
-  addUpdateField("size", input.size);
-  addUpdateField("armour", input.armour);
-  addUpdateField("endurance", input.endurance);
-  addUpdateField("lethality", input.lethality);
-  addUpdateField("penetration", input.penetration);
-  addUpdateField("complexity", input.complexity);
-  addUpdateField("strength", input.strength);
-  addUpdateField("dexterity", input.dexterity);
-  addUpdateField("agility", input.agility);
-  addUpdateField("obscurity", input.obscurity);
-  addUpdateField("resolve", input.resolve);
-  addUpdateField("morale", input.morale);
-  addUpdateField("intelligence", input.intelligence);
-  addUpdateField("charisma", input.charisma);
-  addUpdateField("seeing", input.seeing);
-  addUpdateField("hearing", input.hearing);
-  addUpdateField("light", input.light);
-  addUpdateField("noise", input.noise);
+  addUpdateField("speed", processAttribute(input.speed, 'speed'));
+  addUpdateField("weight", processAttribute(input.weight, 'weight'));
+  addUpdateField("size", processAttribute(input.size, 'size'));
+  addUpdateField("armour", processAttribute(input.armour, 'armour'));
+  addUpdateField("endurance", processAttribute(input.endurance, 'endurance'));
+  addUpdateField("lethality", processAttribute(input.lethality, 'lethality'));
+  addUpdateField("penetration", processAttribute(input.penetration, 'penetration'));
+  addUpdateField("complexity", processAttribute(input.complexity, 'complexity'));
+  addUpdateField("strength", processAttribute(input.strength, 'strength'));
+  addUpdateField("dexterity", processAttribute(input.dexterity, 'dexterity'));
+  addUpdateField("agility", processAttribute(input.agility, 'agility'));
+  addUpdateField("obscurity", processAttribute(input.obscurity, 'obscurity'));
+  addUpdateField("resolve", processAttribute(input.resolve, 'resolve'));
+  addUpdateField("morale", processAttribute(input.morale, 'morale'));
+  addUpdateField("intelligence", processAttribute(input.intelligence, 'intelligence'));
+  addUpdateField("charisma", processAttribute(input.charisma, 'charisma'));
+  addUpdateField("seeing", processAttribute(input.seeing, 'seeing'));
+  addUpdateField("hearing", processAttribute(input.hearing, 'hearing'));
+  addUpdateField("light", processAttribute(input.light, 'light'));
+  addUpdateField("noise", processAttribute(input.noise, 'noise'));
   addUpdateField("actionIds", input.actionIds);
   addUpdateField("special", input.special);
   addUpdateField("stashIds", input.stashIds);
@@ -107,6 +159,15 @@ exports.handler = async (event) => {
     if (result && result.Attributes && Object.keys(result.Attributes).length > 0) {
       // Debug logging for raceOverride after update
       console.log("DEBUG updateCharacter - result.Attributes.raceOverride:", result.Attributes.raceOverride, "type:", typeof result.Attributes.raceOverride);
+      
+      // Log dynamic attributes to check dice counts
+      const dynamicAttrs = ['speed', 'agility', 'dexterity', 'strength', 'charisma', 'seeing', 'hearing', 'intelligence'];
+      dynamicAttrs.forEach(attr => {
+        if (result.Attributes[attr]) {
+          console.log(`DEBUG updateCharacter - Saved ${attr}:`, JSON.stringify(result.Attributes[attr], null, 2));
+        }
+      });
+      
       return result.Attributes;
     } else {
       console.error(`UpdateCharacter Lambda: Character with ID ${characterId} not found`);

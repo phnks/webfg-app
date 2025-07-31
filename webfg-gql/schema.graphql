@@ -1,11 +1,13 @@
 type Attribute {
   attributeValue: Float!
   isGrouped: Boolean!
+  diceCount: Int
 }
 
 input AttributeInput {
   attributeValue: Float!
   isGrouped: Boolean!
+  diceCount: Int
 }
 
 enum AttributeName {

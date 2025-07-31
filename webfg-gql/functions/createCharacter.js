@@ -60,37 +60,78 @@ exports.handler = async (event) => {
     characterConditions: input.characterConditions || []
   };
 
+  // Define which attributes have dynamic dice
+  const DYNAMIC_ATTRIBUTES = {
+    speed: { diceType: 'd4', defaultCount: 1 },
+    agility: { diceType: 'd6', defaultCount: 1 },
+    dexterity: { diceType: 'd8', defaultCount: 1 },
+    strength: { diceType: 'd10', defaultCount: 1 },
+    charisma: { diceType: 'd12', defaultCount: 1 },
+    seeing: { diceType: 'd20', defaultCount: 1 },
+    hearing: { diceType: 'd20', defaultCount: 1 },
+    intelligence: { diceType: 'd100', defaultCount: 1 }
+  };
+
   // Initialize attributes with default values if not provided
-  const defaultAttribute = { 
-    attribute: { 
-      attributeValue: 0, 
-      isGrouped: true 
-    } 
+  const getDefaultAttribute = (attributeName) => {
+    const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+    return { 
+      attribute: { 
+        attributeValue: 0, 
+        isGrouped: true,
+        diceCount: dynamicInfo ? dynamicInfo.defaultCount : null
+      } 
+    };
+  };
+
+  // Process attributes to ensure they have correct structure with diceCount
+  const processAttribute = (input, attributeName) => {
+    if (!input) return getDefaultAttribute(attributeName);
+    
+    const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+    const defaultDiceCount = dynamicInfo ? dynamicInfo.defaultCount : null;
+    
+    // If input is already in nested format, return as-is
+    if (input.attribute) {
+      return {
+        attribute: {
+          attributeValue: input.attribute.attributeValue || 0,
+          isGrouped: input.attribute.isGrouped !== undefined ? input.attribute.isGrouped : true,
+          diceCount: input.attribute.diceCount !== undefined ? input.attribute.diceCount : defaultDiceCount
+        }
+      };
+    }
+    
+    // If input is in GraphQL input format, wrap it
+    return {
+      attribute: {
+        attributeValue: input.attributeValue || 0,
+        isGrouped: input.isGrouped !== undefined ? input.isGrouped : true,
+        diceCount: input.diceCount !== undefined ? input.diceCount : defaultDiceCount
+      }
+    };
   };
   
-  if (!item.speed) item.speed = defaultAttribute;
-  if (!item.weight) item.weight = defaultAttribute;
-  if (!item.size) item.size = defaultAttribute;
-  if (!item.armour) item.armour = defaultAttribute;
-  if (!item.endurance) item.endurance = defaultAttribute;
-  if (!item.lethality) item.lethality = defaultAttribute;
-  if (!item.penetration) item.penetration = defaultAttribute;
-  if (!item.complexity) item.complexity = defaultAttribute;
-  
-  // Debug logging after all attribute processing
-  console.log("DEBUG createCharacter - final item.penetration:", JSON.stringify(item.penetration, null, 2));
-  if (!item.strength) item.strength = defaultAttribute;
-  if (!item.dexterity) item.dexterity = defaultAttribute;
-  if (!item.agility) item.agility = defaultAttribute;
-  if (!item.obscurity) item.obscurity = defaultAttribute;
-  if (!item.resolve) item.resolve = defaultAttribute;
-  if (!item.morale) item.morale = defaultAttribute;
-  if (!item.intelligence) item.intelligence = defaultAttribute;
-  if (!item.charisma) item.charisma = defaultAttribute;
-  if (!item.seeing) item.seeing = defaultAttribute;
-  if (!item.hearing) item.hearing = defaultAttribute;
-  if (!item.light) item.light = defaultAttribute;
-  if (!item.noise) item.noise = defaultAttribute;
+  item.speed = processAttribute(item.speed, 'speed');
+  item.weight = processAttribute(item.weight, 'weight');
+  item.size = processAttribute(item.size, 'size');
+  item.armour = processAttribute(item.armour, 'armour');
+  item.endurance = processAttribute(item.endurance, 'endurance');
+  item.lethality = processAttribute(item.lethality, 'lethality');
+  item.penetration = processAttribute(item.penetration, 'penetration');
+  item.complexity = processAttribute(item.complexity, 'complexity');
+  item.strength = processAttribute(item.strength, 'strength');
+  item.dexterity = processAttribute(item.dexterity, 'dexterity');
+  item.agility = processAttribute(item.agility, 'agility');
+  item.obscurity = processAttribute(item.obscurity, 'obscurity');
+  item.resolve = processAttribute(item.resolve, 'resolve');
+  item.morale = processAttribute(item.morale, 'morale');
+  item.intelligence = processAttribute(item.intelligence, 'intelligence');
+  item.charisma = processAttribute(item.charisma, 'charisma');
+  item.seeing = processAttribute(item.seeing, 'seeing');
+  item.hearing = processAttribute(item.hearing, 'hearing');
+  item.light = processAttribute(item.light, 'light');
+  item.noise = processAttribute(item.noise, 'noise');
 
   const params = {
     TableName: tableName,

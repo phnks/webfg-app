@@ -12,21 +12,26 @@ describe('createCharacter', () => {
       characterCategory: 'HUMAN',
       will: 15,
       values: ['courage', 'honor'],
-      speed: { current: 10, max: 10, base: 10 },
-      weight: { current: 75, max: 75, base: 75 },
-      size: { current: 5, max: 5, base: 5 },
-      armour: { current: 8, max: 10, base: 8 },
-      endurance: { current: 12, max: 15, base: 12 },
-      lethality: { current: 7, max: 10, base: 7 },
-      complexity: { current: 6, max: 8, base: 6 },
-      strength: { current: 14, max: 16, base: 14 },
-      dexterity: { current: 11, max: 12, base: 11 },
-      agility: { current: 13, max: 15, base: 13 },
-      obscurity: { current: 10, max: 12, base: 10 },
-      resolve: { current: 16, max: 18, base: 16 },
-      morale: { current: 12, max: 15, base: 12 },
-      intelligence: { current: 11, max: 13, base: 11 },
-      charisma: { current: 8, max: 10, base: 8 },
+      speed: { attributeValue: 10, isGrouped: true, diceCount: 1 },
+      weight: { attributeValue: 75, isGrouped: true, diceCount: null },
+      size: { attributeValue: 5, isGrouped: true, diceCount: null },
+      armour: { attributeValue: 8, isGrouped: true, diceCount: null },
+      endurance: { attributeValue: 12, isGrouped: true, diceCount: null },
+      lethality: { attributeValue: 7, isGrouped: true, diceCount: null },
+      complexity: { attributeValue: 6, isGrouped: true, diceCount: null },
+      strength: { attributeValue: 14, isGrouped: true, diceCount: 1 },
+      dexterity: { attributeValue: 11, isGrouped: true, diceCount: 1 },
+      agility: { attributeValue: 13, isGrouped: true, diceCount: 1 },
+      obscurity: { attributeValue: 10, isGrouped: true, diceCount: null },
+      resolve: { attributeValue: 16, isGrouped: true, diceCount: null },
+      morale: { attributeValue: 12, isGrouped: true, diceCount: null },
+      intelligence: { attributeValue: 11, isGrouped: true, diceCount: 1 },
+      charisma: { attributeValue: 8, isGrouped: true, diceCount: 1 },
+      seeing: { attributeValue: 10, isGrouped: true, diceCount: 1 },
+      hearing: { attributeValue: 10, isGrouped: true, diceCount: 1 },
+      penetration: { attributeValue: 0, isGrouped: true, diceCount: null },
+      light: { attributeValue: 0, isGrouped: true, diceCount: null },
+      noise: { attributeValue: 0, isGrouped: true, diceCount: null },
       actionIds: ['action-1', 'action-2'],
       special: ['night-vision', 'quick-reflexes'],
       stashIds: ['stash-1'],
@@ -50,7 +55,7 @@ describe('createCharacter', () => {
     expect(result.characterCategory).toBe('HUMAN');
     expect(result.will).toBe(15);
     expect(result.values).toEqual(['courage', 'honor']);
-    expect(result.speed).toEqual({ current: 10, max: 10, base: 10 });
+    expect(result.speed).toEqual({ attribute: { attributeValue: 10, isGrouped: true, diceCount: 1 } });
     expect(result.actionIds).toEqual(['action-1', 'action-2']);
     expect(result.special).toEqual(['night-vision', 'quick-reflexes']);
     expect(result.stashIds).toEqual(['stash-1']);
@@ -172,9 +177,9 @@ describe('createCharacter', () => {
     const mockInput = {
       name: 'Partial Character',
       characterCategory: 'HUMAN',
-      strength: { current: 10 }, // Missing max and base
-      dexterity: { max: 15 }, // Missing current and base
-      agility: { current: 8, max: 12 } // Missing base
+      strength: { attributeValue: 10 }, // Missing isGrouped and diceCount
+      dexterity: { attributeValue: 15, isGrouped: false }, // Missing diceCount
+      agility: { attributeValue: 8, diceCount: 2 } // Missing isGrouped
     };
 
     const event = {
@@ -186,10 +191,10 @@ describe('createCharacter', () => {
 
     const result = await handler(event);
 
-    // Verify partial objects are preserved as-is
-    expect(result.strength).toEqual({ current: 10 });
-    expect(result.dexterity).toEqual({ max: 15 });
-    expect(result.agility).toEqual({ current: 8, max: 12 });
+    // Verify partial objects are preserved and filled with defaults
+    expect(result.strength).toEqual({ attribute: { attributeValue: 10, isGrouped: true, diceCount: 1 } });
+    expect(result.dexterity).toEqual({ attribute: { attributeValue: 15, isGrouped: false, diceCount: 1 } });
+    expect(result.agility).toEqual({ attribute: { attributeValue: 8, isGrouped: true, diceCount: 2 } });
   });
 
   it('should use environment variable for table name', async () => {
