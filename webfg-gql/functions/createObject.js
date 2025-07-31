@@ -29,7 +29,11 @@ exports.handler = async (event) => {
     item.nameLowerCase = item.name.toLowerCase();
     
     // Initialize attributes with default values if not provided
-    const defaultAttribute = { current: 0, max: 0, base: 0 };
+    const defaultAttribute = { 
+        attributeValue: 0, 
+        isGrouped: true,
+        diceCount: null
+    };
     
     if (!item.speed) item.speed = defaultAttribute;
     if (!item.weight) item.weight = defaultAttribute;

@@ -64,7 +64,8 @@ exports.handler = async (event) => {
   const defaultAttribute = { 
     attribute: { 
       attributeValue: 0, 
-      isGrouped: true 
+      isGrouped: true,
+      diceCount: null
     } 
   };
   

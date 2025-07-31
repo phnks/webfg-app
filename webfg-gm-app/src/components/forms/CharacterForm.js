@@ -41,6 +41,18 @@ const CHARACTER_RACES = [
   'HUMAN', 'ANTHRO', 'CARVED', 'TREPIDITE', 'DHYARMA'
 ];
 
+// Dynamic attributes and their dice types
+const DYNAMIC_ATTRIBUTES = {
+  speed: { diceType: 'd4', defaultCount: 1 },
+  agility: { diceType: 'd6', defaultCount: 1 },
+  dexterity: { diceType: 'd8', defaultCount: 1 },
+  strength: { diceType: 'd10', defaultCount: 1 },
+  charisma: { diceType: 'd12', defaultCount: 1 },
+  seeing: { diceType: 'd20', defaultCount: 1 },
+  hearing: { diceType: 'd20', defaultCount: 1 },
+  intelligence: { diceType: 'd100', defaultCount: 1 }
+};
+
 // Life Path Tables for generating character descriptions (Human only)
 const LIFE_PATH_TABLES = [
   {
@@ -363,7 +375,14 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     
     // Add all attributes with default values of 10
     getAllAttributeNames().forEach(attr => {
-      initialData[attr] = { attribute: { attributeValue: 10, isGrouped: true } };
+      const dynamicInfo = DYNAMIC_ATTRIBUTES[attr];
+      initialData[attr] = { 
+        attribute: { 
+          attributeValue: 10, 
+          isGrouped: true,
+          diceCount: dynamicInfo ? dynamicInfo.defaultCount : null
+        } 
+      };
     });
     
     return initialData;
@@ -531,8 +550,8 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     
     if (isRestrictedAttribute(attributeName) && value !== 10) {
       return `Must be 10 for humans (currently ${value})`;
-    } else if (!isRestrictedAttribute(attributeName) && (value < 5 || value > 20)) {
-      return `Must be between 5-20 for humans (currently ${value})`;
+    } else if (!isRestrictedAttribute(attributeName) && (value < -99 || value > 99)) {
+      return `Must be between -99 and 99 (currently ${value})`;
     }
     
     return null;
@@ -582,7 +601,18 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       
       // Add all attributes from character or default values
       getAllAttributeNames().forEach(attr => {
-        updatedFormData[attr] = character[attr] || { attribute: { attributeValue: 10, isGrouped: true } };
+        const dynamicInfo = DYNAMIC_ATTRIBUTES[attr];
+        if (character[attr]) {
+          updatedFormData[attr] = character[attr];
+        } else {
+          updatedFormData[attr] = { 
+            attribute: { 
+              attributeValue: 10, 
+              isGrouped: true,
+              diceCount: dynamicInfo ? dynamicInfo.defaultCount : null
+            } 
+          };
+        }
       });
       
       // Set targetAttributeTotal from character or calculate default
@@ -701,8 +731,8 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         
         if (isRestrictedAttribute(attr) && value !== 10) {
           violations.push(`${attr} must be 10 for humans (currently ${value})`);
-        } else if (!isRestrictedAttribute(attr) && (value < 5 || value > 20)) {
-          violations.push(`${attr} must be between 5-20 for humans (currently ${value})`);
+        } else if (!isRestrictedAttribute(attr) && (value < -99 || value > 99)) {
+          violations.push(`${attr} must be between -99 and 99 (currently ${value})`);
         }
       });
       
@@ -805,11 +835,26 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   // Render function for individual attributes in the form
   const renderAttributeForForm = (attributeName, attribute, displayName) => {
     const validationError = getAttributeValidationError(attributeName);
+    const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
     
     return (
       <div key={attributeName} className="attribute-item">
         <label>{displayName}</label>
         <div className="attribute-controls">
+          {dynamicInfo && (
+            <div className="dice-input-group">
+              <MobileNumberInput
+                step="1"
+                min="0"
+                value={formData[attributeName]?.attribute?.diceCount || 0}
+                onChange={(e) => handleNestedAttributeChange(attributeName, 'diceCount', parseInt(e.target.value) || 0)}
+                className="dice-count-input"
+                style={{ width: '60px' }}
+              />
+              <span className="dice-type">{dynamicInfo.diceType}</span>
+              <span className="plus-sign">+</span>
+            </div>
+          )}
           <MobileNumberInput
             step="0.1"
             value={formData[attributeName]?.attribute?.attributeValue || 0}
@@ -846,7 +891,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       if (isRestrictedAttribute(attr)) {
         return value !== 10;
       } else {
-        return value < 5 || value > 20;
+        return value < -99 || value > 99;
       }
     });
   }
