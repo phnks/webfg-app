@@ -602,8 +602,37 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       // Add all attributes from character or default values
       getAllAttributeNames().forEach(attr => {
         const dynamicInfo = DYNAMIC_ATTRIBUTES[attr];
+        console.log(`DEBUG: Loading attribute ${attr}, dynamicInfo:`, dynamicInfo);
+        console.log(`DEBUG: Character[${attr}] from DB:`, JSON.stringify(character[attr], null, 2));
+        
         if (character[attr]) {
-          updatedFormData[attr] = character[attr];
+          // Check for both possible structures - character data might come in different formats
+          let attributeData;
+          if (character[attr].attribute) {
+            // Nested format: { attribute: { attributeValue, isGrouped, diceCount } }
+            attributeData = character[attr].attribute;
+          } else if (character[attr].attributeValue !== undefined) {
+            // Flat format: { attributeValue, isGrouped, diceCount }
+            attributeData = character[attr];
+          } else {
+            // Fallback
+            attributeData = { attributeValue: 10, isGrouped: true };
+          }
+          
+          const diceCountFromDB = attributeData.diceCount;
+          const defaultDiceCount = dynamicInfo ? dynamicInfo.defaultCount : null;
+          const finalDiceCount = diceCountFromDB !== undefined ? diceCountFromDB : defaultDiceCount;
+          
+          console.log(`DEBUG: ${attr} - attributeData:`, attributeData);
+          console.log(`DEBUG: ${attr} - diceCountFromDB: ${diceCountFromDB}, defaultDiceCount: ${defaultDiceCount}, finalDiceCount: ${finalDiceCount}`);
+          
+          updatedFormData[attr] = {
+            attribute: {
+              attributeValue: attributeData.attributeValue || 10,
+              isGrouped: attributeData.isGrouped !== false,
+              diceCount: finalDiceCount
+            }
+          };
         } else {
           updatedFormData[attr] = { 
             attribute: { 
@@ -613,6 +642,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             } 
           };
         }
+        console.log(`DEBUG: Final updatedFormData[${attr}]:`, updatedFormData[attr]);
       });
       
       // Set targetAttributeTotal from character or calculate default
@@ -675,6 +705,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
 
   const handleNestedAttributeChange = (attributeName, nestedField, value) => {
     console.log(`DEBUG: handleNestedAttributeChange called - ${attributeName}.${nestedField} = ${value}`);
+    console.log(`DEBUG: Current formData[${attributeName}] before update:`, formData[attributeName]);
     
     setFormData(prev => {
       const updated = {
@@ -688,6 +719,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         }
       };
       console.log(`DEBUG: Updated formData for ${attributeName}:`, updated[attributeName]);
+      console.log(`DEBUG: Specifically, diceCount is now:`, updated[attributeName]?.attribute?.diceCount);
       return updated;
     });
     
@@ -791,13 +823,20 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         console.log(`DEBUG: Processing attribute ${attr}:`, formData[attr]);
         const rawValue = formData[attr]?.attribute?.attributeValue;
         const parsedValue = parseFloat(rawValue);
+        const dynamicInfo = DYNAMIC_ATTRIBUTES[attr];
+        const diceCountValue = formData[attr]?.attribute?.diceCount;
+        
+        console.log(`DEBUG: ${attr} - rawValue: ${rawValue}, diceCountValue: ${diceCountValue}, dynamicInfo:`, dynamicInfo);
+        
         input[attr] = {
           attribute: { 
             attributeValue: !isNaN(parsedValue) ? parsedValue : 0,
-            isGrouped: formData[attr]?.attribute?.isGrouped !== false
+            isGrouped: formData[attr]?.attribute?.isGrouped !== false,
+            diceCount: diceCountValue !== undefined ? diceCountValue : (dynamicInfo ? dynamicInfo.defaultCount : null)
           }
         };
-        console.log(`DEBUG: Set ${attr} to:`, input[attr]);
+        console.log(`DEBUG: Final input[${attr}] being sent to backend:`, input[attr]);
+        console.log(`DEBUG: Specifically, diceCount being sent: ${input[attr].attribute.diceCount}`);
       });
       
       console.log('DEBUG: Final input object:', input);

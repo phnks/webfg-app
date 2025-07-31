@@ -38,30 +38,42 @@ exports.handler = async (event) => {
 
   // Process attributes to ensure they have correct diceCount - same logic as createCharacter.js
   const processAttribute = (input, attributeName) => {
+    console.log(`DEBUG processAttribute - ${attributeName} input:`, JSON.stringify(input, null, 2));
+    
     if (!input) return null;
     
     const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
     const defaultDiceCount = dynamicInfo ? dynamicInfo.defaultCount : null;
     
+    console.log(`DEBUG processAttribute - ${attributeName} dynamicInfo:`, dynamicInfo, 'defaultDiceCount:', defaultDiceCount);
+    
+    let result;
     // If input is already in nested format, process it
     if (input.attribute) {
-      return {
+      const diceCountFromInput = input.attribute.diceCount;
+      console.log(`DEBUG processAttribute - ${attributeName} has nested format, diceCount from input:`, diceCountFromInput);
+      
+      result = {
         attribute: {
           attributeValue: input.attribute.attributeValue || 0,
           isGrouped: input.attribute.isGrouped !== undefined ? input.attribute.isGrouped : true,
-          diceCount: input.attribute.diceCount !== undefined ? input.attribute.diceCount : defaultDiceCount
+          diceCount: diceCountFromInput !== undefined ? diceCountFromInput : defaultDiceCount
+        }
+      };
+    } else {
+      // If input is in GraphQL input format, wrap it
+      console.log(`DEBUG processAttribute - ${attributeName} has flat format`);
+      result = {
+        attribute: {
+          attributeValue: input.attributeValue || 0,
+          isGrouped: input.isGrouped !== undefined ? input.isGrouped : true,
+          diceCount: input.diceCount !== undefined ? input.diceCount : defaultDiceCount
         }
       };
     }
     
-    // If input is in GraphQL input format, wrap it
-    return {
-      attribute: {
-        attributeValue: input.attributeValue || 0,
-        isGrouped: input.isGrouped !== undefined ? input.isGrouped : true,
-        diceCount: input.diceCount !== undefined ? input.diceCount : defaultDiceCount
-      }
-    };
+    console.log(`DEBUG processAttribute - ${attributeName} final result:`, JSON.stringify(result, null, 2));
+    return result;
   };
 
   const updateExpressionParts = [];
@@ -147,6 +159,15 @@ exports.handler = async (event) => {
     if (result && result.Attributes && Object.keys(result.Attributes).length > 0) {
       // Debug logging for raceOverride after update
       console.log("DEBUG updateCharacter - result.Attributes.raceOverride:", result.Attributes.raceOverride, "type:", typeof result.Attributes.raceOverride);
+      
+      // Log dynamic attributes to check dice counts
+      const dynamicAttrs = ['speed', 'agility', 'dexterity', 'strength', 'charisma', 'seeing', 'hearing', 'intelligence'];
+      dynamicAttrs.forEach(attr => {
+        if (result.Attributes[attr]) {
+          console.log(`DEBUG updateCharacter - Saved ${attr}:`, JSON.stringify(result.Attributes[attr], null, 2));
+        }
+      });
+      
       return result.Attributes;
     } else {
       console.error(`UpdateCharacter Lambda: Character with ID ${characterId} not found`);
