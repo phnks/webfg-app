@@ -596,24 +596,26 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     const newAttributes = {};
     const newDiceCounts = {};
     
-    // Generate random values for each attribute independently within their constraints
+    // Get the target total (should remain unchanged)
+    const targetTotal = formData.targetAttributeTotal || calculateDefaultTargetTotal();
+    
+    // Separate fixed and modifiable attributes
+    const fixedAttributes = [];
+    const modifiableAttributes = [];
+    let fixedTotal = 0;
+    
     attributeNames.forEach(attr => {
       if (shouldApplyRaceRestrictions() && !canModifyAttribute(attr)) {
         // Fixed attributes use default values
         const defaultValue = getDefaultAttributeValue(attr, formData.race);
         newAttributes[attr] = defaultValue;
+        fixedAttributes.push(attr);
+        fixedTotal += defaultValue;
         
         // Set default dice count for dynamic attributes
         newDiceCounts[attr] = getDefaultDiceCount(attr, formData.race);
       } else {
-        // Modifiable attributes: generate random value within valid range
-        const range = getValidationRange(attr);
-        const minVal = range ? range[0] : (shouldApplyRaceRestrictions() ? 0 : 1);
-        const maxVal = range ? range[1] : (shouldApplyRaceRestrictions() ? 15 : 30);
-        
-        // Generate random value within the valid range (including negative values)
-        const randomValue = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
-        newAttributes[attr] = randomValue;
+        modifiableAttributes.push(attr);
         
         // Set dice count within constraints (never 0)
         const diceConstraints = getDiceCountConstraints(attr);
@@ -634,14 +636,76 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       }
     });
     
-    // Calculate the new total and update target if needed
-    const newTotal = Object.values(newAttributes).reduce((sum, val) => sum + val, 0);
+    // Calculate remaining points to distribute among modifiable attributes
+    const remainingTotal = targetTotal - fixedTotal;
     
-    // Update the form data with new attribute values and dice counts
-    const updatedFormData = { 
-      ...formData,
-      targetAttributeTotal: newTotal // Update target to match the new total
-    };
+    if (modifiableAttributes.length === 0) {
+      // No modifiable attributes, nothing more to do
+    } else {
+      // Use a distribution algorithm to allocate remainingTotal among modifiableAttributes
+      const attributeRanges = modifiableAttributes.map(attr => {
+        const range = getValidationRange(attr);
+        return {
+          name: attr,
+          min: range ? range[0] : (shouldApplyRaceRestrictions() ? 0 : 1),
+          max: range ? range[1] : (shouldApplyRaceRestrictions() ? 15 : 30)
+        };
+      });
+      
+      // Check if distribution is possible
+      const minPossible = attributeRanges.reduce((sum, range) => sum + range.min, 0);
+      const maxPossible = attributeRanges.reduce((sum, range) => sum + range.max, 0);
+      
+      if (remainingTotal < minPossible || remainingTotal > maxPossible) {
+        console.warn(`Cannot distribute ${remainingTotal} points among modifiable attributes. Range: ${minPossible}-${maxPossible}`);
+        // Fallback: distribute as evenly as possible within constraints
+        const avgValue = Math.floor(remainingTotal / modifiableAttributes.length);
+        let leftover = remainingTotal - (avgValue * modifiableAttributes.length);
+        
+        modifiableAttributes.forEach(attr => {
+          const range = getValidationRange(attr);
+          const minVal = range ? range[0] : (shouldApplyRaceRestrictions() ? 0 : 1);
+          const maxVal = range ? range[1] : (shouldApplyRaceRestrictions() ? 15 : 30);
+          
+          let value = Math.max(minVal, Math.min(maxVal, avgValue + (leftover > 0 ? 1 : 0)));
+          if (leftover > 0) leftover--;
+          
+          newAttributes[attr] = value;
+        });
+      } else {
+        // Proper distribution algorithm
+        // Start with minimum values for all attributes
+        attributeRanges.forEach(range => {
+          newAttributes[range.name] = range.min;
+        });
+        
+        // Distribute remaining points randomly
+        let remainingPoints = remainingTotal - minPossible;
+        
+        while (remainingPoints > 0) {
+          // Pick a random attribute that can still be increased
+          const eligibleAttributes = attributeRanges.filter(range => 
+            newAttributes[range.name] < range.max
+          );
+          
+          if (eligibleAttributes.length === 0) break; // All attributes at max
+          
+          const randomAttr = eligibleAttributes[Math.floor(Math.random() * eligibleAttributes.length)];
+          const maxIncrease = Math.min(
+            remainingPoints, 
+            randomAttr.max - newAttributes[randomAttr.name]
+          );
+          
+          // Add 1 to a random amount up to maxIncrease
+          const increase = Math.floor(Math.random() * maxIncrease) + 1;
+          newAttributes[randomAttr.name] += increase;
+          remainingPoints -= increase;
+        }
+      }
+    }
+    
+    // Update the form data with new attribute values and dice counts (keeping same target total)
+    const updatedFormData = { ...formData };
     
     attributeNames.forEach(attr => {
       updatedFormData[attr] = {

@@ -12,8 +12,8 @@ const MobileNumberInput = ({ value, onChange, min, max, step, ...props }) => {
   };
 
   const handleKeyDown = (e) => {
-    // Allow: backspace, delete, tab, escape, enter, period, minus
-    if ([8, 9, 27, 13, 46, 110, 190, 189, 109].indexOf(e.keyCode) !== -1 ||
+    // Allow: backspace, delete, tab, escape, enter
+    if ([8, 9, 27, 13].indexOf(e.keyCode) !== -1 ||
         // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
         (e.keyCode === 65 && e.ctrlKey === true) ||
         (e.keyCode === 67 && e.ctrlKey === true) ||
@@ -23,10 +23,32 @@ const MobileNumberInput = ({ value, onChange, min, max, step, ...props }) => {
         (e.keyCode >= 35 && e.keyCode <= 39)) {
       return;
     }
-    // Ensure that it is a number and stop the keypress
-    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-      e.preventDefault();
+    
+    // Allow numbers (0-9) from main keyboard and numpad
+    if ((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)) {
+      return;
     }
+    
+    // Allow period/decimal point (46, 110, 190)
+    if ([46, 110, 190].indexOf(e.keyCode) !== -1) {
+      return;
+    }
+    
+    // Allow minus/dash (189, 109) only at the beginning or when field is empty
+    if ([189, 109].indexOf(e.keyCode) !== -1) {
+      const currentValue = e.target.value;
+      const cursorPosition = e.target.selectionStart;
+      
+      // Allow minus only if:
+      // 1. Field is empty, OR
+      // 2. Cursor is at the beginning AND there's no minus already
+      if (currentValue === '' || (cursorPosition === 0 && !currentValue.startsWith('-'))) {
+        return;
+      }
+    }
+    
+    // Block all other keys
+    e.preventDefault();
   };
 
   const handleChange = (e) => {
