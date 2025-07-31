@@ -24,6 +24,46 @@ exports.handler = async (event) => {
   console.log("DEBUG updateCharacter - input.raceOverride:", input.raceOverride, "type:", typeof input.raceOverride);
   console.log("DEBUG updateCharacter - input.penetration:", JSON.stringify(input.penetration, null, 2));
 
+  // Define which attributes have dynamic dice - same as createCharacter.js
+  const DYNAMIC_ATTRIBUTES = {
+    speed: { diceType: 'd4', defaultCount: 1 },
+    agility: { diceType: 'd6', defaultCount: 1 },
+    dexterity: { diceType: 'd8', defaultCount: 1 },
+    strength: { diceType: 'd10', defaultCount: 1 },
+    charisma: { diceType: 'd12', defaultCount: 1 },
+    seeing: { diceType: 'd20', defaultCount: 1 },
+    hearing: { diceType: 'd20', defaultCount: 1 },
+    intelligence: { diceType: 'd100', defaultCount: 1 }
+  };
+
+  // Process attributes to ensure they have correct diceCount - same logic as createCharacter.js
+  const processAttribute = (input, attributeName) => {
+    if (!input) return null;
+    
+    const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+    const defaultDiceCount = dynamicInfo ? dynamicInfo.defaultCount : null;
+    
+    // If input is already in nested format, process it
+    if (input.attribute) {
+      return {
+        attribute: {
+          attributeValue: input.attribute.attributeValue || 0,
+          isGrouped: input.attribute.isGrouped !== undefined ? input.attribute.isGrouped : true,
+          diceCount: input.attribute.diceCount !== undefined ? input.attribute.diceCount : defaultDiceCount
+        }
+      };
+    }
+    
+    // If input is in GraphQL input format, wrap it
+    return {
+      attribute: {
+        attributeValue: input.attributeValue || 0,
+        isGrouped: input.isGrouped !== undefined ? input.isGrouped : true,
+        diceCount: input.diceCount !== undefined ? input.diceCount : defaultDiceCount
+      }
+    };
+  };
+
   const updateExpressionParts = [];
   const expressionAttributeNames = {};
   const expressionAttributeValues = {};
@@ -55,26 +95,26 @@ exports.handler = async (event) => {
   addUpdateField("will", input.will);
   addUpdateField("fatigue", input.fatigue);
   addUpdateField("values", input.values);
-  addUpdateField("speed", input.speed);
-  addUpdateField("weight", input.weight);
-  addUpdateField("size", input.size);
-  addUpdateField("armour", input.armour);
-  addUpdateField("endurance", input.endurance);
-  addUpdateField("lethality", input.lethality);
-  addUpdateField("penetration", input.penetration);
-  addUpdateField("complexity", input.complexity);
-  addUpdateField("strength", input.strength);
-  addUpdateField("dexterity", input.dexterity);
-  addUpdateField("agility", input.agility);
-  addUpdateField("obscurity", input.obscurity);
-  addUpdateField("resolve", input.resolve);
-  addUpdateField("morale", input.morale);
-  addUpdateField("intelligence", input.intelligence);
-  addUpdateField("charisma", input.charisma);
-  addUpdateField("seeing", input.seeing);
-  addUpdateField("hearing", input.hearing);
-  addUpdateField("light", input.light);
-  addUpdateField("noise", input.noise);
+  addUpdateField("speed", processAttribute(input.speed, 'speed'));
+  addUpdateField("weight", processAttribute(input.weight, 'weight'));
+  addUpdateField("size", processAttribute(input.size, 'size'));
+  addUpdateField("armour", processAttribute(input.armour, 'armour'));
+  addUpdateField("endurance", processAttribute(input.endurance, 'endurance'));
+  addUpdateField("lethality", processAttribute(input.lethality, 'lethality'));
+  addUpdateField("penetration", processAttribute(input.penetration, 'penetration'));
+  addUpdateField("complexity", processAttribute(input.complexity, 'complexity'));
+  addUpdateField("strength", processAttribute(input.strength, 'strength'));
+  addUpdateField("dexterity", processAttribute(input.dexterity, 'dexterity'));
+  addUpdateField("agility", processAttribute(input.agility, 'agility'));
+  addUpdateField("obscurity", processAttribute(input.obscurity, 'obscurity'));
+  addUpdateField("resolve", processAttribute(input.resolve, 'resolve'));
+  addUpdateField("morale", processAttribute(input.morale, 'morale'));
+  addUpdateField("intelligence", processAttribute(input.intelligence, 'intelligence'));
+  addUpdateField("charisma", processAttribute(input.charisma, 'charisma'));
+  addUpdateField("seeing", processAttribute(input.seeing, 'seeing'));
+  addUpdateField("hearing", processAttribute(input.hearing, 'hearing'));
+  addUpdateField("light", processAttribute(input.light, 'light'));
+  addUpdateField("noise", processAttribute(input.noise, 'noise'));
   addUpdateField("actionIds", input.actionIds);
   addUpdateField("special", input.special);
   addUpdateField("stashIds", input.stashIds);
