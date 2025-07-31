@@ -592,122 +592,57 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
 
   // Function to generate random attributes respecting race restrictions
   const generateRandomAttributes = () => {
-    const targetTotal = formData.targetAttributeTotal || calculateDefaultTargetTotal();
     const attributeNames = getAllAttributeNames();
     const newAttributes = {};
     const newDiceCounts = {};
     
-    // First, handle fixed attributes (cannot be modified for humans)
-    let fixedTotal = 0;
-    const modifiableAttributes = [];
-    
+    // Generate random values for each attribute independently within their constraints
     attributeNames.forEach(attr => {
       if (shouldApplyRaceRestrictions() && !canModifyAttribute(attr)) {
         // Fixed attributes use default values
         const defaultValue = getDefaultAttributeValue(attr, formData.race);
         newAttributes[attr] = defaultValue;
-        fixedTotal += defaultValue;
         
         // Set default dice count for dynamic attributes
         newDiceCounts[attr] = getDefaultDiceCount(attr, formData.race);
       } else {
-        // These attributes can be varied
-        modifiableAttributes.push(attr);
-      }
-    });
-    
-    // Calculate remaining points to distribute among modifiable attributes
-    const remainingTotal = targetTotal - fixedTotal;
-    const numModifiableAttrs = modifiableAttributes.length;
-    
-    if (numModifiableAttrs === 0) {
-      // All attributes are fixed - use default values
-      attributeNames.forEach(attr => {
-        newAttributes[attr] = getDefaultAttributeValue(attr, formData.race);
-        newDiceCounts[attr] = getDefaultDiceCount(attr, formData.race);
-      });
-    } else {
-      // Generate random values for modifiable attributes within their valid ranges
-      let remainingPoints = remainingTotal;
-      
-      for (let i = 0; i < numModifiableAttrs - 1; i++) {
-        const attr = modifiableAttributes[i];
+        // Modifiable attributes: generate random value within valid range
         const range = getValidationRange(attr);
         const minVal = range ? range[0] : (shouldApplyRaceRestrictions() ? 0 : 1);
         const maxVal = range ? range[1] : (shouldApplyRaceRestrictions() ? 15 : 30);
         
-        // Calculate bounds to ensure we can distribute remaining points
-        // const remainingAttrs = numModifiableAttrs - i - 1; // Unused variable
-        const remainingRanges = modifiableAttributes.slice(i + 1).map(a => {
-          const r = getValidationRange(a);
-          return r ? r : [shouldApplyRaceRestrictions() ? 0 : 1, shouldApplyRaceRestrictions() ? 15 : 30];
-        });
-        const minForRemaining = remainingRanges.reduce((sum, r) => sum + r[0], 0);
-        const maxForRemaining = remainingRanges.reduce((sum, r) => sum + r[1], 0);
-        
-        const actualMin = Math.max(minVal, remainingPoints - maxForRemaining);
-        const actualMax = Math.min(maxVal, remainingPoints - minForRemaining);
-        
-        // Generate random value within bounds
-        const randomValue = Math.floor(Math.random() * (actualMax - actualMin + 1)) + actualMin;
+        // Generate random value within the valid range (including negative values)
+        const randomValue = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
         newAttributes[attr] = randomValue;
-        remainingPoints -= randomValue;
         
         // Set dice count within constraints (never 0)
         const diceConstraints = getDiceCountConstraints(attr);
         if (diceConstraints) {
           const diceMin = Math.max(1, diceConstraints.min); // Never 0
           const diceMax = Math.max(1, diceConstraints.max); // Never 0
-          newDiceCounts[attr] = Math.floor(Math.random() * (diceMax - diceMin + 1)) + diceMin;
+          if (diceMin === diceMax) {
+            // Fixed dice count
+            newDiceCounts[attr] = diceMin;
+          } else {
+            // Random dice count within range
+            newDiceCounts[attr] = Math.floor(Math.random() * (diceMax - diceMin + 1)) + diceMin;
+          }
         } else {
           const defaultCount = getDefaultDiceCount(attr, formData.race);
           newDiceCounts[attr] = defaultCount || 1; // Never 0
         }
       }
-      
-      // Set the last modifiable attribute to use up remaining points
-      const lastAttr = modifiableAttributes[numModifiableAttrs - 1];
-      const lastRange = getValidationRange(lastAttr);
-      const lastMinVal = lastRange ? lastRange[0] : (shouldApplyRaceRestrictions() ? 0 : 1);
-      const lastMaxVal = lastRange ? lastRange[1] : (shouldApplyRaceRestrictions() ? 15 : 30);
-      
-      newAttributes[lastAttr] = Math.max(lastMinVal, Math.min(lastMaxVal, remainingPoints));
-      
-      // Set dice count for last attribute (never 0)
-      const lastDiceConstraints = getDiceCountConstraints(lastAttr);
-      if (lastDiceConstraints) {
-        const diceMin = Math.max(1, lastDiceConstraints.min); // Never 0
-        const diceMax = Math.max(1, lastDiceConstraints.max); // Never 0
-        newDiceCounts[lastAttr] = Math.floor(Math.random() * (diceMax - diceMin + 1)) + diceMin;
-      } else {
-        const defaultCount = getDefaultDiceCount(lastAttr, formData.race);
-        newDiceCounts[lastAttr] = defaultCount || 1; // Never 0
-      }
-      
-      // If last attribute is out of bounds, redistribute more evenly
-      if (newAttributes[lastAttr] < lastMinVal || newAttributes[lastAttr] > lastMaxVal) {
-        const avgValue = Math.floor(remainingTotal / numModifiableAttrs);
-        let excess = remainingTotal % numModifiableAttrs;
-        
-        modifiableAttributes.forEach(attr => {
-          let value = avgValue;
-          if (excess > 0) {
-            value += 1;
-            excess -= 1;
-          }
-          
-          // Clamp to valid range for this attribute
-          const range = getValidationRange(attr);
-          const minVal = range ? range[0] : (shouldApplyRaceRestrictions() ? 0 : 1);
-          const maxVal = range ? range[1] : (shouldApplyRaceRestrictions() ? 15 : 30);
-          value = Math.max(minVal, Math.min(maxVal, value));
-          newAttributes[attr] = value;
-        });
-      }
-    }
+    });
+    
+    // Calculate the new total and update target if needed
+    const newTotal = Object.values(newAttributes).reduce((sum, val) => sum + val, 0);
     
     // Update the form data with new attribute values and dice counts
-    const updatedFormData = { ...formData };
+    const updatedFormData = { 
+      ...formData,
+      targetAttributeTotal: newTotal // Update target to match the new total
+    };
+    
     attributeNames.forEach(attr => {
       updatedFormData[attr] = {
         ...formData[attr],

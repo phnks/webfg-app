@@ -1,0 +1,557 @@
+
+> webfg-gm-app@0.1.0 test
+> react-scripts test --testPathPattern=CharacterAttributesBackend.test.js --testNamePattern=should display equipment grouped values by default
+
+  console.log
+    [CharacterAttributesBackend] Props received: {
+      characterName: 'Test Character',
+      hasGroupedAttributes: true,
+      hasReadyGroupedAttributes: true,
+      readyGroupedAttributes: {
+        speed: 11.8,
+        complexity: 5.8,
+        hearing: 4.5,
+        light: 3.25,
+        noise: 2.25,
+        seeing: 6.2
+      }
+    }
+
+      at CharacterAttributesBackend (src/components/characters/CharacterAttributesBackend.js:27:11)
+
+(node:354600) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+FAIL src/__tests__/components/characters/CharacterAttributesBackend.test.js
+  CharacterAttributesBackend
+    Equipment/Ready Toggle
+      ✕ should display equipment grouped values by default (112 ms)
+      ○ skipped should show toggle when character has ready objects
+      ○ skipped should not show toggle when character has no ready objects
+      ○ skipped should display ready grouped values when toggle is on
+    Ready Grouped Attributes Fallback
+      ○ skipped should calculate fallback ready grouped attributes when backend data is missing
+      ○ skipped should calculate fallback when backend data is missing specific attributes
+      ○ skipped should not show 0 values for missing attributes in ready mode
+      ○ skipped should properly group character + equipment + ready objects in fallback
+      ○ skipped should fix backend bug where specific attributes show 0 in ready mode
+    Grouped Value Display Logic
+      ○ skipped should show grouped values consistently between equipment and ready modes
+      ○ skipped should maintain info icon functionality across toggle states
+      ○ skipped should use correct formula (0.25 constant) in ready mode breakdown modal
+
+  ● CharacterAttributesBackend › Equipment/Ready Toggle › should display equipment grouped values by default
+
+    TestingLibraryElementError: Unable to find an element with the text: 11-14. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+    Ignored nodes: comments, script, style
+    [36m<body>[39m
+      [36m<div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"section character-attributes"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"attributes-header"[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0mAttributes[0m
+            [36m</h3>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"equipment-ready-toggle"[39m
+            [36m>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m"toggle-label"[39m
+              [36m>[39m
+                [36m<input[39m
+                  [33mclass[39m=[32m"toggle-checkbox"[39m
+                  [33mtype[39m=[32m"checkbox"[39m
+                [36m/>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"toggle-slider"[39m
+                [36m/>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"toggle-text"[39m
+                [36m>[39m
+                  [0mequipment[0m
+                [36m</span>[39m
+              [36m</label>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"attribute-groups"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"attributes-header"[39m
+            [36m>[39m
+              [36m<h3 />[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"attribute-group"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"group-header expanded"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-icon"[39m
+                [36m>[39m
+                  [0m▼[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-name"[39m
+                [36m>[39m
+                  [0mBODY[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-count"[39m
+                [36m>[39m
+                  [0m([0m
+                  [0m7[0m
+                  [0m)[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"group-content"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mWeight[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m15[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mSize[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m12[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mArmour[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m20[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mEndurance[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m18[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mLethality[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m8[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mPenetration[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m0[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute does not participate in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mComplexity[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m5[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouped-value"[39m
+                      [33mstyle[39m=[32m"color: rgb(40, 167, 69); font-weight: bold;"[39m
+                      [33mtitle[39m=[32m"Grouped value with equipment and conditions"[39m
+                    [36m>[39m
+                      [0m → [0m
+                      [0m6[0m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"info-icon"[39m
+                        [33mtitle[39m=[32m"Show detailed breakdown"[39m
+                      [36m>[39m
+                        [0mℹ️[0m
+                      [36m</button>[39m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"attribute-group"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"group-header "[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-icon"[39m
+                [36m>[39m
+                  [0m▶[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-name"[39m
+                [36m>[39m
+                  [0mMARTIAL[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-count"[39m
+                [36m>[39m
+                  [0m([0m
+                  [0m4[0m
+                  [0m)[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"attribute-group"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"group-header expanded"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-icon"[39m
+                [36m>[39m
+                  [0m▼[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-name"[39m
+                [36m>[39m
+                  [0mMENTAL[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-count"[39m
+                [36m>[39m
+                  [0m([0m
+                  [0m4[0m
+                  [0m)[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"group-content"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mResolve[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m19[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mMorale[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m9[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mIntelligence[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m18-117[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"attribute-formula"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.85em; color: rgb(102, 102, 102);"[39m
+                    [36m>[39m
+                      [0m([0m
+                      [0m1d100+17[0m
+                      [0m)[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mCharisma[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m12-23[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"attribute-formula"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.85em; color: rgb(102, 102, 102);"[39m
+                    [36m>[39m
+                      [0m([0m
+                      [0m1d12+11[0m
+                      [0m)[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"attribute-group"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"group-header expanded"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-icon"[39m
+                [36m>[39m
+                  [0m▼[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-name"[39m
+                [36m>[39m
+                  [0mSENSES[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"group-count"[39m
+                [36m>[39m
+                  [0m([0m
+                  [0m5[0m
+                  [0m)[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"group-content"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mObscurity[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m7[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mSeeing[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m7-26[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"attribute-formula"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.85em; color: rgb(102, 102, 102);"[39m
+                    [36m>[39m
+                      [0m([0m
+                      [0m1d20+6[0m
+                      [0m)[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouped-value"[39m
+                      [33mstyle[39m=[32m"color: rgb(40, 167, 69); font-weight: bold;"[39m
+                      [33mtitle[39m=[32m"Grouped value with equipment and conditions"[39m
+                    [36m>[39m
+                      [0m → [0m
+                      [0m8-27 (1d20+7)[0m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"info-icon"[39m
+                        [33mtitle[39m=[32m"Show detailed breakdown"[39m
+                      [36m>[39m
+                        [0mℹ️[0m
+                      [36m</button>[39m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mHearing[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m5-24[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"attribute-formula"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.85em; color: rgb(102, 102, 102);"[39m
+                    [36m>[39m
+                      [0m([0m
+                      [0m1d20+4[0m
+                      [0m)[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mLight[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m3[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"attribute-item"[39m
+                [36m>[39m
+                  [36m<label>[39m
+                    [0mNoise[0m
+                  [36m</label>[39m
+                  [36m<span>[39m
+                    [0m2[0m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"grouping-indicator"[39m
+                      [33mstyle[39m=[32m"margin-left: 6px; font-size: 0.8em; opacity: 0.7;"[39m
+                      [33mtitle[39m=[32m"This attribute participates in grouping"[39m
+                    [36m>[39m
+                      [0m☑️[0m
+                    [36m</span>[39m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</body>[39m
+
+      145 |       
+      146 |       // Should show equipment grouped values with dice ranges
+    > 147 |       expect(screen.getByText('11-14')).toBeInTheDocument(); // Original speed dice range (1d4+10)
+          |                     ^
+      148 |       expect(screen.getByText('→ 13-16')).toBeInTheDocument(); // Grouped speed dice range (1d4+12.5, rounded to 13)
+      149 |     });
+      150 |
+
+      at Object.getElementError (node_modules/@testing-library/dom/dist/config.js:37:19)
+      at node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+      at node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+      at getByText (node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at Object.<anonymous> (src/__tests__/components/characters/CharacterAttributesBackend.test.js:147:21)
+      at TestScheduler.scheduleTests (node_modules/@jest/core/build/TestScheduler.js:333:13)
+      at runJest (node_modules/@jest/core/build/runJest.js:404:19)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 11 skipped, 12 total
+Snapshots:   0 total
+Time:        0.775 s, estimated 1 s
+Ran all test suites matching /CharacterAttributesBackend.test.js/i with tests matching "should display equipment grouped values by default".
+

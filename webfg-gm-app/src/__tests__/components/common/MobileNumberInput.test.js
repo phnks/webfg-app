@@ -44,7 +44,7 @@ describe('MobileNumberInput Component', () => {
     render(<MobileNumberInput {...defaultProps} />);
     
     const input = screen.getByDisplayValue('10');
-    expect(input).toHaveAttribute('type', 'number');
+    expect(input).toHaveAttribute('type', 'text');
   });
 
   test('selects text on focus', () => {
@@ -77,14 +77,14 @@ describe('MobileNumberInput Component', () => {
   test('handles empty value', () => {
     render(<MobileNumberInput value="" onChange={mockOnChange} />);
     
-    const input = screen.getByRole('spinbutton');
+    const input = screen.getByRole('textbox');
     expect(input.value).toBe('');
   });
 
   test('handles null value', () => {
     render(<MobileNumberInput value={null} onChange={mockOnChange} />);
     
-    const input = screen.getByRole('spinbutton');
+    const input = screen.getByRole('textbox');
     expect(input).toBeInTheDocument();
   });
 
@@ -113,14 +113,23 @@ describe('MobileNumberInput Component', () => {
     render(<MobileNumberInput {...defaultProps} min="0" max="100" />);
     
     const input = screen.getByDisplayValue('10');
-    expect(input).toHaveAttribute('min', '0');
-    expect(input).toHaveAttribute('max', '100');
+    expect(input).toHaveAttribute('inputMode', 'numeric');
+    expect(input).toHaveAttribute('pattern', '-?[0-9]*\\.?[0-9]*');
   });
 
-  test('handles step prop', () => {
-    render(<MobileNumberInput {...defaultProps} step="0.1" />);
+  test('allows negative values', () => {
+    render(<MobileNumberInput value="-5" onChange={mockOnChange} />);
     
-    const input = screen.getByDisplayValue('10');
-    expect(input).toHaveAttribute('step', '0.1');
+    const input = screen.getByDisplayValue('-5');
+    expect(input).toBeInTheDocument();
+  });
+
+  test('allows typing negative sign', () => {
+    render(<MobileNumberInput value="" onChange={mockOnChange} />);
+    
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: '-' } });
+    
+    expect(mockOnChange).toHaveBeenCalled();
   });
 });

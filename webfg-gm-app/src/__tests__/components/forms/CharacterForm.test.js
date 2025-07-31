@@ -109,7 +109,7 @@ describe('CharacterForm Component', () => {
     
     // Will now defaults to 0
     const willLabel = screen.getByText('Will');
-    const willInput = willLabel.parentElement.querySelector('input[type="number"]');
+    const willInput = willLabel.parentElement.querySelector('input[type="text"]');
     expect(willInput.value).toBe('0');
   });
 
@@ -166,7 +166,7 @@ describe('CharacterForm Component', () => {
     
     // Find the Will label and check its value
     const willLabel = screen.getByText('Will');
-    const willInput = willLabel.parentElement.querySelector('input[type="number"]');
+    const willInput = willLabel.parentElement.querySelector('input[type="text"]');
     expect(willInput.value).toBe('15');
     
   });
@@ -208,7 +208,7 @@ describe('CharacterForm Component', () => {
     
     // Find the Will label and then its associated input
     const willLabel = screen.getByText('Will');
-    const willInput = willLabel.parentElement.querySelector('input[type="number"]');
+    const willInput = willLabel.parentElement.querySelector('input[type="text"]');
     
     // Will now defaults to 0
     expect(willInput.value).toBe('0');
