@@ -14,7 +14,7 @@ const MobileNumberInput = ({ value, onChange, ...props }) => {
   return (
     <input
       type="number"
-      value={value}
+      value={value ?? ''}
       onChange={onChange}
       onFocus={handleFocus}
       onClick={handleClick}
