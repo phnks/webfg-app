@@ -420,15 +420,83 @@ describe('attributeBreakdown', () => {
       expect(nonGroupedItem).toBeUndefined();
     });
 
-    it('should properly calculate weighted average formula in breakdown', () => {
+    it('should properly calculate simple addition formula in breakdown', () => {
       const result = calculateAttributeBreakdown(mockCharacter, 'strength');
       
       if (result.length > 1) {
         const secondStep = result[1];
-        expect(secondStep.formula).toMatch(/Weighted Average/);
+        expect(secondStep.formula).toMatch(/Addition/);
         expect(secondStep.runningTotal).toBeDefined();
         expect(typeof secondStep.runningTotal).toBe('number');
       }
+    });
+
+    it('should handle equipment quantities in breakdown display', () => {
+      const characterWithQuantities = {
+        name: 'The Guy',
+        characterId: 'char-quantity',
+        armour: {
+          attribute: {
+            attributeValue: 0,
+            isGrouped: true
+          }
+        },
+        equipment: [
+          {
+            objectId: 'plate-armor',
+            name: 'Plate Armor',
+            armour: {
+              attributeValue: 5,
+              isGrouped: true
+            }
+          }
+        ],
+        inventoryItems: [
+          {
+            objectId: 'plate-armor',
+            inventoryLocation: 'EQUIPMENT',
+            quantity: 2
+          }
+        ]
+      };
+
+      const result = calculateAttributeBreakdown(characterWithQuantities, 'armour');
+      
+      // Should have: Character + Plate Armor #1 + Plate Armor #2
+      expect(result.length).toBe(3);
+      
+      // Check character step
+      expect(result[0]).toMatchObject({
+        step: 1,
+        entityName: 'The Guy',
+        entityType: 'character',
+        attributeValue: 0,
+        isGrouped: true,
+        runningTotal: 0
+      });
+      
+      // Check first armor instance
+      expect(result[1]).toMatchObject({
+        step: 2,
+        entityName: 'Plate Armor #1',
+        entityType: 'equipment',
+        attributeValue: 5,
+        isGrouped: true,
+        runningTotal: 5
+      });
+      
+      // Check second armor instance
+      expect(result[2]).toMatchObject({
+        step: 3,
+        entityName: 'Plate Armor #2',
+        entityType: 'equipment',
+        attributeValue: 5,
+        isGrouped: true,
+        runningTotal: 10
+      });
+      
+      // Verify the formula shows addition
+      expect(result[2].formula).toMatch(/Addition: 0 \+ 5 \+ 5 = 10/);
     });
   });
 
@@ -630,7 +698,7 @@ describe('attributeBreakdown', () => {
       expect(nonGroupedEnh).toBeUndefined();
     });
 
-    it('should properly sort equipment by grouped value', () => {
+    it('should process equipment in order for simple addition', () => {
       const objectSortTest = {
         name: 'Sort Test Object',
         strength: {
@@ -664,14 +732,16 @@ describe('attributeBreakdown', () => {
 
       const result = calculateObjectAttributeBreakdown(objectSortTest, 'strength');
       
-      // Find the positions of different enhancements
-      const largeIndex = result.findIndex(step => step.entityName === 'Large Enhancement');
-      const mediumIndex = result.findIndex(step => step.entityName === 'Medium Enhancement');
-      const smallIndex = result.findIndex(step => step.entityName === 'Small Enhancement');
+      // With simple addition, all items should be included
+      expect(result.length).toBeGreaterThan(0);
+      const entityNames = result.map(step => step.entityName);
+      expect(entityNames).toContain('Small Enhancement');
+      expect(entityNames).toContain('Large Enhancement');
+      expect(entityNames).toContain('Medium Enhancement');
       
-      // Large should come before medium, medium before small
-      expect(largeIndex).toBeLessThan(mediumIndex);
-      expect(mediumIndex).toBeLessThan(smallIndex);
+      // Final total should be 5 + 1 + 10 + 3 = 19
+      const finalStep = result[result.length - 1];
+      expect(finalStep.runningTotal).toBe(19);
     });
 
     it('should calculate proper running totals in breakdown', () => {
@@ -685,7 +755,7 @@ describe('attributeBreakdown', () => {
           expect(step.runningTotal).toBeGreaterThan(0);
         });
         
-        // Running totals should be meaningful values (not necessarily monotonic due to weighted average)
+        // Running totals should be meaningful values (monotonic with simple addition)
         for (let i = 1; i < result.length; i++) {
           expect(result[i].runningTotal).toBeGreaterThan(0);
         }

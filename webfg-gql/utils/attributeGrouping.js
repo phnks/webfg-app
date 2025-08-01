@@ -26,35 +26,23 @@ const ATTRIBUTE_GROUPS = {
 };
 
 /**
- * Calculate the grouped value using the constant scaling factor weighted average formula
- * Formula: (A1 + A2*(0.25+A2/A1) + A3*(0.25+A3/A1) + ...) / N
- * Where A1 is the highest value, A2, A3... are other values, N is total count
- * The scaling factor for each item is the constant 0.25
- * @param {Array} values - Array of attribute values, sorted highest first
+ * Calculate the grouped value using simple addition
+ * Formula: A1 + A2 + A3 + ...
+ * Where A1, A2, A3... are all attribute values
+ * @param {Array} values - Array of attribute values
  * @returns {number} The calculated grouped value
  */
 const calculateGroupingFormula = (values) => {
   if (!values || values.length === 0) return 0;
   if (values.length === 1) return values[0];
   
-  const A1 = values[0]; // Highest value
-  let sum = A1; // Start with the highest value
-  
-  // Add weighted values for all other attributes
-  // The scaling factor for each Ai is the constant 0.25
-  for (let i = 1; i < values.length; i++) {
-    const Ai = values[i];
-    const scalingFactor = 0.25; // Constant scaling factor
-    
-    if (A1 > 0) {
-      sum += Ai * (scalingFactor + Ai / A1);
-    } else {
-      // Handle edge case where A1 is 0
-      sum += Ai * scalingFactor;
-    }
+  // Simply add all values together
+  let sum = 0;
+  for (let i = 0; i < values.length; i++) {
+    sum += values[i];
   }
   
-  return sum / values.length;
+  return sum;
 };
 
 /**
@@ -131,6 +119,16 @@ const calculateGroupedAttributes = (character) => {
     }
     
     if (character.equipment && character.equipment.length > 0) {
+      // Build quantity map for equipment items
+      const inventoryItems = character.inventoryItems || [];
+      const equipmentQuantityMap = new Map();
+      
+      inventoryItems
+        .filter(invItem => invItem.inventoryLocation === 'EQUIPMENT')
+        .forEach(invItem => {
+          equipmentQuantityMap.set(invItem.objectId, invItem.quantity);
+        });
+
       character.equipment.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
         // Only include equipment items that are marked as equipment (isEquipment: true)
@@ -146,7 +144,11 @@ const calculateGroupedAttributes = (character) => {
             itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
           }
           
-          valuesToGroup.push(itemValue);
+          // Add the item value multiple times based on quantity
+          const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+          for (let i = 0; i < quantity; i++) {
+            valuesToGroup.push(itemValue);
+          }
         }
       });
     }
@@ -157,11 +159,11 @@ const calculateGroupedAttributes = (character) => {
       return;
     }
     
-    // Sort values in descending order (highest first)
-    valuesToGroup.sort((a, b) => b - a);
-    
-    // Apply new weighted average grouping formula
+    // No need to sort for simple addition
+    // Apply simple addition grouping formula
     const groupedValue = calculateGroupingFormula(valuesToGroup);
+    
+    // Debug logging removed
     
     // No fatigue applied here anymore - it's handled at action test level
     groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
@@ -295,7 +297,7 @@ const calculateReadyGroupedAttributes = (character) => {
       valuesToGroup.push(charAttrInfo.value);
     }
     
-    // Add equipment values
+    // Add equipment values (no quantity handling needed as equipment array is already expanded)
     if (character.equipment && character.equipment.length > 0) {
       character.equipment.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
@@ -312,13 +314,24 @@ const calculateReadyGroupedAttributes = (character) => {
             itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
           }
           
+          // Equipment array is already expanded by GraphQL resolvers, so no quantity multiplication needed
           valuesToGroup.push(itemValue);
         }
       });
     }
     
-    // Add ready object values
+    // Add ready object values with quantity handling
     if (character.ready && character.ready.length > 0) {
+      // Build quantity map for ready items
+      const inventoryItems = character.inventoryItems || [];
+      const readyQuantityMap = new Map();
+      
+      inventoryItems
+        .filter(invItem => invItem.inventoryLocation === 'READY')
+        .forEach(invItem => {
+          readyQuantityMap.set(invItem.objectId, invItem.quantity);
+        });
+
       character.ready.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
         if (itemAttrInfo && itemAttrInfo.isGrouped) {
@@ -330,7 +343,11 @@ const calculateReadyGroupedAttributes = (character) => {
             itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
           }
           
-          valuesToGroup.push(itemValue);
+          // Add the item value multiple times based on quantity
+          const quantity = readyQuantityMap.get(item.objectId) || 1;
+          for (let i = 0; i < quantity; i++) {
+            valuesToGroup.push(itemValue);
+          }
         }
       });
     }
@@ -341,29 +358,27 @@ const calculateReadyGroupedAttributes = (character) => {
       return;
     }
     
-    // Sort values in descending order (highest first)
-    valuesToGroup.sort((a, b) => b - a);
-    
-    // Apply new weighted average grouping formula
+    // No need to sort for simple addition
+    // Apply simple addition grouping formula
     const groupedValue = calculateGroupingFormula(valuesToGroup);
     
-    // Debug logging for ready grouped calculation
-    // if (attributeName === 'dexterity' && character.name === 'The Guy') {
-    //   console.log(`[DEBUG READY] Calculating ready grouped dexterity for The Guy:`);
-    //   console.log(`[DEBUG READY] Character base value: ${charAttrInfo.value}, isGrouped: ${charAttrInfo.isGrouped}`);
-    //   console.log(`[DEBUG READY] Equipment items: ${JSON.stringify(character.equipment?.map(item => ({
-    //     name: item.name,
-    //     dexterity: item.dexterity,
-    //     extracted: extractAttributeInfo(item[attributeName])
-    //   })) || [])}`);
-    //   console.log(`[DEBUG READY] Ready items: ${JSON.stringify(character.ready?.map(item => ({
-    //     name: item.name,
-    //     dexterity: item.dexterity,
-    //     extracted: extractAttributeInfo(item[attributeName])
-    //   })) || [])}`);
-    //   console.log(`[DEBUG READY] Values to group: ${JSON.stringify(valuesToGroup)}`);
-    //   console.log(`[DEBUG READY] Grouped value before rounding: ${groupedValue}`);
-    // }
+    // Debug logging for ALL attributes to find speed vs armor difference
+    if (character.name === 'The Guy' && (attributeName === 'speed' || attributeName === 'armour')) {
+      console.log(`[DEBUG ALL] Calculating ready grouped ${attributeName} for The Guy:`);
+      console.log(`[DEBUG ALL] Character base value: ${charAttrInfo.value}, isGrouped: ${charAttrInfo.isGrouped}`);
+      console.log(`[DEBUG ALL] Equipment items: ${JSON.stringify(character.equipment?.map(item => ({
+        name: item.name,
+        [attributeName]: item[attributeName],
+        extracted: extractAttributeInfo(item[attributeName])
+      })) || [])}`);
+      console.log(`[DEBUG ALL] Ready items: ${JSON.stringify(character.ready?.map(item => ({
+        name: item.name,
+        [attributeName]: item[attributeName],
+        extracted: extractAttributeInfo(item[attributeName])
+      })) || [])}`);
+      console.log(`[DEBUG ALL] Values to group: ${JSON.stringify(valuesToGroup)}`);
+      console.log(`[DEBUG ALL] Grouped value before rounding: ${groupedValue}`);
+    }
     
     // No fatigue applied here anymore - it's handled at action test level
     groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
@@ -468,10 +483,8 @@ const calculateObjectGroupedAttributes = (object) => {
       });
     }
     
-    // Sort values in descending order (highest first)
-    valuesToGroup.sort((a, b) => b - a);
-    
-    // Apply new weighted average grouping formula
+    // No need to sort for simple addition
+    // Apply simple addition grouping formula
     const groupedValue = calculateGroupingFormula(valuesToGroup);
     
     groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
@@ -584,10 +597,8 @@ const calculateGroupedAttributesWithSelectedReady = (character, selectedReadyObj
     } else if (valuesToGroup.length === 1) {
       groupedAttributes[attributeName] = valuesToGroup[0];
     } else {
-      // Sort values in descending order (highest first)
-      valuesToGroup.sort((a, b) => b - a);
-      
-      // Apply weighted average grouping formula
+      // No need to sort for simple addition
+      // Apply simple addition grouping formula
       const groupedValue = calculateGroupingFormula(valuesToGroup);
       
       groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;

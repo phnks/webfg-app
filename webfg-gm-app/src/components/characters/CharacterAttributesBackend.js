@@ -87,71 +87,138 @@ const CharacterAttributesBackend = ({
     const steps = [];
     let stepCount = 1;
     
-    // Find the attribute in character or use effectiveGroupedAttributes
+    // Find the attribute in character
     const rawValue = character?.[attributeKey]?.attribute?.attributeValue;
     const parsedValue = parseFloat(rawValue);
     const originalValue = !isNaN(parsedValue) ? parsedValue : 0;
-    if (!originalValue && originalValue !== 0) {
-      return steps;
+    const charIsGrouped = character?.[attributeKey]?.attribute?.isGrouped !== false;
+    
+    // Collect all values that will be part of breakdown
+    const allValues = [];
+    
+    // Add character base value if it's grouped
+    if (charIsGrouped) {
+      allValues.push({ 
+        value: originalValue, 
+        name: character?.name || 'Character', 
+        type: 'character' 
+      });
     }
     
-    // Get original value
-    const numOriginalValue = Number(originalValue);
-    
-    // Add base value as first step
-    steps.push({
-      step: stepCount++,
-      entityName: character?.name || 'Character',
-      entityType: 'character',
-      attributeValue: numOriginalValue,
-      isGrouped: character?.[attributeKey]?.attribute?.isGrouped || true,
-      runningTotal: numOriginalValue,
-      formula: null
-    });
-    
-    // If no conditions affect this attribute, return just the base value
-    if (!hasConditions) {
-      return steps;
-    }
-    
-    // Check for conditions that affect this attribute
-    const relevantConditions = character.conditions.filter(c => 
-      c.conditionTarget && c.conditionTarget.toLowerCase() === attributeKey.toLowerCase()
-    );
-    
-    if (relevantConditions.length === 0) {
-      return steps;
-    }
-    
-    
-    // Add steps for each condition
-    let runningTotal = numOriginalValue;
-    relevantConditions.forEach(condition => {
-      const conditionAmount = Number(condition.conditionAmount);
-      const previousValue = runningTotal;
+    // Equipment - handle quantities
+    if (character?.equipment?.length > 0) {
+      const inventoryItems = character.inventoryItems || [];
+      const equipmentQuantityMap = new Map();
       
-      if (condition.conditionType === 'HELP') {
-        runningTotal += conditionAmount;
-      } else if (condition.conditionType === 'HINDER') {
-        runningTotal -= conditionAmount;
-      }
+      inventoryItems
+        .filter(invItem => invItem.inventoryLocation === 'EQUIPMENT')
+        .forEach(invItem => {
+          equipmentQuantityMap.set(invItem.objectId, invItem.quantity);
+        });
       
+      character.equipment.forEach(item => {
+        const itemAttr = item[attributeKey];
+        const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+        if (itemAttr && itemAttr.attributeValue !== undefined && isEquipment !== false) {
+          const itemValue = Number(itemAttr.attributeValue);
+          const itemIsGrouped = itemAttr.isGrouped !== false;
+          if (itemIsGrouped && itemValue > 0) {
+            const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+            for (let i = 0; i < quantity; i++) {
+              allValues.push({ 
+                value: itemValue, 
+                name: quantity > 1 ? `${item.name || 'Equipment'} #${i + 1}` : (item.name || 'Equipment'), 
+                type: 'equipment' 
+              });
+            }
+          }
+        }
+      });
+    }
+    
+    // If no grouped values or not participating in grouping, show simple view
+    if (allValues.length === 0 || !charIsGrouped) {
       steps.push({
         step: stepCount++,
-        entityName: condition.name || 'Condition',
-        entityType: 'condition',
-        attributeValue: conditionAmount,
-        isGrouped: true,
-        runningTotal: runningTotal,
-        formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${conditionAmount}`
+        entityName: character?.name || 'Character',
+        entityType: 'character',
+        attributeValue: originalValue,
+        isGrouped: charIsGrouped,
+        runningTotal: originalValue,
+        formula: charIsGrouped ? null : 'Not participating in grouping'
       });
-    });
+    } else {
+      // Build breakdown with all entities
+      let runningTotal = 0;
+      allValues.forEach((entity, index) => {
+        if (index === 0) {
+          runningTotal = entity.value;
+          steps.push({
+            step: stepCount++,
+            entityName: entity.name,
+            entityType: entity.type,
+            attributeValue: entity.value,
+            isGrouped: true,
+            runningTotal: Math.round(runningTotal * 100) / 100,
+            formula: null
+          });
+        } else {
+          // Calculate sum up to this point
+          let sum = 0;
+          for (let i = 0; i <= index; i++) {
+            sum += allValues[i].value;
+          }
+          runningTotal = sum;
+          
+          const valuesUpToHere = allValues.slice(0, index + 1).map(v => v.value);
+          const formulaString = `Addition: ${valuesUpToHere.join(' + ')} = ${sum}`;
+          steps.push({
+            step: stepCount++,
+            entityName: entity.name,
+            entityType: entity.type,
+            attributeValue: entity.value,
+            isGrouped: true,
+            runningTotal: Math.round(runningTotal * 100) / 100,
+            formula: formulaString
+          });
+        }
+      });
+    }
+    
+    // Add conditions at the end
+    if (hasConditions) {
+      const relevantConditions = character.conditions.filter(c => 
+        c.conditionTarget && c.conditionTarget.toLowerCase() === attributeKey.toLowerCase()
+      );
+      
+      let runningTotal = steps.length > 0 ? steps[steps.length - 1].runningTotal : originalValue;
+      relevantConditions.forEach(condition => {
+        const conditionAmount = Number(condition.conditionAmount);
+        const previousValue = runningTotal;
+        
+        if (condition.conditionType === 'HELP') {
+          runningTotal += conditionAmount;
+        } else if (condition.conditionType === 'HINDER') {
+          runningTotal -= conditionAmount;
+        }
+        
+        steps.push({
+          step: stepCount++,
+          entityName: condition.name || 'Condition',
+          entityType: 'condition',
+          attributeValue: conditionAmount,
+          isGrouped: true,
+          runningTotal: runningTotal,
+          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${conditionAmount}`
+        });
+      });
+    }
     
     return steps;
   };
 
   // Function to generate a fallback ready breakdown including ready items
-  // Mimics the backend format: one row per entity, showing weighted average formula as items are added
+  // Mimics the backend format: one row per entity, showing simple addition formula as items are added
   const generateReadyFallbackBreakdown = (attributeKey) => {
     const steps = [];
     let stepCount = 1;
@@ -202,7 +269,11 @@ const CharacterAttributesBackend = ({
             const quantity = equipmentQuantityMap.get(item.objectId) || 1;
             // Add the item multiple times based on quantity
             for (let i = 0; i < quantity; i++) {
-              allValues.push({ value: itemValue, name: item.name || 'Equipment', type: 'equipment' });
+              allValues.push({ 
+                value: itemValue, 
+                name: quantity > 1 ? `${item.name || 'Equipment'} #${i + 1}` : (item.name || 'Equipment'), 
+                type: 'equipment' 
+              });
             }
           }
         }
@@ -231,15 +302,18 @@ const CharacterAttributesBackend = ({
             const quantity = readyQuantityMap.get(item.objectId) || 1;
             // Add the item multiple times based on quantity
             for (let i = 0; i < quantity; i++) {
-              allValues.push({ value: itemValue, name: item.name || 'Ready Object', type: 'ready' });
+              allValues.push({ 
+                value: itemValue, 
+                name: quantity > 1 ? `${item.name || 'Ready Object'} #${i + 1}` : (item.name || 'Ready Object'), 
+                type: 'ready' 
+              });
             }
           }
         }
       });
     }
     
-    // Sort by value descending (highest first) to match backend logic
-    allValues.sort((a, b) => b.value - a.value);
+    // No need to sort for simple addition
     
     // Calculate running totals as each entity is added (like backend format)
     let runningTotal = 0;
@@ -258,55 +332,27 @@ const CharacterAttributesBackend = ({
           formula: null
         });
       } else {
-        // Subsequent entities: calculate weighted average formula using constant 0.25 scaling factor
-        // Calculate new running total using weighted average formula: (A1 + A2*(0.25+A2/A1) + A3*(0.25+A3/A1) + ...) / N
-        const A1 = allValues[0].value; // Highest value
-        let sum = A1; // Start with A1
+        // Subsequent entities: use simple addition formula
+        // Calculate new running total using simple addition
+        let sum = 0;
         
-        for (let i = 1; i <= index; i++) {
-          const Ai = allValues[i].value;
-          const scalingFactor = 0.25; // Constant scaling factor
-          if (A1 > 0) {
-            sum += Ai * (scalingFactor + Ai / A1);
-          } else {
-            sum += Ai * scalingFactor;
-          }
+        for (let i = 0; i <= index; i++) {
+          sum += allValues[i].value;
         }
-        runningTotal = sum / (index + 1);
+        runningTotal = sum;
         
-        // Create formula string showing the correct weighted average calculation
-        if (index === 1) {
-          // Second item: show A1 + A2*(0.25+A2/A1) / 2
-          const A2 = entity.value;
-          const formulaString = `Weighted Average: (${A1} + ${A2}*(0.25+${A2}/${A1})) / 2`;
-          steps.push({
-            step: stepCount++,
-            entityName: entity.name,
-            entityType: entity.type === 'character' ? 'character' : 'object',
-            attributeValue: entity.value,
-            isGrouped: true,
-            runningTotal: Math.round(runningTotal * 100) / 100,
-            formula: formulaString
-          });
-        } else {
-          // Third+ item: show full formula
-          let formulaParts = [A1.toString()];
-          for (let i = 1; i <= index; i++) {
-            const Ai = allValues[i].value;
-            const scalingFactor = 0.25; // Constant scaling factor
-            formulaParts.push(`${Ai}*(${scalingFactor}+${Ai}/${A1})`);
-          }
-          const formulaString = `Weighted Average: (${formulaParts.join(' + ')}) / ${index + 1}`;
-          steps.push({
-            step: stepCount++,
-            entityName: entity.name,
-            entityType: entity.type === 'character' ? 'character' : 'object',
-            attributeValue: entity.value,
-            isGrouped: true,
-            runningTotal: Math.round(runningTotal * 100) / 100,
-            formula: formulaString
-          });
-        }
+        // Create formula string showing simple addition
+        const valuesUpToHere = allValues.slice(0, index + 1).map(v => v.value);
+        const formulaString = `Addition: ${valuesUpToHere.join(' + ')} = ${sum}`;
+        steps.push({
+          step: stepCount++,
+          entityName: entity.name,
+          entityType: entity.type === 'character' ? 'character' : 'object',
+          attributeValue: entity.value,
+          isGrouped: true,
+          runningTotal: Math.round(runningTotal * 100) / 100,
+          formula: formulaString
+        });
       }
     });
     
@@ -344,17 +390,70 @@ const CharacterAttributesBackend = ({
   };
   
   // Create a fallback groupedAttributes object if it's undefined
-  // This will calculate the values based on conditions directly in the frontend
+  // This will calculate the values based on equipment + conditions directly in the frontend
   const effectiveGroupedAttributes = useMemo(() => {
     if (groupedAttributes) return groupedAttributes;
     
     // If the backend didn't provide groupedAttributes, create our own version
     const fallbackAttributes = {};
     
-    // Initialize with base attribute values from character
+    // Initialize with base attribute values from character and calculate grouped values with equipment
     Object.values(ATTRIBUTE_GROUPS).flat().forEach(attrName => {
       if (character?.[attrName]?.attribute?.attributeValue !== undefined) {
-        fallbackAttributes[attrName] = Number(character[attrName].attribute.attributeValue);
+        const originalValue = Number(character[attrName].attribute.attributeValue);
+        const charIsGrouped = character[attrName].attribute.isGrouped !== false;
+        
+        // Collect all values that should be grouped
+        const valuesToGroup = [];
+        
+        // Add character base value if it's groupable
+        if (charIsGrouped) {
+          valuesToGroup.push(originalValue);
+        }
+        
+        // Add equipment values if they're groupable
+        // Only include equipment items that are marked as equipment (isEquipment: true)
+        // Skip weapons/tools that require active use (isEquipment: false)
+        // Use quantity from inventoryItems to handle multiple instances
+        if (character?.equipment?.length > 0) {
+          const inventoryItems = character.inventoryItems || [];
+          const equipmentQuantityMap = new Map();
+          
+          // Build quantity map for equipment items
+          inventoryItems
+            .filter(invItem => invItem.inventoryLocation === 'EQUIPMENT')
+            .forEach(invItem => {
+              equipmentQuantityMap.set(invItem.objectId, invItem.quantity);
+            });
+          
+          character.equipment.forEach(item => {
+            const itemAttr = item[attrName];
+            // Default to true if isEquipment is undefined/null for backwards compatibility
+            const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+            if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false && isEquipment !== false) {
+              const itemValue = Number(itemAttr.attributeValue);
+              // Include all values (positive, negative, and zero)
+              const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+              // Add the item value multiple times based on quantity
+              for (let i = 0; i < quantity; i++) {
+                valuesToGroup.push(itemValue);
+              }
+            }
+          });
+        }
+        
+        // Calculate grouped value using simple addition
+        if (valuesToGroup.length === 0) {
+          // If no groupable values, use character base value
+          fallbackAttributes[attrName] = originalValue;
+        } else {
+          // Simply add all values together
+          let sum = 0;
+          for (let i = 0; i < valuesToGroup.length; i++) {
+            sum += valuesToGroup[i];
+          }
+          fallbackAttributes[attrName] = Math.round(sum * 100) / 100;
+        }
       }
     });
     
@@ -440,9 +539,8 @@ const CharacterAttributesBackend = ({
               const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
               if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false && isEquipment !== false) {
                 const itemValue = Number(itemAttr.attributeValue);
-                if (itemValue > 0) {
-                  valuesToGroup.push(itemValue);
-                }
+                // Include all values (positive, negative, and zero)
+              valuesToGroup.push(itemValue);
               }
             });
           }
@@ -453,9 +551,8 @@ const CharacterAttributesBackend = ({
               const itemAttr = item[attrName];
               if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
                 const itemValue = Number(itemAttr.attributeValue);
-                if (itemValue > 0) {
-                  valuesToGroup.push(itemValue);
-                }
+                // Include all values (positive, negative, and zero)
+              valuesToGroup.push(itemValue);
               }
             });
           }
@@ -467,26 +564,13 @@ const CharacterAttributesBackend = ({
           } else if (valuesToGroup.length === 1) {
             mixedAttributes[attrName] = valuesToGroup[0];
           } else {
-            // Sort values in descending order (highest first)
-            valuesToGroup.sort((a, b) => b - a);
-            
-            const A1 = valuesToGroup[0]; // Highest value
-            let sum = A1; // Start with the highest value
-            
-            // Add weighted values for all other attributes using 0.25 constant
-            for (let i = 1; i < valuesToGroup.length; i++) {
-              const Ai = valuesToGroup[i];
-              const scalingFactor = 0.25; // Constant scaling factor
-              
-              if (A1 > 0) {
-                sum += Ai * (scalingFactor + Ai / A1);
-              } else {
-                // Handle edge case where A1 is 0
-                sum += Ai * scalingFactor;
-              }
+            // Simply add all values together
+            let sum = 0;
+            for (let i = 0; i < valuesToGroup.length; i++) {
+              sum += valuesToGroup[i];
             }
             
-            const finalValue = Math.round((sum / valuesToGroup.length) * 100) / 100;
+            const finalValue = Math.round(sum * 100) / 100;
             mixedAttributes[attrName] = finalValue;
           }
         }
@@ -551,12 +635,11 @@ const CharacterAttributesBackend = ({
             const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
             if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false && isEquipment !== false) {
               const itemValue = Number(itemAttr.attributeValue);
-              if (itemValue > 0) {
-                const quantity = equipmentQuantityMap.get(item.objectId) || 1;
-                // Add the item value multiple times based on quantity
-                for (let i = 0; i < quantity; i++) {
-                  valuesToGroup.push(itemValue);
-                }
+              // Include all values (positive, negative, and zero)
+              const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+              // Add the item value multiple times based on quantity
+              for (let i = 0; i < quantity; i++) {
+                valuesToGroup.push(itemValue);
               }
             }
           });
@@ -579,12 +662,11 @@ const CharacterAttributesBackend = ({
             const itemAttr = item[attrName];
             if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
               const itemValue = Number(itemAttr.attributeValue);
-              if (itemValue > 0) {
-                const quantity = readyQuantityMap.get(item.objectId) || 1;
-                // Add the item value multiple times based on quantity
-                for (let i = 0; i < quantity; i++) {
-                  valuesToGroup.push(itemValue);
-                }
+              // Include all values (positive, negative, and zero)  
+              const quantity = readyQuantityMap.get(item.objectId) || 1;
+              // Add the item value multiple times based on quantity
+              for (let i = 0; i < quantity; i++) {
+                valuesToGroup.push(itemValue);
               }
             }
           });
@@ -597,26 +679,13 @@ const CharacterAttributesBackend = ({
         } else if (valuesToGroup.length === 1) {
           fallbackAttributes[attrName] = valuesToGroup[0];
         } else {
-          // Sort values in descending order (highest first)
-          valuesToGroup.sort((a, b) => b - a);
-          
-          const A1 = valuesToGroup[0]; // Highest value
-          let sum = A1; // Start with the highest value
-          
-          // Add weighted values for all other attributes using 0.25 constant
-          for (let i = 1; i < valuesToGroup.length; i++) {
-            const Ai = valuesToGroup[i];
-            const scalingFactor = 0.25; // Constant scaling factor
-            
-            if (A1 > 0) {
-              sum += Ai * (scalingFactor + Ai / A1);
-            } else {
-              // Handle edge case where A1 is 0
-              sum += Ai * scalingFactor;
-            }
+          // Simply add all values together
+          let sum = 0;
+          for (let i = 0; i < valuesToGroup.length; i++) {
+            sum += valuesToGroup[i];
           }
           
-          const finalValue = Math.round((sum / valuesToGroup.length) * 100) / 100;
+          const finalValue = Math.round(sum * 100) / 100;
           fallbackAttributes[attrName] = finalValue;
         }
       }

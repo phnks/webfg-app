@@ -53,19 +53,17 @@ describe('attributeGrouping', () => {
       expect(calculateGroupingFormula([100])).toBe(100);
     });
 
-    it('should calculate weighted average for two values', () => {
-      // Formula: (A1 + A2*(0.25+A2/A1)) / 2
-      // For [10, 5]: (10 + 5*(0.25+5/10)) / 2 = (10 + 5*0.75) / 2 = 13.75 / 2 = 6.875
+    it('should calculate simple addition for two values', () => {
+      // Formula: A1 + A2
+      // For [10, 5]: 10 + 5 = 15
       const result = calculateGroupingFormula([10, 5]);
-      expect(result).toBeCloseTo(6.875, 3);
+      expect(result).toBe(15);
     });
 
-    it('should calculate formula for multiple values', () => {
-      // For [12, 8, 4]
+    it('should calculate simple addition for multiple values', () => {
+      // For [12, 8, 4]: 12 + 8 + 4 = 24
       const result = calculateGroupingFormula([12, 8, 4]);
-      // A1=12, A2=8*(0.25+8/12)=8*0.917=7.33, A3=4*(0.25+4/12)=4*0.583=2.33
-      // Sum = 12 + 7.33 + 2.33 = 21.66, divided by 3 = 7.22
-      expect(result).toBeCloseTo(7.22, 1);
+      expect(result).toBe(24);
     });
 
     it('should handle zero as highest value', () => {
@@ -75,21 +73,21 @@ describe('attributeGrouping', () => {
 
     it('should handle mixed zero and non-zero values', () => {
       const result = calculateGroupingFormula([5, 0, 3]);
-      expect(result).toBeGreaterThan(0);
+      // Simple addition: 5 + 0 + 3 = 8
+      expect(result).toBe(8);
     });
 
     it('should handle equal values', () => {
       const result = calculateGroupingFormula([10, 10, 10]);
-      // Each additional 10 gets weighted: 10*(0.25+10/10) = 10*1.25 = 12.5
-      // Sum = 10 + 12.5 + 12.5 = 35, divided by 3 = 11.67
-      expect(result).toBeCloseTo(11.67, 1);
+      // Simple addition: 10 + 10 + 10 = 30
+      expect(result).toBe(30);
     });
 
     it('should handle large arrays', () => {
       const values = [20, 15, 10, 8, 6, 4, 2, 1];
       const result = calculateGroupingFormula(values);
-      expect(result).toBeGreaterThan(0);
-      expect(result).toBeLessThan(20); // Should be less than max
+      // Simple addition: 20 + 15 + 10 + 8 + 6 + 4 + 2 + 1 = 66
+      expect(result).toBe(66);
     });
   });
 
@@ -128,8 +126,8 @@ describe('attributeGrouping', () => {
       expect(typeof result.intelligence).toBe('number');
       
       // Since we have equipment, the result should be different from base values
-      expect(result.strength).not.toBe(10); // Should be modified by equipment
-      expect(result.speed).not.toBe(8); // Should be modified by equipment
+      expect(result.strength).toBe(13); // Character (10) + equipment (3) = 13
+      expect(result.speed).toBe(7); // Character (8) + equipment (-1) = 7
       expect(result.intelligence).toBe(12); // No equipment bonus, should stay same
     });
 
@@ -218,7 +216,7 @@ describe('attributeGrouping', () => {
       
       expect(result).toHaveProperty('strength');
       // Should include character + equipment + ready
-      expect(result.strength).toBeCloseTo(3.75, 1); // Character (10) + equipment (2) + ready (1) using grouping formula
+      expect(result.strength).toBe(13); // Character (10) + equipment (2) + ready (1) = 13
     });
 
     it('should handle character without ready items', () => {
@@ -253,7 +251,7 @@ describe('attributeGrouping', () => {
       
       expect(result).toHaveProperty('strength');
       expect(result).toHaveProperty('speed');
-      expect(result.strength).toBeCloseTo(3.15, 1); // Object (5) + equipment (2) using grouping formula
+      expect(result.strength).toBe(7); // Object (5) + equipment (2) = 7
     });
 
     it('should handle object without equipment', () => {
@@ -295,49 +293,49 @@ describe('attributeGrouping', () => {
     };
 
     it('should calculate with selected ready items', () => {
-      const selectedReadyIds = ['potion-1'];
+      const selectedReadyId = 'potion-1';
       const result = calculateGroupedAttributesWithSelectedReady(
         mockCharacter, 
-        selectedReadyIds
+        selectedReadyId
       );
       
       expect(result).toHaveProperty('strength');
-      expect(result.strength).toBeCloseTo(5.45, 1); // Character (10) + equipment (2) + ready (1) using grouping formula
+      expect(result.strength).toBe(13); // Character (10) + equipment (2) + ready (1) = 13
     });
 
     it('should handle empty selected ready items', () => {
       const result = calculateGroupedAttributesWithSelectedReady(
         mockCharacter, 
-        []
+        null
       );
       
       expect(result).toHaveProperty('strength');
-      // Should only include character + equipment (using grouping formula)
-      expect(result.strength).toBeCloseTo(5.45, 1); // Character (10) + equipment (2) using grouping formula
+      // Should only include character + equipment
+      expect(result.strength).toBe(12); // Character (10) + equipment (2) = 12
     });
 
     it('should handle invalid ready item IDs', () => {
-      const selectedReadyIds = ['nonexistent-item'];
+      const selectedReadyId = 'nonexistent-item';
       const result = calculateGroupedAttributesWithSelectedReady(
         mockCharacter, 
-        selectedReadyIds
+        selectedReadyId
       );
       
       expect(result).toHaveProperty('strength');
-      expect(result.strength).toBeCloseTo(5.45, 1); // Should ignore invalid IDs
+      expect(result.strength).toBe(12); // Should ignore invalid IDs - Character (10) + equipment (2) = 12
     });
 
     it('should handle multiple selected ready items', () => {
-      const selectedReadyIds = ['potion-1', 'scroll-1'];
+      const selectedReadyId = 'potion-1'; // Function only accepts single ID
       const result = calculateGroupedAttributesWithSelectedReady(
         mockCharacter, 
-        selectedReadyIds
+        selectedReadyId
       );
       
       expect(result).toHaveProperty('strength');
       expect(result).toHaveProperty('intelligence');
-      expect(result.strength).toBeCloseTo(5.45, 1);
-      expect(result.intelligence).toBe(8); // Intelligence base value (scroll-1 not applied or separate logic)
+      expect(result.strength).toBe(13); // Character (10) + equipment (2) + ready potion (1) = 13
+      expect(result.intelligence).toBe(8); // Intelligence base value (potion doesn't affect intelligence)
     });
   });
 
@@ -383,7 +381,7 @@ describe('attributeGrouping', () => {
       
       const result = calculateGroupedAttributes(character);
       expect(result.strength).toBe(10); // Should not change (no equipment bonus)
-      expect(result.speed).toBeCloseTo(3.15, 2); // Speed (5) + equipment (2) using grouping formula
+      expect(result.speed).toBe(7); // Speed (5) + equipment (2) = 7
     });
 
     it('should handle negative attribute values', () => {
@@ -420,8 +418,8 @@ describe('attributeGrouping', () => {
       };
       
       const result = calculateGroupedAttributes(character);
-      expect(result.strength).toBeCloseTo(687.5, 1); // Large values using grouping formula
-      expect(result.strength).toBeLessThan(1000); // Should be less than base due to averaging
+      expect(result.strength).toBe(1500); // Character (1000) + equipment (500) = 1500
+      expect(result.strength).toBeGreaterThan(1000); // Should be greater than base due to addition
     });
   });
 
@@ -464,8 +462,76 @@ describe('attributeGrouping', () => {
       const result = calculateGroupedAttributes(character);
       const endTime = Date.now();
 
-      expect(result.strength).toBeCloseTo(0.45, 1); // Character (10) + 100 items (1 each) using grouping formula
+      expect(result.strength).toBe(110); // Character (10) + 100 items (1 each) = 110
       expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second
+    });
+
+    it('should handle equipment quantities correctly', () => {
+      const character = {
+        characterId: 'char-quantity',
+        armour: { 
+          attribute: { attributeValue: 0, isGrouped: true }
+        },
+        equipment: [
+          {
+            objectId: 'plate-armor',
+            name: 'Plate Armor',
+            armour: { attributeValue: 5, isGrouped: true }
+          }
+        ],
+        inventoryItems: [
+          {
+            objectId: 'plate-armor',
+            inventoryLocation: 'EQUIPMENT',
+            quantity: 2
+          }
+        ]
+      };
+
+      const result = calculateGroupedAttributes(character);
+      
+      // Should be 0 (character) + 5 + 5 (2x plate armor) = 10
+      expect(result.armour).toBe(10);
+    });
+
+    it('should handle ready quantities correctly', () => {
+      const character = {
+        characterId: 'char-ready-quantity',
+        strength: { 
+          attribute: { attributeValue: 5, isGrouped: true }
+        },
+        equipment: [
+          {
+            objectId: 'sword',
+            name: 'Sword',
+            strength: { attributeValue: 2, isGrouped: true }
+          }
+        ],
+        ready: [
+          {
+            objectId: 'potion',
+            name: 'Strength Potion',
+            strength: { attributeValue: 3, isGrouped: true }
+          }
+        ],
+        inventoryItems: [
+          {
+            objectId: 'sword',
+            inventoryLocation: 'EQUIPMENT',
+            quantity: 1
+          },
+          {
+            objectId: 'potion',
+            inventoryLocation: 'READY',
+            quantity: 3
+          }
+        ]
+      };
+
+      const result = calculateReadyGroupedAttributes(character);
+      
+      // Should be 5 (character) + 2 (sword) + 3 + 3 + 3 (3x potions) = 16
+      expect(result.strength).toBe(16);
     });
   });
 });
