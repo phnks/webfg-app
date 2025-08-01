@@ -87,65 +87,132 @@ const CharacterAttributesBackend = ({
     const steps = [];
     let stepCount = 1;
     
-    // Find the attribute in character or use effectiveGroupedAttributes
+    // Find the attribute in character
     const rawValue = character?.[attributeKey]?.attribute?.attributeValue;
     const parsedValue = parseFloat(rawValue);
     const originalValue = !isNaN(parsedValue) ? parsedValue : 0;
-    if (!originalValue && originalValue !== 0) {
-      return steps;
+    const charIsGrouped = character?.[attributeKey]?.attribute?.isGrouped !== false;
+    
+    // Collect all values that will be part of breakdown
+    const allValues = [];
+    
+    // Add character base value if it's grouped
+    if (charIsGrouped) {
+      allValues.push({ 
+        value: originalValue, 
+        name: character?.name || 'Character', 
+        type: 'character' 
+      });
     }
     
-    // Get original value
-    const numOriginalValue = Number(originalValue);
-    
-    // Add base value as first step
-    steps.push({
-      step: stepCount++,
-      entityName: character?.name || 'Character',
-      entityType: 'character',
-      attributeValue: numOriginalValue,
-      isGrouped: character?.[attributeKey]?.attribute?.isGrouped || true,
-      runningTotal: numOriginalValue,
-      formula: null
-    });
-    
-    // If no conditions affect this attribute, return just the base value
-    if (!hasConditions) {
-      return steps;
-    }
-    
-    // Check for conditions that affect this attribute
-    const relevantConditions = character.conditions.filter(c => 
-      c.conditionTarget && c.conditionTarget.toLowerCase() === attributeKey.toLowerCase()
-    );
-    
-    if (relevantConditions.length === 0) {
-      return steps;
-    }
-    
-    
-    // Add steps for each condition
-    let runningTotal = numOriginalValue;
-    relevantConditions.forEach(condition => {
-      const conditionAmount = Number(condition.conditionAmount);
-      const previousValue = runningTotal;
+    // Equipment - handle quantities
+    if (character?.equipment?.length > 0) {
+      const inventoryItems = character.inventoryItems || [];
+      const equipmentQuantityMap = new Map();
       
-      if (condition.conditionType === 'HELP') {
-        runningTotal += conditionAmount;
-      } else if (condition.conditionType === 'HINDER') {
-        runningTotal -= conditionAmount;
-      }
+      inventoryItems
+        .filter(invItem => invItem.inventoryLocation === 'EQUIPMENT')
+        .forEach(invItem => {
+          equipmentQuantityMap.set(invItem.objectId, invItem.quantity);
+        });
       
+      character.equipment.forEach(item => {
+        const itemAttr = item[attributeKey];
+        const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+        if (itemAttr && itemAttr.attributeValue !== undefined && isEquipment !== false) {
+          const itemValue = Number(itemAttr.attributeValue);
+          const itemIsGrouped = itemAttr.isGrouped !== false;
+          if (itemIsGrouped && itemValue > 0) {
+            const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+            for (let i = 0; i < quantity; i++) {
+              allValues.push({ 
+                value: itemValue, 
+                name: quantity > 1 ? `${item.name || 'Equipment'} #${i + 1}` : (item.name || 'Equipment'), 
+                type: 'equipment' 
+              });
+            }
+          }
+        }
+      });
+    }
+    
+    // If no grouped values or not participating in grouping, show simple view
+    if (allValues.length === 0 || !charIsGrouped) {
       steps.push({
         step: stepCount++,
-        entityName: condition.name || 'Condition',
-        entityType: 'condition',
-        attributeValue: conditionAmount,
-        isGrouped: true,
-        runningTotal: runningTotal,
-        formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${conditionAmount}`
+        entityName: character?.name || 'Character',
+        entityType: 'character',
+        attributeValue: originalValue,
+        isGrouped: charIsGrouped,
+        runningTotal: originalValue,
+        formula: charIsGrouped ? null : 'Not participating in grouping'
       });
-    });
+    } else {
+      // Build breakdown with all entities
+      let runningTotal = 0;
+      allValues.forEach((entity, index) => {
+        if (index === 0) {
+          runningTotal = entity.value;
+          steps.push({
+            step: stepCount++,
+            entityName: entity.name,
+            entityType: entity.type,
+            attributeValue: entity.value,
+            isGrouped: true,
+            runningTotal: Math.round(runningTotal * 100) / 100,
+            formula: null
+          });
+        } else {
+          // Calculate sum up to this point
+          let sum = 0;
+          for (let i = 0; i <= index; i++) {
+            sum += allValues[i].value;
+          }
+          runningTotal = sum;
+          
+          const valuesUpToHere = allValues.slice(0, index + 1).map(v => v.value);
+          const formulaString = `Addition: ${valuesUpToHere.join(' + ')} = ${sum}`;
+          steps.push({
+            step: stepCount++,
+            entityName: entity.name,
+            entityType: entity.type,
+            attributeValue: entity.value,
+            isGrouped: true,
+            runningTotal: Math.round(runningTotal * 100) / 100,
+            formula: formulaString
+          });
+        }
+      });
+    }
+    
+    // Add conditions at the end
+    if (hasConditions) {
+      const relevantConditions = character.conditions.filter(c => 
+        c.conditionTarget && c.conditionTarget.toLowerCase() === attributeKey.toLowerCase()
+      );
+      
+      let runningTotal = steps.length > 0 ? steps[steps.length - 1].runningTotal : originalValue;
+      relevantConditions.forEach(condition => {
+        const conditionAmount = Number(condition.conditionAmount);
+        const previousValue = runningTotal;
+        
+        if (condition.conditionType === 'HELP') {
+          runningTotal += conditionAmount;
+        } else if (condition.conditionType === 'HINDER') {
+          runningTotal -= conditionAmount;
+        }
+        
+        steps.push({
+          step: stepCount++,
+          entityName: condition.name || 'Condition',
+          entityType: 'condition',
+          attributeValue: conditionAmount,
+          isGrouped: true,
+          runningTotal: runningTotal,
+          formula: `${condition.conditionType}: ${previousValue} ${condition.conditionType === 'HELP' ? '+' : '-'} ${conditionAmount}`
+        });
+      });
+    }
     
     return steps;
   };
@@ -202,7 +269,11 @@ const CharacterAttributesBackend = ({
             const quantity = equipmentQuantityMap.get(item.objectId) || 1;
             // Add the item multiple times based on quantity
             for (let i = 0; i < quantity; i++) {
-              allValues.push({ value: itemValue, name: item.name || 'Equipment', type: 'equipment' });
+              allValues.push({ 
+                value: itemValue, 
+                name: quantity > 1 ? `${item.name || 'Equipment'} #${i + 1}` : (item.name || 'Equipment'), 
+                type: 'equipment' 
+              });
             }
           }
         }
@@ -231,7 +302,11 @@ const CharacterAttributesBackend = ({
             const quantity = readyQuantityMap.get(item.objectId) || 1;
             // Add the item multiple times based on quantity
             for (let i = 0; i < quantity; i++) {
-              allValues.push({ value: itemValue, name: item.name || 'Ready Object', type: 'ready' });
+              allValues.push({ 
+                value: itemValue, 
+                name: quantity > 1 ? `${item.name || 'Ready Object'} #${i + 1}` : (item.name || 'Ready Object'), 
+                type: 'ready' 
+              });
             }
           }
         }
@@ -357,12 +432,11 @@ const CharacterAttributesBackend = ({
             const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
             if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false && isEquipment !== false) {
               const itemValue = Number(itemAttr.attributeValue);
-              if (itemValue > 0) {
-                const quantity = equipmentQuantityMap.get(item.objectId) || 1;
-                // Add the item value multiple times based on quantity
-                for (let i = 0; i < quantity; i++) {
-                  valuesToGroup.push(itemValue);
-                }
+              // Include all values (positive, negative, and zero)
+              const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+              // Add the item value multiple times based on quantity
+              for (let i = 0; i < quantity; i++) {
+                valuesToGroup.push(itemValue);
               }
             }
           });
@@ -465,9 +539,8 @@ const CharacterAttributesBackend = ({
               const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
               if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false && isEquipment !== false) {
                 const itemValue = Number(itemAttr.attributeValue);
-                if (itemValue > 0) {
-                  valuesToGroup.push(itemValue);
-                }
+                // Include all values (positive, negative, and zero)
+              valuesToGroup.push(itemValue);
               }
             });
           }
@@ -478,9 +551,8 @@ const CharacterAttributesBackend = ({
               const itemAttr = item[attrName];
               if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
                 const itemValue = Number(itemAttr.attributeValue);
-                if (itemValue > 0) {
-                  valuesToGroup.push(itemValue);
-                }
+                // Include all values (positive, negative, and zero)
+              valuesToGroup.push(itemValue);
               }
             });
           }
@@ -563,12 +635,11 @@ const CharacterAttributesBackend = ({
             const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
             if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false && isEquipment !== false) {
               const itemValue = Number(itemAttr.attributeValue);
-              if (itemValue > 0) {
-                const quantity = equipmentQuantityMap.get(item.objectId) || 1;
-                // Add the item value multiple times based on quantity
-                for (let i = 0; i < quantity; i++) {
-                  valuesToGroup.push(itemValue);
-                }
+              // Include all values (positive, negative, and zero)
+              const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+              // Add the item value multiple times based on quantity
+              for (let i = 0; i < quantity; i++) {
+                valuesToGroup.push(itemValue);
               }
             }
           });
@@ -591,12 +662,12 @@ const CharacterAttributesBackend = ({
             const itemAttr = item[attrName];
             if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false) {
               const itemValue = Number(itemAttr.attributeValue);
-              if (itemValue > 0) {
-                const quantity = readyQuantityMap.get(item.objectId) || 1;
-                // Add the item value multiple times based on quantity
-                for (let i = 0; i < quantity; i++) {
-                  valuesToGroup.push(itemValue);
-                }
+              // Include all values (positive, negative, and zero)  
+              const quantity = readyQuantityMap.get(item.objectId) || 1;
+              // Add the item value multiple times based on quantity
+              for (let i = 0; i < quantity; i++) {
+                valuesToGroup.push(itemValue);
+              }
               }
             }
           });
