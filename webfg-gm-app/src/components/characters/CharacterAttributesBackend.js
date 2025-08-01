@@ -668,7 +668,6 @@ const CharacterAttributesBackend = ({
               for (let i = 0; i < quantity; i++) {
                 valuesToGroup.push(itemValue);
               }
-              }
             }
           });
         }
