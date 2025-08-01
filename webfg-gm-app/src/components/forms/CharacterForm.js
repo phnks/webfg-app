@@ -832,7 +832,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   // Effect to populate form data when character prop changes (for editing)
   useEffect(() => {
     if (isEditing && character) {
-      console.log('DEBUG: Loading character for edit - character.raceOverride:', character.raceOverride, 'type:', typeof character.raceOverride);
       const updatedFormData = {
         name: character.name || "",
         description: character.description || "",
@@ -851,8 +850,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       // Add all attributes from character or default values
       getAllAttributeNames().forEach(attr => {
         const dynamicInfo = DYNAMIC_ATTRIBUTES[attr];
-        console.log(`DEBUG: Loading attribute ${attr}, dynamicInfo:`, dynamicInfo);
-        console.log(`DEBUG: Character[${attr}] from DB:`, JSON.stringify(character[attr], null, 2));
         
         if (character[attr]) {
           // Check for both possible structures - character data might come in different formats
@@ -872,12 +869,10 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           const defaultDiceCount = dynamicInfo ? dynamicInfo.defaultCount : null;
           const finalDiceCount = diceCountFromDB !== undefined ? diceCountFromDB : defaultDiceCount;
           
-          console.log(`DEBUG: ${attr} - attributeData:`, attributeData);
-          console.log(`DEBUG: ${attr} - diceCountFromDB: ${diceCountFromDB}, defaultDiceCount: ${defaultDiceCount}, finalDiceCount: ${finalDiceCount}`);
           
           updatedFormData[attr] = {
             attribute: {
-              attributeValue: attributeData.attributeValue || 10,
+              attributeValue: attributeData.attributeValue !== undefined ? attributeData.attributeValue : 10,
               isGrouped: attributeData.isGrouped !== false,
               diceCount: finalDiceCount
             }
@@ -891,13 +886,11 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             } 
           };
         }
-        console.log(`DEBUG: Final updatedFormData[${attr}]:`, updatedFormData[attr]);
       });
       
       // Set targetAttributeTotal from character or calculate default
       updatedFormData.targetAttributeTotal = character.targetAttributeTotal || calculateDefaultTargetTotal();
       
-      console.log('DEBUG: Setting form data - updatedFormData.raceOverride:', updatedFormData.raceOverride, 'type:', typeof updatedFormData.raceOverride);
       setFormData(updatedFormData);
     }
   }, [isEditing, character, calculateDefaultTargetTotal]);
