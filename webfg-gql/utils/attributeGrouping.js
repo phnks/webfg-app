@@ -26,35 +26,23 @@ const ATTRIBUTE_GROUPS = {
 };
 
 /**
- * Calculate the grouped value using the constant scaling factor weighted average formula
- * Formula: (A1 + A2*(0.25+A2/A1) + A3*(0.25+A3/A1) + ...) / N
- * Where A1 is the highest value, A2, A3... are other values, N is total count
- * The scaling factor for each item is the constant 0.25
- * @param {Array} values - Array of attribute values, sorted highest first
+ * Calculate the grouped value using simple addition
+ * Formula: A1 + A2 + A3 + ...
+ * Where A1, A2, A3... are all attribute values
+ * @param {Array} values - Array of attribute values
  * @returns {number} The calculated grouped value
  */
 const calculateGroupingFormula = (values) => {
   if (!values || values.length === 0) return 0;
   if (values.length === 1) return values[0];
   
-  const A1 = values[0]; // Highest value
-  let sum = A1; // Start with the highest value
-  
-  // Add weighted values for all other attributes
-  // The scaling factor for each Ai is the constant 0.25
-  for (let i = 1; i < values.length; i++) {
-    const Ai = values[i];
-    const scalingFactor = 0.25; // Constant scaling factor
-    
-    if (A1 > 0) {
-      sum += Ai * (scalingFactor + Ai / A1);
-    } else {
-      // Handle edge case where A1 is 0
-      sum += Ai * scalingFactor;
-    }
+  // Simply add all values together
+  let sum = 0;
+  for (let i = 0; i < values.length; i++) {
+    sum += values[i];
   }
   
-  return sum / values.length;
+  return sum;
 };
 
 /**
@@ -157,10 +145,8 @@ const calculateGroupedAttributes = (character) => {
       return;
     }
     
-    // Sort values in descending order (highest first)
-    valuesToGroup.sort((a, b) => b - a);
-    
-    // Apply new weighted average grouping formula
+    // No need to sort for simple addition
+    // Apply simple addition grouping formula
     const groupedValue = calculateGroupingFormula(valuesToGroup);
     
     // No fatigue applied here anymore - it's handled at action test level
@@ -341,10 +327,8 @@ const calculateReadyGroupedAttributes = (character) => {
       return;
     }
     
-    // Sort values in descending order (highest first)
-    valuesToGroup.sort((a, b) => b - a);
-    
-    // Apply new weighted average grouping formula
+    // No need to sort for simple addition
+    // Apply simple addition grouping formula
     const groupedValue = calculateGroupingFormula(valuesToGroup);
     
     // Debug logging for ready grouped calculation
@@ -468,10 +452,8 @@ const calculateObjectGroupedAttributes = (object) => {
       });
     }
     
-    // Sort values in descending order (highest first)
-    valuesToGroup.sort((a, b) => b - a);
-    
-    // Apply new weighted average grouping formula
+    // No need to sort for simple addition
+    // Apply simple addition grouping formula
     const groupedValue = calculateGroupingFormula(valuesToGroup);
     
     groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
@@ -584,10 +566,8 @@ const calculateGroupedAttributesWithSelectedReady = (character, selectedReadyObj
     } else if (valuesToGroup.length === 1) {
       groupedAttributes[attributeName] = valuesToGroup[0];
     } else {
-      // Sort values in descending order (highest first)
-      valuesToGroup.sort((a, b) => b - a);
-      
-      // Apply weighted average grouping formula
+      // No need to sort for simple addition
+      // Apply simple addition grouping formula
       const groupedValue = calculateGroupingFormula(valuesToGroup);
       
       groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;

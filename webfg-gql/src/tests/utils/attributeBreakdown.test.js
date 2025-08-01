@@ -420,12 +420,12 @@ describe('attributeBreakdown', () => {
       expect(nonGroupedItem).toBeUndefined();
     });
 
-    it('should properly calculate weighted average formula in breakdown', () => {
+    it('should properly calculate simple addition formula in breakdown', () => {
       const result = calculateAttributeBreakdown(mockCharacter, 'strength');
       
       if (result.length > 1) {
         const secondStep = result[1];
-        expect(secondStep.formula).toMatch(/Weighted Average/);
+        expect(secondStep.formula).toMatch(/Addition/);
         expect(secondStep.runningTotal).toBeDefined();
         expect(typeof secondStep.runningTotal).toBe('number');
       }
@@ -685,7 +685,7 @@ describe('attributeBreakdown', () => {
           expect(step.runningTotal).toBeGreaterThan(0);
         });
         
-        // Running totals should be meaningful values (not necessarily monotonic due to weighted average)
+        // Running totals should be meaningful values (monotonic with simple addition)
         for (let i = 1; i < result.length; i++) {
           expect(result[i].runningTotal).toBeGreaterThan(0);
         }

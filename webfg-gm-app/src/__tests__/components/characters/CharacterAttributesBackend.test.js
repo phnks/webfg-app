@@ -311,9 +311,8 @@ describe('CharacterAttributesBackend', () => {
       expect(readyInfoIcons.length).toBeGreaterThan(0);
     });
 
-    it('should use correct formula (0.25 constant) in ready mode breakdown modal', () => {
-      // This test prevents regression of the deprecated object-count-based formula
-      // The ready breakdown should use constant 0.25, not scalingFactor = i + 1
+    it('should use correct formula (simple addition) in ready mode breakdown modal', () => {
+      // This test verifies the simple addition formula is used
       
       const characterWithArmor = {
         ...mockCharacter,
@@ -330,7 +329,7 @@ describe('CharacterAttributesBackend', () => {
       
       renderComponent({ 
         character: characterWithArmor,
-        readyGroupedAttributes: { armour: 14 } // Expected grouped result
+        readyGroupedAttributes: { armour: 30 } // Expected grouped result: 10 + 20 = 30
       });
       
       const toggle = screen.getByRole('checkbox');
@@ -339,14 +338,13 @@ describe('CharacterAttributesBackend', () => {
       // The component should be in ready mode
       expect(screen.getByText('ready')).toBeInTheDocument();
       
-      // Verify the final grouped value is correct (14, not 23 from old formula)
+      // Verify the final grouped value is correct (30 from simple addition)
       // Armour is not a dynamic attribute, so it should show regular numbers
-      const groupedElements = screen.getAllByText('→ 14');
+      const groupedElements = screen.getAllByText('→ 30');
       expect(groupedElements.length).toBeGreaterThan(0);
       
-      // The breakdown modal should use the 0.25 constant formula:
-      // Correct: (20 + 10*(0.25+10/20)) / 2 = (20 + 10*0.75) / 2 = 27.5 / 2 = 13.75 ≈ 14
-      // Wrong:   (20 + 10*(2+10/20)) / 2 = (20 + 10*2.5) / 2 = 45 / 2 = 22.5 ≈ 23
+      // The breakdown modal should use simple addition:
+      // Simple addition: 10 + 20 = 30
     });
   });
 });

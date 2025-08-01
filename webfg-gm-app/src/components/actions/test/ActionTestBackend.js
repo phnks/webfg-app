@@ -349,26 +349,13 @@ const ActionTestBackend = ({ action, character, onClose }) => {
       } else if (valuesToGroup.length === 1) {
         finalAttributes[attrName] = valuesToGroup[0];
       } else {
-        // Sort values in descending order (highest first)
-        valuesToGroup.sort((a, b) => b - a);
-        
-        const A1 = valuesToGroup[0]; // Highest value
-        let sum = A1; // Start with the highest value
-        
-        // Add weighted values for all other attributes using 0.25 constant
-        for (let i = 1; i < valuesToGroup.length; i++) {
-          const Ai = valuesToGroup[i];
-          const scalingFactor = 0.25; // Constant scaling factor
-          
-          if (A1 > 0) {
-            sum += Ai * (scalingFactor + Ai / A1);
-          } else {
-            // Handle edge case where A1 is 0
-            sum += Ai * scalingFactor;
-          }
+        // Simply add all values together
+        let sum = 0;
+        for (let i = 0; i < valuesToGroup.length; i++) {
+          sum += valuesToGroup[i];
         }
         
-        finalAttributes[attrName] = Math.round((sum / valuesToGroup.length) * 100) / 100;
+        finalAttributes[attrName] = Math.round(sum * 100) / 100;
       }
     });
     

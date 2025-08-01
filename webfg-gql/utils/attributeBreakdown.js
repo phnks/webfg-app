@@ -236,8 +236,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     return breakdown;
   }
   
-  // Sort by grouped value in descending order (highest first)
-  allEntities.sort((a, b) => b.groupedValue - a.groupedValue);
+  // No need to sort for simple addition
   
   // If character has isGrouped=false but equipment is being grouped, show character first (not participating)
   let stepNumber = 1;
@@ -254,10 +253,10 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     stepNumber++;
   }
   
-  // Start with the highest grouped value and build breakdown from sorted entities
+  // Start with the first entity's value
   let currentValue = allEntities[0].groupedValue;
   
-  // Add the first (highest) entity
+  // Add the first entity
   breakdown.push({
     step: stepNumber,
     entityName: allEntities[0].name,
@@ -268,32 +267,25 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     formula: null
   });
   
-  // Apply new weighted average grouping formula for each subsequent entity
+  // Apply simple addition grouping formula for each subsequent entity
   const allGroupedValues = allEntities.map(e => e.groupedValue);
   
   for (let i = 1; i < allEntities.length; i++) {
     const entity = allEntities[i];
     const previousValue = currentValue;
     
-    // Use the new weighted average formula
+    // Use simple addition formula
     const valuesUpToHere = allGroupedValues.slice(0, i + 1);
-    const A1 = valuesUpToHere[0]; // highest value
-    let sum = A1;
+    let sum = 0;
     
-    for (let j = 1; j < valuesUpToHere.length; j++) {
-      const Ai = valuesUpToHere[j];
-      const scalingFactor = 0.25; // Constant scaling factor
-      if (A1 > 0) {
-        sum += Ai * (scalingFactor + Ai / A1);
-      } else {
-        sum += Ai * scalingFactor;
-      }
+    // Simply add all values together
+    for (let j = 0; j < valuesUpToHere.length; j++) {
+      sum += valuesUpToHere[j];
     }
     
-    currentValue = sum / valuesUpToHere.length;
+    currentValue = sum;
     
     stepNumber++;
-    const scalingFactorForDisplay = 0.25; // Constant scaling factor
     breakdown.push({
       step: stepNumber,
       entityName: entity.name,
@@ -301,7 +293,7 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
       attributeValue: entity.groupedValue,
       isGrouped: entity.isGrouped,
       runningTotal: Math.round(currentValue * 100) / 100,
-      formula: `Weighted Average: (${A1} + ${entity.groupedValue}*(${scalingFactorForDisplay}+${entity.groupedValue}/${A1})) / ${valuesUpToHere.length}`
+      formula: `Addition: ${valuesUpToHere.join(' + ')} = ${sum}`
     });
   }
   
@@ -392,39 +384,30 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
     });
   }
   
-  // Sort by grouped value in descending order (highest first)
-  allEntities.sort((a, b) => b.groupedValue - a.groupedValue);
-  
-  // Start with the highest grouped value
+  // No need to sort for simple addition, but we'll keep first entity logic
+  // Start with the first grouped value
   let currentValue = allEntities[0].groupedValue;
   let stepNumber = 1;
   
-  // Apply new weighted average grouping formula for each subsequent entity
+  // Apply simple addition grouping formula for each subsequent entity
   const allGroupedValues = allEntities.map(e => e.groupedValue);
   
   for (let i = 1; i < allEntities.length; i++) {
     const entity = allEntities[i];
     const previousValue = currentValue;
     
-    // Use the new weighted average formula
+    // Use simple addition formula
     const valuesUpToHere = allGroupedValues.slice(0, i + 1);
-    const A1 = valuesUpToHere[0]; // highest value
-    let sum = A1;
+    let sum = 0;
     
-    for (let j = 1; j < valuesUpToHere.length; j++) {
-      const Ai = valuesUpToHere[j];
-      const scalingFactor = 0.25; // Constant scaling factor
-      if (A1 > 0) {
-        sum += Ai * (scalingFactor + Ai / A1);
-      } else {
-        sum += Ai * scalingFactor;
-      }
+    // Simply add all values together
+    for (let j = 0; j < valuesUpToHere.length; j++) {
+      sum += valuesUpToHere[j];
     }
     
-    currentValue = sum / valuesUpToHere.length;
+    currentValue = sum;
     
     stepNumber++;
-    const scalingFactorForDisplay = 0.25; // Constant scaling factor
     breakdown.push({
       step: stepNumber,
       entityName: entity.name,
@@ -432,7 +415,7 @@ const calculateObjectAttributeBreakdown = (object, attributeName) => {
       attributeValue: entity.groupedValue,
       isGrouped: entity.isGrouped,
       runningTotal: Math.round(currentValue * 100) / 100,
-      formula: `Weighted Average: (${A1} + ${entity.groupedValue}*(${scalingFactorForDisplay}+${entity.groupedValue}/${A1})) / ${valuesUpToHere.length}`
+      formula: `Addition: ${valuesUpToHere.join(' + ')} = ${sum}`
     });
   }
   

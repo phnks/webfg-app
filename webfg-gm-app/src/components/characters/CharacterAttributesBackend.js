@@ -151,7 +151,7 @@ const CharacterAttributesBackend = ({
   };
 
   // Function to generate a fallback ready breakdown including ready items
-  // Mimics the backend format: one row per entity, showing weighted average formula as items are added
+  // Mimics the backend format: one row per entity, showing simple addition formula as items are added
   const generateReadyFallbackBreakdown = (attributeKey) => {
     const steps = [];
     let stepCount = 1;
@@ -238,8 +238,7 @@ const CharacterAttributesBackend = ({
       });
     }
     
-    // Sort by value descending (highest first) to match backend logic
-    allValues.sort((a, b) => b.value - a.value);
+    // No need to sort for simple addition
     
     // Calculate running totals as each entity is added (like backend format)
     let runningTotal = 0;
@@ -258,55 +257,27 @@ const CharacterAttributesBackend = ({
           formula: null
         });
       } else {
-        // Subsequent entities: calculate weighted average formula using constant 0.25 scaling factor
-        // Calculate new running total using weighted average formula: (A1 + A2*(0.25+A2/A1) + A3*(0.25+A3/A1) + ...) / N
-        const A1 = allValues[0].value; // Highest value
-        let sum = A1; // Start with A1
+        // Subsequent entities: use simple addition formula
+        // Calculate new running total using simple addition
+        let sum = 0;
         
-        for (let i = 1; i <= index; i++) {
-          const Ai = allValues[i].value;
-          const scalingFactor = 0.25; // Constant scaling factor
-          if (A1 > 0) {
-            sum += Ai * (scalingFactor + Ai / A1);
-          } else {
-            sum += Ai * scalingFactor;
-          }
+        for (let i = 0; i <= index; i++) {
+          sum += allValues[i].value;
         }
-        runningTotal = sum / (index + 1);
+        runningTotal = sum;
         
-        // Create formula string showing the correct weighted average calculation
-        if (index === 1) {
-          // Second item: show A1 + A2*(0.25+A2/A1) / 2
-          const A2 = entity.value;
-          const formulaString = `Weighted Average: (${A1} + ${A2}*(0.25+${A2}/${A1})) / 2`;
-          steps.push({
-            step: stepCount++,
-            entityName: entity.name,
-            entityType: entity.type === 'character' ? 'character' : 'object',
-            attributeValue: entity.value,
-            isGrouped: true,
-            runningTotal: Math.round(runningTotal * 100) / 100,
-            formula: formulaString
-          });
-        } else {
-          // Third+ item: show full formula
-          let formulaParts = [A1.toString()];
-          for (let i = 1; i <= index; i++) {
-            const Ai = allValues[i].value;
-            const scalingFactor = 0.25; // Constant scaling factor
-            formulaParts.push(`${Ai}*(${scalingFactor}+${Ai}/${A1})`);
-          }
-          const formulaString = `Weighted Average: (${formulaParts.join(' + ')}) / ${index + 1}`;
-          steps.push({
-            step: stepCount++,
-            entityName: entity.name,
-            entityType: entity.type === 'character' ? 'character' : 'object',
-            attributeValue: entity.value,
-            isGrouped: true,
-            runningTotal: Math.round(runningTotal * 100) / 100,
-            formula: formulaString
-          });
-        }
+        // Create formula string showing simple addition
+        const valuesUpToHere = allValues.slice(0, index + 1).map(v => v.value);
+        const formulaString = `Addition: ${valuesUpToHere.join(' + ')} = ${sum}`;
+        steps.push({
+          step: stepCount++,
+          entityName: entity.name,
+          entityType: entity.type === 'character' ? 'character' : 'object',
+          attributeValue: entity.value,
+          isGrouped: true,
+          runningTotal: Math.round(runningTotal * 100) / 100,
+          formula: formulaString
+        });
       }
     });
     
@@ -467,26 +438,13 @@ const CharacterAttributesBackend = ({
           } else if (valuesToGroup.length === 1) {
             mixedAttributes[attrName] = valuesToGroup[0];
           } else {
-            // Sort values in descending order (highest first)
-            valuesToGroup.sort((a, b) => b - a);
-            
-            const A1 = valuesToGroup[0]; // Highest value
-            let sum = A1; // Start with the highest value
-            
-            // Add weighted values for all other attributes using 0.25 constant
-            for (let i = 1; i < valuesToGroup.length; i++) {
-              const Ai = valuesToGroup[i];
-              const scalingFactor = 0.25; // Constant scaling factor
-              
-              if (A1 > 0) {
-                sum += Ai * (scalingFactor + Ai / A1);
-              } else {
-                // Handle edge case where A1 is 0
-                sum += Ai * scalingFactor;
-              }
+            // Simply add all values together
+            let sum = 0;
+            for (let i = 0; i < valuesToGroup.length; i++) {
+              sum += valuesToGroup[i];
             }
             
-            const finalValue = Math.round((sum / valuesToGroup.length) * 100) / 100;
+            const finalValue = Math.round(sum * 100) / 100;
             mixedAttributes[attrName] = finalValue;
           }
         }
@@ -597,26 +555,13 @@ const CharacterAttributesBackend = ({
         } else if (valuesToGroup.length === 1) {
           fallbackAttributes[attrName] = valuesToGroup[0];
         } else {
-          // Sort values in descending order (highest first)
-          valuesToGroup.sort((a, b) => b - a);
-          
-          const A1 = valuesToGroup[0]; // Highest value
-          let sum = A1; // Start with the highest value
-          
-          // Add weighted values for all other attributes using 0.25 constant
-          for (let i = 1; i < valuesToGroup.length; i++) {
-            const Ai = valuesToGroup[i];
-            const scalingFactor = 0.25; // Constant scaling factor
-            
-            if (A1 > 0) {
-              sum += Ai * (scalingFactor + Ai / A1);
-            } else {
-              // Handle edge case where A1 is 0
-              sum += Ai * scalingFactor;
-            }
+          // Simply add all values together
+          let sum = 0;
+          for (let i = 0; i < valuesToGroup.length; i++) {
+            sum += valuesToGroup[i];
           }
           
-          const finalValue = Math.round((sum / valuesToGroup.length) * 100) / 100;
+          const finalValue = Math.round(sum * 100) / 100;
           fallbackAttributes[attrName] = finalValue;
         }
       }
