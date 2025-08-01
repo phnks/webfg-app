@@ -1,0 +1,263 @@
+/* General Object View Container */
+.object-view {
+  background-color: #f4f7f6; /* Light gray background for the page */
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Equipment Type Styling */
+.equipment-type.passive {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.equipment-type.active {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+/* Breadcrumbs */
+.breadcrumb-nav {
+  background-color: #fff;
+  padding: 12px 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.breadcrumb {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px; /* Keep flex gap from inline style */
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.95em;
+}
+
+.breadcrumb-item a {
+  color: #007bff;
+  text-decoration: none;
+}
+.breadcrumb-item a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-item span { /* Separator > */
+  color: #6c757d;
+  margin: 0 8px;
+}
+
+.breadcrumb-item.active {
+  color: #495057;
+  font-weight: bold;
+}
+
+/* Header Section for Object Name and Actions */
+.object-header {
+  background-color: #ffffff;
+  padding: 25px;
+  margin-bottom: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.object-header h1 {
+  margin: 0 0 10px 0; /* Add bottom margin for spacing if actions wrap */
+  font-size: 2.2em;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.object-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap; /* Allow buttons to wrap */
+}
+
+.object-actions button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.object-actions button.add-to-inventory-btn {
+  background-color: #28a745; /* Green */
+  color: white;
+}
+.object-actions button.add-to-inventory-btn:hover {
+  background-color: #218838;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.object-actions button.add-to-inventory-btn.success {
+  background-color: #1e7e34;
+}
+
+.object-actions button:not(.add-to-inventory-btn):not(.delete-button) { /* Default/Edit button */
+  background-color: #007bff; /* Blue */
+  color: white;
+}
+.object-actions button:not(.add-to-inventory-btn):not(.delete-button):hover {
+  background-color: #0056b3;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.object-actions .delete-button {
+  background-color: #dc3545; /* Red */
+  color: white;
+}
+.object-actions .delete-button:hover {
+  background-color: #c82333;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Main Content Area for Details */
+.object-content {
+  /* This div wraps object-details */
+}
+
+.object-details {
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Section Titles (Details, Combat Stats, Properties, etc.) */
+.object-details h3,
+.object-details h4 {
+  font-size: 1.6em;
+  color: #34495e;
+  margin-top: 25px; /* Space above section titles */
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #ecf0f1; /* Accent line below title */
+  font-weight: 500;
+}
+.object-details h3:first-of-type { /* First title (e.g., "Details") has less top margin */
+  margin-top: 0;
+}
+
+/* Individual Data Rows */
+.detail-row {
+  display: grid;
+  grid-template-columns: 180px 1fr; /* Wider label column */
+  gap: 15px; /* Increased gap */
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0; /* Softer border for rows */
+  font-size: 1em;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+/* Label part of the detail row */
+.detail-row span:first-child {
+  font-weight: 600;
+  color: #555e68; /* Darker gray for labels */
+}
+
+/* Value part of the detail row */
+.detail-row span:last-child {
+  color: #2c3e50; /* Main content color for values */
+  word-break: break-word; /* Prevent long values from breaking layout */
+}
+
+/* Styling for Lists (Parts, Usage) */
+.object-details ul {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 10px;
+}
+
+.object-details li.part-item,
+.object-details ul > li { /* General list item styling for usage too */
+  padding: 12px 15px;
+  background-color: #f8f9fa; /* Very light gray for list items */
+  border: 1px solid #e9ecef;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.object-details li.part-item:hover,
+.object-details ul > li:hover {
+  border-color: #ced4da;
+}
+
+.part-name-link {
+  font-weight: 600;
+  color: #0056b3;
+  text-decoration: none;
+}
+.part-name-link:hover {
+  text-decoration: underline;
+}
+
+.part-info {
+  font-size: 0.9em;
+  color: #6c757d;
+}
+
+/* Loading and Error States */
+.loading,
+.error {
+  padding: 40px;
+  text-align: center;
+  color: #555;
+  font-size: 1.1em;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin: 20px;
+}
+
+.error {
+  color: #dc3545;
+  border-left: 5px solid #dc3545;
+}
+
+/* Info icon button for attribute breakdown */
+.info-icon {
+  background: none;
+  border: none;
+  font-size: 0.9em;
+  cursor: pointer;
+  padding: 0 4px;
+  margin-left: 4px;
+  vertical-align: baseline;
+  transition: opacity 0.2s;
+}
+
+.info-icon:hover {
+  opacity: 0.7;
+}
+
+/* Grouped value styling */
+.grouped-value {
+  margin-left: 8px;
+  font-weight: bold;
+}
+
+/* Grouping indicator styling */
+.grouping-indicator {
+  margin-left: 6px;
+  font-size: 0.8em;
+  opacity: 0.7;
+}

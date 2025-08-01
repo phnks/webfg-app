@@ -1,0 +1,140 @@
+.character-summary-panel {
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  padding: 15px;
+  margin-top: 16px;
+}
+
+.character-summary-panel h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-weight: 500;
+  font-size: 18px;
+  color: #333;
+}
+
+.character-summary-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.character-summary-card {
+  flex: 1;
+  min-width: 200px;
+  max-width: 300px;
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.character-summary-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.character-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.character-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.character-token-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.character-token-indicator.human {
+  background-color: #2196F3;
+}
+
+.character-token-indicator.trepidite {
+  background-color: #FF9800;
+}
+
+.character-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.stat-label {
+  font-weight: 500;
+  font-size: 13px;
+  color: #666;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #333;
+}
+
+.character-conditions {
+  margin-bottom: 12px;
+}
+
+.character-conditions h5, .character-status h5 {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+}
+
+.condition-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.condition-tag {
+  background-color: #ff5722;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.character-status {
+  font-size: 13px;
+}
+
+.current-action {
+  background-color: #e3f2fd;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.action-progress {
+  height: 4px;
+  background-color: #ddd;
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #2196F3;
+  transition: width 0.3s ease;
+} 

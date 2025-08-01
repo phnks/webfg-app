@@ -1,0 +1,170 @@
+.virtual-tabletop {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+canvas {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+  cursor: crosshair;
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 300px);
+  touch-action: manipulation;
+}
+
+/* Adjust canvas size for mobile */
+@media (max-width: 768px) {
+  canvas {
+    max-height: calc(100vh - 200px);
+  }
+}
+
+.vtt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 10px;
+  background-color: #f8f8f8;
+  border-radius: 4px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.legend-color.human {
+  background-color: #4CAF50;
+}
+
+.legend-color.trepidite {
+  background-color: #2196F3;
+}
+
+.legend-grid-cell {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #999;
+}
+
+.character-token {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.2s;
+}
+
+.character-token:hover {
+  transform: scale(1.1);
+}
+
+.character-token.human {
+  background-color: #4CAF50;
+}
+
+.character-token.trepidite {
+  background-color: #2196F3;
+}
+
+.grid-controls {
+  display: flex;
+  gap: 16px;
+  padding: 10px;
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.grid-size-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grid-size-control button {
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+}
+
+.grid-size-control button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.grid-size-control span {
+  min-width: 30px;
+  text-align: center;
+}
+
+.vtt-wrapper {
+  position: relative; /* Needed for absolute positioning of context menu */
+  /* Add other wrapper styles if needed, like border */
+   border: 1px solid #eee;
+   overflow: auto; /* Add scrollbars if grid is larger than container */
+   flex-grow: 1; /* Allow VTT to fill space in flex container */
+}
+
+canvas {
+  display: block; /* Remove extra space below canvas */
+  cursor: grab; /* Indicate draggable */
+}
+canvas:active {
+   cursor: grabbing;
+}
+
+
+.vtt-context-menu {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 5px;
+  z-index: 10; /* Ensure it's above the canvas */
+  min-width: 150px;
+}
+
+.vtt-context-menu button {
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vtt-context-menu button:hover {
+  background-color: #f0f0f0;
+} 

@@ -1,0 +1,25 @@
+{
+  "name": "webfg-shared-components",
+  "version": "1.0.0",
+  "description": "Shared React components for WEBFG applications",
+  "main": "src/index.js",
+  "private": true,
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0",
+    "@apollo/client": "^3.0.0",
+    "graphql": "^16.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.21.0",
+    "@babel/preset-env": "^7.21.0",
+    "@babel/preset-react": "^7.21.0"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env",
+      "@babel/preset-react"
+    ]
+  }
+}

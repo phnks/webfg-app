@@ -1,0 +1,104 @@
+import React from "react";
+import { useMutation } from "@apollo/client";
+import { UPDATE_CHARACTER } from "../../graphql/operations";
+import QuickAdjustWidget from "../common/QuickAdjustWidget";
+import "./CharacterDetails.css";
+
+const CharacterDetails = ({ character, onUpdate }) => {
+  const [updateCharacter] = useMutation(UPDATE_CHARACTER);
+
+  const handleWillAdjust = async (newValue) => {
+    try {
+      // Build the complete character input with all required fields
+      const characterInput = {
+        name: character.name,
+        description: character.description || "",
+        characterCategory: character.characterCategory,
+        will: newValue,
+        special: character.special || "",
+        actionIds: character.actionIds || [],
+        stashIds: character.stashIds || [],
+        equipmentIds: character.equipmentIds || [],
+        readyIds: character.readyIds || []
+      };
+
+      // Add attributes with their current values (no more fatigue per attribute)
+      const attributes = [
+        'weight', 'size', 'armour', 'endurance', 'lethality',
+        'speed', 'strength', 'dexterity', 'agility',
+        'resolve', 'morale', 'intelligence', 'charisma',
+        'obscurity', 'seeing', 'hearing', 'light', 'noise'
+      ];
+
+      attributes.forEach(attr => {
+        if (character[attr]) {
+          characterInput[attr] = {
+            attribute: {
+              attributeValue: character[attr].attribute.attributeValue,
+              isGrouped: character[attr].attribute.isGrouped
+            }
+          };
+        }
+      });
+
+      await updateCharacter({
+        variables: {
+          characterId: character.characterId,
+          input: characterInput
+        }
+      });
+
+      // Call the onUpdate callback to refresh the parent component
+      if (onUpdate) {
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Failed to update will:', error);
+      throw error;
+    }
+  };
+
+
+  return (
+    <div className="section character-details">
+      <h3>Character Details</h3>
+      <table>
+        <tbody>
+          <tr>
+            <td>ID:</td>
+            <td>{character.characterId}</td>
+          </tr>
+          <tr>
+            <td>Category:</td>
+            <td>{character.characterCategory}</td>
+          </tr>
+          <tr>
+            <td>Race:</td>
+            <td>{character.race || 'HUMAN'}</td>
+          </tr>
+          {character.description && (
+            <tr>
+              <td>Description:</td>
+              <td>{character.description}</td>
+            </tr>
+          )}
+          <tr>
+            <td>Will:</td>
+            <td>
+              <div className="value-with-widget">
+                <span>{character.will}</span>
+                <QuickAdjustWidget
+                  currentValue={character.will || 0}
+                  onAdjust={handleWillAdjust}
+                  min={0}
+                />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default CharacterDetails;

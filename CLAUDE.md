@@ -14,18 +14,31 @@ All components are deployed to AWS using SAM.
 
 ## Shared Component Architecture
 
-The GM app and Player app share all React components to avoid code duplication:
+All three applications share React components through a dedicated shared components directory:
 
-- **Source of Truth**: `webfg-gm-app/src/components/` is the authoritative source for all shared components
-- **Synchronization**: Use the `sync-components.sh` script to sync components from GM app to Player app
-- **Testing**: Both apps maintain identical component test suites that are synced together
+- **Source of Truth**: `webfg-shared-components/src/` is the authoritative source for all shared components, context, and utilities
+- **Synchronization**: Use the `sync-components.sh` script to sync from shared components to both apps
+- **Testing**: Component tests are maintained in the shared directory and synced to both apps
 
 ```bash
-# Sync components from GM app to Player app
+# Sync components from shared directory to both apps
 bash sync-components.sh
 ```
 
-**Important**: Always make component changes in `webfg-gm-app` first, then run the sync script to update `webfg-player-app`.
+**Important**: Always make component changes in `webfg-shared-components/src/` first, then run the sync script to update both `webfg-gm-app` and `webfg-player-app`.
+
+### Directory Structure:
+```
+webfg-shared-components/
+├── src/
+│   ├── components/          # All React components
+│   ├── context/            # React context providers  
+│   ├── utils/              # Utility functions
+│   └── __tests__/          # Component tests
+│       └── components/
+├── package.json            # Package configuration
+└── index.js               # Export definitions
+```
 
 ## Command Reference
 
