@@ -315,17 +315,71 @@ const CharacterAttributesBackend = ({
   };
   
   // Create a fallback groupedAttributes object if it's undefined
-  // This will calculate the values based on conditions directly in the frontend
+  // This will calculate the values based on equipment + conditions directly in the frontend
   const effectiveGroupedAttributes = useMemo(() => {
     if (groupedAttributes) return groupedAttributes;
     
     // If the backend didn't provide groupedAttributes, create our own version
     const fallbackAttributes = {};
     
-    // Initialize with base attribute values from character
+    // Initialize with base attribute values from character and calculate grouped values with equipment
     Object.values(ATTRIBUTE_GROUPS).flat().forEach(attrName => {
       if (character?.[attrName]?.attribute?.attributeValue !== undefined) {
-        fallbackAttributes[attrName] = Number(character[attrName].attribute.attributeValue);
+        const originalValue = Number(character[attrName].attribute.attributeValue);
+        const charIsGrouped = character[attrName].attribute.isGrouped !== false;
+        
+        // Collect all values that should be grouped
+        const valuesToGroup = [];
+        
+        // Add character base value if it's groupable
+        if (charIsGrouped) {
+          valuesToGroup.push(originalValue);
+        }
+        
+        // Add equipment values if they're groupable
+        // Only include equipment items that are marked as equipment (isEquipment: true)
+        // Skip weapons/tools that require active use (isEquipment: false)
+        // Use quantity from inventoryItems to handle multiple instances
+        if (character?.equipment?.length > 0) {
+          const inventoryItems = character.inventoryItems || [];
+          const equipmentQuantityMap = new Map();
+          
+          // Build quantity map for equipment items
+          inventoryItems
+            .filter(invItem => invItem.inventoryLocation === 'EQUIPMENT')
+            .forEach(invItem => {
+              equipmentQuantityMap.set(invItem.objectId, invItem.quantity);
+            });
+          
+          character.equipment.forEach(item => {
+            const itemAttr = item[attrName];
+            // Default to true if isEquipment is undefined/null for backwards compatibility
+            const isEquipment = item.isEquipment !== undefined ? item.isEquipment : true;
+            if (itemAttr && itemAttr.attributeValue !== undefined && itemAttr.isGrouped !== false && isEquipment !== false) {
+              const itemValue = Number(itemAttr.attributeValue);
+              if (itemValue > 0) {
+                const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+                // Add the item value multiple times based on quantity
+                for (let i = 0; i < quantity; i++) {
+                  valuesToGroup.push(itemValue);
+                }
+              }
+            }
+          });
+        }
+        
+        // Calculate grouped value using simple addition
+        if (valuesToGroup.length === 0) {
+          // If no groupable values, use character base value
+          fallbackAttributes[attrName] = originalValue;
+        } else {
+          // Simply add all values together
+          let sum = 0;
+          for (let i = 0; i < valuesToGroup.length; i++) {
+            sum += valuesToGroup[i];
+          }
+          fallbackAttributes[attrName] = Math.round(sum * 100) / 100;
+        }
       }
     });
     

@@ -119,6 +119,16 @@ const calculateGroupedAttributes = (character) => {
     }
     
     if (character.equipment && character.equipment.length > 0) {
+      // Build quantity map for equipment items
+      const inventoryItems = character.inventoryItems || [];
+      const equipmentQuantityMap = new Map();
+      
+      inventoryItems
+        .filter(invItem => invItem.inventoryLocation === 'EQUIPMENT')
+        .forEach(invItem => {
+          equipmentQuantityMap.set(invItem.objectId, invItem.quantity);
+        });
+
       character.equipment.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
         // Only include equipment items that are marked as equipment (isEquipment: true)
@@ -134,7 +144,11 @@ const calculateGroupedAttributes = (character) => {
             itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
           }
           
-          valuesToGroup.push(itemValue);
+          // Add the item value multiple times based on quantity
+          const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+          for (let i = 0; i < quantity; i++) {
+            valuesToGroup.push(itemValue);
+          }
         }
       });
     }
@@ -281,8 +295,18 @@ const calculateReadyGroupedAttributes = (character) => {
       valuesToGroup.push(charAttrInfo.value);
     }
     
-    // Add equipment values
+    // Add equipment values with quantity handling
     if (character.equipment && character.equipment.length > 0) {
+      // Build quantity map for equipment items
+      const inventoryItems = character.inventoryItems || [];
+      const equipmentQuantityMap = new Map();
+      
+      inventoryItems
+        .filter(invItem => invItem.inventoryLocation === 'EQUIPMENT')
+        .forEach(invItem => {
+          equipmentQuantityMap.set(invItem.objectId, invItem.quantity);
+        });
+      
       character.equipment.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
         // Only include equipment items that are marked as equipment (isEquipment: true)
@@ -298,13 +322,27 @@ const calculateReadyGroupedAttributes = (character) => {
             itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
           }
           
-          valuesToGroup.push(itemValue);
+          // Add the item value multiple times based on quantity
+          const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+          for (let i = 0; i < quantity; i++) {
+            valuesToGroup.push(itemValue);
+          }
         }
       });
     }
     
-    // Add ready object values
+    // Add ready object values with quantity handling
     if (character.ready && character.ready.length > 0) {
+      // Build quantity map for ready items
+      const inventoryItems = character.inventoryItems || [];
+      const readyQuantityMap = new Map();
+      
+      inventoryItems
+        .filter(invItem => invItem.inventoryLocation === 'READY')
+        .forEach(invItem => {
+          readyQuantityMap.set(invItem.objectId, invItem.quantity);
+        });
+      
       character.ready.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
         if (itemAttrInfo && itemAttrInfo.isGrouped) {
@@ -316,7 +354,11 @@ const calculateReadyGroupedAttributes = (character) => {
             itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
           }
           
-          valuesToGroup.push(itemValue);
+          // Add the item value multiple times based on quantity
+          const quantity = readyQuantityMap.get(item.objectId) || 1;
+          for (let i = 0; i < quantity; i++) {
+            valuesToGroup.push(itemValue);
+          }
         }
       });
     }

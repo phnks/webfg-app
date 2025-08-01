@@ -465,5 +465,73 @@ describe('attributeGrouping', () => {
       expect(result.strength).toBe(110); // Character (10) + 100 items (1 each) = 110
       expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second
     });
+
+    it('should handle equipment quantities correctly', () => {
+      const character = {
+        characterId: 'char-quantity',
+        armour: { 
+          attribute: { attributeValue: 0, isGrouped: true }
+        },
+        equipment: [
+          {
+            objectId: 'plate-armor',
+            name: 'Plate Armor',
+            armour: { attributeValue: 5, isGrouped: true }
+          }
+        ],
+        inventoryItems: [
+          {
+            objectId: 'plate-armor',
+            inventoryLocation: 'EQUIPMENT',
+            quantity: 2
+          }
+        ]
+      };
+
+      const result = calculateGroupedAttributes(character);
+      
+      // Should be 0 (character) + 5 + 5 (2x plate armor) = 10
+      expect(result.armour).toBe(10);
+    });
+
+    it('should handle ready quantities correctly', () => {
+      const character = {
+        characterId: 'char-ready-quantity',
+        strength: { 
+          attribute: { attributeValue: 5, isGrouped: true }
+        },
+        equipment: [
+          {
+            objectId: 'sword',
+            name: 'Sword',
+            strength: { attributeValue: 2, isGrouped: true }
+          }
+        ],
+        ready: [
+          {
+            objectId: 'potion',
+            name: 'Strength Potion',
+            strength: { attributeValue: 3, isGrouped: true }
+          }
+        ],
+        inventoryItems: [
+          {
+            objectId: 'sword',
+            inventoryLocation: 'EQUIPMENT',
+            quantity: 1
+          },
+          {
+            objectId: 'potion',
+            inventoryLocation: 'READY',
+            quantity: 3
+          }
+        ]
+      };
+
+      const result = calculateReadyGroupedAttributes(character);
+      
+      // Should be 5 (character) + 2 (sword) + 3 + 3 + 3 (3x potions) = 16
+      expect(result.strength).toBe(16);
+    });
   });
 });
