@@ -163,6 +163,8 @@ const calculateGroupedAttributes = (character) => {
     // Apply simple addition grouping formula
     const groupedValue = calculateGroupingFormula(valuesToGroup);
     
+    // Debug logging removed
+    
     // No fatigue applied here anymore - it's handled at action test level
     groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
   });
@@ -295,18 +297,8 @@ const calculateReadyGroupedAttributes = (character) => {
       valuesToGroup.push(charAttrInfo.value);
     }
     
-    // Add equipment values with quantity handling
+    // Add equipment values (no quantity handling needed as equipment array is already expanded)
     if (character.equipment && character.equipment.length > 0) {
-      // Build quantity map for equipment items
-      const inventoryItems = character.inventoryItems || [];
-      const equipmentQuantityMap = new Map();
-      
-      inventoryItems
-        .filter(invItem => invItem.inventoryLocation === 'EQUIPMENT')
-        .forEach(invItem => {
-          equipmentQuantityMap.set(invItem.objectId, invItem.quantity);
-        });
-      
       character.equipment.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
         // Only include equipment items that are marked as equipment (isEquipment: true)
@@ -322,27 +314,14 @@ const calculateReadyGroupedAttributes = (character) => {
             itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
           }
           
-          // Add the item value multiple times based on quantity
-          const quantity = equipmentQuantityMap.get(item.objectId) || 1;
-          for (let i = 0; i < quantity; i++) {
-            valuesToGroup.push(itemValue);
-          }
+          // Equipment array is already expanded by GraphQL resolvers, so no quantity multiplication needed
+          valuesToGroup.push(itemValue);
         }
       });
     }
     
-    // Add ready object values with quantity handling
+    // Add ready object values (no quantity handling needed as ready array is already expanded)
     if (character.ready && character.ready.length > 0) {
-      // Build quantity map for ready items
-      const inventoryItems = character.inventoryItems || [];
-      const readyQuantityMap = new Map();
-      
-      inventoryItems
-        .filter(invItem => invItem.inventoryLocation === 'READY')
-        .forEach(invItem => {
-          readyQuantityMap.set(invItem.objectId, invItem.quantity);
-        });
-      
       character.ready.forEach(item => {
         const itemAttrInfo = extractAttributeInfo(item[attributeName]);
         if (itemAttrInfo && itemAttrInfo.isGrouped) {
@@ -354,11 +333,8 @@ const calculateReadyGroupedAttributes = (character) => {
             itemValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
           }
           
-          // Add the item value multiple times based on quantity
-          const quantity = readyQuantityMap.get(item.objectId) || 1;
-          for (let i = 0; i < quantity; i++) {
-            valuesToGroup.push(itemValue);
-          }
+          // Ready array is already expanded by GraphQL resolvers, so no quantity multiplication needed
+          valuesToGroup.push(itemValue);
         }
       });
     }
@@ -373,23 +349,7 @@ const calculateReadyGroupedAttributes = (character) => {
     // Apply simple addition grouping formula
     const groupedValue = calculateGroupingFormula(valuesToGroup);
     
-    // Debug logging for ready grouped calculation
-    // if (attributeName === 'dexterity' && character.name === 'The Guy') {
-    //   console.log(`[DEBUG READY] Calculating ready grouped dexterity for The Guy:`);
-    //   console.log(`[DEBUG READY] Character base value: ${charAttrInfo.value}, isGrouped: ${charAttrInfo.isGrouped}`);
-    //   console.log(`[DEBUG READY] Equipment items: ${JSON.stringify(character.equipment?.map(item => ({
-    //     name: item.name,
-    //     dexterity: item.dexterity,
-    //     extracted: extractAttributeInfo(item[attributeName])
-    //   })) || [])}`);
-    //   console.log(`[DEBUG READY] Ready items: ${JSON.stringify(character.ready?.map(item => ({
-    //     name: item.name,
-    //     dexterity: item.dexterity,
-    //     extracted: extractAttributeInfo(item[attributeName])
-    //   })) || [])}`);
-    //   console.log(`[DEBUG READY] Values to group: ${JSON.stringify(valuesToGroup)}`);
-    //   console.log(`[DEBUG READY] Grouped value before rounding: ${groupedValue}`);
-    // }
+    // Debug logging removed
     
     // No fatigue applied here anymore - it's handled at action test level
     groupedAttributes[attributeName] = Math.round(groupedValue * 100) / 100;
