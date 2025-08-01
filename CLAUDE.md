@@ -4,12 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-The WEBFG (Web Fantasy Game) project is a web application consisting of two main components:
+The WEBFG (Web Fantasy Game) project is a web application consisting of three main components:
 
 1. **webfg-gm-app**: A React frontend application (game master app) for managing characters, objects, actions, and encounters.
-2. **webfg-gql**: A GraphQL API backend that provides data to the frontend.
+2. **webfg-player-app**: A React frontend application (player app) that shares all components with the GM app but provides a player-focused interface.
+3. **webfg-gql**: A GraphQL API backend that provides data to both frontend applications.
 
-Both components are deployed to AWS using SAM.
+All components are deployed to AWS using SAM.
+
+## Shared Component Architecture
+
+The GM app and Player app share all React components to avoid code duplication:
+
+- **Source of Truth**: `webfg-gm-app/src/components/` is the authoritative source for all shared components
+- **Synchronization**: Use the `sync-components.sh` script to sync components from GM app to Player app
+- **Testing**: Both apps maintain identical component test suites that are synced together
+
+```bash
+# Sync components from GM app to Player app
+bash sync-components.sh
+```
+
+**Important**: Always make component changes in `webfg-gm-app` first, then run the sync script to update `webfg-player-app`.
 
 ## Command Reference
 
