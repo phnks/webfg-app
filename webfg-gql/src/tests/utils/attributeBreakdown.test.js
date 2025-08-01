@@ -430,6 +430,74 @@ describe('attributeBreakdown', () => {
         expect(typeof secondStep.runningTotal).toBe('number');
       }
     });
+
+    it('should handle equipment quantities in breakdown display', () => {
+      const characterWithQuantities = {
+        name: 'The Guy',
+        characterId: 'char-quantity',
+        armour: {
+          attribute: {
+            attributeValue: 0,
+            isGrouped: true
+          }
+        },
+        equipment: [
+          {
+            objectId: 'plate-armor',
+            name: 'Plate Armor',
+            armour: {
+              attributeValue: 5,
+              isGrouped: true
+            }
+          }
+        ],
+        inventoryItems: [
+          {
+            objectId: 'plate-armor',
+            inventoryLocation: 'EQUIPMENT',
+            quantity: 2
+          }
+        ]
+      };
+
+      const result = calculateAttributeBreakdown(characterWithQuantities, 'armour');
+      
+      // Should have: Character + Plate Armor #1 + Plate Armor #2
+      expect(result.length).toBe(3);
+      
+      // Check character step
+      expect(result[0]).toMatchObject({
+        step: 1,
+        entityName: 'The Guy',
+        entityType: 'character',
+        attributeValue: 0,
+        isGrouped: true,
+        runningTotal: 0
+      });
+      
+      // Check first armor instance
+      expect(result[1]).toMatchObject({
+        step: 2,
+        entityName: 'Plate Armor #1',
+        entityType: 'equipment',
+        attributeValue: 5,
+        isGrouped: true,
+        runningTotal: 5
+      });
+      
+      // Check second armor instance
+      expect(result[2]).toMatchObject({
+        step: 3,
+        entityName: 'Plate Armor #2',
+        entityType: 'equipment',
+        attributeValue: 5,
+        isGrouped: true,
+        runningTotal: 10
+      });
+      
+      // Verify the formula shows addition
+      expect(result[2].formula).toMatch(/Addition: 0 \+ 5 \+ 5 = 10/);
+    });
   });
 
   describe('calculateObjectAttributeBreakdown', () => {

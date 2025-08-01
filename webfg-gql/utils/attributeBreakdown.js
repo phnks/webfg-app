@@ -188,6 +188,16 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
     allEntities.push(characterEntity);
   }
   
+  // Build quantity map for equipment items
+  const inventoryItems = character.inventoryItems || [];
+  const equipmentQuantityMap = new Map();
+  
+  inventoryItems
+    .filter(invItem => invItem.inventoryLocation === 'EQUIPMENT')
+    .forEach(invItem => {
+      equipmentQuantityMap.set(invItem.objectId, invItem.quantity);
+    });
+
   // Add equipment with their grouped values from the character's grouped attributes
   if (character.equipment && character.equipment.length > 0) {
     character.equipment.forEach(item => {
@@ -202,13 +212,17 @@ const calculateAttributeBreakdown = (character, attributeName, characterGroupedA
         const itemGroupedAttrs = calculateGroupedAttributes(item);
         itemGroupedValue = itemGroupedAttrs[attributeName] || itemAttrInfo.value;
         
-        allEntities.push({
-          name: item.name,
-          entityType: 'equipment',
-          attributeValue: itemAttrInfo.value,
-          isGrouped: itemAttrInfo.isGrouped,
-          groupedValue: itemGroupedValue
-        });
+        // Add the item multiple times based on quantity
+        const quantity = equipmentQuantityMap.get(item.objectId) || 1;
+        for (let i = 0; i < quantity; i++) {
+          allEntities.push({
+            name: quantity > 1 ? `${item.name} #${i + 1}` : item.name,
+            entityType: 'equipment',
+            attributeValue: itemAttrInfo.value,
+            isGrouped: itemAttrInfo.isGrouped,
+            groupedValue: itemGroupedValue
+          });
+        }
       }
     });
   }
