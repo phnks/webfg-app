@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ErrorPopup from '../common/ErrorPopup';
 import MobileNumberInput from '../common/MobileNumberInput';
 import AttributeGroups, { ATTRIBUTE_GROUPS } from '../common/AttributeGroups';
 import { useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
-import { useSelectedCharacter } from "../../context/SelectedCharacterContext";
+// import { useSelectedCharacter } from "../../context/SelectedCharacterContext"; // Unused for now
 import {
   CREATE_CHARACTER,
   UPDATE_CHARACTER,
@@ -45,12 +45,160 @@ const CHARACTER_RACES = [
 const DYNAMIC_ATTRIBUTES = {
   speed: { diceType: 'd4', defaultCount: 1 },
   agility: { diceType: 'd6', defaultCount: 1 },
-  dexterity: { diceType: 'd8', defaultCount: 1 },
+  dexterity: { diceType: 'd8', defaultCount: 2 }, // Updated to 2d8 for humans
   strength: { diceType: 'd10', defaultCount: 1 },
   charisma: { diceType: 'd12', defaultCount: 1 },
   seeing: { diceType: 'd20', defaultCount: 1 },
   hearing: { diceType: 'd20', defaultCount: 1 },
   intelligence: { diceType: 'd100', defaultCount: 1 }
+};
+
+// Human race-specific attribute configuration
+const HUMAN_RACE_ATTRIBUTES = {
+  weight: { 
+    default: 10, 
+    canModify: true, 
+    validRange: [10, 15], 
+    isDynamic: false 
+  },
+  size: { 
+    default: 10, 
+    canModify: false, 
+    validRange: [10, 10], 
+    isDynamic: false 
+  },
+  armour: { 
+    default: 0, 
+    canModify: false, 
+    validRange: [0, 0], 
+    isDynamic: false 
+  },
+  endurance: { 
+    default: 10, 
+    canModify: false, 
+    validRange: [10, 10], 
+    isDynamic: false 
+  },
+  lethality: { 
+    default: 0, 
+    canModify: false, 
+    validRange: [0, 0], 
+    isDynamic: false 
+  },
+  complexity: { 
+    default: 100, 
+    canModify: false, 
+    validRange: [100, 100], 
+    isDynamic: false 
+  },
+  penetration: { 
+    default: 0, 
+    canModify: false, 
+    validRange: [0, 0], 
+    isDynamic: false 
+  },
+  speed: { 
+    default: 0, 
+    canModify: true, 
+    validRange: [0, 5], 
+    isDynamic: true, 
+    diceCount: 1, 
+    maxDiceCount: 1,
+    minDiceCount: 1
+  },
+  strength: { 
+    default: 0, 
+    canModify: true, 
+    validRange: [0, 5], 
+    isDynamic: true, 
+    diceCount: 1, 
+    maxDiceCount: 1,
+    minDiceCount: 1
+  },
+  dexterity: { 
+    default: 0, 
+    canModify: true, 
+    validRange: [0, 5], 
+    isDynamic: true, 
+    diceCount: 2, 
+    maxDiceCount: 2, 
+    minDiceCount: 2 
+  },
+  agility: { 
+    default: 0, 
+    canModify: true, 
+    validRange: [0, 5], 
+    isDynamic: true, 
+    diceCount: 1, 
+    maxDiceCount: 1,
+    minDiceCount: 1
+  },
+  resolve: { 
+    default: 10, 
+    canModify: true, 
+    validRange: [5, 15], 
+    isDynamic: false 
+  },
+  morale: { 
+    default: 10, 
+    canModify: true, 
+    validRange: [5, 15], 
+    isDynamic: false 
+  },
+  intelligence: { 
+    default: 0, 
+    canModify: true, 
+    validRange: [0, 10], 
+    isDynamic: true, 
+    diceCount: 1, 
+    maxDiceCount: 1,
+    minDiceCount: 1
+  },
+  charisma: { 
+    default: 0, 
+    canModify: true, 
+    validRange: [0, 5], 
+    isDynamic: true, 
+    diceCount: 1, 
+    maxDiceCount: 1,
+    minDiceCount: 1
+  },
+  obscurity: { 
+    default: 10, 
+    canModify: false, 
+    validRange: [10, 10], 
+    isDynamic: false 
+  },
+  seeing: { 
+    default: 0, 
+    canModify: true, 
+    validRange: [0, 5], 
+    isDynamic: true, 
+    diceCount: 1, 
+    maxDiceCount: 1,
+    minDiceCount: 1
+  },
+  hearing: { 
+    default: -10, 
+    canModify: true, 
+    validRange: [-10, 0], 
+    isDynamic: true, 
+    diceCount: 1, 
+    maxDiceCount: 1,
+    minDiceCount: 1
+  },
+  light: { 
+    default: 0, 
+    canModify: false, 
+    validRange: [0, 0], 
+    isDynamic: false 
+  },
+  noise: { 
+    default: 5, 
+    canModify: false, 
+    validRange: [5, 5], 
+    isDynamic: false 
+  }
 };
 
 // Life Path Tables for generating character descriptions (Human only)
@@ -345,7 +493,7 @@ const LIFE_PATH_TABLES = [
 
 const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => {
   const navigate = useNavigate();
-  const { selectedCharacter } = useSelectedCharacter();
+  // const { selectedCharacter } = useSelectedCharacter(); // Unused for now
 
   // State for form data matching the new schema
   const [error, setError] = useState(null);
@@ -355,13 +503,30 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     return Object.values(ATTRIBUTE_GROUPS).flat();
   };
 
-  // Create initial form data with all attributes
-  const createInitialFormData = () => {
+  // Helper function to get default value for an attribute based on race
+  const getDefaultAttributeValue = (attributeName, race = 'HUMAN') => {
+    if (race === 'HUMAN' && HUMAN_RACE_ATTRIBUTES[attributeName]) {
+      return HUMAN_RACE_ATTRIBUTES[attributeName].default;
+    }
+    return 10; // Default fallback for non-human races
+  };
+
+  // Helper function to get default dice count for an attribute based on race
+  const getDefaultDiceCount = (attributeName, race = 'HUMAN') => {
+    if (race === 'HUMAN' && HUMAN_RACE_ATTRIBUTES[attributeName] && HUMAN_RACE_ATTRIBUTES[attributeName].isDynamic) {
+      return HUMAN_RACE_ATTRIBUTES[attributeName].diceCount;
+    }
+    const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+    return dynamicInfo ? dynamicInfo.defaultCount : null;
+  };
+
+  // Create initial form data with race-specific defaults
+  const createInitialFormData = (race = 'HUMAN') => {
     const initialData = {
       name: "",
       description: "",
       characterCategory: "HUMAN",
-      race: "HUMAN",
+      race: race,
       raceOverride: false,
       will: 0,  // Default to 0 as requested
       mind: [],
@@ -370,17 +535,19 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       stashIds: [],
       equipmentIds: [],
       readyIds: [],
-      targetAttributeTotal: null  // Will be calculated based on attributes * 10
+      targetAttributeTotal: null  // Will be calculated based on race-specific defaults
     };
     
-    // Add all attributes with default values of 10
+    // Add all attributes with race-specific default values
     getAllAttributeNames().forEach(attr => {
-      const dynamicInfo = DYNAMIC_ATTRIBUTES[attr];
+      const defaultValue = getDefaultAttributeValue(attr, race);
+      const defaultDiceCount = getDefaultDiceCount(attr, race);
+      
       initialData[attr] = { 
         attribute: { 
-          attributeValue: 10, 
+          attributeValue: defaultValue, 
           isGrouped: true,
-          diceCount: dynamicInfo ? dynamicInfo.defaultCount : null
+          diceCount: defaultDiceCount
         } 
       };
     });
@@ -396,100 +563,157 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     return formData.race === 'HUMAN' && !formData.raceOverride;
   };
 
-  // Helper function to check if an attribute is restricted for humans
-  const isRestrictedAttribute = (attributeName) => {
-    const restrictedAttributes = ['armour', 'endurance', 'lethality', 'penetration', 'complexity', 'obscurity', 'light'];
-    return restrictedAttributes.includes(attributeName);
+  // Helper function to check if an attribute can be modified for humans
+  const canModifyAttribute = (attributeName) => {
+    if (!shouldApplyRaceRestrictions()) return true;
+    return HUMAN_RACE_ATTRIBUTES[attributeName]?.canModify !== false;
+  };
+
+  // Helper function to get validation range for an attribute
+  const getValidationRange = (attributeName) => {
+    if (shouldApplyRaceRestrictions() && HUMAN_RACE_ATTRIBUTES[attributeName]) {
+      return HUMAN_RACE_ATTRIBUTES[attributeName].validRange;
+    }
+    return null; // No specific range for non-human races
+  };
+
+  // Helper function to get dice count constraints for an attribute
+  const getDiceCountConstraints = (attributeName) => {
+    if (shouldApplyRaceRestrictions() && HUMAN_RACE_ATTRIBUTES[attributeName]?.isDynamic) {
+      const config = HUMAN_RACE_ATTRIBUTES[attributeName];
+      return {
+        min: config.minDiceCount || config.diceCount || 1,
+        max: config.maxDiceCount || config.diceCount || 1,
+        fixed: config.minDiceCount === config.maxDiceCount || config.minDiceCount === config.diceCount
+      };
+    }
+    return null;
   };
 
   // Function to generate random attributes respecting race restrictions
   const generateRandomAttributes = () => {
-    const targetTotal = formData.targetAttributeTotal || calculateDefaultTargetTotal();
     const attributeNames = getAllAttributeNames();
     const newAttributes = {};
+    const newDiceCounts = {};
     
-    // First, handle restricted attributes (must be 10 for humans without override)
+    // Get the target total (should remain unchanged)
+    const targetTotal = formData.targetAttributeTotal || calculateDefaultTargetTotal();
+    
+    // Separate fixed and modifiable attributes
+    const fixedAttributes = [];
+    const modifiableAttributes = [];
     let fixedTotal = 0;
-    const flexibleAttributes = [];
     
     attributeNames.forEach(attr => {
-      if (shouldApplyRaceRestrictions() && isRestrictedAttribute(attr)) {
-        // Restricted attributes must be 10
-        newAttributes[attr] = 10;
-        fixedTotal += 10;
+      if (shouldApplyRaceRestrictions() && !canModifyAttribute(attr)) {
+        // Fixed attributes use default values
+        const defaultValue = getDefaultAttributeValue(attr, formData.race);
+        newAttributes[attr] = defaultValue;
+        fixedAttributes.push(attr);
+        fixedTotal += defaultValue;
+        
+        // Set default dice count for dynamic attributes
+        newDiceCounts[attr] = getDefaultDiceCount(attr, formData.race);
       } else {
-        // These attributes can be varied
-        flexibleAttributes.push(attr);
+        modifiableAttributes.push(attr);
+        
+        // Set dice count within constraints (never 0)
+        const diceConstraints = getDiceCountConstraints(attr);
+        if (diceConstraints) {
+          const diceMin = Math.max(1, diceConstraints.min); // Never 0
+          const diceMax = Math.max(1, diceConstraints.max); // Never 0
+          if (diceMin === diceMax) {
+            // Fixed dice count
+            newDiceCounts[attr] = diceMin;
+          } else {
+            // Random dice count within range
+            newDiceCounts[attr] = Math.floor(Math.random() * (diceMax - diceMin + 1)) + diceMin;
+          }
+        } else {
+          const defaultCount = getDefaultDiceCount(attr, formData.race);
+          newDiceCounts[attr] = defaultCount || 1; // Never 0
+        }
       }
     });
     
-    // Calculate remaining points to distribute among flexible attributes
+    // Calculate remaining points to distribute among modifiable attributes
     const remainingTotal = targetTotal - fixedTotal;
-    const numFlexibleAttrs = flexibleAttributes.length;
     
-    if (numFlexibleAttrs === 0) {
-      // All attributes are fixed
-      attributeNames.forEach(attr => {
-        newAttributes[attr] = 10;
-      });
+    if (modifiableAttributes.length === 0) {
+      // No modifiable attributes, nothing more to do
     } else {
-      // Generate random values for flexible attributes
-      let remainingPoints = remainingTotal;
+      // Use a distribution algorithm to allocate remainingTotal among modifiableAttributes
+      const attributeRanges = modifiableAttributes.map(attr => {
+        const range = getValidationRange(attr);
+        return {
+          name: attr,
+          min: range ? range[0] : (shouldApplyRaceRestrictions() ? 0 : 1),
+          max: range ? range[1] : (shouldApplyRaceRestrictions() ? 15 : 30)
+        };
+      });
       
-      for (let i = 0; i < numFlexibleAttrs - 1; i++) {
-        const attr = flexibleAttributes[i];
-        const minVal = shouldApplyRaceRestrictions() ? 5 : 1;
-        const maxVal = shouldApplyRaceRestrictions() ? 20 : 30;
-        
-        // Calculate bounds to ensure we can distribute remaining points
-        const remainingAttrs = numFlexibleAttrs - i - 1;
-        const minForRemaining = remainingAttrs * minVal;
-        const maxForRemaining = remainingAttrs * maxVal;
-        
-        const actualMin = Math.max(minVal, remainingPoints - maxForRemaining);
-        const actualMax = Math.min(maxVal, remainingPoints - minForRemaining);
-        
-        // Generate random value within bounds
-        const randomValue = Math.floor(Math.random() * (actualMax - actualMin + 1)) + actualMin;
-        newAttributes[attr] = randomValue;
-        remainingPoints -= randomValue;
-      }
+      // Check if distribution is possible
+      const minPossible = attributeRanges.reduce((sum, range) => sum + range.min, 0);
+      const maxPossible = attributeRanges.reduce((sum, range) => sum + range.max, 0);
       
-      // Set the last flexible attribute to use up remaining points
-      const lastAttr = flexibleAttributes[numFlexibleAttrs - 1];
-      newAttributes[lastAttr] = remainingPoints;
-      
-      // Validate the last attribute is within bounds
-      const minVal = shouldApplyRaceRestrictions() ? 5 : 1;
-      const maxVal = shouldApplyRaceRestrictions() ? 20 : 30;
-      
-      if (newAttributes[lastAttr] < minVal || newAttributes[lastAttr] > maxVal) {
-        // If last attribute is out of bounds, redistribute more evenly
-        const avgValue = Math.floor(remainingTotal / numFlexibleAttrs);
-        let excess = remainingTotal % numFlexibleAttrs;
+      if (remainingTotal < minPossible || remainingTotal > maxPossible) {
+        console.warn(`Cannot distribute ${remainingTotal} points among modifiable attributes. Range: ${minPossible}-${maxPossible}`);
+        // Fallback: distribute as evenly as possible within constraints
+        const avgValue = Math.floor(remainingTotal / modifiableAttributes.length);
+        let leftover = remainingTotal - (avgValue * modifiableAttributes.length);
         
-        flexibleAttributes.forEach(attr => {
-          let value = avgValue;
-          if (excess > 0) {
-            value += 1;
-            excess -= 1;
-          }
+        modifiableAttributes.forEach(attr => {
+          const range = getValidationRange(attr);
+          const minVal = range ? range[0] : (shouldApplyRaceRestrictions() ? 0 : 1);
+          const maxVal = range ? range[1] : (shouldApplyRaceRestrictions() ? 15 : 30);
           
-          // Clamp to valid range
-          value = Math.max(minVal, Math.min(maxVal, value));
+          let value = Math.max(minVal, Math.min(maxVal, avgValue + (leftover > 0 ? 1 : 0)));
+          if (leftover > 0) leftover--;
+          
           newAttributes[attr] = value;
         });
+      } else {
+        // Proper distribution algorithm
+        // Start with minimum values for all attributes
+        attributeRanges.forEach(range => {
+          newAttributes[range.name] = range.min;
+        });
+        
+        // Distribute remaining points randomly
+        let remainingPoints = remainingTotal - minPossible;
+        
+        while (remainingPoints > 0) {
+          // Pick a random attribute that can still be increased
+          const eligibleAttributes = attributeRanges.filter(range => 
+            newAttributes[range.name] < range.max
+          );
+          
+          if (eligibleAttributes.length === 0) break; // All attributes at max
+          
+          const randomAttr = eligibleAttributes[Math.floor(Math.random() * eligibleAttributes.length)];
+          const maxIncrease = Math.min(
+            remainingPoints, 
+            randomAttr.max - newAttributes[randomAttr.name]
+          );
+          
+          // Add 1 to a random amount up to maxIncrease
+          const increase = Math.floor(Math.random() * maxIncrease) + 1;
+          newAttributes[randomAttr.name] += increase;
+          remainingPoints -= increase;
+        }
       }
     }
     
-    // Update the form data with new attribute values
+    // Update the form data with new attribute values and dice counts (keeping same target total)
     const updatedFormData = { ...formData };
+    
     attributeNames.forEach(attr => {
       updatedFormData[attr] = {
         ...formData[attr],
         attribute: {
           ...formData[attr].attribute,
-          attributeValue: newAttributes[attr]
+          attributeValue: newAttributes[attr],
+          diceCount: newDiceCounts[attr]
         }
       };
     });
@@ -547,20 +771,45 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
     if (!shouldApplyRaceRestrictions()) return null;
     
     const value = formData[attributeName]?.attribute?.attributeValue || 0;
+    const diceCount = formData[attributeName]?.attribute?.diceCount || 0;
     
-    if (isRestrictedAttribute(attributeName) && value !== 10) {
-      return `Must be 10 for humans (currently ${value})`;
-    } else if (!isRestrictedAttribute(attributeName) && !Number.isInteger(value)) {
-      return `Must be a valid integer (currently ${value})`;
+    // Check if attribute can be modified
+    if (!canModifyAttribute(attributeName)) {
+      const expectedValue = getDefaultAttributeValue(attributeName, formData.race);
+      if (value !== expectedValue) {
+        return `Cannot be modified for humans (must be ${expectedValue})`;
+      }
+    } else {
+      // Check value range for modifiable attributes
+      const range = getValidationRange(attributeName);
+      if (range && (value < range[0] || value > range[1])) {
+        return `Must be between ${range[0]} and ${range[1]} for humans (currently ${value})`;
+      }
+      
+      // Check dice count constraints for dynamic attributes
+      const diceConstraints = getDiceCountConstraints(attributeName);
+      if (diceConstraints) {
+        if (diceCount < diceConstraints.min || diceCount > diceConstraints.max) {
+          if (diceConstraints.min === diceConstraints.max) {
+            return `Dice count must be exactly ${diceConstraints.max} for humans (currently ${diceCount})`;
+          } else {
+            return `Dice count must be between ${diceConstraints.min} and ${diceConstraints.max} for humans (currently ${diceCount})`;
+          }
+        }
+      }
     }
     
     return null;
   };
   
-  // Calculate the default target total (number of attributes * 10)
-  const calculateDefaultTargetTotal = () => {
-    return getAllAttributeNames().length * 10;
-  };
+  // Calculate the default target total (sum of all default values for the current race)
+  const calculateDefaultTargetTotal = useCallback(() => {
+    const currentRace = formData.race || 'HUMAN';
+    return getAllAttributeNames().reduce((sum, attr) => {
+      const defaultValue = getDefaultAttributeValue(attr, currentRace);
+      return sum + defaultValue;
+    }, 0);
+  }, [formData.race]);
   
   // Calculate current total of all attribute values
   const calculateCurrentTotal = () => {
@@ -578,12 +827,11 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
         targetAttributeTotal: calculateDefaultTargetTotal()
       }));
     }
-  }, [isEditing]);
+  }, [isEditing, formData.targetAttributeTotal, calculateDefaultTargetTotal]);
 
   // Effect to populate form data when character prop changes (for editing)
   useEffect(() => {
     if (isEditing && character) {
-      console.log('DEBUG: Loading character for edit - character.raceOverride:', character.raceOverride, 'type:', typeof character.raceOverride);
       const updatedFormData = {
         name: character.name || "",
         description: character.description || "",
@@ -602,8 +850,6 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       // Add all attributes from character or default values
       getAllAttributeNames().forEach(attr => {
         const dynamicInfo = DYNAMIC_ATTRIBUTES[attr];
-        console.log(`DEBUG: Loading attribute ${attr}, dynamicInfo:`, dynamicInfo);
-        console.log(`DEBUG: Character[${attr}] from DB:`, JSON.stringify(character[attr], null, 2));
         
         if (character[attr]) {
           // Check for both possible structures - character data might come in different formats
@@ -623,12 +869,10 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
           const defaultDiceCount = dynamicInfo ? dynamicInfo.defaultCount : null;
           const finalDiceCount = diceCountFromDB !== undefined ? diceCountFromDB : defaultDiceCount;
           
-          console.log(`DEBUG: ${attr} - attributeData:`, attributeData);
-          console.log(`DEBUG: ${attr} - diceCountFromDB: ${diceCountFromDB}, defaultDiceCount: ${defaultDiceCount}, finalDiceCount: ${finalDiceCount}`);
           
           updatedFormData[attr] = {
             attribute: {
-              attributeValue: attributeData.attributeValue || 10,
+              attributeValue: attributeData.attributeValue !== undefined ? attributeData.attributeValue : 10,
               isGrouped: attributeData.isGrouped !== false,
               diceCount: finalDiceCount
             }
@@ -642,16 +886,14 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             } 
           };
         }
-        console.log(`DEBUG: Final updatedFormData[${attr}]:`, updatedFormData[attr]);
       });
       
       // Set targetAttributeTotal from character or calculate default
       updatedFormData.targetAttributeTotal = character.targetAttributeTotal || calculateDefaultTargetTotal();
       
-      console.log('DEBUG: Setting form data - updatedFormData.raceOverride:', updatedFormData.raceOverride, 'type:', typeof updatedFormData.raceOverride);
       setFormData(updatedFormData);
     }
-  }, [isEditing, character]);
+  }, [isEditing, character, calculateDefaultTargetTotal]);
 
 
   const [createCharacter] = useMutation(CREATE_CHARACTER, {
@@ -684,24 +926,47 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       [field]: field === 'will' || field === 'targetAttributeTotal' ? parseInt(value) || 0 : value
     };
     
-    // No automatic value clamping - let user see validation errors instead
+    // If race changed, reset attributes to new defaults
+    if (field === 'race') {
+      const newRace = value;
+      getAllAttributeNames().forEach(attr => {
+        const defaultValue = getDefaultAttributeValue(attr, newRace);
+        const defaultDiceCount = getDefaultDiceCount(attr, newRace);
+        
+        updatedData[attr] = {
+          ...formData[attr],
+          attribute: {
+            ...formData[attr].attribute,
+            attributeValue: defaultValue,
+            diceCount: defaultDiceCount
+          }
+        };
+      });
+      
+      // Update target total for new race
+      const newTargetTotal = getAllAttributeNames().reduce((sum, attr) => {
+        const defaultValue = getDefaultAttributeValue(attr, newRace);
+        return sum + defaultValue;
+      }, 0);
+      updatedData.targetAttributeTotal = newTargetTotal;
+    }
     
     setFormData(updatedData);
   };
 
-  const handleAttributeChange = (attributeName, field, value) => {
-    // Since we no longer have fatigue per attribute, this is simpler
-    setFormData(prev => ({
-      ...prev,
-      [attributeName]: {
-        ...prev[attributeName],
-        attribute: {
-          ...prev[attributeName].attribute,
-          [field]: field === 'attributeValue' ? parseFloat(value) || 0 : value
-        }
-      }
-    }));
-  };
+  // const handleAttributeChange = (attributeName, field, value) => {
+  //   // Since we no longer have fatigue per attribute, this is simpler
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     [attributeName]: {
+  //       ...prev[attributeName],
+  //       attribute: {
+  //         ...prev[attributeName].attribute,
+  //         [field]: field === 'attributeValue' ? parseFloat(value) || 0 : value
+  //       }
+  //     }
+  //   }));
+  // }; // Unused function, keeping for reference
 
   const handleNestedAttributeChange = (attributeName, nestedField, value) => {
     console.log(`DEBUG: handleNestedAttributeChange called - ${attributeName}.${nestedField} = ${value}`);
@@ -759,17 +1024,14 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
       const violations = [];
       
       getAllAttributeNames().forEach(attr => {
-        const value = formData[attr]?.attribute?.attributeValue || 0;
-        
-        if (isRestrictedAttribute(attr) && value !== 10) {
-          violations.push(`${attr} must be 10 for humans (currently ${value})`);
-        } else if (!isRestrictedAttribute(attr) && !Number.isInteger(value)) {
-          violations.push(`${attr} must be a valid integer (currently ${value})`);
+        const error = getAttributeValidationError(attr);
+        if (error) {
+          violations.push(`${attr}: ${error}`);
         }
       });
       
       if (violations.length > 0) {
-        setValidationError(`Race restrictions violated: ${violations.join(', ')}`);
+        setValidationError(`Race restrictions violated: ${violations.join('; ')}`);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
@@ -875,6 +1137,8 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   const renderAttributeForForm = (attributeName, attribute, displayName) => {
     const validationError = getAttributeValidationError(attributeName);
     const dynamicInfo = DYNAMIC_ATTRIBUTES[attributeName];
+    const canModify = canModifyAttribute(attributeName);
+    const diceConstraints = getDiceCountConstraints(attributeName);
     
     return (
       <div key={attributeName} className="attribute-item">
@@ -884,21 +1148,51 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             <div className="dice-input-group">
               <MobileNumberInput
                 step="1"
-                min="0"
+                min={0}
+                max={diceConstraints ? diceConstraints.max : undefined}
                 value={formData[attributeName]?.attribute?.diceCount || 0}
-                onChange={(e) => handleNestedAttributeChange(attributeName, 'diceCount', parseInt(e.target.value) || 0)}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  // Allow 0 and negative values for dice count input
+                  const finalVal = isNaN(val) ? 0 : val;
+                  handleNestedAttributeChange(attributeName, 'diceCount', finalVal);
+                }}
                 className="dice-count-input"
-                style={{ width: '60px' }}
+                style={{ 
+                  width: '60px',
+                  backgroundColor: (!canModify || (diceConstraints && diceConstraints.fixed)) ? '#f8f9fa' : 'white',
+                  cursor: (!canModify || (diceConstraints && diceConstraints.fixed)) ? 'not-allowed' : 'text'
+                }}
+                disabled={!canModify || (diceConstraints && diceConstraints.fixed)}
               />
               <span className="dice-type">{dynamicInfo.diceType}</span>
               <span className="plus-sign">+</span>
             </div>
           )}
           <MobileNumberInput
-            step="0.1"
+            step={shouldApplyRaceRestrictions() && HUMAN_RACE_ATTRIBUTES[attributeName]?.validRange ? "1" : "0.1"}
             value={formData[attributeName]?.attribute?.attributeValue || 0}
-            onChange={(e) => handleNestedAttributeChange(attributeName, 'attributeValue', e.target.value)}
-            style={validationError ? {borderColor: '#dc3545'} : {}}
+            onChange={(e) => {
+              // Allow negative numbers and decimal values
+              const inputValue = e.target.value;
+              
+              // Handle special case of lone minus sign (user is typing negative number)
+              if (inputValue === '-') {
+                // Store the minus sign as a string temporarily
+                handleNestedAttributeChange(attributeName, 'attributeValue', '-');
+                return;
+              }
+              
+              const val = parseFloat(inputValue);
+              const finalVal = isNaN(val) ? 0 : val;
+              handleNestedAttributeChange(attributeName, 'attributeValue', finalVal);
+            }}
+            style={{
+              borderColor: validationError ? '#dc3545' : '#dee2e6',
+              backgroundColor: !canModify ? '#f8f9fa' : 'white',
+              cursor: !canModify ? 'not-allowed' : 'text'
+            }}
+            disabled={!canModify}
           />
           <label className="checkbox-label">
             <input
@@ -914,6 +1208,20 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
             {validationError}
           </div>
         )}
+        {!canModify && shouldApplyRaceRestrictions() && (
+          <div style={{fontSize: '0.8em', color: '#6c757d', marginTop: '2px'}}>
+            Cannot be modified for humans
+          </div>
+        )}
+        {/* Show valid range for all attributes */}
+        {shouldApplyRaceRestrictions() && HUMAN_RACE_ATTRIBUTES[attributeName] && (
+          <div style={{fontSize: '0.8em', color: '#6c757d', marginTop: '2px'}}>
+            Valid range: {HUMAN_RACE_ATTRIBUTES[attributeName].validRange[0]} to {HUMAN_RACE_ATTRIBUTES[attributeName].validRange[1]}
+            {diceConstraints && diceConstraints.fixed && (
+              <span>, Dice: {diceConstraints.min} (fixed)</span>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -926,12 +1234,8 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
   let hasRaceViolations = false;
   if (shouldApplyRaceRestrictions()) {
     hasRaceViolations = getAllAttributeNames().some(attr => {
-      const value = formData[attr]?.attribute?.attributeValue || 0;
-      if (isRestrictedAttribute(attr)) {
-        return value !== 10;
-      } else {
-        return !Number.isInteger(value);
-      }
+      const error = getAttributeValidationError(attr);
+      return error !== null;
     });
   }
   
@@ -956,7 +1260,7 @@ const CharacterForm = ({ character, isEditing = false, onClose, onSuccess }) => 
                 className="target-input"
               />
               <div className="target-help-text">
-                Default: 10 × {getAllAttributeNames().length} = {calculateDefaultTargetTotal()}
+                Default: Sum of all attribute defaults = {calculateDefaultTargetTotal()}
               </div>
             </div>
           </div>
