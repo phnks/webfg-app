@@ -11,8 +11,8 @@ describe('Character User Flow', () => {
     // Click create character button
     cy.clickCreateButton();
 
-    // Fill out the name field
-    cy.get('input[type="text"]').first().type('Test Character');
+    // Fill out the name field (be specific to avoid the target total input)
+    cy.get('input[type="text"][required]').type('Test Character');
 
     // Set category
     cy.get('select').first().select('HUMAN');
