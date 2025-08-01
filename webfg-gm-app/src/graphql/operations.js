@@ -20,26 +20,25 @@ export const LIST_CHARACTERS = gql`
         conditionTarget
         amount
       }
-      speed { attribute { attributeValue isGrouped diceCount } }
-      weight { attribute { attributeValue isGrouped diceCount } }
-      size { attribute { attributeValue isGrouped diceCount } }
-      armour { attribute { attributeValue isGrouped diceCount } }
-      endurance { attribute { attributeValue isGrouped diceCount } }
-      lethality { attribute { attributeValue isGrouped diceCount } }
-      penetration { attribute { attributeValue isGrouped diceCount } }
-      complexity { attribute { attributeValue isGrouped diceCount } }
-      strength { attribute { attributeValue isGrouped diceCount } }
-      dexterity { attribute { attributeValue isGrouped diceCount } }
-      agility { attribute { attributeValue isGrouped diceCount } }
-      obscurity { attribute { attributeValue isGrouped diceCount } }
-      resolve { attribute { attributeValue isGrouped diceCount } }
-      morale { attribute { attributeValue isGrouped diceCount } }
-      intelligence { attribute { attributeValue isGrouped diceCount } }
-      charisma { attribute { attributeValue isGrouped diceCount } }
-      seeing { attribute { attributeValue isGrouped diceCount } }
-      hearing { attribute { attributeValue isGrouped diceCount } }
-      light { attribute { attributeValue isGrouped diceCount } }
-      noise { attribute { attributeValue isGrouped diceCount } }
+      speed { attribute { attributeValue isGrouped } }
+      weight { attribute { attributeValue isGrouped } }
+      size { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      lethality { attribute { attributeValue isGrouped } }
+      complexity { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      obscurity { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
+      seeing { attribute { attributeValue isGrouped } }
+      hearing { attribute { attributeValue isGrouped } }
+      light { attribute { attributeValue isGrouped } }
+      noise { attribute { attributeValue isGrouped } }
       equipment { 
         objectId name objectCategory isEquipment
         speed { attributeValue isGrouped }
@@ -48,7 +47,6 @@ export const LIST_CHARACTERS = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
-            penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -69,7 +67,6 @@ export const LIST_CHARACTERS = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
@@ -117,26 +114,25 @@ export const GET_CHARACTER = gql`
       }
       
       # Character attributes (no longer have fatigue)
-      speed { attribute { attributeValue isGrouped diceCount } }
-      weight { attribute { attributeValue isGrouped diceCount } }
-      size { attribute { attributeValue isGrouped diceCount } }
-      armour { attribute { attributeValue isGrouped diceCount } }
-      endurance { attribute { attributeValue isGrouped diceCount } }
-      lethality { attribute { attributeValue isGrouped diceCount } }
-      penetration { attribute { attributeValue isGrouped diceCount } }
-      complexity { attribute { attributeValue isGrouped diceCount } }
-      strength { attribute { attributeValue isGrouped diceCount } }
-      dexterity { attribute { attributeValue isGrouped diceCount } }
-      agility { attribute { attributeValue isGrouped diceCount } }
-      obscurity { attribute { attributeValue isGrouped diceCount } }
-      resolve { attribute { attributeValue isGrouped diceCount } }
-      morale { attribute { attributeValue isGrouped diceCount } }
-      intelligence { attribute { attributeValue isGrouped diceCount } }
-      charisma { attribute { attributeValue isGrouped diceCount } }
-      seeing { attribute { attributeValue isGrouped diceCount } }
-      hearing { attribute { attributeValue isGrouped diceCount } }
-      light { attribute { attributeValue isGrouped diceCount } }
-      noise { attribute { attributeValue isGrouped diceCount } }
+      speed { attribute { attributeValue isGrouped } }
+      weight { attribute { attributeValue isGrouped } }
+      size { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      lethality { attribute { attributeValue isGrouped } }
+      complexity { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      obscurity { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
+      seeing { attribute { attributeValue isGrouped } }
+      hearing { attribute { attributeValue isGrouped } }
+      light { attribute { attributeValue isGrouped } }
+      noise { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -152,7 +148,6 @@ export const GET_CHARACTER = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
-            penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -173,7 +168,6 @@ export const GET_CHARACTER = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
@@ -194,7 +188,6 @@ export const GET_CHARACTER = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
-            penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -228,7 +221,6 @@ export const LIST_OBJECTS = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -252,7 +244,6 @@ export const LIST_OBJECTS = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
-            penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -283,7 +274,6 @@ export const GET_OBJECT = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -310,7 +300,6 @@ export const GET_OBJECT = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
-            penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -478,26 +467,25 @@ export const CREATE_CHARACTER = gql`
       mindThoughts { thoughtId name description }
       
       # Character attributes (no longer have fatigue)
-      speed { attribute { attributeValue isGrouped diceCount } }
-      weight { attribute { attributeValue isGrouped diceCount } }
-      size { attribute { attributeValue isGrouped diceCount } }
-      armour { attribute { attributeValue isGrouped diceCount } }
-      endurance { attribute { attributeValue isGrouped diceCount } }
-      lethality { attribute { attributeValue isGrouped diceCount } }
-      penetration { attribute { attributeValue isGrouped diceCount } }
-      complexity { attribute { attributeValue isGrouped diceCount } }
-      strength { attribute { attributeValue isGrouped diceCount } }
-      dexterity { attribute { attributeValue isGrouped diceCount } }
-      agility { attribute { attributeValue isGrouped diceCount } }
-      obscurity { attribute { attributeValue isGrouped diceCount } }
-      resolve { attribute { attributeValue isGrouped diceCount } }
-      morale { attribute { attributeValue isGrouped diceCount } }
-      intelligence { attribute { attributeValue isGrouped diceCount } }
-      charisma { attribute { attributeValue isGrouped diceCount } }
-      seeing { attribute { attributeValue isGrouped diceCount } }
-      hearing { attribute { attributeValue isGrouped diceCount } }
-      light { attribute { attributeValue isGrouped diceCount } }
-      noise { attribute { attributeValue isGrouped diceCount } }
+      speed { attribute { attributeValue isGrouped } }
+      weight { attribute { attributeValue isGrouped } }
+      size { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      lethality { attribute { attributeValue isGrouped } }
+      complexity { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      obscurity { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
+      seeing { attribute { attributeValue isGrouped } }
+      hearing { attribute { attributeValue isGrouped } }
+      light { attribute { attributeValue isGrouped } }
+      noise { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -523,26 +511,25 @@ export const UPDATE_CHARACTER = gql`
       mindThoughts { thoughtId name description }
       
       # Character attributes (no longer have fatigue)
-      speed { attribute { attributeValue isGrouped diceCount } }
-      weight { attribute { attributeValue isGrouped diceCount } }
-      size { attribute { attributeValue isGrouped diceCount } }
-      armour { attribute { attributeValue isGrouped diceCount } }
-      endurance { attribute { attributeValue isGrouped diceCount } }
-      lethality { attribute { attributeValue isGrouped diceCount } }
-      penetration { attribute { attributeValue isGrouped diceCount } }
-      complexity { attribute { attributeValue isGrouped diceCount } }
-      strength { attribute { attributeValue isGrouped diceCount } }
-      dexterity { attribute { attributeValue isGrouped diceCount } }
-      agility { attribute { attributeValue isGrouped diceCount } }
-      obscurity { attribute { attributeValue isGrouped diceCount } }
-      resolve { attribute { attributeValue isGrouped diceCount } }
-      morale { attribute { attributeValue isGrouped diceCount } }
-      intelligence { attribute { attributeValue isGrouped diceCount } }
-      charisma { attribute { attributeValue isGrouped diceCount } }
-      seeing { attribute { attributeValue isGrouped diceCount } }
-      hearing { attribute { attributeValue isGrouped diceCount } }
-      light { attribute { attributeValue isGrouped diceCount } }
-      noise { attribute { attributeValue isGrouped diceCount } }
+      speed { attribute { attributeValue isGrouped } }
+      weight { attribute { attributeValue isGrouped } }
+      size { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      lethality { attribute { attributeValue isGrouped } }
+      complexity { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      obscurity { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
+      seeing { attribute { attributeValue isGrouped } }
+      hearing { attribute { attributeValue isGrouped } }
+      light { attribute { attributeValue isGrouped } }
+      noise { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -574,7 +561,6 @@ export const CREATE_OBJECT = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -607,7 +593,6 @@ export const UPDATE_OBJECT = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -1010,26 +995,25 @@ export const ON_UPDATE_CHARACTER = gql`
       mindThoughts { thoughtId name description }
       
       # Character attributes (no longer have fatigue)
-      speed { attribute { attributeValue isGrouped diceCount } }
-      weight { attribute { attributeValue isGrouped diceCount } }
-      size { attribute { attributeValue isGrouped diceCount } }
-      armour { attribute { attributeValue isGrouped diceCount } }
-      endurance { attribute { attributeValue isGrouped diceCount } }
-      lethality { attribute { attributeValue isGrouped diceCount } }
-      penetration { attribute { attributeValue isGrouped diceCount } }
-      complexity { attribute { attributeValue isGrouped diceCount } }
-      strength { attribute { attributeValue isGrouped diceCount } }
-      dexterity { attribute { attributeValue isGrouped diceCount } }
-      agility { attribute { attributeValue isGrouped diceCount } }
-      obscurity { attribute { attributeValue isGrouped diceCount } }
-      resolve { attribute { attributeValue isGrouped diceCount } }
-      morale { attribute { attributeValue isGrouped diceCount } }
-      intelligence { attribute { attributeValue isGrouped diceCount } }
-      charisma { attribute { attributeValue isGrouped diceCount } }
-      seeing { attribute { attributeValue isGrouped diceCount } }
-      hearing { attribute { attributeValue isGrouped diceCount } }
-      light { attribute { attributeValue isGrouped diceCount } }
-      noise { attribute { attributeValue isGrouped diceCount } }
+      speed { attribute { attributeValue isGrouped } }
+      weight { attribute { attributeValue isGrouped } }
+      size { attribute { attributeValue isGrouped } }
+      armour { attribute { attributeValue isGrouped } }
+      endurance { attribute { attributeValue isGrouped } }
+      lethality { attribute { attributeValue isGrouped } }
+      complexity { attribute { attributeValue isGrouped } }
+      strength { attribute { attributeValue isGrouped } }
+      dexterity { attribute { attributeValue isGrouped } }
+      agility { attribute { attributeValue isGrouped } }
+      obscurity { attribute { attributeValue isGrouped } }
+      resolve { attribute { attributeValue isGrouped } }
+      morale { attribute { attributeValue isGrouped } }
+      intelligence { attribute { attributeValue isGrouped } }
+      charisma { attribute { attributeValue isGrouped } }
+      seeing { attribute { attributeValue isGrouped } }
+      hearing { attribute { attributeValue isGrouped } }
+      light { attribute { attributeValue isGrouped } }
+      noise { attribute { attributeValue isGrouped } }
       
       special
       actionIds
@@ -1053,7 +1037,6 @@ export const ON_CREATE_OBJECT = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -1085,7 +1068,6 @@ export const ON_UPDATE_OBJECT = gql`
       armour { attributeValue isGrouped }
       endurance { attributeValue isGrouped }
       lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
       complexity { attributeValue isGrouped }
       strength { attributeValue isGrouped }
       dexterity { attributeValue isGrouped }
@@ -1329,21 +1311,20 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           conditionTarget
           amount
         }
-        speed { attribute { attributeValue isGrouped diceCount } }
-        weight { attribute { attributeValue isGrouped diceCount } }
-        size { attribute { attributeValue isGrouped diceCount } }
-        armour { attribute { attributeValue isGrouped diceCount } }
-        endurance { attribute { attributeValue isGrouped diceCount } }
-        lethality { attribute { attributeValue isGrouped diceCount } }
-      penetration { attribute { attributeValue isGrouped diceCount } }
-        strength { attribute { attributeValue isGrouped diceCount } }
-        dexterity { attribute { attributeValue isGrouped diceCount } }
-        agility { attribute { attributeValue isGrouped diceCount } }
-        obscurity { attribute { attributeValue isGrouped diceCount } }
-        resolve { attribute { attributeValue isGrouped diceCount } }
-        morale { attribute { attributeValue isGrouped diceCount } }
-        intelligence { attribute { attributeValue isGrouped diceCount } }
-        charisma { attribute { attributeValue isGrouped diceCount } }
+        speed { attribute { attributeValue isGrouped } }
+        weight { attribute { attributeValue isGrouped } }
+        size { attribute { attributeValue isGrouped } }
+        armour { attribute { attributeValue isGrouped } }
+        endurance { attribute { attributeValue isGrouped } }
+        lethality { attribute { attributeValue isGrouped } }
+        strength { attribute { attributeValue isGrouped } }
+        dexterity { attribute { attributeValue isGrouped } }
+        agility { attribute { attributeValue isGrouped } }
+        obscurity { attribute { attributeValue isGrouped } }
+        resolve { attribute { attributeValue isGrouped } }
+        morale { attribute { attributeValue isGrouped } }
+        intelligence { attribute { attributeValue isGrouped } }
+        charisma { attribute { attributeValue isGrouped } }
         equipment { 
           objectId name objectCategory isEquipment
           speed { attributeValue isGrouped }
@@ -1352,7 +1333,6 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
@@ -1372,7 +1352,6 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
@@ -1392,7 +1371,6 @@ export const LIST_CHARACTERS_ENHANCED = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
@@ -1427,7 +1405,6 @@ export const LIST_OBJECTS_ENHANCED = gql`
         armour { attributeValue isGrouped }
         endurance { attributeValue isGrouped }
         lethality { attributeValue isGrouped }
-            penetration { attributeValue isGrouped }
         strength { attributeValue isGrouped }
         dexterity { attributeValue isGrouped }
         agility { attributeValue isGrouped }
@@ -1449,7 +1426,6 @@ export const LIST_OBJECTS_ENHANCED = gql`
           armour { attributeValue isGrouped }
           endurance { attributeValue isGrouped }
           lethality { attributeValue isGrouped }
-          penetration { attributeValue isGrouped }
           complexity { attributeValue isGrouped }
           strength { attributeValue isGrouped }
           dexterity { attributeValue isGrouped }
