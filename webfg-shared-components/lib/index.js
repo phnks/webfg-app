@@ -75,3 +75,7 @@ export { RecentlyViewedProvider } from './context/RecentlyViewedContext.js';
 
 // Utils
 export * from './utils/diceMapping';
+
+// GraphQL operations
+export * from './graphql/operations';
+export * from './graphql/computedOperations';

@@ -47,7 +47,8 @@
   },
   "jest": {
     "moduleNameMapper": {
-      "^react-router-dom$": "<rootDir>/src/__mocks__/react-router-dom.js"
+      "^react-router-dom$": "<rootDir>/src/__mocks__/react-router-dom.js",
+      "^webfg-shared-components": "<rootDir>/node_modules/webfg-shared-components"
     },
     "coverageThreshold": {
       "global": {
