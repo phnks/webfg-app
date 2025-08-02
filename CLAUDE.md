@@ -4,12 +4,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-The WEBFG (Web Fantasy Game) project is a web application consisting of two main components:
+The WEBFG (Web Fantasy Game) project is a web application consisting of three main components:
 
 1. **webfg-gm-app**: A React frontend application (game master app) for managing characters, objects, actions, and encounters.
-2. **webfg-gql**: A GraphQL API backend that provides data to the frontend.
+2. **webfg-player-app**: A React frontend application (player app) that shares all components with the GM app but provides a player-focused interface.
+3. **webfg-gql**: A GraphQL API backend that provides data to both frontend applications.
 
-Both components are deployed to AWS using SAM.
+All components are deployed to AWS using SAM.
+
+## Shared Component Architecture
+
+All three applications share React components through a dedicated shared components directory:
+
+- **Source of Truth**: `webfg-shared-components/src/` is the authoritative source for all shared components, context, and utilities
+- **Synchronization**: Use the `sync-components.sh` script to sync from shared components to both apps
+- **Testing**: Component tests are maintained in the shared directory and synced to both apps
+
+```bash
+# Sync components from shared directory to both apps
+bash sync-components.sh
+```
+
+**Important**: Always make component changes in `webfg-shared-components/src/` first, then run the sync script to update both `webfg-gm-app` and `webfg-player-app`.
+
+### Directory Structure:
+```
+webfg-shared-components/
+├── src/
+│   ├── components/          # All React components
+│   ├── context/            # React context providers  
+│   ├── utils/              # Utility functions
+│   └── __tests__/          # Component tests
+│       └── components/
+├── package.json            # Package configuration
+└── index.js               # Export definitions
+```
 
 ## Command Reference
 

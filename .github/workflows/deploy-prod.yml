@@ -84,5 +84,38 @@ jobs:
         run: npm install
 
       - name: Deploy GM App Prod Stack
-        # Deploy script now uses the build artifacts created in the previous step
-        run: bash scripts/deploy.sh prod none # Call script
+        run: bash scripts/deploy.sh prod none
+
+  deploy-player-app-prod:
+    name: Deploy Player App to Prod
+    runs-on: ubuntu-latest
+    needs: deploy-gql-prod # Run after GQL deployment
+    defaults:
+      run:
+        working-directory: ./webfg-player-app
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install SAM CLI
+        run: |
+          pip install aws-sam-cli
+        working-directory: . # Run at root
+
+      - name: Install Player App dependencies
+        run: npm install
+
+      - name: Deploy Player App Prod Stack
+        run: bash scripts/deploy.sh prod none

@@ -1,0 +1,163 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SAM Template for hosting the webfg-player-app React static website with dynamic QA deployments.
+Parameters:
+  Environment:
+    Type: String
+    Description: 'Deployment environment (prod/qa)'
+    Default: 'prod'
+    AllowedValues:
+      - 'prod'
+      - 'qa'
+  DeploymentId: # New parameter for PR ID
+    Type: String
+    Description: 'Unique ID for QA deployments (e.g., PR number)'
+    Default: 'none'
+  RootDomain:
+    Type: String
+    Description: "Root domain name"
+    Default: "phnks.com"
+  PhnksCertArn:
+    Type: String
+    Description: "ACM Certificate ARN for *.phnks.com"
+    Default: "arn:aws:acm:us-east-1:519721258290:certificate/a9b31c8c-0d9a-465d-b677-8fe6a5cceb96"
+  PhnksHostedZoneId:
+    Type: String
+    Description: "Route53 hosted zone ID for phnks.com"
+    Default: "Z0011216DMAXI27AITHT"
+
+Conditions:
+  IsQA: !Equals [!Ref Environment, 'qa']
+  IsQADeployment: !And
+    - Condition: IsQA
+    - !Not [!Equals [!Ref DeploymentId, 'none']]
+
+Resources:
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub # Construct name directly
+        - "webfg-player-app${EnvSuffix}${IdSuffix}-website"
+        - EnvSuffix: !If [ IsQA, "-qa", "" ]
+          IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - "*"
+            AllowedMethods:
+              - GET
+            AllowedHeaders:
+              - "*"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+  CloudFrontOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub # Construct name directly
+          - "webfg-player-app${EnvSuffix}${IdSuffix}-oac"
+          - EnvSuffix: !If [ IsQA, "-qa", "" ]
+            IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+  WebsiteDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt WebsiteBucket.RegionalDomainName
+            Id: S3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+            OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
+        Enabled: true
+        Comment: !Sub # Construct comment directly
+          - "CloudFront distribution for webfg-player-app${EnvSuffix}${IdSuffix}.${RootDomain}"
+          - EnvSuffix: !If [ IsQA, "-qa", "" ]
+            IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
+        DefaultRootObject: index.html
+        HttpVersion: http2
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          TargetOriginId: S3Origin
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+          DefaultTTL: 86400
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          AcmCertificateArn: !Ref PhnksCertArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        Aliases:
+          - !Sub # Construct alias directly
+            - "webfg-player-app${EnvSuffix}${IdSuffix}.${RootDomain}"
+            - EnvSuffix: !If [ IsQA, "-qa", "" ]
+              IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "AllowCloudFrontServicePrincipal"
+            Effect: Allow
+            Principal:
+              Service: "cloudfront.amazonaws.com"
+            Action: "s3:GetObject"
+            Resource: !Sub "${WebsiteBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${WebsiteDistribution}"
+  SubdomainDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref PhnksHostedZoneId
+      Name: !Sub # Construct name directly
+        - "webfg-player-app${EnvSuffix}${IdSuffix}.${RootDomain}."
+        - EnvSuffix: !If [ IsQA, "-qa", "" ]
+          IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt WebsiteDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2 # CloudFront's hosted zone ID (fixed value)
+        EvaluateTargetHealth: false
+Outputs:
+  WebsiteBucketName:
+    Description: Name of S3 bucket to hold website content
+    Value: !Ref WebsiteBucket
+  CloudFrontDomainName:
+    Description: "CloudFront Distribution Domain Name"
+    Value: !GetAtt WebsiteDistribution.DomainName
+  WebsiteUrl:
+    Description: "URL for the website"
+    Value: !Sub # Construct URL directly
+      - "https://webfg-player-app${EnvSuffix}${IdSuffix}.${RootDomain}"
+      - EnvSuffix: !If [ IsQA, "-qa", "" ]
+        IdSuffix: !If [ IsQADeployment, !Ref DeploymentId, "" ]
+  CloudFrontDistributionId:
+    Description: "CloudFront Distribution ID"
+    Value: !Ref WebsiteDistribution
