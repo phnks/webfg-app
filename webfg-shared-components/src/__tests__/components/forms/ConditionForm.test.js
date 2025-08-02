@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { MockedProvider } from '@apollo/client/testing';
 import ConditionForm from '../../../components/forms/ConditionForm';
-import { CREATE_CONDITION, UPDATE_CONDITION } from '../../../graphql/operations';
+import { CREATE_CONDITION, UPDATE_CONDITION } from '../../graphql/operations';
 
 const mockCreateCondition = {
   request: {

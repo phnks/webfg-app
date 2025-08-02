@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing';
 import Timeline from '../../../components/encounters/Timeline';
-import { GET_ACTIONS } from '../../../graphql/operations';
+import { GET_ACTIONS } from '../../graphql/operations';
 
 const mockHistory = [
   {

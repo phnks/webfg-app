@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { MockedProvider } from '@apollo/client/testing';
 import ObjectForm from '../../../components/forms/ObjectForm';
-import { CREATE_OBJECT, UPDATE_OBJECT, LIST_OBJECTS } from '../../../graphql/operations';
+import { CREATE_OBJECT, UPDATE_OBJECT, LIST_OBJECTS } from '../../graphql/operations';
 
 const mockListObjects = {
   request: {

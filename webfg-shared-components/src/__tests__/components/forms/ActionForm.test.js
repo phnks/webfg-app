@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing';
 import { BrowserRouter } from 'react-router-dom';
 import ActionForm from '../../../components/forms/ActionForm';
-import { CREATE_ACTION, UPDATE_ACTION, LIST_ACTIONS } from '../../../graphql/operations';
+import { CREATE_ACTION, UPDATE_ACTION, LIST_ACTIONS } from '../../graphql/operations';
 
 const mockListActions = {
   request: {

@@ -5,7 +5,7 @@ import { gql } from '@apollo/client';
 import CharacterAttributesBackend from '../../../components/characters/CharacterAttributesBackend';
 
 // Mock the operations
-jest.mock('../../../graphql/computedOperations', () => ({
+jest.mock('../../../../graphql/computedOperations', () => ({
   GET_CHARACTER_ATTRIBUTE_BREAKDOWN: require('@apollo/client').gql`
     query GetCharacterAttributeBreakdown($characterId: ID!, $attributeName: String!) {
       getCharacter(characterId: $characterId) {

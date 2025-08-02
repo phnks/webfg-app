@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { MockedProvider } from '@apollo/client/testing';
 import NavBar from '../../../components/nav/NavBar';
 import { RecentlyViewedProvider } from '../../../context/RecentlyViewedContext';
-import { LIST_ENCOUNTERS } from '../../../graphql/operations';
+import { LIST_ENCOUNTERS } from '../../graphql/operations';
 
 const mockEncounterData = {
   request: {

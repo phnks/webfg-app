@@ -22,7 +22,7 @@ jest.mock('@apollo/client', () => ({
   gql: jest.fn(() => ({}))
 }));
 
-jest.mock('../../../graphql/operations', () => ({
+jest.mock('../../graphql/operations', () => ({
   GET_THOUGHT: 'GET_THOUGHT',
   DELETE_THOUGHT: 'DELETE_THOUGHT',
   ADD_THOUGHT_TO_CHARACTER_MIND: 'ADD_THOUGHT_TO_CHARACTER_MIND'

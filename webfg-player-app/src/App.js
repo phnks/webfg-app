@@ -3,33 +3,36 @@ import React, { useEffect } from 'react'; // Keep useEffect import
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'; 
 import { useQuery } from '@apollo/client';
 import { LIST_CHARACTERS, LIST_OBJECTS, LIST_ACTIONS, LIST_CONDITIONS, LIST_THOUGHTS } from './graphql/operations';
-import NavBar from './components/nav/NavBar';
-import CharacterList from './components/characters/CharacterList';
-import CharacterView from './components/characters/CharacterView';
-import CharacterEdit from './components/characters/CharacterEdit';
-import CharacterForm from './components/forms/CharacterForm';
-import ObjectList from './components/objects/ObjectList';
-import ObjectView from './components/objects/ObjectView';
-import ObjectEdit from './components/objects/ObjectEdit';
-import ObjectForm from './components/forms/ObjectForm';
-import ActionList from './components/actions/ActionList';
-import ActionView from './components/actions/ActionView';
-import ActionEdit from './components/actions/ActionEdit';
-import ActionForm from './components/forms/ActionForm';
-import ConditionsList from './components/conditions/ConditionsList';
-import ConditionView from './components/conditions/ConditionView';
-import ConditionEdit from './components/conditions/ConditionEdit';
-import ConditionForm from './components/forms/ConditionForm';
-import ThoughtList from './components/thoughts/ThoughtList';
-import ThoughtView from './components/thoughts/ThoughtView';
-import ThoughtEdit from './components/thoughts/ThoughtEdit';
-import ThoughtForm from './components/forms/ThoughtForm';
-import Home from './components/Home';
-import { SelectedCharacterProvider, useSelectedCharacter } from './context/SelectedCharacterContext';
-import { RecentlyViewedProvider } from './context/RecentlyViewedContext';
-import SelectedCharacterBanner from './components/common/SelectedCharacterBanner';
-import EncountersList from './components/encounters/EncountersList';
-import EncounterDetail from './components/encounters/EncounterDetail';
+import {
+  NavBar,
+  CharacterList,
+  CharacterView,
+  CharacterEdit,
+  CharacterForm,
+  ObjectList,
+  ObjectView,
+  ObjectEdit,
+  ObjectForm,
+  ActionList,
+  ActionView,
+  ActionEdit,
+  ActionForm,
+  ConditionsList,
+  ConditionView,
+  ConditionEdit,
+  ConditionForm,
+  ThoughtList,
+  ThoughtView,
+  ThoughtEdit,
+  ThoughtForm,
+  Home,
+  SelectedCharacterProvider,
+  useSelectedCharacter,
+  RecentlyViewedProvider,
+  SelectedCharacterBanner,
+  EncountersList,
+  EncounterDetail
+} from 'webfg-shared-components';
 import './App.css';
 
 function AppContent() {

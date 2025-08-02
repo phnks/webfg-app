@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing';
 import { BrowserRouter } from 'react-router-dom';
 import CharacterForm from '../../../components/forms/CharacterForm';
-import { CREATE_CHARACTER, UPDATE_CHARACTER } from '../../../graphql/operations';
+import { CREATE_CHARACTER, UPDATE_CHARACTER } from '../../graphql/operations';
 import { SelectedCharacterProvider } from '../../../context/SelectedCharacterContext';
 
 const createCharacterMocks = [
